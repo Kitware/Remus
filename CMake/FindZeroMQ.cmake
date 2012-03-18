@@ -1,56 +1,45 @@
-#   Copyright 2011 SURFnet BV
+# - Try to find ZeroMQ headers and libraries
+# - THANKS CUBIT FOR THIS FIND MODULE
 #
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+# Usage of this module as follows:
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#     find_package(ZeroMQ)
 #
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+# Variables used by this module, they can change the default behaviour and need
+# to be set before calling find_package:
 #
-
-# - Try to find libzmq
-# Once done, this will define
+#  ZeroMQ_ROOT_DIR  Set this variable to the root installation of
+#                            ZeroMQ if the module has problems finding
+#                            the proper installation path.
 #
-#  ZeroMQ_FOUND - system has libzmq
-#  ZeroMQ_INCLUDE_DIRS - the libzmq include directories
-#  ZeroMQ_LIBRARIES - link these to use libzmq
+# Variables defined by this module:
+#
+#  ZEROMQ_FOUND              System has ZeroMQ libs/headers
+#  ZeroMQ_LIBRARIES          The ZeroMQ libraries
+#  ZeroMQ_INCLUDE_DIR        The location of ZeroMQ headers
 
-include(LibFindMacros)
+find_path(ZeroMQ_ROOT_DIR
+    NAMES include/zmq.hpp
+)
 
-IF (UNIX)
-	# Use pkg-config to get hints about paths
-	libfind_pkg_check_modules(ZeroMQ_PKGCONF libzmq)
+find_library(ZeroMQ_LIBRARIES
+    NAMES zmq
+    HINTS ${ZeroMQ_ROOT_DIR}/lib
+)
 
-	# Include dir
-	find_path(ZeroMQ_INCLUDE_DIR
-	  NAMES zmq.hpp
-	  PATHS ${ZEROMQ_ROOT}/include ${ZeroMQ_PKGCONF_INCLUDE_DIRS}
-	)
+find_path(ZeroMQ_INCLUDE_DIR
+    NAMES zmq.hpp
+    HINTS ${ZeroMQ_ROOT_DIR}/include
+)
 
-	# Finally the library itself
-	find_library(ZeroMQ_LIBRARY
-	  NAMES zmq
-	  PATHS ${ZEROMQ_ROOT}/lib ${ZeroMQ_PKGCONF_LIBRARY_DIRS}
-	)
-ELSEIF (WIN32)
-	find_path(ZeroMQ_INCLUDE_DIR
-	  NAMES zmq.hpp
-	  PATHS ${ZEROMQ_ROOT}/include ${CMAKE_INCLUDE_PATH}
-	)
-	# Finally the library itself
-	find_library(ZeroMQ_LIBRARY
-	  NAMES libzmq
-	  PATHS ${ZEROMQ_ROOT}/lib ${CMAKE_LIB_PATH}
-	)
-ENDIF()
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(ZeroMQ DEFAULT_MSG
+    ZeroMQ_LIBRARIES
+    ZeroMQ_INCLUDE_DIR
+)
 
-# Set the include dir variables and the libraries and let libfind_process do the rest.
-# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
-set(ZeroMQ_PROCESS_INCLUDES ZeroMQ_INCLUDE_DIR ZeroMQ_INCLUDE_DIRS)
-set(ZeroMQ_PROCESS_LIBS ZeroMQ_LIBRARY ZeroMQ_LIBRARIES)
-libfind_process(ZeroMQ)
+mark_as_advanced(
+    ZeroMQ_ROOT_DIR
+    ZeroMQ_LIBRARIES
+    ZeroMQ_INCLUDE_DIR
+)

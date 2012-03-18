@@ -1,15 +1,24 @@
 cmake_minimum_required (VERSION 2.8)
 project(MeshServer)
-find_project(ZeroMQ REQUIRED)
 
-set(SRCS
-   server.h
-   worker.h
-   main.cxx
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
+
+find_package(ZeroMQ REQUIRED)
+
+set(SRCS_Broker
+   broker.h
+   brokerMain.cxx
    )
 
-include_directories(${ZeroMQ_INCLUDE_DIRS})
+set(SRCS_Workers
+  meshWorker.h
+  meshWorkerMain.cxx
+  )
 
-add_executable(MeshServer ${SRCS})
+include_directories(${ZeroMQ_INCLUDE_DIR})
 
-target_link_libraries(MeshServer ${ZeroMQ_LIBRARIES})
+add_executable(MeshBroker ${SRCS_Broker})
+target_link_libraries(MeshBroker ${ZeroMQ_LIBRARIES})
+
+add_executable(MeshWorkers ${SRCS_Workers})
+target_link_libraries(MeshWorkers ${ZeroMQ_LIBRARIES})
