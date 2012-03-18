@@ -31,7 +31,6 @@ bool execute()
 
     std::istringstream iss(static_cast<char*>(message.data()));
     std::cout << "worker sent message: " << iss.str() << std::endl;
-    sleep(1);
     //  Send results to sink
     message.rebuild();
     this->MeshStatus.send(message);

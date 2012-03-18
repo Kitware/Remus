@@ -29,5 +29,5 @@ target_link_libraries(MeshClient ${ZeroMQ_LIBRARIES})
 add_executable(MeshBroker ${SRCS_Broker})
 target_link_libraries(MeshBroker ${ZeroMQ_LIBRARIES})
 
-add_executable(MeshWorkers ${SRCS_Workers})
-target_link_libraries(MeshWorkers ${ZeroMQ_LIBRARIES})
+add_executable(MeshWorker ${SRCS_Workers})
+target_link_libraries(MeshWorker ${ZeroMQ_LIBRARIES})
