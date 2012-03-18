@@ -7,11 +7,11 @@
 
 namespace meshserver
 {
-class MeshWorker
+class Worker
 {
 public:
 
-MeshWorker(const int socket_num):
+Worker(const int socket_num):
   SocketNum(socket_num),
   Context(1),
   MeshJobs(this->Context, ZMQ_PULL),
@@ -23,16 +23,15 @@ MeshWorker(const int socket_num):
 
 bool execute()
 {
+  std::cout << "Executing" <<std::endl;
   while(true)
     {
     zmq::message_t message;
     this->MeshJobs.recv(&message);
 
     std::istringstream iss(static_cast<char*>(message.data()));
-    std::cout << "message is: " << iss.str() << std::endl;
-
-    sleep(10000);
-
+    std::cout << "worker sent message: " << iss.str() << std::endl;
+    sleep(1);
     //  Send results to sink
     message.rebuild();
     this->MeshStatus.send(message);

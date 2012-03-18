@@ -15,7 +15,7 @@ public:
   ClientSocketNum(client_socket),
   WorkerSocketNum(worker_socket),
   Context(1),
-  MeshRequests(this->Context,ZMQ_PULL),
+  MeshRequests(this->Context,ZMQ_REP),
   Workers(this->Context,ZMQ_PUSH),
   WorkerStatus(this->Context, ZMQ_PULL),
   MeshStatus(this->Context, ZMQ_PUB)
@@ -25,8 +25,6 @@ public:
 
   this->bindToSocket(WorkerStatus,WorkerSocketNum+10);
   this->bindToSocket(MeshStatus,ClientSocketNum+10);
-
-  zmq::device(ZMQ_STREAMER,this->MeshRequests,this->Workers);
   }
 
 bool execute()
@@ -34,8 +32,14 @@ bool execute()
   //loop forever waiting for worker status, and pushing it
   while(true)
     {
-    this->s_recv(this->WorkerStatus);
-    this->s_send(this->MeshStatus,"Mesh Complete");
+    //todo add polling which checks for mesh request
+    //and mesh status and updates everything as needed
+    this->s_recv(this->MeshRequests);
+    this->s_send(this->Workers,"Broker Requested Mesh Job");
+    this->s_send(this->MeshRequests, "Sent a request for meshing to workers");
+
+    //this->s_recv(this->WorkerStatus);
+    //this->s_send(this->MeshStatus,"Mesh Complete");
     }
   return true;
 }
