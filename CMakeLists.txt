@@ -5,6 +5,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 
 find_package(ZeroMQ REQUIRED)
 
+set(COMMON_SRCS
+  MeshServerInfo.h
+  zeroHelper.h
+  )
 
 set(SRCS_Client
    client.h
@@ -23,11 +27,11 @@ set(SRCS_Workers
 
 include_directories(${ZeroMQ_INCLUDE_DIR})
 
-add_executable(MeshClient ${SRCS_Client})
+add_executable(MeshClient ${SRCS_Client} ${COMMON_SRCS})
 target_link_libraries(MeshClient ${ZeroMQ_LIBRARIES})
 
-add_executable(MeshBroker ${SRCS_Broker})
+add_executable(MeshBroker ${SRCS_Broker} ${COMMON_SRCS})
 target_link_libraries(MeshBroker ${ZeroMQ_LIBRARIES})
 
-add_executable(MeshWorker ${SRCS_Workers})
+add_executable(MeshWorker ${SRCS_Workers} ${COMMON_SRCS})
 target_link_libraries(MeshWorker ${ZeroMQ_LIBRARIES})
