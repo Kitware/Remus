@@ -29,9 +29,9 @@ bool execute()
   for(int i=0; i < 100; ++i)
     {
     //send as a message the integer whose factorial we want to compute
-    std::stringstream buff;
-    buff << (100 + i * 4);
-    zmsg* msg = new zmsg(buff.str().c_str());
+//    std::stringstream buff;
+//    buff << (100 + i * 4);
+    zmsg* msg = new zmsg("Test");
     this->send(meshserver::MESH2D,msg);
     }
 
