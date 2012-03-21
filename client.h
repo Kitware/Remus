@@ -1,7 +1,18 @@
+/*=========================================================================
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notice for more information.
+
+=========================================================================*/
+
 #ifndef __worker_h
 #define __worker_h
 
+#include "MeshServerInfo.h"
 #include "zmq.hpp"
+#include "zeroHelper.h"
+
 #include <sstream>
 #include <iostream>
 
@@ -11,20 +22,19 @@ class Client
 {
 public:
 
-Client(const int socket_num):
-  SocketNum(socket_num),
+Client():
   Context(1),
   Server(this->Context, ZMQ_REQ)
   {
-  this->connectToSocket(this->Server,this->SocketNum);
+  zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
   }
 
 bool execute()
 {
   for(int i=0; i < 10; i++)
     {
-    this->s_send(this->Server, "I want a mesh job!");
-    std::cout << "Client recieved msg: " << this->s_recv(this->Server) << std::endl;
+    zmq::s_send(this->Server, "I want a mesh job!");
+    std::cout << "Client recieved msg: " << zmq::s_recv(this->Server) << std::endl;
     }
 
   this->Server.close();
@@ -32,38 +42,6 @@ bool execute()
 }
 
 private:
-
-void connectToSocket(zmq::socket_t &socket, const int num)
-{
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.connect(buffer.str().c_str());
-}
-
-void bindToSocket(zmq::socket_t &socket, const int num)
-{
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.bind(buffer.str().c_str());
-}
-
-bool s_send (zmq::socket_t & socket, const std::string & string)
-{
-  zmq::message_t message(string.size());
-  memcpy(message.data(), string.data(), string.size());
-
-  bool rc = socket.send(message);
-  return (rc);
-}
-
-std::string s_recv (zmq::socket_t & socket)
-{
-  zmq::message_t message;
-  socket.recv(&message);
-  return std::string(static_cast<char*>(message.data()), message.size());
-}
-
-  const int SocketNum;
   zmq::context_t Context;
   zmq::socket_t Server;
 };

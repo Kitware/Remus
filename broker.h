@@ -1,30 +1,35 @@
+/*=========================================================================
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notice for more information.
+
+=========================================================================*/
+
 #ifndef __server_h
 #define __server_h
 
 #include <iostream>
 #include <sstream>
 
+#include "MeshServerInfo.h"
 #include "zmq.hpp"
+#include "zeroHelper.h"
 
 namespace meshserver
 {
 class Broker
 {
 public:
-  Broker(const int client_socket, const int worker_socket):
-  ClientSocketNum(client_socket),
-  WorkerSocketNum(worker_socket),
+  Broker():
   Context(1),
-  MeshRequests(this->Context,ZMQ_REP),
+  ClientRequests(this->Context,ZMQ_REP),
   Workers(this->Context,ZMQ_PUSH),
-  WorkerStatus(this->Context, ZMQ_PULL),
-  MeshStatus(this->Context, ZMQ_PUB)
+  WorkerStatus(this->Context, ZMQ_PULL)
   {
-  this->bindToSocket(MeshRequests,ClientSocketNum);
-  this->bindToSocket(Workers,WorkerSocketNum);
-
-  this->bindToSocket(WorkerStatus,WorkerSocketNum+10);
-  this->bindToSocket(MeshStatus,ClientSocketNum+10);
+  zmq::bindToSocket(ClientRequests,meshserver::BROKER_CLIENT_PORT);
+  zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
+  zmq::bindToSocket(WorkerStatus,meshserver::BROKER_STATUS_PORT);
   }
 
 bool execute()
@@ -34,57 +39,17 @@ bool execute()
     {
     //todo add polling which checks for mesh request
     //and mesh status and updates everything as needed
-    this->s_recv(this->MeshRequests);
-    this->s_send(this->Workers,"Broker Requested Mesh Job");
-    this->s_send(this->MeshRequests, "Sent a request for meshing to workers");
-
-    //this->s_recv(this->WorkerStatus);
-    //this->s_send(this->MeshStatus,"Mesh Complete");
+    zmq::s_recv(this->ClientRequests);
+    zmq::s_send(this->Workers,"Broker Requested Mesh Job");
+    zmq::s_send(this->ClientRequests, "Sent a request for meshing to workers");
     }
   return true;
 }
 
 private:
-
-void connectToSocket(zmq::socket_t &socket, const int num)
-{
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.connect(buffer.str().c_str());
-}
-
-void bindToSocket(zmq::socket_t &socket, const int num)
-{
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.bind(buffer.str().c_str());
-}
-
-bool s_send (zmq::socket_t & socket, const std::string & string)
-{
-  zmq::message_t message(string.size());
-  memcpy(message.data(), string.data(), string.size());
-
-  bool rc = socket.send(message);
-  return (rc);
-}
-
-std::string s_recv (zmq::socket_t & socket)
-{
-  zmq::message_t message;
-  socket.recv(&message);
-  return std::string(static_cast<char*>(message.data()), message.size());
-}
-
-  const int ClientSocketNum;
-  const int WorkerSocketNum;
-
   zmq::context_t Context;
-
-  zmq::socket_t MeshRequests;
+  zmq::socket_t ClientRequests;
   zmq::socket_t Workers;
-
-  zmq::socket_t MeshStatus;
   zmq::socket_t WorkerStatus;
 };
 
