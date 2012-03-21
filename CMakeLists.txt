@@ -6,21 +6,26 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 find_package(ZeroMQ REQUIRED)
 
 set(COMMON_SRCS
-  MeshServerInfo.h
-  zeroHelper.h
+  Common/meshServerGlobals.h
+  Common/mdp.h
+  Common/zmsg.h
+  Common/zhelpers.h
   )
 
 set(SRCS_Client
+   Common/mdcliapi.h
    client.h
    clientMain.cxx
    )
 
 set(SRCS_Broker
+   Common/mdbrkapi.h
    broker.h
    brokerMain.cxx
    )
 
 set(SRCS_Workers
+  Common/mdwrkapi.h
   worker.h
   workerMain.cxx
   )

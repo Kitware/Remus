@@ -3,6 +3,6 @@
 int main ()
 {
   meshserver::Broker b;
-  bool valid = b.execute();
-  return valid ? 0 : 1;
+  b.start_brokering();
+  return 1;
 }
