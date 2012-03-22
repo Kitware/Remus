@@ -35,9 +35,11 @@ bool execute()
   for(int i=0; i < 10; i++)
     {
     std::string jobData("test contents");
-    meshserver::job j(meshserver::MESH2D,
-                      jobData.data(),
-                      jobData.size());
+    meshserver::jobMessage j(meshserver::MESH2D,
+                             meshserver::MAKE_MESH,
+                             i,
+                             jobData.data(),
+                             jobData.size());
     j.send(this->Server);
     }
   this->Server.close();

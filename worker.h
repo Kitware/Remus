@@ -9,9 +9,9 @@
 #ifndef __worker_h
 #define __worker_h
 
-#include "MeshServerInfo.h"
-#include "zmq.hpp"
-#include "zeroHelper.h"
+#include <zmq.hpp>
+#include "Common/meshServerGlobals.h"
+#include "Common/zmqHelper.h"
 
 #include <sstream>
 #include <iostream>

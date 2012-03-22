@@ -12,9 +12,10 @@
 #include <iostream>
 #include <sstream>
 
-#include "MeshServerInfo.h"
-#include "zmq.hpp"
-#include "zeroHelper.h"
+#include <zmq.h>
+#include "Common/meshServerGlobals.h"
+#include "Common/job.h"
+#include "Common/zmqHelper.h"
 
 namespace meshserver
 {
@@ -23,32 +24,62 @@ class Broker
 public:
   Broker():
   Context(1),
-  ClientRequests(this->Context,ZMQ_REP),
+  JobQueries(this->Context,ZMQ_REP),
   Workers(this->Context,ZMQ_PUSH),
   WorkerStatus(this->Context, ZMQ_PULL)
   {
-  zmq::bindToSocket(ClientRequests,meshserver::BROKER_CLIENT_PORT);
+  zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
   zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
   zmq::bindToSocket(WorkerStatus,meshserver::BROKER_STATUS_PORT);
   }
 
 bool execute()
 {
-  //loop forever waiting for worker status, and pushing it
-  while(true)
+  zmq::pollitem_t items[2] = {
+      { this->JobQueries,  0, ZMQ_POLLIN, 0 },
+      { this->WorkerStatus, 0, ZMQ_POLLIN, 0 } };
+
+  //  Process messages from both sockets
+  while (true)
     {
-    //todo add polling which checks for mesh request
-    //and mesh status and updates everything as needed
-    zmq::s_recv(this->ClientRequests);
-    zmq::s_send(this->Workers,"Broker Requested Mesh Job");
-    zmq::s_send(this->ClientRequests, "Sent a request for meshing to workers");
+    zmq::poll (&items[0], 2, -1);
+    if (items [0].revents & ZMQ_POLLIN)
+      {
+      this->ProcessJobQuery();
+      }
+    if (items [1].revents & ZMQ_POLLIN)
+      {
+      this->ProcessWorkerStatus();
+      }
     }
   return true;
-}
+  }
 
 private:
+
+void ProcessJobQuery()
+  {
+  //we could have a job item or a job query
+  //so make the generic class type
+  //construct a job item from the latest item to be recieved from job connection
+  meshserver::jobMessage jmsg(this->JobQueries);
+
+  //we need to hold onto job and push it to a server instead
+  if(jmsg.serviceType() == meshserver::MAKE_MESH)
+    {
+    std::cout << "got a job to make a mesh" << std::endl;
+    }
+
+}
+
+void ProcessWorkerStatus()
+{
+  //no-op for now
+}
+
+
   zmq::context_t Context;
-  zmq::socket_t ClientRequests;
+  zmq::socket_t JobQueries;
   zmq::socket_t Workers;
   zmq::socket_t WorkerStatus;
 };

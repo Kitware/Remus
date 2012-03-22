@@ -22,12 +22,25 @@ static const int BROKER_STATUS_PORT = 5557;
 static const std::string ClientTag = "MDPC01";
 static const std::string WorkerTag = "MDPW01";
 
-enum MESH_TYPES
-  {
-  MESH2D = 1 << 1,
-  MESH3D = 1 << 2
-  };
+enum MESH_TYPE
+{
+  MESH2D = 2,
+  MESH3D = 3
+};
 
+enum SERVICE_TYPE
+{
+  MAKE_MESH = 1,
+  IS_MESHED = 2,
+  CAN_MESH = 3
+};
+
+enum STATUS_TYPE
+{
+  IN_PROGRESS = 1,
+  FINISHED = 2,
+  FAILED = 3
+};
 }
 
 #endif // __MeshServerInfo_
