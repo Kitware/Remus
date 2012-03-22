@@ -43,10 +43,10 @@ bool execute()
       break;
       }
     reply = request;
-//    std::stringstream buffer(reply->body());
-//    int factorial;
-//    buffer >> factorial;
-//    std::cout << "factorial " << factorial << " is: " << find_factorial(factorial) << std::endl;
+    std::stringstream buffer(reply->body());
+    int factorial;
+    buffer >> factorial;
+    std::cout << "factorial " << factorial << " is: " << find_factorial(factorial) << std::endl;
     }
 }
 

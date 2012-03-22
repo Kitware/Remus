@@ -15,7 +15,9 @@
 //Define global information that the mesh server needs
 
 namespace meshserver {
-static const int BROKER_PORT = 5555;
+static const int BROKER_CLIENT_PORT = 5555;
+static const int BROKER_WORKER_PORT = 5555;
+static const int BROKER_STATUS_PORT = 5555;
 
 //these defines are used to specify services
 static const std::string MESH2D="2DMESH";

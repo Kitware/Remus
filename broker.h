@@ -21,7 +21,7 @@ class Broker : public meshserver::mdp::broker
 {
 public:Broker() : meshserver::mdp::broker(true)
   {
-  this->bind( meshserver::make_tcp_conn("127.0.0.1",meshserver::BROKER_PORT));
+
   }
 };
 }
