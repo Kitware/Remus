@@ -2,10 +2,7 @@
 
 int main ()
 {
-  const std::string ip = meshserver::make_tcp_conn(
-                           "127.0.0.1",meshserver::BROKER_WORKER_PORT);
-
-  meshserver::Worker w(ip);
+  meshserver::Worker w;
   bool valid = w.execute();
   return valid ? 0 : 1;
 }

@@ -9,47 +9,41 @@
 #ifndef __worker_h
 #define __worker_h
 
-#include "Common/meshServerGlobals.h"
-#include "Common/mdcliapi.h"
+#include "MeshServerInfo.h"
+#include "zmq.hpp"
+#include "zeroHelper.h"
+
+#include <sstream>
+#include <iostream>
 
 namespace meshserver
 {
-class Client : public meshserver::mdp::client
+class Client
 {
 public:
 
-Client(const std::string& brokerIP):
-  meshserver::mdp::client(brokerIP,true)
-{
-
-}
+Client():
+  Context(1),
+  Server(this->Context, ZMQ_REQ)
+  {
+  zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
+  }
 
 bool execute()
 {
-  for(int i=0; i < 100; ++i)
+  for(int i=0; i < 10; i++)
     {
-    //send as a message the integer whose factorial we want to compute
-    std::stringstream buff;
-    buff << (100 + i * 4);
-    zmsg* msg = new zmsg(buff.str().c_str());
-    this->send(meshserver::MESH2D,msg);
+    zmq::s_send(this->Server, "I want a mesh job!");
+    std::cout << "Client recieved msg: " << zmq::s_recv(this->Server) << std::endl;
     }
 
-  for(int i=0; i < 100; ++i)
-    {
-    zmsg* reply = this->recv();
-    if(reply)
-      {
-      std::cout << "Got a reply" << std::endl;
-      delete reply;
-      }
-    else
-      {
-      break;
-      }
-    }
+  this->Server.close();
+  return true;
 }
 
+private:
+  zmq::context_t Context;
+  zmq::socket_t Server;
 };
 }
 

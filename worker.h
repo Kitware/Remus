@@ -9,47 +9,45 @@
 #ifndef __worker_h
 #define __worker_h
 
-#include "Common/meshServerGlobals.h"
-#include "Common/mdwrkapi.h"
+#include "MeshServerInfo.h"
+#include "zmq.hpp"
+#include "zeroHelper.h"
 
 #include <sstream>
 #include <iostream>
 
 namespace meshserver
 {
-
-int find_factorial(int n)
-{
-  return (n==0)? 1 : n * find_factorial(n-1);
-}
-
-class Worker : public meshserver::mdp::worker
+class Worker
 {
 public:
 
-Worker(const std::string brokerIP):
-  meshserver::mdp::worker(brokerIP,meshserver::MESH2D,true)
+Worker():
+  Context(1),
+  MeshJobs(this->Context, ZMQ_PULL),
+  MeshStatus(this->Context, ZMQ_PUSH)
   {
+  zmq::connectToSocket(this->MeshJobs,meshserver::BROKER_WORKER_PORT);
+  zmq::connectToSocket(this->MeshStatus,meshserver::BROKER_STATUS_PORT);
   }
 
 bool execute()
 {
-  zmsg* reply = NULL;
   while(true)
     {
-    zmsg* request = this->recv(reply);
-    if(request==NULL)
-      {
-      break;
-      }
-    reply = request;
-    std::stringstream buffer(reply->body());
-    int factorial;
-    buffer >> factorial;
-    std::cout << "factorial " << factorial << " is: " << find_factorial(factorial) << std::endl;
+    std::string msg = zmq::s_recv(this->MeshJobs);
+    std::cout << "worker sent message: " << msg << std::endl;
+    //Send results back to the sink
+    zmq::s_send(this->MeshStatus,msg);
     }
+
+  return true;
 }
 
+private:
+  zmq::context_t Context;
+  zmq::socket_t MeshJobs;
+  zmq::socket_t MeshStatus;
 };
 }
 
