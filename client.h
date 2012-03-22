@@ -6,12 +6,13 @@
 
 =========================================================================*/
 
-#ifndef __worker_h
-#define __worker_h
+#ifndef __client_h
+#define __client_h
 
-#include "MeshServerInfo.h"
-#include "zmq.hpp"
-#include "zeroHelper.h"
+#include <zmq.h>
+#include "Common/meshServerGlobals.h"
+#include "Common/zmqHelper.h"
+#include "Common/job.h"
 
 #include <sstream>
 #include <iostream>
@@ -24,7 +25,7 @@ public:
 
 Client():
   Context(1),
-  Server(this->Context, ZMQ_REQ)
+  Server(this->Context, ZMQ_DEALER)
   {
   zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
   }
@@ -33,10 +34,12 @@ bool execute()
 {
   for(int i=0; i < 10; i++)
     {
-    zmq::s_send(this->Server, "I want a mesh job!");
-    std::cout << "Client recieved msg: " << zmq::s_recv(this->Server) << std::endl;
+    std::string jobData("test contents");
+    meshserver::job j(meshserver::MESH2D,
+                      jobData.data(),
+                      jobData.size());
+    j.send(this->Server);
     }
-
   this->Server.close();
   return true;
 }

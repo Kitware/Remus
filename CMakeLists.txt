@@ -6,8 +6,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 find_package(ZeroMQ REQUIRED)
 
 set(COMMON_SRCS
-  MeshServerInfo.h
-  zeroHelper.h
+  Common/job.h
+  Common/meshServerGlobals.h
+  Common/zmqHelper.h
   )
 
 set(SRCS_Client

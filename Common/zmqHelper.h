@@ -10,7 +10,7 @@
 #ifndef __zeroHelper_h
 #define __zeroHelper_h
 
-#include "zmq.h"
+#include <zmq.hpp>
 #include <sstream>
 
 //A collection of general helper methods
