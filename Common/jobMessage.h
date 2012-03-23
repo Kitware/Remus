@@ -138,7 +138,6 @@ JobMessage::JobMessage(zmq::socket_t &socket)
   //see if we have more data. If so we need to say we are invalid
   //as we parsed the wrong type of message
   socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-  std::cout << "rcv_more is: " << more << "," << more_size << std::endl;
   ValidMsg=(more==0)?true:false;
 }
 
@@ -146,7 +145,7 @@ JobMessage::JobMessage(zmq::socket_t &socket)
 bool JobMessage::send(zmq::socket_t &socket) const
   {
   //we are sending our selves as a multi part message
-  //frame 0: REQ header
+  //frame 0: REQ header / attachReqHeader does this
   //frame 1: Mesh Type
   //frame 2: Service Type
   //frame 3: Job Data //optional
@@ -155,8 +154,7 @@ bool JobMessage::send(zmq::socket_t &socket) const
     {
     return false;
     }
-  zmq::message_t reqHeader(0);
-  socket.send(reqHeader,ZMQ_SNDMORE);
+  zmq::attachReqHeader(socket);
 
   zmq::message_t meshType(sizeof(this->MType));
   memcpy(meshType.data(),&this->MType,sizeof(this->MType));

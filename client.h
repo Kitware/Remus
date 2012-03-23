@@ -56,7 +56,6 @@ Client::Client():
 {
   //in the future this should be a dealer, but that will require
   //handling of all requests to be asynchronous
-  this->Server.setsockopt(ZMQ_IDENTITY,"CLIENT",6);
   zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
 }
 
@@ -64,6 +63,7 @@ Client::Client():
 bool Client::canMesh(meshserver::MESH_TYPE mtype)
 {
   meshserver::JobMessage j(mtype,meshserver::CAN_MESH);
+  j.dump(std::cout);
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);

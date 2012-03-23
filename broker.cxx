@@ -57,7 +57,6 @@ bool Broker::startBrokering()
 void Broker::DetermineJobResponse(const std::string& clientAddress,
                                   JobMessage *jmsg)
 {
-  std::cout << "Got job message from: " << clientAddress << std::endl;
   jmsg->dump(std::cout);
   //broker response is the general response message type
   //the client can than convert it to the expected type

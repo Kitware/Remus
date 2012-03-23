@@ -90,6 +90,21 @@ void JobResponse::clearData()
 
 //------------------------------------------------------------------------------
 template<typename T>
+T JobResponse::dataAs()
+  {
+  //default implementation works for primitive types
+  return *reinterpret_cast<T*>(this->Data->data());
+  }
+
+//------------------------------------------------------------------------------
+template<>
+std::string JobResponse::dataAs<std::string>()
+  {
+  return std::string(static_cast<char*>(this->Data->data()),this->Data->size());
+  }
+
+//------------------------------------------------------------------------------
+template<typename T>
 void JobResponse::setData(const T& t)
   {
   this->clearData();
@@ -97,14 +112,18 @@ void JobResponse::setData(const T& t)
   const std::size_t size(sizeof(t));
   this->Data = new zmq::message_t(size);
   memcpy(this->Data->data(),&t,size);
+
+  std::cout << "data content is: " << this->dataAs<T>() <<  "with size " << this->Data->size() << std::endl;
   }
 
 //------------------------------------------------------------------------------
-template<typename T>
-T JobResponse::dataAs()
+template<>
+void JobResponse::setData<std::string>(const std::string& t)
   {
-  //will copy the data on return
-  return *(reinterpret_cast<T*>(this->Data->data()));
+  this->clearData();
+  this->Data = new zmq::message_t(t.size());
+  memcpy(this->Data->data(),t.data(),t.size());
+  std::cout << "data content is: " << this->dataAs<std::string>() <<  "with size " << this->Data->size() << std::endl;
   }
 
 //------------------------------------------------------------------------------

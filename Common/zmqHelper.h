@@ -59,6 +59,19 @@ void stripSocketSig(zmq::socket_t& socket)
     socket.recv(&reqHeader);
     }
 }
+
+//if we are not a req socket make us look like one
+void attachReqHeader(zmq::socket_t& socket)
+{
+  int socketType;
+  std::size_t socketTypeSize = sizeof(socketType);
+  socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
+  if(socketType != ZMQ_REQ)
+    {
+    zmq::message_t reqHeader(0);
+    socket.send(reqHeader,ZMQ_SNDMORE);
+    }
+}
 }
 
 #endif // __zeroHelper_h
