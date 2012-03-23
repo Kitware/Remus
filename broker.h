@@ -14,7 +14,7 @@
 
 namespace meshserver
 {
-class jobMessage;
+class JobMessage;
 class Broker
 {
 public:
@@ -23,13 +23,13 @@ public:
 
 private:
   //processes all job queries
-  void DetermineJobResponse(meshserver::jobMessage* jmsg);
+  void DetermineJobResponse(meshserver::JobMessage* jmsg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(meshserver::jobMessage* msg);
-  meshserver::STATUS_TYPE meshStatus(meshserver::jobMessage* msg);
-  std::string queueJob(meshserver::jobMessage* msg);
-  std::string retrieveMesh(meshserver::jobMessage* msg);
+  bool canMesh(meshserver::JobMessage* msg);
+  meshserver::STATUS_TYPE meshStatus(meshserver::JobMessage* msg);
+  std::string queueJob(meshserver::JobMessage* msg);
+  std::string retrieveMesh(meshserver::JobMessage* msg);
 
 
   //Methods for processing Worker queries

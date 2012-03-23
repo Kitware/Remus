@@ -11,17 +11,15 @@
 
 #include "stdint.h"
 #include <zmq.hpp>
-#include "zmqHelper.h"
 #include "meshServerGlobals.h"
 
 namespace meshserver{
-class jobMessage
+class JobMessage
 {
 public:
-  typedef unsigned int UUID_TYPE;
-  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
-  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
-  jobMessage(zmq::socket_t& socket);
+  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
+  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
+  JobMessage(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
   void releaseData() { this->Data = NULL; }
@@ -76,7 +74,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
+JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
   MType(mtype),
   SType(stype),
   Data(data),
@@ -87,7 +85,7 @@ jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, in
   }
 
 //------------------------------------------------------------------------------
-jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
+JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
   MType(mtype),
   SType(stype),
   Data(NULL),
@@ -98,7 +96,7 @@ jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
   }
 
 //------------------------------------------------------------------------------
-jobMessage::jobMessage(zmq::socket_t &socket)
+JobMessage::JobMessage(zmq::socket_t &socket)
 {
   //construct a job message from the socket
 
@@ -143,7 +141,7 @@ jobMessage::jobMessage(zmq::socket_t &socket)
 }
 
 //------------------------------------------------------------------------------
-bool jobMessage::send(zmq::socket_t &socket) const
+bool JobMessage::send(zmq::socket_t &socket) const
   {
   //we are sending our selves as a multi part message
   //frame 0: empty ( REQ emultion )

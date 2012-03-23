@@ -11,6 +11,7 @@
 #include "Common/meshServerGlobals.h"
 #include "Common/zmqHelper.h"
 #include "Common/job.h"
+#include "Common/Response.h"
 
 namespace meshserver
 {
@@ -39,7 +40,7 @@ bool Broker::startBrokering()
     zmq::poll (&items[0], 2, -1);
     if (items [0].revents & ZMQ_POLLIN)
       {
-      meshserver::jobMessage message(this->JobQueries);
+      meshserver::JobMessage message(this->JobQueries);
       this->DetermineJobResponse(&message);
       }
     if (items [1].revents & ZMQ_POLLIN)
@@ -51,11 +52,11 @@ bool Broker::startBrokering()
   }
 
 //------------------------------------------------------------------------------
-void Broker::DetermineJobResponse(jobMessage *jmsg)
+void Broker::DetermineJobResponse(JobMessage *jmsg)
 {
   //broker response is the general response message type
   //the client can than convert it to the expected type
-  meshserver::BrokerResponse response;
+  meshserver::JobResponse response;
   if(!jmsg->isValid())
     {
     response.markInvalid();
@@ -86,21 +87,21 @@ void Broker::DetermineJobResponse(jobMessage *jmsg)
 }
 
 //------------------------------------------------------------------------------
-bool canMesh(meshserver::jobMessage* msg)
+bool canMesh(meshserver::JobMessage* msg)
 {
   //ToDo: add registration of mesh type
   return true;
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE meshStatus(meshserver::jobMessage* msg)
+meshserver::STATUS_TYPE meshStatus(meshserver::JobMessage* msg)
 {
   //ToDo: add tracking of mesh status from workers
   return meshserver::INVALID;
 }
 
 //------------------------------------------------------------------------------
-std::string queueJob(meshserver::jobMessage* msg)
+std::string queueJob(meshserver::JobMessage* msg)
 {
   //ToDo: The broker needs to generate a UUID for the job that it tracks by
   // use boost uuid to generate the ids that we track by
@@ -108,7 +109,7 @@ std::string queueJob(meshserver::jobMessage* msg)
 }
 
 //------------------------------------------------------------------------------
-std::string retrieveMesh(meshserver::jobMessage* msg)
+std::string retrieveMesh(meshserver::JobMessage* msg)
 {
   //ToDo: actually have a way for a worker to return the mesh.
   //I think we need to design a system where the broker holds onto meshes

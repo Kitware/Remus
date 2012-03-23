@@ -59,7 +59,7 @@ Client::Client():
 //------------------------------------------------------------------------------
 bool canMesh(meshserver::MESH_TYPE mtype)
 {
-  meshserver::jobMessage j(mtype,meshserver::CAN_MESH);
+  meshserver::JobMessage j(mtype,meshserver::CAN_MESH);
   j.send(this->Server);
 
   meshserver::statusResponse response(this->Server);
@@ -69,7 +69,7 @@ bool canMesh(meshserver::MESH_TYPE mtype)
 //------------------------------------------------------------------------------
 std::string submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
 {
-  meshserver::jobMessage j(mtype,
+  meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
                            fpath.data(),
                            fpath.size());
@@ -82,7 +82,7 @@ std::string submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
 //------------------------------------------------------------------------------
 meshserver::STATUS_TYPE jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
 {
-  meshserver::jobMessage j(mtype,
+  meshserver::JobMessage j(mtype,
                            meshserver::MESH_STATUS,
                            job.data(), job.size());
   j.send(this->Server);
@@ -94,7 +94,7 @@ meshserver::STATUS_TYPE jobStatus(meshserver::MESH_TYPE mtype, const std::string
 //------------------------------------------------------------------------------
 std::string retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
 {
-  meshserver::jobMessage j(mtype,
+  meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
                            fpath.data(),
                            fpath.size());
