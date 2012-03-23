@@ -1,5 +1,7 @@
 #include "client.h"
 
+#include <vector>
+#include <iostream>
 int main ()
 {
   meshserver::Client c;
@@ -18,8 +20,8 @@ int main ()
     for(int i=0; i < jobIds.size(); ++i)
       {
       std::cout << "job id " << jobIds.at(i) << " status " <<
-                   c.jobStatus(meshserver::MESH2D,jobs.at(i)) << std::endl;
+                   c.jobStatus(meshserver::MESH2D,jobIds.at(i)) << std::endl;
       }
     }
-  return valid ? 0 : 1;
+  return 1;
 }

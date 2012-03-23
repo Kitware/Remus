@@ -63,8 +63,8 @@ bool Client::canMesh(meshserver::MESH_TYPE mtype)
   meshserver::JobMessage j(mtype,meshserver::CAN_MESH);
   j.send(this->Server);
 
-  meshserver::StatusResponse response(this->Server);
-  return response.status() != meshserver::INVALID;
+  meshserver::JobResponse response(this->Server);
+  return response.dataAs<meshserver::STATUS_TYPE>() != meshserver::INVALID;
 }
 
 //------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ std::string Client::submitMeshJob(meshserver::MESH_TYPE mtype, const std::string
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  return response.id();
+  return response.dataAs<std::string>();
 }
 
 //------------------------------------------------------------------------------
@@ -88,8 +88,8 @@ meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std
                            job.data(), job.size());
   j.send(this->Server);
 
-  meshserver::StatusResponse response(this->Server);
-  return response.status();
+  meshserver::JobResponse response(this->Server);
+  return response.dataAs<meshserver::STATUS_TYPE>();
 }
 
 //------------------------------------------------------------------------------
@@ -97,12 +97,12 @@ std::string Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string&
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
-                           fpath.data(),
-                           fpath.size());
+                           jobId.data(),
+                           jobId.size());
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  return response.mesh();
+  return response.dataAs<std::string>();
 }
 
 }
