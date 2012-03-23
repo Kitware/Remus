@@ -9,13 +9,14 @@
 #ifndef __client_h
 #define __client_h
 
-#include <zmq.h>
+#include <zmq.hpp>
+#include <string>
+
 #include "Common/meshServerGlobals.h"
 #include "Common/zmqHelper.h"
-#include "Common/job.h"
+#include "Common/jobMessage.h"
+#include "Common/jobResponse.h"
 
-#include <sstream>
-#include <iostream>
 
 namespace meshserver
 {
@@ -57,17 +58,17 @@ Client::Client():
 }
 
 //------------------------------------------------------------------------------
-bool canMesh(meshserver::MESH_TYPE mtype)
+bool Client::canMesh(meshserver::MESH_TYPE mtype)
 {
   meshserver::JobMessage j(mtype,meshserver::CAN_MESH);
   j.send(this->Server);
 
-  meshserver::statusResponse response(this->Server);
+  meshserver::StatusResponse response(this->Server);
   return response.status() != meshserver::INVALID;
 }
 
 //------------------------------------------------------------------------------
-std::string submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
+std::string Client::submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
@@ -75,24 +76,24 @@ std::string submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
                            fpath.size());
   j.send(this->Server);
 
-  meshserver::jobResponse response(this->Server);
+  meshserver::JobResponse response(this->Server);
   return response.id();
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
+meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MESH_STATUS,
                            job.data(), job.size());
   j.send(this->Server);
 
-  meshserver::statusResponse response(this->Server);
+  meshserver::StatusResponse response(this->Server);
   return response.status();
 }
 
 //------------------------------------------------------------------------------
-std::string retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
+std::string Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
@@ -100,7 +101,7 @@ std::string retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
                            fpath.size());
   j.send(this->Server);
 
-  meshserver::jobResponse response(this->Server);
+  meshserver::JobResponse response(this->Server);
   return response.mesh();
 }
 

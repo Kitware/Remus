@@ -16,10 +16,11 @@
 namespace meshserver{
 class JobResponse
 {
+public:
   JobResponse();
   ~JobResponse();
 
-  void markInValid(){ Valid = false; }
+  void markInvalid(){ Valid = false; }
 
   //Clears any existing data message, and reconstructs
   //the new message we will use when we call send
@@ -41,6 +42,15 @@ JobResponse::JobResponse():
   }
 
 //------------------------------------------------------------------------------
+JobResponse::~JobResponse()
+  {
+  if(DataMessage)
+    {
+    delete DataMessage;
+    }
+  }
+
+//------------------------------------------------------------------------------
 template<typename T>
 void JobResponse::setData(const T& t)
   {
@@ -48,9 +58,10 @@ void JobResponse::setData(const T& t)
   }
 
 //------------------------------------------------------------------------------
-bool JobResponse::send(zmq::socket_t& socket)
+bool JobResponse::send(zmq::socket_t& socket) const
   {
 
   }
+}
 
 #endif // __meshserver_response_h
