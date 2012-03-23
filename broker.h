@@ -23,7 +23,8 @@ public:
 
 private:
   //processes all job queries
-  void DetermineJobResponse(meshserver::JobMessage* jmsg);
+  void DetermineJobResponse(const std::string &clientAddress,
+                            meshserver::JobMessage* jmsg);
 
   //These methods are all to do with send responses to job messages
   bool canMesh(meshserver::JobMessage* msg);

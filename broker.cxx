@@ -40,8 +40,10 @@ bool Broker::startBrokering()
     zmq::poll (&items[0], 2, -1);
     if (items [0].revents & ZMQ_POLLIN)
       {
+      //we need to strip the client address from the message
+      std::string clientAddress = zmq::s_recv(this->JobQueries);
       meshserver::JobMessage message(this->JobQueries);
-      this->DetermineJobResponse(&message);
+      this->DetermineJobResponse(clientAddress,&message);
       }
     if (items [1].revents & ZMQ_POLLIN)
       {
@@ -52,11 +54,12 @@ bool Broker::startBrokering()
   }
 
 //------------------------------------------------------------------------------
-void Broker::DetermineJobResponse(meshserver::JobMessage *jmsg)
+void Broker::DetermineJobResponse(const std::string& clientAddress,
+                                  JobMessage *jmsg)
 {
   //broker response is the general response message type
   //the client can than convert it to the expected type
-  meshserver::JobResponse response;
+  meshserver::JobResponse response(clientAddress);
   if(!jmsg->isValid())
     {
     response.markInvalid();
