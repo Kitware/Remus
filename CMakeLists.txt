@@ -18,6 +18,7 @@ set(SRCS_Client
 
 set(SRCS_Broker
    broker.h
+   broker.cxx
    brokerMain.cxx
    )
 

@@ -6,82 +6,41 @@
 
 =========================================================================*/
 
-#ifndef __server_h
-#define __server_h
+#ifndef __broker_h
+#define __broker_h
 
-#include <iostream>
-#include <sstream>
-
-#include <zmq.h>
+#include <zmq.hpp>
 #include "Common/meshServerGlobals.h"
-#include "Common/job.h"
-#include "Common/zmqHelper.h"
 
 namespace meshserver
 {
+class jobMessage;
 class Broker
 {
 public:
-  Broker():
-  Context(1),
-  JobQueries(this->Context,ZMQ_REP),
-  Workers(this->Context,ZMQ_PUSH),
-  WorkerStatus(this->Context, ZMQ_PULL)
-  {
-  zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-  zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
-  zmq::bindToSocket(WorkerStatus,meshserver::BROKER_STATUS_PORT);
-  }
-
-bool execute()
-{
-  zmq::pollitem_t items[2] = {
-      { this->JobQueries,  0, ZMQ_POLLIN, 0 },
-      { this->WorkerStatus, 0, ZMQ_POLLIN, 0 } };
-
-  //  Process messages from both sockets
-  while (true)
-    {
-    zmq::poll (&items[0], 2, -1);
-    if (items [0].revents & ZMQ_POLLIN)
-      {
-      this->ProcessJobQuery();
-      }
-    if (items [1].revents & ZMQ_POLLIN)
-      {
-      this->ProcessWorkerStatus();
-      }
-    }
-  return true;
-  }
+  Broker();
+  bool startBrokering();
 
 private:
+  //processes all job queries
+  void DetermineJobResponse(meshserver::jobMessage* jmsg);
 
-void ProcessJobQuery()
-  {
-  //we could have a job item or a job query
-  //so make the generic class type
-  //construct a job item from the latest item to be recieved from job connection
-  meshserver::jobMessage jmsg(this->JobQueries);
+  //These methods are all to do with send responses to job messages
+  bool canMesh(meshserver::jobMessage* msg);
+  meshserver::STATUS_TYPE meshStatus(meshserver::jobMessage* msg);
+  std::string queueJob(meshserver::jobMessage* msg);
+  std::string retrieveMesh(meshserver::jobMessage* msg);
 
-  //we need to hold onto job and push it to a server instead
-  if(jmsg.serviceType() == meshserver::MAKE_MESH)
-    {
-    std::cout << "got a job to make a mesh" << std::endl;
-    }
 
-}
+  //Methods for processing Worker queries
+  void DetermineWorkerResponse();
 
-void ProcessWorkerStatus()
-{
-  //no-op for now
-}
 
 
   zmq::context_t Context;
   zmq::socket_t JobQueries;
+  zmq::socket_t WorkerQueries;
   zmq::socket_t Workers;
-  zmq::socket_t WorkerStatus;
 };
 
 }
