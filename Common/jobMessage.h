@@ -70,7 +70,9 @@ private:
   bool ValidMsg; //tells if the message is valid, mainly used by the server
   DataStorage Storage;
 
-
+  //make copying not possible
+  JobMessage (const JobMessage&);
+  void operator = (const JobMessage&);
 };
 
 //------------------------------------------------------------------------------
@@ -99,15 +101,6 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
 JobMessage::JobMessage(zmq::socket_t &socket)
 {
   //construct a job message from the socket
-
-  //get the client tag and ignore it as we don't need it currently
-  //it becomes important when we starting implementing routing and
-  //requests in the broker
-  {
-    zmq::message_t message;
-    socket.recv(&message, 0);
-  }
-
   zmq::message_t meshType;
   socket.recv(&meshType);
   this->MType = *(reinterpret_cast<MESH_TYPE*>(meshType.data()));
@@ -144,23 +137,14 @@ JobMessage::JobMessage(zmq::socket_t &socket)
 bool JobMessage::send(zmq::socket_t &socket) const
   {
   //we are sending our selves as a multi part message
-  //frame 0: empty ( REQ emultion )
-  //frame 1: "MDP/Client" //for now we are going to emulate major domo pattern
-  //frame 2: Mesh Type
-  //frame 3: Service Type
-  //frame 4: Job Data //optional
+  //frame 1: Mesh Type
+  //frame 2: Service Type
+  //frame 3: Job Data //optional
 
   if(!this->ValidMsg)
     {
     return false;
     }
-
-  zmq::message_t reqEmu(0);
-  socket.send(reqEmu,ZMQ_SNDMORE);
-
-  zmq::message_t clientTag(meshserver::ClientTag.size());
-  memcpy(clientTag.data(),meshserver::ClientTag.data(),meshserver::ClientTag.size());
-  socket.send(clientTag,ZMQ_SNDMORE);
 
   zmq::message_t meshType(sizeof(this->MType));
   memcpy(meshType.data(),&this->MType,sizeof(this->MType));
