@@ -57,12 +57,15 @@ bool Broker::startBrokering()
 void Broker::DetermineJobResponse(const std::string& clientAddress,
                                   JobMessage *jmsg)
 {
+  std::cout << "Got job message from: " << clientAddress << std::endl;
+  jmsg->dump(std::cout);
   //broker response is the general response message type
   //the client can than convert it to the expected type
   meshserver::JobResponse response(clientAddress);
   if(!jmsg->isValid())
     {
-    response.markInvalid();
+    std::cout << "Sending invalid message" << std::endl;
+    response.setData(meshserver::INVALID);
     response.send(this->JobQueries);
     return; //no need to continue
     }
@@ -83,7 +86,8 @@ void Broker::DetermineJobResponse(const std::string& clientAddress,
       response.setData(this->retrieveMesh(jmsg));
       break;
     default:
-      response.markInvalid();
+      std::cout << "Sending invalid message" << std::endl;
+      response.setData(meshserver::INVALID);
     }
   response.send(this->JobQueries);
   return;

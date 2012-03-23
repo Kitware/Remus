@@ -52,8 +52,11 @@ private:
 //------------------------------------------------------------------------------
 Client::Client():
   Context(1),
-  Server(this->Context, ZMQ_DEALER) //we are dealer so we don't have to wait for responses
+  Server(this->Context, ZMQ_REQ)
 {
+  //in the future this should be a dealer, but that will require
+  //handling of all requests to be asynchronous
+  this->Server.setsockopt(ZMQ_IDENTITY,"CLIENT",6);
   zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
 }
 

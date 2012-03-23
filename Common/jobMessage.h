@@ -9,9 +9,12 @@
 #ifndef __meshserver_job_h
 #define __meshserver_job_h
 
-#include "stdint.h"
+#include <cstddef>
 #include <zmq.hpp>
+#include "zmqHelper.h"
 #include "meshServerGlobals.h"
+
+#include <iostream>
 
 namespace meshserver{
 class JobMessage
@@ -31,6 +34,9 @@ public:
   int dataSize() const { return Size; }
 
   bool isValid() const { return ValidMsg; }
+
+  template<typename T>
+  void dump(T& t) const;
 
 private:
   //a special struct that holds any space we need malloced
@@ -101,6 +107,8 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
 JobMessage::JobMessage(zmq::socket_t &socket)
 {
   //construct a job message from the socket
+  zmq::stripSocketSig(socket);
+
   zmq::message_t meshType;
   socket.recv(&meshType);
   this->MType = *(reinterpret_cast<MESH_TYPE*>(meshType.data()));
@@ -130,13 +138,15 @@ JobMessage::JobMessage(zmq::socket_t &socket)
   //see if we have more data. If so we need to say we are invalid
   //as we parsed the wrong type of message
   socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-  ValidMsg=(more==0)?false:true;
+  std::cout << "rcv_more is: " << more << "," << more_size << std::endl;
+  ValidMsg=(more==0)?true:false;
 }
 
 //------------------------------------------------------------------------------
 bool JobMessage::send(zmq::socket_t &socket) const
   {
   //we are sending our selves as a multi part message
+  //frame 0: REQ header
   //frame 1: Mesh Type
   //frame 2: Service Type
   //frame 3: Job Data //optional
@@ -145,6 +155,8 @@ bool JobMessage::send(zmq::socket_t &socket) const
     {
     return false;
     }
+  zmq::message_t reqHeader(0);
+  socket.send(reqHeader,ZMQ_SNDMORE);
 
   zmq::message_t meshType(sizeof(this->MType));
   memcpy(meshType.data(),&this->MType,sizeof(this->MType));
@@ -152,17 +164,38 @@ bool JobMessage::send(zmq::socket_t &socket) const
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
-  socket.send(service,ZMQ_SNDMORE);
-
-  if(this->Size > 0)
+  if(this->Size> 0)
     {
+    //send the service line not as the last line
+    socket.send(service,ZMQ_SNDMORE);
+
+    //send the data
     zmq::message_t data(this->Size);
     memcpy(data.data(),this->Data,this->Size);
     socket.send(data);
     }
-
+  else //we are done
+    {
+    socket.send(service);
+    }
   return true;
   }
+
+//------------------------------------------------------------------------------
+template<typename T>
+void JobMessage::dump(T& t) const
+  {
+  //dump the info to the t stream
+  t << "Valid: " << this->isValid() << std::endl;
+  t << "Mesh Type: " << this->meshType() << std::endl;
+  t << "Serivce Type: " << this->serviceType() << std::endl;
+  t << "Size: " << this->dataSize() << std::endl;
+  if(this->dataSize() > 0)
+    {
+    t << "Data: " << std::string(this->Data,this->dataSize()) << std::endl;
+    }
+  }
+
 }
 
 #endif
