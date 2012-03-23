@@ -15,36 +15,12 @@
 #include "meshServerGlobals.h"
 
 namespace meshserver{
-
-
-
 class jobMessage
 {
 public:
   typedef unsigned int UUID_TYPE;
-  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, UUID_TYPE jobId,
-             const char* data, int size):
-    MType(mtype),
-    SType(stype),
-    JobId(jobId),
-    Data(data),
-    Size(size),
-    ValidMsg(true),
-    Storage()
-    {
-    }
-
-  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, UUID_TYPE jobId):
-    MType(mtype),
-    SType(stype),
-    JobId(jobId),
-    Data(NULL),
-    Size(0),
-    ValidMsg(true),
-    Storage()
-    {
-    }
-
+  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
+  jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
   jobMessage(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
@@ -52,10 +28,11 @@ public:
 
   const meshserver::MESH_TYPE& meshType() const { return MType; }
   const meshserver::SERVICE_TYPE& serviceType() const { return SType; }
-  const UUID_TYPE& jobId() const { return JobId; }
 
   const char* const data() const { return Data; }
   int dataSize() const { return Size; }
+
+  bool isValid() const { return ValidMsg; }
 
 private:
   //a special struct that holds any space we need malloced
@@ -90,7 +67,6 @@ private:
 
   meshserver::MESH_TYPE MType;
   meshserver::SERVICE_TYPE SType;
-  UUID_TYPE JobId;
   const char* Data;
   int Size;
   bool ValidMsg; //tells if the message is valid, mainly used by the server
@@ -98,6 +74,28 @@ private:
 
 
 };
+
+//------------------------------------------------------------------------------
+jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
+  MType(mtype),
+  SType(stype),
+  Data(data),
+  Size(size),
+  ValidMsg(true),
+  Storage()
+  {
+  }
+
+//------------------------------------------------------------------------------
+jobMessage::jobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
+  MType(mtype),
+  SType(stype),
+  Data(NULL),
+  Size(0),
+  ValidMsg(true),
+  Storage()
+  {
+  }
 
 //------------------------------------------------------------------------------
 jobMessage::jobMessage(zmq::socket_t &socket)
@@ -119,10 +117,6 @@ jobMessage::jobMessage(zmq::socket_t &socket)
   zmq::message_t servType;
   socket.recv(&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
-
-  zmq::message_t jobId;
-  socket.recv(&jobId);
-  this->JobId = *(reinterpret_cast<UUID_TYPE*>(jobId.data()));
 
   int64_t more;
   size_t more_size = sizeof(more);
@@ -155,8 +149,7 @@ bool jobMessage::send(zmq::socket_t &socket) const
   //frame 0: empty ( REQ emultion )
   //frame 1: "MDP/Client" //for now we are going to emulate major domo pattern
   //frame 2: Mesh Type
-  //frame 2: Service Type
-  //frame 3: Job Id
+  //frame 3: Service Type
   //frame 4: Job Data //optional
 
   if(!this->ValidMsg)
@@ -179,10 +172,6 @@ bool jobMessage::send(zmq::socket_t &socket) const
   memcpy(service.data(),&this->SType,sizeof(this->SType));
   socket.send(service,ZMQ_SNDMORE);
 
-  zmq::message_t jobId(sizeof(this->JobId));
-  memcpy(jobId.data(),&this->JobId,sizeof(this->JobId));
-  socket.send(jobId,ZMQ_SNDMORE);
-
   if(this->Size > 0)
     {
     zmq::message_t data(this->Size);
@@ -192,8 +181,6 @@ bool jobMessage::send(zmq::socket_t &socket) const
 
   return true;
   }
-
-//------------------------------------------------------------------------------
 }
 
 #endif

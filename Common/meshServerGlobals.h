@@ -31,15 +31,18 @@ enum MESH_TYPE
 enum SERVICE_TYPE
 {
   MAKE_MESH = 1,
-  IS_MESHED = 2,
-  CAN_MESH = 3
+  MESH_STATUS = 2,
+  CAN_MESH = 3,
+  RETRIEVE_MESH = 4
 };
 
 enum STATUS_TYPE
 {
-  IN_PROGRESS = 1,
-  FINISHED = 2,
-  FAILED = 3
+  INVALID = 0,
+  QUEUED = 1,
+  IN_PROGRESS = 2,
+  FINISHED = 3,
+  FAILED = 4
 };
 }
 
