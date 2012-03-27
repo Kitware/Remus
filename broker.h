@@ -44,7 +44,6 @@ protected:
 
   //Sends a single job to a worker
   void DispatchJob();
-
 private:
   boost::uuids::random_generator UUIDGenerator;
   boost::scoped_ptr<meshserver::JobQueue> Jobs;

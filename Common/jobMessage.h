@@ -9,8 +9,11 @@
 #ifndef __meshserver_job_h
 #define __meshserver_job_h
 
-#include <cstddef>
+#include <boost/uuid/uuid.hpp>
+#include <boost/shared_ptr.hpp>
 #include <zmq.hpp>
+
+#include <cstddef>
 #include "zmqHelper.h"
 #include "meshServerGlobals.h"
 
@@ -41,44 +44,21 @@ public:
 private:
   //a special struct that holds any space we need malloced
   struct DataStorage
-  {
-  DataStorage(): Size(0), Space(NULL){}
-  DataStorage(unsigned int size): Size(size)
-  {
-    this->Space = new char[this->Size];
-  }
-
-  //make the assignment operator do a swap
-  //and destory of the old space ( the destory is done by the fact that other
-  // is temporary)
-  DataStorage& operator = (DataStorage other)
-  {
-    //swap the size
-    int s = other.Size;
-    other.Size = this->Size;
-    this->Size = s;
-
-    //swap the Data pointers
-    char* ptr = other.Space;
-    other.Space = this->Space;
-    this->Space = ptr;
-  }
-
-  ~DataStorage(){if(Size>0){delete this->Space;}}
-  int Size;
-  char* Space;
-  };
+    {
+    DataStorage(): Size(0), Space(NULL){}
+    DataStorage(unsigned int size): Size(size){this->Space = new char[this->Size];}
+    ~DataStorage(){if(Size>0){delete this->Space;}}
+    int Size;
+    char* Space;
+    };
 
   meshserver::MESH_TYPE MType;
   meshserver::SERVICE_TYPE SType;
   const char* Data;
   int Size;
   bool ValidMsg; //tells if the message is valid, mainly used by the server
-  DataStorage Storage;
 
-  //make copying not possible
-  JobMessage (const JobMessage&);
-  void operator = (const JobMessage&);
+  boost::shared_ptr<DataStorage> Storage;
 };
 
 //------------------------------------------------------------------------------
@@ -88,7 +68,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, in
   Data(data),
   Size(size),
   ValidMsg(true),
-  Storage()
+  Storage(new DataStorage())
   {
   }
 
@@ -99,7 +79,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
   Data(NULL),
   Size(0),
   ValidMsg(true),
-  Storage()
+  Storage(new DataStorage())
   {
   }
 
@@ -125,9 +105,9 @@ JobMessage::JobMessage(zmq::socket_t &socket)
     zmq::message_t data;
     socket.recv(&data);
     this->Size = data.size();
-    this->Storage = DataStorage(this->Size);
-    memcpy(this->Storage.Space,data.data(),this->Size);
-    this->Data = this->Storage.Space;
+    this->Storage.reset(new DataStorage(this->Size));
+    memcpy(this->Storage->Space,data.data(),this->Size);
+    this->Data = this->Storage->Space;
     }
   else
     {
@@ -193,6 +173,15 @@ void JobMessage::dump(T& t) const
     t << "Data: " << std::string(this->Data,this->dataSize()) << std::endl;
     }
   }
+
+//------------------------------------------------------------------------------
+boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
+{
+  //take the contents of the msg and convert it to an uuid
+  //no type checking will be done to make sure this is valid for now
+  boost::uuids::uuid id;
+  memcpy(&id,msg.data(),16); //boost uuid is always 16 characters long
+}
 
 }
 

@@ -20,12 +20,14 @@ static const int BROKER_STATUS_PORT = 5557;
 
 enum MESH_TYPE
 {
+  INVALID_MESH = 0,
   MESH2D = 2,
   MESH3D = 3
 };
 
 enum SERVICE_TYPE
 {
+  INVALID_SERVICE = 0,
   MAKE_MESH = 1,
   MESH_STATUS = 2,
   CAN_MESH = 3,

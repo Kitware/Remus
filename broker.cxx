@@ -122,6 +122,10 @@ bool Broker::canMesh(meshserver::JobMessage* msg)
 //------------------------------------------------------------------------------
 meshserver::STATUS_TYPE Broker::meshStatus(meshserver::JobMessage* msg)
 {
+  if(this->Jobs->haveUUID(meshserver::to_uuid(*msg)))
+    {
+    return meshserver::QUEUED;
+    }
   //ToDo: add tracking of mesh status from workers
   return meshserver::INVALID;
 }

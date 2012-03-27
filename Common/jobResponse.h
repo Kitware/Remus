@@ -123,7 +123,7 @@ void JobResponse::setData<std::string>(const std::string& t)
   this->clearData();
   this->Data = new zmq::message_t(t.size());
   memcpy(this->Data->data(),t.data(),t.size());
-  std::cout << "data content is: " << this->dataAs<std::string>() <<  "with size " << this->Data->size() << std::endl;
+  std::cout << "data content is: " << this->dataAs<std::string>() << std::endl;
   }
 
 //------------------------------------------------------------------------------
@@ -139,7 +139,6 @@ bool JobResponse::send(zmq::socket_t& socket) const
   //frame 0: client address we need to route too
   //frame 1: fake rep spacer
   //frame 2: data
-  std::cout << "Sending Job Response to client " << this->ClientAddress << std::endl;
   zmq::message_t cAddress(this->ClientAddress.size());
   memcpy(cAddress.data(),this->ClientAddress.data(),this->ClientAddress.size());
   socket.send(cAddress,ZMQ_SNDMORE);
@@ -149,7 +148,6 @@ bool JobResponse::send(zmq::socket_t& socket) const
 
   zmq::message_t realData;
   realData.move(this->Data);
-  std::cout << "message byte size is " << realData.size() << std::endl;
   socket.send(realData);
   }
 }

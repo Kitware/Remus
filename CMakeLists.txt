@@ -8,6 +8,8 @@ find_package(ZeroMQ REQUIRED)
 
 # List of Boost features used:
 # * UUID Generation
+# * Shared Ptr
+# * Scoped Ptr
 find_package(Boost 1.45.0 REQUIRED)
 
 set(COMMON_SRCS
