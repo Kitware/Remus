@@ -112,7 +112,7 @@ void JobResponse::setData(const T& t)
   const std::size_t size(sizeof(t));
   this->Data = new zmq::message_t(size);
   memcpy(this->Data->data(),&t,size);
-  std::cout << "data content is: " << this->dataAs<T>()  << std::endl;
+  std::cout << "data content is: " << this->dataAs<T>() << std::endl;
   }
 
 //------------------------------------------------------------------------------

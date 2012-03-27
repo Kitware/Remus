@@ -9,7 +9,6 @@
 #ifndef __meshserver_job_h
 #define __meshserver_job_h
 
-#include <boost/uuid/uuid.hpp>
 #include <boost/shared_ptr.hpp>
 #include <zmq.hpp>
 
@@ -173,16 +172,6 @@ void JobMessage::dump(T& t) const
     t << "Data: " << std::string(this->Data,this->dataSize()) << std::endl;
     }
   }
-
-//------------------------------------------------------------------------------
-boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
-{
-  //take the contents of the msg and convert it to an uuid
-  //no type checking will be done to make sure this is valid for now
-  boost::uuids::uuid id;
-  memcpy(&id,msg.data(),16); //boost uuid is always 16 characters long
-}
-
 }
 
 #endif

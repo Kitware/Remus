@@ -9,10 +9,10 @@
 #include "broker.h"
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp> //needed to get to_string
 
 #include "Common/meshServerGlobals.h"
 #include "Common/zmqHelper.h"
+#include "Common/messageHelper.h"
 #include "Common/jobMessage.h"
 #include "Common/jobResponse.h"
 
@@ -122,10 +122,12 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 //------------------------------------------------------------------------------
 meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::JobMessage& msg)
 {
-  if(this->Jobs->haveUUID(meshserver::to_uuid(msg)))
+  boost::uuids::uuid id = meshserver::JobMessageToUUID(msg);
+  if(this->Jobs->haveUUID(id))
     {
     return meshserver::QUEUED;
     }
+  std::cout << "don't have uuid: " << id <<  std::endl;
   //ToDo: add tracking of mesh status from workers
   return meshserver::INVALID;
 }
@@ -142,7 +144,8 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
   this->Jobs->push(jobUUID,msg);
 
   //return the UUID
-  return to_string(jobUUID);
+  std::cout << "Generated UUID: " <<jobUUID <<std::endl;
+  return meshserver::UUIDToString(jobUUID);
 }
 
 //------------------------------------------------------------------------------
