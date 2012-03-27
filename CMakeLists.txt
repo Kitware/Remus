@@ -3,7 +3,12 @@ project(MeshServer)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 
+#ZeroMQ is used for all message passing between components.
 find_package(ZeroMQ REQUIRED)
+
+# List of Boost features used:
+# * UUID Generation
+find_package(Boost 1.45.0 REQUIRED)
 
 set(COMMON_SRCS
   Common/jobMessage.h
@@ -28,7 +33,12 @@ set(SRCS_Workers
   workerMain.cxx
   )
 
+
+#include ZeroMQ
 include_directories(${ZeroMQ_INCLUDE_DIR})
+
+#include Boost
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(MeshClient ${SRCS_Client} ${COMMON_SRCS})
 target_link_libraries(MeshClient ${ZeroMQ_LIBRARIES})
