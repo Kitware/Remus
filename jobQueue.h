@@ -26,7 +26,7 @@ public:
 
   //Convert a JobMessage and UUID into a WorkerMessage.
   bool push( const boost::uuids::uuid& id,
-        meshserver::JobMessage* message);
+        const meshserver::JobMessage& message);
 
   //Removes a job from the queue.
   meshserver::JobMessage pop();
@@ -40,9 +40,8 @@ public:
 private:
   struct QueuedJob
   {
-    QueuedJob(const boost::uuids::uuid& id, meshserver::JobMessage& message):
-      Id(id),Message(message)
-    {}
+    QueuedJob(const boost::uuids::uuid& id,
+              const meshserver::JobMessage& message):Id(id),Message(message){}
     const boost::uuids::uuid Id;
     meshserver::JobMessage Message;
   };  
@@ -56,9 +55,9 @@ private:
 
 
 //------------------------------------------------------------------------------
-bool JobQueue::push(const boost::uuids::uuid &id, JobMessage *message)
+bool JobQueue::push(const boost::uuids::uuid &id, const JobMessage& message)
 {
-  this->Queue.push(QueuedJob(id,*message));
+  this->Queue.push(QueuedJob(id,message));
 }
 
 //------------------------------------------------------------------------------

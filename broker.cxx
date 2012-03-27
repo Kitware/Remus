@@ -61,7 +61,7 @@ bool Broker::startBrokering()
       meshserver::JobMessage message(this->JobQueries);
 
       //NOTE: this will queue jobs if needed
-      this->DetermineJobResponse(clientAddress,&message);
+      this->DetermineJobResponse(clientAddress,message);
       }
     if (items [1].revents & ZMQ_POLLIN)
       {
@@ -75,13 +75,13 @@ bool Broker::startBrokering()
 
 //------------------------------------------------------------------------------
 void Broker::DetermineJobResponse(const std::string& clientAddress,
-                                  JobMessage *jmsg)
+                                  const meshserver::JobMessage& msg)
 {
   //msg.dump(std::cout);
   //broker response is the general response message type
   //the client can than convert it to the expected type
   meshserver::JobResponse response(clientAddress);
-  if(!jmsg->isValid())
+  if(!msg.isValid())
     {
     std::cout << "Sending invalid message" << std::endl;
     response.setData(meshserver::INVALID);
@@ -90,19 +90,19 @@ void Broker::DetermineJobResponse(const std::string& clientAddress,
     }
 
   //we have a valid job, determine what to do with it
-  switch(jmsg->serviceType())
+  switch(msg.serviceType())
     {
     case meshserver::MAKE_MESH:
-      response.setData(this->queueJob(jmsg));
+      response.setData(this->queueJob(msg));
       break;
     case meshserver::MESH_STATUS:
-      response.setData(this->meshStatus(jmsg));
+      response.setData(this->meshStatus(msg));
       break;
     case meshserver::CAN_MESH:
-      response.setData(this->canMesh(jmsg));
+      response.setData(this->canMesh(msg));
       break;
     case meshserver::RETRIEVE_MESH:
-      response.setData(this->retrieveMesh(jmsg));
+      response.setData(this->retrieveMesh(msg));
       break;
     default:
       std::cout << "Sending invalid message" << std::endl;
@@ -113,16 +113,16 @@ void Broker::DetermineJobResponse(const std::string& clientAddress,
 }
 
 //------------------------------------------------------------------------------
-bool Broker::canMesh(meshserver::JobMessage* msg)
+bool Broker::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   return true;
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE Broker::meshStatus(meshserver::JobMessage* msg)
+meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::JobMessage& msg)
 {
-  if(this->Jobs->haveUUID(meshserver::to_uuid(*msg)))
+  if(this->Jobs->haveUUID(meshserver::to_uuid(msg)))
     {
     return meshserver::QUEUED;
     }
@@ -131,7 +131,7 @@ meshserver::STATUS_TYPE Broker::meshStatus(meshserver::JobMessage* msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::queueJob(meshserver::JobMessage* msg)
+std::string Broker::queueJob(const meshserver::JobMessage& msg)
 {
   //generate an UUID
   boost::uuids::uuid jobUUID = this->UUIDGenerator();
@@ -146,7 +146,7 @@ std::string Broker::queueJob(meshserver::JobMessage* msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::retrieveMesh(meshserver::JobMessage* msg)
+std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: actually have a way for a worker to return the mesh.
   //I think we need to design a system where the broker holds onto meshes

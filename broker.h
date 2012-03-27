@@ -31,13 +31,13 @@ public:
 protected:
   //processes all job queries
   void DetermineJobResponse(const std::string &clientAddress,
-                            meshserver::JobMessage* jmsg);
+                            const meshserver::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(meshserver::JobMessage* msg);
-  meshserver::STATUS_TYPE meshStatus(meshserver::JobMessage* msg);
-  std::string queueJob(meshserver::JobMessage* msg);
-  std::string retrieveMesh(meshserver::JobMessage* msg);
+  bool canMesh(const meshserver::JobMessage& msg);
+  meshserver::STATUS_TYPE meshStatus(const meshserver::JobMessage& msg);
+  std::string queueJob(const meshserver::JobMessage& msg);
+  std::string retrieveMesh(const meshserver::JobMessage& msg);
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse();
