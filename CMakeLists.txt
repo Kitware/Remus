@@ -26,6 +26,7 @@ set(SRCS_Broker
    broker.h
    broker.cxx
    brokerMain.cxx
+   jobQueue.h
    )
 
 set(SRCS_Workers

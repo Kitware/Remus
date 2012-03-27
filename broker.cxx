@@ -8,16 +8,23 @@
 
 #include "broker.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp> //needed to get to_string
+
 #include "Common/meshServerGlobals.h"
 #include "Common/zmqHelper.h"
 #include "Common/jobMessage.h"
 #include "Common/jobResponse.h"
+
+#include "jobQueue.h"
 
 namespace meshserver
 {
 
 //------------------------------------------------------------------------------
 Broker::Broker():
+  UUIDGenerator(), //use default random number generator
+  Jobs(new meshserver::JobQueue() ), //scoped ptr of JobQueue
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
   WorkerQueries(this->Context,ZMQ_ROUTER),
@@ -26,6 +33,12 @@ Broker::Broker():
   zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
   //zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
   }
+
+//------------------------------------------------------------------------------
+Broker::~Broker()
+{
+
+}
 
 //------------------------------------------------------------------------------
 bool Broker::startBrokering()
@@ -42,13 +55,20 @@ bool Broker::startBrokering()
       {
       //we need to strip the client address from the message
       std::string clientAddress = zmq::s_recv(this->JobQueries);
+
+      //Note:: the contents of the message isn't valid
+      //after the DetermineJobResponse call
       meshserver::JobMessage message(this->JobQueries);
+
+      //NOTE: this will queue jobs if needed
       this->DetermineJobResponse(clientAddress,&message);
       }
     if (items [1].revents & ZMQ_POLLIN)
       {
       this->DetermineWorkerResponse();
       }
+    //dispatch a job to a worker if we have any queued jobs
+    this->DispatchJob();
     }
   return true;
   }
@@ -109,9 +129,16 @@ meshserver::STATUS_TYPE Broker::meshStatus(meshserver::JobMessage* msg)
 //------------------------------------------------------------------------------
 std::string Broker::queueJob(meshserver::JobMessage* msg)
 {
-  //ToDo: The broker needs to generate a UUID for the job that it tracks by
-  // use boost uuid to generate the ids that we track by
-  return std::string("0123456789abcdef0123456789abcdef");
+  //generate an UUID
+  boost::uuids::uuid jobUUID = this->UUIDGenerator();
+
+  //create a new job to place on the queue
+  //This call will invalidate the msg as we are going to move the data
+  //to another message to await sending to the worker
+  this->Jobs->push(jobUUID,msg);
+
+  //return the UUID
+  return to_string(jobUUID);
 }
 
 //------------------------------------------------------------------------------
@@ -129,5 +156,12 @@ void Broker::DetermineWorkerResponse()
 {
   //no-op for now
 }
+
+//------------------------------------------------------------------------------
+void Broker::DispatchJob()
+{
+  //no-op for now
+}
+
 
 }
