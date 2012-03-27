@@ -77,7 +77,7 @@ bool Broker::startBrokering()
 void Broker::DetermineJobResponse(const std::string& clientAddress,
                                   JobMessage *jmsg)
 {
-  jmsg->dump(std::cout);
+  //msg.dump(std::cout);
   //broker response is the general response message type
   //the client can than convert it to the expected type
   meshserver::JobResponse response(clientAddress);
