@@ -9,7 +9,7 @@ int main ()
   if(c.canMesh(meshserver::MESH2D))
     {
     std::vector<std::string> jobIds;
-    for(int i=0; i < 25; ++i)
+    for(int i=0; i < 2; ++i)
       {
       std::string jid = c.submitMeshJob(meshserver::MESH2D,"TEST");
       if(jid.size()>0)
@@ -19,8 +19,8 @@ int main ()
       }
     for(int i=0; i < jobIds.size(); ++i)
       {
-      std::cout << "job id " << jobIds.at(i) << " status " <<
-                   c.jobStatus(meshserver::MESH2D,jobIds.at(i)) << std::endl;
+      std::cout << "job id " << jobIds.at(i) << std::endl;
+      std::cout << " status " << c.jobStatus(meshserver::MESH2D,jobIds.at(i)) << std::endl;
       }
     }
   return 1;
