@@ -42,6 +42,34 @@ enum STATUS_TYPE
   FINISHED = 3,
   FAILED = 4
 };
+
+namespace internal
+  {
+  //a mapping of enum types to char*
+  static const char *mesh_types[] = { "INVALID", "2D", "3D" };
+  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "SUPPORT MESH TYPE", "RETRIEVE MESH" };
+  static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED" };
+  }
+
+//------------------------------------------------------------------------------
+inline std::string to_string(meshserver::MESH_TYPE t)
+{
+  return std::string(meshserver::internal::mesh_types[(int)t]);
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(meshserver::SERVICE_TYPE t)
+{
+  return std::string(meshserver::internal::serv_types[(int)t]);
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(meshserver::STATUS_TYPE t)
+{
+  return std::string(meshserver::internal::stat_types[(int)t]);
+}
+
+
 }
 
 #endif // __MeshServerInfo_
