@@ -9,4 +9,4 @@ set(headers
 	JobQueue.h
 	)
 
-meshserver_public_headers(${headers})
+meshserver_private_headers(${headers})

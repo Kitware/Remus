@@ -5,8 +5,6 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
-  JobMessage.h
-  JobResponse.h
   meshServerGlobals.h
   messageHelper.h
   zmqHelper.h

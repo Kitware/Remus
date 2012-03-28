@@ -22,7 +22,8 @@ enum MESH_TYPE
 {
   INVALID_MESH = 0,
   MESH2D = 2,
-  MESH3D = 3
+  MESH3D = 3,
+  MESH3DSurface = 4
 };
 
 enum SERVICE_TYPE
@@ -43,10 +44,10 @@ enum STATUS_TYPE
   FAILED = 4
 };
 
-namespace internal
+namespace common
   {
   //a mapping of enum types to char*
-  static const char *mesh_types[] = { "INVALID", "2D", "3D" };
+  static const char *mesh_types[] = { "INVALID", "2D", "3D", "3D Surface" };
   static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "SUPPORT MESH TYPE", "RETRIEVE MESH" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED" };
   }
@@ -54,19 +55,19 @@ namespace internal
 //------------------------------------------------------------------------------
 inline std::string to_string(meshserver::MESH_TYPE t)
 {
-  return std::string(meshserver::internal::mesh_types[(int)t]);
+  return std::string(meshserver::common::mesh_types[(int)t]);
 }
 
 //------------------------------------------------------------------------------
 inline std::string to_string(meshserver::SERVICE_TYPE t)
 {
-  return std::string(meshserver::internal::serv_types[(int)t]);
+  return std::string(meshserver::common::serv_types[(int)t]);
 }
 
 //------------------------------------------------------------------------------
 inline std::string to_string(meshserver::STATUS_TYPE t)
 {
-  return std::string(meshserver::internal::stat_types[(int)t]);
+  return std::string(meshserver::common::stat_types[(int)t]);
 }
 
 

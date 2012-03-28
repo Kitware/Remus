@@ -13,7 +13,7 @@
 #include <queue>
 #include <set>
 
-#include <meshserver/internal/JobMessage.h>
+#include <meshserver/JobMessage.h>
 
 namespace meshserver{
 namespace broker{
@@ -27,10 +27,10 @@ public:
 
   //Convert a JobMessage and UUID into a WorkerMessage.
   bool push( const boost::uuids::uuid& id,
-             const meshserver::internal::JobMessage& message);
+             const meshserver::JobMessage& message);
 
   //Removes a job from the queue.
-  meshserver::internal::JobMessage pop();
+  meshserver::JobMessage pop();
 
   //Returns true if we contain the UUID
   bool haveUUID(const boost::uuids::uuid& id) const;
@@ -42,10 +42,10 @@ private:
   struct QueuedJob
   {
     QueuedJob(const boost::uuids::uuid& id,
-              const meshserver::internal::JobMessage& message):
+              const meshserver::JobMessage& message):
               Id(id),Message(message){}
     const boost::uuids::uuid Id;
-    meshserver::internal::JobMessage Message;
+    meshserver::JobMessage Message;
   };  
   std::queue<QueuedJob> Queue;
   std::set<boost::uuids::uuid> QueuedIds;
@@ -58,14 +58,14 @@ private:
 
 //------------------------------------------------------------------------------
 bool JobQueue::push(const boost::uuids::uuid &id,
-                    const meshserver::internal::JobMessage& message)
+                    const meshserver::JobMessage& message)
 {
   this->Queue.push(QueuedJob(id,message));
   this->QueuedIds.insert(id);
 }
 
 //------------------------------------------------------------------------------
-meshserver::internal::JobMessage JobQueue::pop()
+meshserver::JobMessage JobQueue::pop()
 {
   if(this->size() > 0)
     {
@@ -79,7 +79,7 @@ meshserver::internal::JobMessage JobQueue::pop()
   else
     {
     //we don't have a valid job return an invalid job
-    return meshserver::internal::JobMessage(meshserver::INVALID_MESH,
+    return meshserver::JobMessage(meshserver::INVALID_MESH,
                                             meshserver::INVALID_SERVICE);
     }
 }

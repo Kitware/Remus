@@ -1,5 +1,5 @@
 
-add_subdirectory(internal)
+add_subdirectory(common)
 add_subdirectory(broker)
 
 
@@ -7,7 +7,9 @@ add_subdirectory(broker)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
-  client.h
+  Client.h
+  JobMessage.h
+  JobResponse.h
   )
 
 meshserver_public_headers(${headers})

@@ -10,12 +10,12 @@
 
 #include <boost/uuid/uuid.hpp>
 
-#include <meshserver/internal/JobMessage.h>
-#include <meshserver/internal/JobResponse.h>
+#include <meshserver/JobMessage.h>
+#include <meshserver/JobResponse.h>
 
-#include <meshserver/internal/meshServerGlobals.h>
-#include <meshserver/internal/messageHelper.h>
-#include <meshserver/internal/zmqHelper.h>
+#include <meshserver/common/meshServerGlobals.h>
+#include <meshserver/common/messageHelper.h>
+#include <meshserver/common/zmqHelper.h>
 
 #include <meshserver/broker/internal/JobQueue.h>
 
@@ -33,7 +33,7 @@ Broker::Broker():
   Workers(this->Context,ZMQ_DEALER)
   {
   zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-  //zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
+  zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
   }
 
 //------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ bool Broker::startBrokering()
       //we need to strip the client address from the message
       std::string clientAddress = zmq::s_recv(this->JobQueries);
 
-      //Note:: the contents of the message isn't valid
+      //Note the contents of the message isn't valid
       //after the DetermineJobResponse call
-      meshserver::internal::JobMessage message(this->JobQueries);
+      meshserver::JobMessage message(this->JobQueries);
 
       //NOTE: this will queue jobs if needed
       this->DetermineJobResponse(clientAddress,message);
@@ -77,12 +77,12 @@ bool Broker::startBrokering()
 
 //------------------------------------------------------------------------------
 void Broker::DetermineJobResponse(const std::string& clientAddress,
-                                  const meshserver::internal::JobMessage& msg)
+                                  const meshserver::JobMessage& msg)
 {
   //msg.dump(std::cout);
   //broker response is the general response message type
   //the client can than convert it to the expected type
-  meshserver::internal::JobResponse response(clientAddress);
+  meshserver::JobResponse response(clientAddress);
   if(!msg.isValid())
     {
     std::cout << "Sending invalid message" << std::endl;
@@ -115,7 +115,7 @@ void Broker::DetermineJobResponse(const std::string& clientAddress,
 }
 
 //------------------------------------------------------------------------------
-bool Broker::canMesh(const meshserver::internal::JobMessage& msg)
+bool Broker::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
@@ -123,7 +123,7 @@ bool Broker::canMesh(const meshserver::internal::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::internal::JobMessage& msg)
+meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::JobMessage& msg)
 {
   boost::uuids::uuid id = meshserver::to_uuid(msg);
   if(this->Jobs->haveUUID(id))
@@ -135,7 +135,7 @@ meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::internal::JobMessag
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::queueJob(const meshserver::internal::JobMessage& msg)
+std::string Broker::queueJob(const meshserver::JobMessage& msg)
 {
   //generate an UUID
   boost::uuids::uuid jobUUID = this->UUIDGenerator();
@@ -149,7 +149,7 @@ std::string Broker::queueJob(const meshserver::internal::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::retrieveMesh(const meshserver::internal::JobMessage& msg)
+std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: actually have a way for a worker to return the mesh.
   //I think we need to design a system where the broker holds onto meshes
