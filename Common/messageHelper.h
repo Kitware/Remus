@@ -11,7 +11,7 @@
 
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/string_generator.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp> //needed to get to_string
 #include <string>
 
@@ -36,9 +36,8 @@ inline boost::uuids::uuid JobMessageToUUID(const meshserver::JobMessage& msg)
 {
   //take the contents of the msg and convert it to an uuid
   //no type checking will be done to make sure this is valid for now
-  boost::uuids::string_generator gen;
-  const std::string sId(msg.data(),16);
-  return gen(sId);
+  const std::string sId(msg.data(),msg.dataSize());
+  return boost::lexical_cast<boost::uuids::uuid>(sId);
 }
 
 }
