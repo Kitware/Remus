@@ -5,10 +5,11 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(common_headers
-  Common/jobMessage.h
-  Common/jobResponse.h
-  Common/meshServerGlobals.h
-  Common/zmqHelper.h
+  JobMessage.h
+  JobResponse.h
+  meshServerGlobals.h
+  messageHelper.h
+  zmqHelper.h
   )
 
 set_source_files_properties(${common_headers}
