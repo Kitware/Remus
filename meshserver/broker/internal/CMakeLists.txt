@@ -9,5 +9,4 @@ set(headers
 	JobQueue.h
 	)
 
-set_source_files_properties(${headers}
-	PROPERTIES HEADER_FILE_ONLY TRUE)
+meshserver_declare_headers(${headers})

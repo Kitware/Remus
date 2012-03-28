@@ -4,7 +4,7 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 #include Boost
 include_directories(${Boost_INCLUDE_DIRS})
 
-set(common_headers
+set(headers
   JobMessage.h
   JobResponse.h
   meshServerGlobals.h
@@ -12,6 +12,4 @@ set(common_headers
   zmqHelper.h
   )
 
-set_source_files_properties(${common_headers}
-	PROPERTIES HEADER_FILE_ONLY TRUE
-)
+meshserver_declare_headers(${headers})
