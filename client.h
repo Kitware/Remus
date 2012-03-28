@@ -77,6 +77,7 @@ std::string Client::submitMeshJob(meshserver::MESH_TYPE mtype, const std::string
                            meshserver::MAKE_MESH,
                            fpath.data(),
                            fpath.size());
+  j.dump(std::cout);
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
@@ -89,6 +90,7 @@ meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std
   meshserver::JobMessage j(mtype,
                            meshserver::MESH_STATUS,
                            job.data(), job.size());
+  j.dump(std::cout);
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
