@@ -57,7 +57,8 @@ private:
 
 
 //------------------------------------------------------------------------------
-bool JobQueue::push(const boost::uuids::uuid &id, const JobMessage& message)
+bool JobQueue::push(const boost::uuids::uuid &id,
+                    const meshserver::internal::JobMessage& message)
 {
   this->Queue.push(QueuedJob(id,message));
   this->QueuedIds.insert(id);
