@@ -16,8 +16,6 @@
 #include "zmqHelper.h"
 #include "meshServerGlobals.h"
 
-#include <iostream>
-
 namespace meshserver{
 class JobMessage
 {
