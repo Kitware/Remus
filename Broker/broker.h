@@ -13,7 +13,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
 
-#include "Common/meshServerGlobals.h"
+#include <meshserver/Common/messageHelper.h>
 
 namespace meshserver
 {
