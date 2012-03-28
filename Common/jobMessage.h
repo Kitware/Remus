@@ -53,10 +53,13 @@ private:
 
   meshserver::MESH_TYPE MType;
   meshserver::SERVICE_TYPE SType;
-  const char* Data;
+  const char* Data; //points to the message contents to send
   int Size;
   bool ValidMsg; //tells if the message is valid, mainly used by the server
 
+  //Storage is an optional allocation that is used when recieving job messages
+  //when the process accepting the message has no memory already allocated to recieve it
+  //It isn't used when sending messages to the broker
   boost::shared_ptr<DataStorage> Storage;
 };
 

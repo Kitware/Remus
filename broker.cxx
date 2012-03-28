@@ -137,14 +137,12 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
 {
   //generate an UUID
   boost::uuids::uuid jobUUID = this->UUIDGenerator();
-
   //create a new job to place on the queue
   //This call will invalidate the msg as we are going to move the data
   //to another message to await sending to the worker
   this->Jobs->push(jobUUID,msg);
 
   //return the UUID
-  std::cout << "Generated UUID: " <<jobUUID <<std::endl;
   return meshserver::UUIDToString(jobUUID);
 }
 
