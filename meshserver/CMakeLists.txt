@@ -1,4 +1,6 @@
-add_subdirectory(Common)
+
+add_subdirectory(internal)
+
 add_subdirectory(Broker)
 
 set(headers

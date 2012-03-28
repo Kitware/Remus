@@ -12,11 +12,10 @@
 #include <zmq.hpp>
 #include <string>
 
-#include "Common/meshServerGlobals.h"
-#include "Common/zmqHelper.h"
-#include "Common/jobMessage.h"
-#include "Common/jobResponse.h"
-
+#include <meshserver/internal/meshServerGlobals.h>
+#include <meshserver/internal/JobMessage.h>
+#include <meshserver/internal/JobResponse.h>
+#include <meshserver/internal/zmqHelper.h>
 
 namespace meshserver
 {
@@ -62,48 +61,48 @@ Client::Client():
 //------------------------------------------------------------------------------
 bool Client::canMesh(meshserver::MESH_TYPE mtype)
 {
-  meshserver::JobMessage j(mtype,meshserver::CAN_MESH);
+  meshserver::internal::JobMessage j(mtype,meshserver::CAN_MESH);
   j.send(this->Server);
 
-  meshserver::JobResponse response(this->Server);
+  meshserver::internal::JobResponse response(this->Server);
   return response.dataAs<meshserver::STATUS_TYPE>() != meshserver::INVALID;
 }
 
 //------------------------------------------------------------------------------
 std::string Client::submitMeshJob(meshserver::MESH_TYPE mtype, const std::string& fpath)
 {
-  meshserver::JobMessage j(mtype,
+  meshserver::internal::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
                            fpath.data(),
                            fpath.size());
   j.send(this->Server);
 
-  meshserver::JobResponse response(this->Server);
+  meshserver::internal::JobResponse response(this->Server);
   return response.dataAs<std::string>();
 }
 
 //------------------------------------------------------------------------------
 meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
 {
-  meshserver::JobMessage j(mtype,
+  meshserver::internal::JobMessage j(mtype,
                            meshserver::MESH_STATUS,
                            job.data(), job.size());
   j.send(this->Server);
 
-  meshserver::JobResponse response(this->Server);
+  meshserver::internal::JobResponse response(this->Server);
   return response.dataAs<meshserver::STATUS_TYPE>();
 }
 
 //------------------------------------------------------------------------------
 std::string Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
 {
-  meshserver::JobMessage j(mtype,
+  meshserver::internal::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
                            jobId.data(),
                            jobId.size());
   j.send(this->Server);
 
-  meshserver::JobResponse response(this->Server);
+  meshserver::internal::JobResponse response(this->Server);
   return response.dataAs<std::string>();
 }
 
