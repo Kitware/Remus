@@ -22,7 +22,6 @@ endfunction(ms_get_kit_name)
 # compile the given header files.
 function(ms_add_header_test name dir_prefix)
   set(hfiles ${ARGN})
-  message(STATUS "hfiles ${hfiles}")
   set(suffix ".cxx")
   set(cxxfiles)
   foreach (header ${ARGN})
@@ -40,8 +39,10 @@ function(ms_add_header_test name dir_prefix)
 endfunction(ms_add_header_test)
 
 # Declare a list of header files.  Will make sure the header files get
-# compiled and show up in an IDE.
-function(meshserver_declare_headers)
+# compiled and show up in an IDE. Also makes sure we install the headers
+# into the include folder
+function(meshserver_public_headers)
   ms_get_kit_name(name dir_prefix)
   ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
-endfunction(meshserver_declare_headers)
+  install (FILES ${ARGN} DESTINATION include)
+endfunction(meshserver_public_headers)

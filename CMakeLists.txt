@@ -17,6 +17,26 @@ find_package(ZeroMQ REQUIRED)
 find_package(Boost 1.45.0 REQUIRED)
 
 
+
+#-----------------------------------------------------------------------------
+
+## Set the directory where the binaries will be stored
+set( EXECUTABLE_OUTPUT_PATH
+  ${PROJECT_BINARY_DIR}/bin
+  CACHE PATH
+  "Directory where all executable will be stored"
+)
+
+## Set the directory where the libraries will be stored
+set( LIBRARY_OUTPUT_PATH
+  ${PROJECT_BINARY_DIR}/libs
+  CACHE PATH
+  "Directory where all the libraries will be stored"
+)
+mark_as_advanced(
+  EXECUTABLE_OUTPUT_PATH
+  LIBRARY_OUTPUT_PATH)
+
 #add this directory so we can include files like: <meshserver/internal/Test.h>
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}

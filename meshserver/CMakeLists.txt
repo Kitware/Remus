@@ -10,4 +10,4 @@ set(headers
   client.h
   )
 
-meshserver_declare_headers(${headers})
+meshserver_public_headers(${headers})
