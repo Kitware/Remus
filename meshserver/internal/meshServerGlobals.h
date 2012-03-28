@@ -6,8 +6,8 @@
   
 =========================================================================*/
 
-#ifndef __MeshServerInfo_h
-#define __MeshServerInfo_h
+#ifndef __meshserver_internal_MeshServerInfo_h
+#define __meshserver_internal_MeshServerInfo_h
 
 #include <string>
 
@@ -72,4 +72,4 @@ inline std::string to_string(meshserver::STATUS_TYPE t)
 
 }
 
-#endif // __MeshServerInfo_
+#endif // __meshserver_internal_MeshServerInfo_h

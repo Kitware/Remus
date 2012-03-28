@@ -6,15 +6,17 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_response_h
-#define __meshserver_response_h
+#ifndef __meshserver_internal_JobResponse_h
+#define __meshserver_internal_JobResponse_h
 
 #include <cstddef>
 #include <zmq.hpp>
 #include "zmqHelper.h"
-#include "meshServerGlobals.h"
+#include <meshserver/internal/meshServerGlobals.h>
 
 namespace meshserver{
+namespace internal{
+
 class JobResponse
 {
 public:
@@ -147,6 +149,8 @@ bool JobResponse::send(zmq::socket_t& socket) const
   realData.move(this->Data);
   socket.send(realData);
   }
+
+}
 }
 
-#endif // __meshserver_response_h
+#endif // __meshserver_internal_JobResponse_h

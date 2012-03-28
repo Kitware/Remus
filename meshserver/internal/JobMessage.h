@@ -6,17 +6,18 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_job_h
-#define __meshserver_job_h
+#ifndef __meshserver_internal_JobMessage_h
+#define __meshserver_internal_JobMessage_h
 
 #include <boost/shared_ptr.hpp>
 #include <zmq.hpp>
 
 #include <cstddef>
-#include "zmqHelper.h"
-#include "meshServerGlobals.h"
+#include <meshserver/internal/zmqHelper.h>
+#include <meshserver/internal/meshServerGlobals.h>
 
 namespace meshserver{
+namespace internal{
 class JobMessage
 {
 public:
@@ -174,5 +175,6 @@ void JobMessage::dump(T& t) const
     }
   }
 }
+}
 
-#endif
+#endif //__meshserver_internal_JobMessage_h

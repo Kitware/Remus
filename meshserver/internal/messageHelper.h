@@ -6,8 +6,8 @@
   
 =========================================================================*/
 
-#ifndef __messageHelper_h
-#define __messageHelper_h
+#ifndef __meshserver_internal_messageHelper_h
+#define __meshserver_internal_messageHelper_h
 
 
 #include <boost/uuid/uuid.hpp>
@@ -15,7 +15,7 @@
 #include <boost/uuid/uuid_io.hpp> //needed to get to_string
 #include <string>
 
-#include "jobMessage.h"
+#include <meshserver/internal/JobMessage.h>
 
 //The purpose of this header is to limit the number of files that
 //need to include boost, plus give better names to the conversion from and too
@@ -32,7 +32,7 @@ inline std::string to_string(const boost::uuids::uuid& id)
 }
 
 //------------------------------------------------------------------------------
-inline boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
+inline boost::uuids::uuid to_uuid(const meshserver::internal::JobMessage& msg)
 {
   //take the contents of the msg and convert it to an uuid
   //no type checking will be done to make sure this is valid for now
@@ -42,4 +42,4 @@ inline boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
 
 }
 
-#endif // __messageHelper_h
+#endif // __meshserver_internal_messageHelper_h

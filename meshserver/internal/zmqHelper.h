@@ -7,8 +7,8 @@
 =========================================================================*/
 
 
-#ifndef __zeroHelper_h
-#define __zeroHelper_h
+#ifndef __meshserver_internal_zeroHelper_h
+#define __meshserver_internal_zeroHelper_h
 
 #include <zmq.hpp>
 #include <sstream>
@@ -74,4 +74,4 @@ void attachReqHeader(zmq::socket_t& socket)
 }
 }
 
-#endif // __zeroHelper_h
+#endif // __meshserver_internal_zeroHelper_h
