@@ -5,12 +5,7 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 #include Boost
 include_directories(${Boost_INCLUDE_DIRS})
 
-set(broker_headers
-	jobQueue.h
-	)
-
-set_source_files_properties(broker_headers
-	PROPERTIES HEADER_FILE_ONLY TRUE)
+add_subdirectory(internal)
 
 set(broker_srcs
    broker.h

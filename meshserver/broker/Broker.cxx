@@ -6,17 +6,19 @@
   
 =========================================================================*/
 
-#include "broker.h"
+#include <meshserver/broker/Broker.h>
 
 #include <boost/uuid/uuid.hpp>
 
-#include "Common/meshServerGlobals.h"
-#include "Common/zmqHelper.h"
-#include "Common/messageHelper.h"
-#include "Common/jobMessage.h"
-#include "Common/jobResponse.h"
+#include <meshserver/internal/JobMessage.h>
+#include <meshserver/internal/JobResponse.h>
 
-#include "jobQueue.h"
+#include <meshserver/internal/meshServerGlobals.h>
+#include <meshserver/internal/messageHelper.h>
+#include <meshserver/internal/zmqHelper.h>
+
+#include <meshserver/broker/internal/JobQueue.h>
+
 
 namespace meshserver
 {

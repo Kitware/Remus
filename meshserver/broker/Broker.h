@@ -13,14 +13,18 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
 
-#include <meshserver/Common/messageHelper.h>
+#include <meshserver/internal/meshServerGlobals.h>
 
-namespace meshserver
-{
+namespace meshserver{
+namespace internal{
 //forward declaration of classes only the implementation needs
 class JobMessage;
 class JobQueue;
+}
+}
 
+namespace meshserver{
+namespace broker{
 class Broker
 {
 public:
@@ -31,13 +35,13 @@ public:
 protected:
   //processes all job queries
   void DetermineJobResponse(const std::string &clientAddress,
-                            const meshserver::JobMessage& msg);
+                            const meshserver::internal::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
   bool canMesh(const meshserver::JobMessage& msg);
-  meshserver::STATUS_TYPE meshStatus(const meshserver::JobMessage& msg);
-  std::string queueJob(const meshserver::JobMessage& msg);
-  std::string retrieveMesh(const meshserver::JobMessage& msg);
+  meshserver::STATUS_TYPE meshStatus(const meshserver::internal::JobMessage& msg);
+  std::string queueJob(const meshserver::internal::JobMessage& msg);
+  std::string retrieveMesh(const meshserver::internal::JobMessage& msg);
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse();
@@ -54,6 +58,7 @@ private:
   zmq::socket_t Workers;
 };
 
+}
 }
 
 

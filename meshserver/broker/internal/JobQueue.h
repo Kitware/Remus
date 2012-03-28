@@ -6,17 +6,18 @@
   
 =========================================================================*/
 
-#ifndef __jobQueue_h
-#define __jobQueue_h
+#ifndef __meshserver_broker_internal_JobQueue_h
+#define __meshserver_broker_internal_JobQueue_h
 
 #include <boost/uuid/uuid.hpp>
 #include <queue>
 #include <set>
 
-#include "Common/jobMessage.h"
+#include <meshserver/internal/JobMessage.h>
 
-namespace meshserver
-{
+namespace meshserver{
+namespace broker{
+namespace internal{
 //lightweight struct that holds all jobs
 //Is a FIFO queue
 class JobQueue
@@ -26,10 +27,10 @@ public:
 
   //Convert a JobMessage and UUID into a WorkerMessage.
   bool push( const boost::uuids::uuid& id,
-        const meshserver::JobMessage& message);
+             const meshserver::internal::JobMessage& message);
 
   //Removes a job from the queue.
-  meshserver::JobMessage pop();
+  meshserver::internal::JobMessage pop();
 
   //Returns true if we contain the UUID
   bool haveUUID(const boost::uuids::uuid& id) const;
@@ -41,9 +42,10 @@ private:
   struct QueuedJob
   {
     QueuedJob(const boost::uuids::uuid& id,
-              const meshserver::JobMessage& message):Id(id),Message(message){}
+              const meshserver::internal::JobMessage& message):
+              Id(id),Message(message){}
     const boost::uuids::uuid Id;
-    meshserver::JobMessage Message;
+    meshserver::internal::JobMessage Message;
   };  
   std::queue<QueuedJob> Queue;
   std::set<boost::uuids::uuid> QueuedIds;
@@ -62,7 +64,7 @@ bool JobQueue::push(const boost::uuids::uuid &id, const JobMessage& message)
 }
 
 //------------------------------------------------------------------------------
-meshserver::JobMessage JobQueue::pop()
+meshserver::internal::JobMessage JobQueue::pop()
 {
   if(this->size() > 0)
     {
@@ -76,8 +78,8 @@ meshserver::JobMessage JobQueue::pop()
   else
     {
     //we don't have a valid job return an invalid job
-    return meshserver::JobMessage(meshserver::INVALID_MESH,
-                                  meshserver::INVALID_SERVICE);
+    return meshserver::internal::JobMessage(meshserver::INVALID_MESH,
+                                            meshserver::INVALID_SERVICE);
     }
 }
 
@@ -88,7 +90,8 @@ bool JobQueue::haveUUID(const boost::uuids::uuid &id) const
 }
 
 
-
 }
+}
+} //namespace meshserver::broker::internal
 
 #endif // JOBQUEUE_H
