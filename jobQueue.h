@@ -58,6 +58,7 @@ private:
 bool JobQueue::push(const boost::uuids::uuid &id, const JobMessage& message)
 {
   this->Queue.push(QueuedJob(id,message));
+  this->QueuedIds.insert(id);
 }
 
 //------------------------------------------------------------------------------

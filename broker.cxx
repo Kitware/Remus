@@ -116,18 +116,18 @@ void Broker::DetermineJobResponse(const std::string& clientAddress,
 bool Broker::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
+  //how is a generic worker going to register its type? static method?
   return true;
 }
 
 //------------------------------------------------------------------------------
 meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::JobMessage& msg)
 {
-  boost::uuids::uuid id = meshserver::JobMessageToUUID(msg);
+  boost::uuids::uuid id = meshserver::to_uuid(msg);
   if(this->Jobs->haveUUID(id))
     {
     return meshserver::QUEUED;
     }
-  std::cout << "don't have uuid: " << id <<  std::endl;
   //ToDo: add tracking of mesh status from workers
   return meshserver::INVALID;
 }
@@ -143,7 +143,7 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
   this->Jobs->push(jobUUID,msg);
 
   //return the UUID
-  return meshserver::UUIDToString(jobUUID);
+  return meshserver::to_string(jobUUID);
 }
 
 //------------------------------------------------------------------------------
