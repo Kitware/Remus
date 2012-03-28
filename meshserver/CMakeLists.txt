@@ -1,13 +1,13 @@
 
 add_subdirectory(internal)
+add_subdirectory(broker)
 
-add_subdirectory(Broker)
+
+#include Boost
+include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
   client.h
-  worker.h
   )
 
-set_source_files_properties(${headers}
-  PROPERTIES HEADER_FILE_ONLY TRUE
-  )
+meshserver_declare_headers(${headers})

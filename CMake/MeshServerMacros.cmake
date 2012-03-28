@@ -20,8 +20,9 @@ endfunction(ms_get_kit_name)
 
 # Builds a source file and an executable that does nothing other than
 # compile the given header files.
-function(ms_add_header_test name dir_prefix use_cuda)
+function(ms_add_header_test name dir_prefix)
   set(hfiles ${ARGN})
+  message(STATUS "hfiles ${hfiles}")
   set(suffix ".cxx")
   set(cxxfiles)
   foreach (header ${ARGN})
@@ -42,5 +43,5 @@ endfunction(ms_add_header_test)
 # compiled and show up in an IDE.
 function(meshserver_declare_headers)
   ms_get_kit_name(name dir_prefix)
-  ms_add_header_test("${name}" "${dir_prefix}" ${options})
+  ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
 endfunction(meshserver_declare_headers)
