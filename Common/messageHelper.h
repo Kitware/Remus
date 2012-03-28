@@ -25,14 +25,14 @@ namespace meshserver
 {
 
 //------------------------------------------------------------------------------
-inline std::string UUIDToString(const boost::uuids::uuid& id)
+inline std::string to_string(const boost::uuids::uuid& id)
 {
   //call the boost to_string method in uuid_io
-  return to_string(id);
+  return boost::lexical_cast<std::string>(id);
 }
 
 //------------------------------------------------------------------------------
-inline boost::uuids::uuid JobMessageToUUID(const meshserver::JobMessage& msg)
+inline boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
 {
   //take the contents of the msg and convert it to an uuid
   //no type checking will be done to make sure this is valid for now
