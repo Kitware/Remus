@@ -10,6 +10,7 @@
 #define __meshserver_common_JobStatus_h
 
 #include <string>
+#include <sstream>
 #include <algorithm>
 
 #include <meshserver/common/meshServerGlobals.h>
@@ -50,5 +51,37 @@ struct JobStatus
 
 };
 }
+
+//------------------------------------------------------------------------------
+inline std::string to_string(const meshserver::common::JobStatus& status)
+{
+  //convert a job status to a string, used as a hack to serialize
+  std::stringstream buffer;
+  buffer << status.JobId << std::endl;
+  buffer << status.Status << std::endl;
+  buffer << status.Progress << std::endl;
+  return buffer.str();
+}
+
+//------------------------------------------------------------------------------
+inline meshserver::common::JobStatus to_JobStatus(const std::string& status)
+{
+  //convert a job status from a string, used as a hack to serialize
+  std::stringstream buffer(status);
+
+  std::string id;
+  int t;
+  int p;
+
+  buffer >> id;
+  buffer >> t;
+  buffer >> p;
+
+  const meshserver::STATUS_TYPE type = static_cast<meshserver::STATUS_TYPE>(t);
+
+  return meshserver::common::JobStatus(id,type,p);
+}
+
+
 }
 #endif

@@ -7,6 +7,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
 	JobQueue.h
+  uuidHelper.h
 	)
 
 meshserver_private_headers(${headers})

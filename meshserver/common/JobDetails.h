@@ -10,6 +10,7 @@
 #define __meshserver_common_JobDetails_h
 
 #include <string>
+#include <sstream>
 
 namespace meshserver {
 namespace common {
@@ -25,5 +26,32 @@ struct JobDetails
     {}
 };
 }
+
+//------------------------------------------------------------------------------
+inline std::string to_string(const meshserver::common::JobDetails& status)
+{
+  //convert a job detail to a string, used as a hack to serialize
+  //encoding is simple, contents newline seperated
+  std::stringstream buffer;
+  buffer << status.Id << std::endl;
+  buffer << status.Path << std::endl;
+  return buffer.str();
+}
+
+
+//------------------------------------------------------------------------------
+inline meshserver::common::JobDetails to_JobDetails(const std::string& status)
+{
+  //convert a job detail from a string, used as a hack to serialize
+
+  std::stringstream buffer(status);
+
+  std::string id;
+  std::string path;
+  buffer >> id;
+  buffer >> path;
+  return meshserver::common::JobDetails(id,path);
+}
+
 }
 #endif
