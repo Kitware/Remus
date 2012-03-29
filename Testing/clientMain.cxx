@@ -20,8 +20,8 @@ int main ()
     for(int i=0; i < jobIds.size(); ++i)
       {
       std::cout << "job id " << jobIds.at(i) << std::endl;
-      meshserver::STATUS_TYPE status = c.jobStatus(meshserver::MESH2D,jobIds.at(i));
-      std::cout << " status of job is: " << meshserver::to_string(status)  << std::endl;
+      meshserver::common::JobStatus status = c.jobStatus(meshserver::MESH2D,jobIds.at(i));
+      std::cout << " status of job is: " << meshserver::to_string(status.status_type())  << std::endl;
       }
     }
   return 1;

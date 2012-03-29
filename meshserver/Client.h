@@ -14,6 +14,8 @@
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
+#include <meshserver/common/JobStatus.h>
+#include <meshserver/common/messageHelper.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -35,7 +37,7 @@ public:
 
   //Given a mesh type and the job unique id as a string will return the
   //status of the job.
-  meshserver::STATUS_TYPE jobStatus(meshserver::MESH_TYPE mtype,
+  meshserver::common::JobStatus jobStatus(meshserver::MESH_TYPE mtype,
                                     const std::string& jobId);
 
   //Return the path of a completed mesh job. Will return an empty string
@@ -82,7 +84,7 @@ std::string Client::submitMeshJob(meshserver::MESH_TYPE mtype, const std::string
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
+meshserver::common::JobStatus Client::jobStatus(meshserver::MESH_TYPE mtype, const std::string& job)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MESH_STATUS,
@@ -90,7 +92,8 @@ meshserver::STATUS_TYPE Client::jobStatus(meshserver::MESH_TYPE mtype, const std
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  return response.dataAs<meshserver::STATUS_TYPE>();
+  std::string status = response.dataAs<std::string>();
+  return meshserver::to_JobStatus(status);
 }
 
 //------------------------------------------------------------------------------

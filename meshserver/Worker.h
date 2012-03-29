@@ -10,10 +10,14 @@
 #define __meshserver_worker_h
 
 #include <zmq.hpp>
-#include <boost/thread.hpp>
+#include <string>
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
+
+#include <meshserver/common/JobDetails.h>
+#include <meshserver/common/JobStatus.h>
+#include <meshserver/common/messageHelper.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -25,95 +29,80 @@ public:
   //constuct a worker that can mesh a single type
   Worker(meshserver::MESH_TYPE mtype);
 
-  //gets back a job from the broker 
+  //gets back a job from the broker
   //this will lock the worker as it will wait on a job message
-  meshserver::JobMessage getJob();
+  meshserver::common::JobDetails getJob();
 
   //update the status of the worker
-  //status is FINISHED,FAILED, CRASHED
-  //this value will be cached locally and returned to the broker
-  //when it asks for our current status
-  void updateStatus(meshserver::STATUS_TYPE type);
-
-  //update the progress of the worker
-  //progress will be modified so that it fall between 1 and 100
-  //this value will be cached locally and returned to the broker
-  //when it asks for our current progress
-  void updateProgress(char progress);
+  void updateStatus(const meshserver::common::JobStatus& info);
 
   //update the local cache of the mesh result.
   //this will be sent to the server when it requests our mesh result
-  void setMeshResult(const std::string& result);
+  void returnMeshResults(const std::string& result);
 
 private:
+  //holds the type of mesh we support
+  const meshserver::MESH_TYPE MeshType;
+
   zmq::context_t Context;
 
-  //this socket is used to talk to our communication thread
-  zmq::socket_T CommSocket;
-  boost::thread CommThread;
-};
-
-
-//-----------------------------------------------------------------------------
-void WorkerReactor(zmq::context_t& context)
-{ 
-  zmq::socket_t workerComm(context,ZMQ_PAIR); //get information from worker
-  zmq::socket_t brokerComm(context, ZMQ_ROUTER); //respond to the broker
-
-  zmq::pollitem_t items[2] = {
-      { workerComm,  0, ZMQ_POLLIN, 0 },
-      { brokerComm, 0, ZMQ_POLLIN, 0 } };
-
-  //items that we cache
-  char progress;
-  meshserver::STATUS_TYPE status;
-  std::string returnAddress;
-  while(true)
-    {
-    zmq::poll (&items[0], 2, -1);
-    if (items [0].revents & ZMQ_POLLIN)
-      {
-      //Note: the presumption is that once we recieve a mesh from the broker
-      //we send back immediately that we have a job, so that the broker
-      //knows not to send us a job intill we re-register with the broker      
-      returnAddress = zmq::s_recv(workerComm);
-      meshserver::JobMessage message(workerComm);
-
-
-      if(message.serviceType() == meshserver::MAKE_MESH)
-        {
-        //we have a make mesh, respond to broker that we have job
-
-        //if we get a message to do a job from the server, we force that
-        //down the workerComm channel!
-        workerComm.send(message);
-        }
-      }
-    else if (items [1].revents & ZMQ_POLLIN)
-      {
-      //we are getting a message from the worker, so lets cache the results
-      //in this thread in case the broker asks for it.
-      returnAddress = zmq::s_recv(workerComm);
-
-      //parse the message, look for header info
-      //if status store in status var,
-      //if asking for job, return 
-
-      }
-    }      
-
+  //this socket is used to talk to broker
+  zmq::socket_t Broker;
 };
 
 //-----------------------------------------------------------------------------
-Worker::Worker(meshserver::MESH_TYPE mtype);
+Worker::Worker(meshserver::MESH_TYPE mtype):
+  MeshType(mtype),
   Context(1),
-  CommSocket(this->Context,ZMQ_PAIR)
-  {
-  this->CommSocket.connect ("inproc://workerComm");
-
-  //start up the thread and let it run forever
-  this->CommThread = boost::thread(WorkerReactor,this->Context);
-  }
+  Broker(this->Context,ZMQ_DEALER)
+{
+  zmq::connectToSocket(this->Broker,meshserver::BROKER_WORKER_PORT);
 }
 
+//-----------------------------------------------------------------------------
+meshserver::common::JobDetails Worker::getJob()
+{
+  //send to the client that we are ready for a job.
+  bool messageSent = false;
+  meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
+
+  //start the polling before we send the message, so we can't miss the response
+  zmq::pollitem_t item =  { this->Broker,  0, ZMQ_POLLIN, 0 };
+  zmq::poll(&item,1,-1);
+  canMesh.send(this->Broker);
+  while(true)
+    {
+    if(item.revents & ZMQ_POLLIN)
+      {
+      //we have our message back
+      meshserver::JobResponse response(this->Broker);
+      //we need a better serialization techinque
+      std::string msg = response.dataAs<std::string>();
+      return meshserver::to_JobDetails(msg);
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void Worker::updateStatus(const meshserver::common::JobStatus& info)
+{
+  //send a message that contains, the status
+  std::string msg = meshserver::to_string(info);
+  meshserver::JobMessage message(this->MeshType,
+                                    meshserver::MESH_STATUS,
+                                    msg.data(),msg.size());
+}
+
+//-----------------------------------------------------------------------------
+void Worker::returnMeshResults(const std::string& result)
+{
+  //send a message that contains, the path to the resulting file
+  meshserver::JobMessage message(this->MeshType,
+                                    meshserver::MESH_STATUS,
+                                    result.data(),result.size());
+
+}
+
+
+}
 #endif

@@ -1,13 +1,13 @@
 /*=========================================================================
-  
+
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
   PURPOSE.  See the above copyright notice for more information.
-  
+
 =========================================================================*/
 
-#ifndef __meshserver_internal_MeshServerInfo_h
-#define __meshserver_internal_MeshServerInfo_h
+#ifndef __meshserver_common_MeshServerInfo_h
+#define __meshserver_common_MeshServerInfo_h
 
 #include <string>
 
@@ -16,7 +16,6 @@
 namespace meshserver {
 static const int BROKER_CLIENT_PORT = 5555;
 static const int BROKER_WORKER_PORT = 5556;
-static const int BROKER_STATUS_PORT = 5557;
 
 enum MESH_TYPE
 {

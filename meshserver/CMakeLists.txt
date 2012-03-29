@@ -10,6 +10,7 @@ set(headers
   Client.h
   JobMessage.h
   JobResponse.h
+  Worker.h
   )
 
 meshserver_public_headers(${headers})
