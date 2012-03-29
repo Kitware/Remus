@@ -65,12 +65,15 @@ bool Broker::startBrokering()
       //NOTE: this will queue jobs if needed
       this->DetermineJobResponse(clientAddress,message);
       }
-    if (items [1].revents & ZMQ_POLLIN)
+    else if (items [1].revents & ZMQ_POLLIN)
       {
       this->DetermineWorkerResponse();
       }
-    //dispatch a job to a worker if we have any queued jobs
-    this->DispatchJob();
+    else
+      {
+      //dispatch a job to a worker if we have any queued jobs and registered workers
+      this->DispatchJob();
+      }
     }
   return true;
   }
