@@ -25,7 +25,7 @@ namespace meshserver{
 namespace broker{
   //forward declaration of classes only the implementation needs
   namespace internal{class JobQueue;}
-  
+
 class Broker
 {
 public:
@@ -40,7 +40,7 @@ protected:
 
   //These methods are all to do with send responses to job messages
   bool canMesh(const meshserver::JobMessage& msg);
-  meshserver::STATUS_TYPE meshStatus(const meshserver::JobMessage& msg);
+  std::string meshStatus(const meshserver::JobMessage& msg);
   std::string queueJob(const meshserver::JobMessage& msg);
   std::string retrieveMesh(const meshserver::JobMessage& msg);
 
@@ -51,7 +51,7 @@ protected:
   void DispatchJob();
 private:
   boost::uuids::random_generator UUIDGenerator;
-  boost::scoped_ptr<meshserver::broker::internal::JobQueue> Jobs;
+  boost::scoped_ptr<meshserver::broker::internal::JobQueue> QueuedJobs;
 
   zmq::context_t Context;
   zmq::socket_t JobQueries;

@@ -1,4 +1,12 @@
-#include "client.h"
+/*=========================================================================
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notice for more information.
+
+=========================================================================*/
+
+#include <meshserver/Client.h>
 
 #include <vector>
 #include <iostream>
@@ -21,7 +29,7 @@ int main ()
       {
       std::cout << "job id " << jobIds.at(i) << std::endl;
       meshserver::common::JobStatus status = c.jobStatus(meshserver::MESH2D,jobIds.at(i));
-      std::cout << " status of job is: " << meshserver::to_string(status.status_type())  << std::endl;
+      std::cout << " status of job is: " << meshserver::to_string(status.Status)  << std::endl;
       }
     }
   return 1;

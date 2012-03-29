@@ -8,7 +8,6 @@ set(headers
   JobDetails.h
   JobStatus.h
   meshServerGlobals.h
-  messageHelper.h
   zmqHelper.h
   )
 

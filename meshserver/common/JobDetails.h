@@ -17,11 +17,11 @@ namespace common {
 
 struct JobDetails
 {
-  const std::string Id;
+  const std::string JobId;
   const std::string Path; //path to the job file to start
 
   JobDetails(const std::string& id, const std::string& p):
-    Id(id),
+    JobId(id),
     Path(p)
     {}
 };
@@ -33,7 +33,7 @@ inline std::string to_string(const meshserver::common::JobDetails& status)
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline seperated
   std::stringstream buffer;
-  buffer << status.Id << std::endl;
+  buffer << status.JobId << std::endl;
   buffer << status.Path << std::endl;
   return buffer.str();
 }

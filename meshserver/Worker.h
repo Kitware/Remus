@@ -17,7 +17,6 @@
 
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobStatus.h>
-#include <meshserver/common/messageHelper.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 

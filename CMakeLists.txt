@@ -45,3 +45,7 @@ include_directories(
 
 #add the actual code
 add_subdirectory(meshserver)
+
+
+#add the test code
+add_subdirectory(Testing)

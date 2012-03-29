@@ -11,11 +11,13 @@ set(SRCS_Workers
   workerMain.cxx
   )
 
-add_executable(MeshClient ${SRCS_Client} ${COMMON_SRCS})
-target_link_libraries(MeshClient ${ZeroMQ_LIBRARIES})
+include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(MeshBroker ${SRCS_Broker} ${COMMON_SRCS})
-target_link_libraries(MeshBroker ${ZeroMQ_LIBRARIES})
+add_executable(TestMeshClient ${SRCS_Client} ${COMMON_SRCS})
+target_link_libraries(TestMeshClient ${ZeroMQ_LIBRARIES})
 
-add_executable(MeshWorker ${SRCS_Workers} ${COMMON_SRCS})
-target_link_libraries(MeshWorker ${ZeroMQ_LIBRARIES})
+add_executable(TestMeshBroker ${SRCS_Broker} ${COMMON_SRCS})
+target_link_libraries(TestMeshBroker ${ZeroMQ_LIBRARIES} MeshServerBroker)
+
+add_executable(TestMeshWorker ${SRCS_Workers} ${COMMON_SRCS})
+target_link_libraries(TestMeshWorker ${ZeroMQ_LIBRARIES})

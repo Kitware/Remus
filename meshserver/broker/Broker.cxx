@@ -1,9 +1,9 @@
 /*=========================================================================
-  
+
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
   PURPOSE.  See the above copyright notice for more information.
-  
+
 =========================================================================*/
 
 #include <meshserver/broker/Broker.h>
@@ -13,10 +13,12 @@
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
 
+#include <meshserver/common/JobDetails.h>
+#include <meshserver/common/JobStatus.h>
 #include <meshserver/common/meshServerGlobals.h>
-#include <meshserver/common/messageHelper.h>
 #include <meshserver/common/zmqHelper.h>
 
+#include <meshserver/broker/internal/uuidHelper.h>
 #include <meshserver/broker/internal/JobQueue.h>
 
 
@@ -26,7 +28,7 @@ namespace broker{
 //------------------------------------------------------------------------------
 Broker::Broker():
   UUIDGenerator(), //use default random number generator
-  Jobs(new meshserver::broker::internal::JobQueue() ), //scoped ptr of JobQueue
+  QueuedJobs(new meshserver::broker::internal::JobQueue() ), //scoped ptr of JobQueue
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
   WorkerQueries(this->Context,ZMQ_ROUTER),
@@ -126,15 +128,23 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-meshserver::STATUS_TYPE Broker::meshStatus(const meshserver::JobMessage& msg)
+std::string Broker::meshStatus(const meshserver::JobMessage& msg)
 {
-  boost::uuids::uuid id = meshserver::to_uuid(msg);
-  if(this->Jobs->haveUUID(id))
+  const boost::uuids::uuid id = meshserver::to_uuid(msg);
+  const std::string sid = meshserver::to_string(id);
+
+  meshserver::STATUS_TYPE type;
+
+  if(this->QueuedJobs->haveUUID(id))
     {
-    return meshserver::QUEUED;
+    type = meshserver::QUEUED;
     }
-  //ToDo: add tracking of mesh status from workers
-  return meshserver::INVALID;
+  else
+    {
+    type = meshserver::INVALID;
+    }
+  const meshserver::common::JobStatus js(sid,type);
+  return meshserver::to_string(js);
 }
 
 //------------------------------------------------------------------------------
@@ -145,7 +155,7 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
   //create a new job to place on the queue
   //This call will invalidate the msg as we are going to move the data
   //to another message to await sending to the worker
-  this->Jobs->push(jobUUID,msg);
+  this->QueuedJobs->push(jobUUID,msg);
 
   //return the UUID
   return meshserver::to_string(jobUUID);
