@@ -16,7 +16,9 @@
 #include <meshserver/JobResponse.h>
 
 #include <meshserver/common/JobDetails.h>
+#include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
+
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -75,9 +77,20 @@ meshserver::common::JobDetails Worker::getJob()
       {
       //we have our message back
       meshserver::JobResponse response(this->Broker);
+
       //we need a better serialization techinque
       std::string msg = response.dataAs<std::string>();
-      return meshserver::to_JobDetails(msg);
+
+      //see if we are given a job, or a request to poll again
+      if(msg == meshserver::INVALID_MSG)
+        {
+        //send the request for a mesh again
+        canMesh.send(this->Broker);
+        }
+      else
+        {
+        return meshserver::to_JobDetails(msg);
+        }
       }
     }
 }
@@ -97,7 +110,7 @@ void Worker::returnMeshResults(const std::string& result)
 {
   //send a message that contains, the path to the resulting file
   meshserver::JobMessage message(this->MeshType,
-                                    meshserver::MESH_STATUS,
+                                    meshserver::RETRIEVE_MESH,
                                     result.data(),result.size());
 
 }

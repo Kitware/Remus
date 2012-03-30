@@ -14,7 +14,9 @@
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
+#include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
+
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -41,7 +43,7 @@ public:
 
   //Return the path of a completed mesh job. Will return an empty string
   //if the mesh is not completed
-  std::string retrieveMesh(meshserver::MESH_TYPE mtype,
+  meshserver::common:JobResult retrieveMesh(meshserver::MESH_TYPE mtype,
                            const std::string& jobId);
 
 private:
@@ -91,12 +93,12 @@ meshserver::common::JobStatus Client::jobStatus(meshserver::MESH_TYPE mtype, con
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  std::string status = response.dataAs<std::string>();
+  const std::string status = response.dataAs<std::string>();
   return meshserver::to_JobStatus(status);
 }
 
 //------------------------------------------------------------------------------
-std::string Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
+meshserver::common:JobResult Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
@@ -105,7 +107,8 @@ std::string Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string&
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  return response.dataAs<std::string>();
+  const std::string result = response.dataAs<std::string>();
+  return meshserver::to_JobResult(result);
 }
 
 }

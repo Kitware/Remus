@@ -79,6 +79,13 @@ inline meshserver::common::JobStatus to_JobStatus(const std::string& status)
   return meshserver::common::JobStatus(id,type,p);
 }
 
+//------------------------------------------------------------------------------
+inline meshserver::common::JobStatus to_JobStatus(const char* data, int size)
+{
+  //convert a job status from a string, used as a hack to serialize
+  return to_JobStatus( std::string(data,size) );
+}
+
 
 }
 #endif

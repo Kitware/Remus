@@ -17,6 +17,8 @@ namespace meshserver {
 static const int BROKER_CLIENT_PORT = 5555;
 static const int BROKER_WORKER_PORT = 5556;
 
+static const std::string INVALID_MSG = "INVALID_MSG";
+
 enum MESH_TYPE
 {
   INVALID_MESH = 0,
@@ -36,7 +38,7 @@ enum SERVICE_TYPE
 
 enum STATUS_TYPE
 {
-  INVALID = 0,
+  INVALID_STATUS = 0,
   QUEUED = 1,
   IN_PROGRESS = 2,
   FINISHED = 3,

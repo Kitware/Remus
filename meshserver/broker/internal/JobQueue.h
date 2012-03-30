@@ -1,9 +1,9 @@
 /*=========================================================================
-  
+
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
   PURPOSE.  See the above copyright notice for more information.
-  
+
 =========================================================================*/
 
 #ifndef __meshserver_broker_internal_JobQueue_h
@@ -29,8 +29,12 @@ public:
   bool push( const boost::uuids::uuid& id,
              const meshserver::JobMessage& message);
 
-  //Removes a job from the queue.
-  meshserver::JobMessage pop();
+  //Removes a job from the queue. And return it as
+  //a JobDetail
+  meshserver::common::JobDetail pop();
+
+  //returns a reference to the mesh at the front
+  const meshserver::JobMessage& front();
 
   //Returns true if we contain the UUID
   bool haveUUID(const boost::uuids::uuid& id) const;
@@ -46,7 +50,7 @@ private:
               Id(id),Message(message){}
     const boost::uuids::uuid Id;
     meshserver::JobMessage Message;
-  };  
+  };
   std::queue<QueuedJob> Queue;
   std::set<boost::uuids::uuid> QueuedIds;
 
@@ -65,23 +69,31 @@ bool JobQueue::push(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-meshserver::JobMessage JobQueue::pop()
+meshserver::common::JobDetail JobQueue::pop()
 {
   if(this->size() > 0)
     {
     //we have a valid job pop it and return it
     QueuedJob job = this->Queue.front();
-    this->Queue.pop();
 
+    //remove the job
+    this->Queue.pop();
     this->QueuedIds.erase(job.Id);
-    return job.Message;
+
+    //convert the queued job into a job detail
+    const std::string data(job.Message.data(),job.Message.dataSize());
+    return meshserver::common::JobDetail( meshserver::to_string(job.Id),data);
     }
   else
     {
     //we don't have a valid job return an invalid job
-    return meshserver::JobMessage(meshserver::INVALID_MESH,
-                                            meshserver::INVALID_SERVICE);
+    return meshserver::common::JobDetail();
     }
+}
+//------------------------------------------------------------------------------
+const meshserver::JobMessage& JobQueue::front()
+{
+  return this->Queue.front.Message();
 }
 
 //------------------------------------------------------------------------------

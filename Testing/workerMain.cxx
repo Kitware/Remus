@@ -23,7 +23,8 @@ int main ()
   status = meshserver::common::JobStatus(jd.JobId,meshserver::FINISHED);
   w.updateStatus(status);
 
-  w.returnMeshResults("FAKE RESULTS");
+  meshserver::common::JobResults results(jd.JobId,"FAKE RESULTS");
+  w.returnMeshResults(results);
 
   return 1;
 }

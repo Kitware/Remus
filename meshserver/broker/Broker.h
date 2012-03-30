@@ -35,8 +35,8 @@ public:
 
 protected:
   //processes all job queries
-  void DetermineJobResponse(const std::string &clientAddress,
-                            const meshserver::JobMessage& msg);
+  void DetermineJobQueryResponse(const std::string &clientAddress,
+                                 const meshserver::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
   bool canMesh(const meshserver::JobMessage& msg);
@@ -45,13 +45,21 @@ protected:
   std::string retrieveMesh(const meshserver::JobMessage& msg);
 
   //Methods for processing Worker queries
-  void DetermineWorkerResponse();
+  void DetermineWorkerResponse(const std::string &workAddress,
+                              const meshserver::JobMessage& msg);
+  void storeMeshStatus(const meshserver::JobMessage& msg);
+  void storeMesh(const meshserver::JobMessage& msg);
+  std::string getJob(const meshserver::JobMessage& msg);
 
-  //Sends a single job to a worker
-  void DispatchJob();
+  void GenerateWorkerForQueuedJob();
+
 private:
   boost::uuids::random_generator UUIDGenerator;
+
   boost::scoped_ptr<meshserver::broker::internal::JobQueue> QueuedJobs;
+  boost::scoped_ptr<meshserver::broker::internal::ActiveWorkerState> ActiveJobs;
+
+  boost::scoped_ptr<meshserver::broker::internal::WorkerFactory> WorkerFactory;
 
   zmq::context_t Context;
   zmq::socket_t JobQueries;
