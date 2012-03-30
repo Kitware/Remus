@@ -29,8 +29,9 @@ namespace meshserver {
 namespace common {
 struct JobStatus
 {
-  const std::string JobId;
-  const meshserver::STATUS_TYPE Status;
+  std::string JobId;
+  meshserver::STATUS_TYPE Status;
+  int Progress;
 
   JobStatus(const std::string& id, meshserver::STATUS_TYPE stat):
     JobId(id),
@@ -45,16 +46,6 @@ struct JobStatus
     Status(stat),
     Progress( valid_progress_value(progress) )
     {}
-
- void setProgress(int p)
- {
-    this->Progress = valid_progress_value(p);
- }
-
- int progress() const { return this->Progress; }
-
-private:
-  int Progress;
 };
 }
 
@@ -65,7 +56,7 @@ inline std::string to_string(const meshserver::common::JobStatus& status)
   std::stringstream buffer;
   buffer << status.JobId << std::endl;
   buffer << status.Status << std::endl;
-  buffer << status.progress() << std::endl;
+  buffer << status.Progress << std::endl;
   return buffer.str();
 }
 

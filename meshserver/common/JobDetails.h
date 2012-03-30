@@ -17,8 +17,8 @@ namespace common {
 
 struct JobDetails
 {
-  const std::string JobId;
-  const std::string Path; //path to the job file to start
+  std::string JobId;
+  std::string Path; //path to the job file to start
 
   JobDetails(const std::string& id, const std::string& p):
     JobId(id),

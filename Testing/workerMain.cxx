@@ -6,7 +6,7 @@
 
 =========================================================================*/
 
-#include <meshserver/broker/Worker.h>
+#include <meshserver/Worker.h>
 
 int main ()
 {
@@ -16,8 +16,8 @@ int main ()
   meshserver::common::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);
   for(int i=1; i <= 100; ++i)
     {
-    status.setProgress(i);
-    w.updatesStatus(status);
+    status.Progress = i;
+    w.updateStatus(status);
     }
 
   status = meshserver::common::JobStatus(jd.JobId,meshserver::FINISHED);
