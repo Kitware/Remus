@@ -17,13 +17,14 @@ int main ()
   for(int i=1; i <= 100; ++i)
     {
     status.Progress = i;
+    sleep(1);
     w.updateStatus(status);
     }
 
   status = meshserver::common::JobStatus(jd.JobId,meshserver::FINISHED);
   w.updateStatus(status);
 
-  meshserver::common::JobResults results(jd.JobId,"FAKE RESULTS");
+  meshserver::common::JobResult results(jd.JobId,"FAKE RESULTS");
   w.returnMeshResults(results);
 
   return 1;

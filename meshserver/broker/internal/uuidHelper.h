@@ -38,6 +38,12 @@ inline boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
   const std::string sId(msg.data(),msg.dataSize());
   return boost::lexical_cast<boost::uuids::uuid>(sId);
 }
+
+//------------------------------------------------------------------------------
+inline boost::uuids::uuid to_uuid(const std::string& str)
+{
+  return boost::lexical_cast<boost::uuids::uuid>(str);
+}
 }
 
 #endif // __meshserver_broker_internal_uuidHelper_h

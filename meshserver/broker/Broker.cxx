@@ -120,7 +120,6 @@ void Broker::DetermineJobQueryResponse(const std::string& clientAddress,
       response.setData(this->retrieveMesh(msg));
       break;
     default:
-      std::cout << "Sending invalid message" << std::endl;
       response.setData(meshserver::INVALID_STATUS);
     }
   response.send(this->JobQueries);
@@ -141,21 +140,15 @@ std::string Broker::meshStatus(const meshserver::JobMessage& msg)
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
   const std::string sid = meshserver::to_string(id);
 
-  meshserver::STATUS_TYPE type;
-
+  meshserver::common::JobStatus js(sid,INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(id))
     {
-    type = meshserver::QUEUED;
+    js.Status = meshserver::QUEUED;
     }
   else if(this->ActiveJobs->haveUUID(id))
     {
-    type = this->ActiveJobs->status(id);
-    }
-  else
-    {
-    type = meshserver::INVALID_STATUS;
-    }
-  const meshserver::common::JobStatus js(sid,type);
+    js = this->ActiveJobs->status(id);
+    }    
   return meshserver::to_string(js);
 }
 
@@ -184,10 +177,14 @@ std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
   const std::string sid = meshserver::to_string(id);
 
   meshserver::common::JobResult result(sid);
-  if(this->ActiveJobs->haveUUID(id) && this->ActiveJobs->jobFinished(id))
+  if(this->ActiveJobs->haveUUID(id) && this->ActiveJobs->haveResult(id))
     {
     result = this->ActiveJobs->result(id);
     }
+
+  //for now we remove all references from this job being active
+  this->ActiveJobs->remove(id);
+
   return meshserver::to_string(result);
 }
 
@@ -201,7 +198,6 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
-      std::cout << "CAN MESH" << std::endl;
       //retrieve a job for the worker, have to respond
       response.setData(this->getJob(msg));
       response.send(this->WorkerQueries);
@@ -242,6 +238,7 @@ std::string Broker::getJob(const meshserver::JobMessage& msg)
     msg.meshType() == this->QueuedJobs->front().meshType())
     {
       meshserver::common::JobDetails jd = this->QueuedJobs->pop();
+      this->ActiveJobs->add( meshserver::to_uuid(jd.JobId) );
       return meshserver::to_string(jd);
     }
   return meshserver::INVALID_MSG;

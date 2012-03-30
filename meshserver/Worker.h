@@ -68,12 +68,9 @@ meshserver::common::JobDetails Worker::getJob()
   zmq::pollitem_t item =  { this->Broker,  0, ZMQ_POLLIN, 0 };
 
   canMesh.send(this->Broker);
-  std::cout << "sent message" << std::endl;
   while(true)
     {
-    std::cout << "pre-poll" << std::endl;
     zmq::poll(&item,1,-1);
-    std::cout << "poll" << std::endl;
     if(item.revents & ZMQ_POLLIN)
       {
       //we have our message back
@@ -86,12 +83,10 @@ meshserver::common::JobDetails Worker::getJob()
       if(msg == meshserver::INVALID_MSG)
         {
         //send the request for a mesh again
-        std::cout << "request mesh" << std::endl;
         canMesh.send(this->Broker);
         }
       else
         {
-        std::cout << "got a mesh" << std::endl;
         return meshserver::to_JobDetails(msg);
         }
       }
