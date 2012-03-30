@@ -12,7 +12,7 @@ set(headers
 	)
 set(broker_srcs
    ${headers}
-   broker.cxx
+   Broker.cxx
    )
 
 add_library(MeshServerBroker ${broker_srcs} ${headers})

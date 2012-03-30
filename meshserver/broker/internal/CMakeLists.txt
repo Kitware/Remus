@@ -6,7 +6,9 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
+  ActiveWorkersState.h
 	JobQueue.h
+  WorkerFactory.h
   uuidHelper.h
 	)
 

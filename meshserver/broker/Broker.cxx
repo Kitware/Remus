@@ -21,7 +21,9 @@
 #include <meshserver/common/zmqHelper.h>
 
 #include <meshserver/broker/internal/uuidHelper.h>
+#include <meshserver/broker/internal/ActiveWorkersState.h>
 #include <meshserver/broker/internal/JobQueue.h>
+#include <meshserver/broker/internal/WorkerFactory.h>
 
 
 namespace meshserver{
@@ -30,14 +32,15 @@ namespace broker{
 //------------------------------------------------------------------------------
 Broker::Broker():
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new meshserver::broker::internal::JobQueue() ), //scoped ptr of JobQueue
+  QueuedJobs(new meshserver::broker::internal::JobQueue() ),
+  ActiveJobs(new meshserver::broker::internal::ActiveWorkersState() ),
+  WorkerFactory(new meshserver::broker::internal::WorkerFactory() ),
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
-  WorkerQueries(this->Context,ZMQ_ROUTER),
-  Workers(this->Context,ZMQ_DEALER)
+  WorkerQueries(this->Context,ZMQ_ROUTER)
   {
   zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-  zmq::bindToSocket(Workers,meshserver::BROKER_WORKER_PORT);
+  zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
   }
 
 //------------------------------------------------------------------------------
@@ -51,13 +54,13 @@ bool Broker::startBrokering()
   {
   zmq::pollitem_t items[2] = {
       { this->JobQueries,  0, ZMQ_POLLIN, 0 },
-      { this->Workers, 0, ZMQ_POLLIN, 0 } };
+      { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
   //  Process messages from both sockets
   while (true)
     {
     zmq::poll (&items[0], 2, -1);
-    if (items [0].revents & ZMQ_POLLIN)
+    if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
       std::string clientAddress = zmq::s_recv(this->JobQueries);
@@ -67,15 +70,15 @@ bool Broker::startBrokering()
       meshserver::JobMessage message(this->JobQueries);
       this->DetermineJobQueryResponse(clientAddress,message); //NOTE: this will queue jobs
       }
-    else if (items [1].revents & ZMQ_POLLIN)
+    else if (items[1].revents & ZMQ_POLLIN)
       {
       //a worker is registering
       //we need to strip the worker address from the message
-      std::string workerAddress = zmq::s_recv(this->Workers);
+      std::string workerAddress = zmq::s_recv(this->WorkerQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
-      meshserver::JobMessage message(this->Workers);
+      meshserver::JobMessage message(this->WorkerQueries);
       this->DetermineWorkerResponse(workerAddress,message);
       }
 
@@ -118,7 +121,7 @@ void Broker::DetermineJobQueryResponse(const std::string& clientAddress,
       break;
     default:
       std::cout << "Sending invalid message" << std::endl;
-      response.setData(meshserver::INVALID);
+      response.setData(meshserver::INVALID_STATUS);
     }
   response.send(this->JobQueries);
   return;
@@ -129,7 +132,7 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
-  return this->WorkerFactory.haveSupport(msg.meshType());
+  return this->WorkerFactory->haveSupport(msg.meshType());
 }
 
 //------------------------------------------------------------------------------
@@ -180,12 +183,12 @@ std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
   const std::string sid = meshserver::to_string(id);
 
-  meshserver::common::JobResults result(sid);
+  meshserver::common::JobResult result(sid);
   if(this->ActiveJobs->haveUUID(id) && this->ActiveJobs->jobFinished(id))
     {
-    result = this->ActiveJobs->results(id);
+    result = this->ActiveJobs->result(id);
     }
-  return result;
+  return meshserver::to_string(result);
 }
 
 //------------------------------------------------------------------------------
@@ -197,14 +200,15 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
-    case meshserver::MESH_STATUS:
-      //store the mesh status msg, have to respond
-      response.setData(this->storeMeshStatus(msg));
-      response.send(this->JobQueries);
-      break;
     case meshserver::CAN_MESH:
-      //retrieve a job for the worker, no response needed
-      this->getJob(msg);
+      std::cout << "CAN MESH" << std::endl;
+      //retrieve a job for the worker, have to respond
+      response.setData(this->getJob(msg));
+      response.send(this->WorkerQueries);
+      break;
+    case meshserver::MESH_STATUS:
+      //store the mesh status msg,  no response needed
+      this->storeMeshStatus(msg);
       break;
     case meshserver::RETRIEVE_MESH:
       //we need to store the mesh result, no response needed
@@ -220,23 +224,24 @@ void Broker::storeMeshStatus(const meshserver::JobMessage& msg)
 {
   //the string in the data is actualy a job status object
   meshserver::common::JobStatus js = meshserver::to_JobStatus(msg.data(),msg.dataSize());
-  this->ActiveJobs.updateStatus(js);
+  this->ActiveJobs->updateStatus(js);
 }
 
 //------------------------------------------------------------------------------
 void Broker::storeMesh(const meshserver::JobMessage& msg)
 {
-  meshserver::common::JobResults jr = meshserver::to_JobResults(msg.data(),msg.dataSize());
-  this->ActiveJobs.updateResults(jr);
+  meshserver::common::JobResult jr = meshserver::to_JobResult(msg.data(),msg.dataSize());
+  this->ActiveJobs->updateResult(jr);
 }
 
 //------------------------------------------------------------------------------
 std::string Broker::getJob(const meshserver::JobMessage& msg)
 {
   //lets see if the msg mesh type and the queue match up
-  if(msg.meshType() == this->QueuedJobs.front().meshType())
+  if(this->QueuedJobs->size() > 0 &&
+    msg.meshType() == this->QueuedJobs->front().meshType())
     {
-      meshserver::common::JobDetails jd = this->QueuedJobs.pop();
+      meshserver::common::JobDetails jd = this->QueuedJobs->pop();
       return meshserver::to_string(jd);
     }
   return meshserver::INVALID_MSG;
@@ -247,9 +252,9 @@ void Broker::GenerateWorkerForQueuedJob()
 {
   //if we have something in the job queue ask the factory to generate a worker
   //for that job
-  if(this->QueuedJobs.size() > 0 )
+  if(this->QueuedJobs->size() > 0 )
     {
-    this->WorkerFactory.createWorker(this->QueuedJobs.front().meshType());
+    this->WorkerFactory->createWorker(this->QueuedJobs->front().meshType());
     }
 }
 

@@ -13,6 +13,8 @@
 #include <queue>
 #include <set>
 
+#include <meshserver/broker/internal/uuidHelper.h>
+#include <meshserver/common/JobDetails.h>
 #include <meshserver/JobMessage.h>
 
 namespace meshserver{
@@ -31,7 +33,7 @@ public:
 
   //Removes a job from the queue. And return it as
   //a JobDetail
-  meshserver::common::JobDetail pop();
+  meshserver::common::JobDetails pop();
 
   //returns a reference to the mesh at the front
   const meshserver::JobMessage& front();
@@ -69,31 +71,24 @@ bool JobQueue::push(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-meshserver::common::JobDetail JobQueue::pop()
+meshserver::common::JobDetails JobQueue::pop()
 {
-  if(this->size() > 0)
-    {
-    //we have a valid job pop it and return it
-    QueuedJob job = this->Queue.front();
+  QueuedJob job = this->Queue.front();
 
-    //remove the job
-    this->Queue.pop();
-    this->QueuedIds.erase(job.Id);
+  //remove the job
+  this->Queue.pop();
+  this->QueuedIds.erase(job.Id);
 
-    //convert the queued job into a job detail
-    const std::string data(job.Message.data(),job.Message.dataSize());
-    return meshserver::common::JobDetail( meshserver::to_string(job.Id),data);
-    }
-  else
-    {
-    //we don't have a valid job return an invalid job
-    return meshserver::common::JobDetail();
-    }
+  //convert the queued job into a job detail
+  const std::string data(job.Message.data(),job.Message.dataSize());
+  const std::string sid = meshserver::to_string(job.Id);
+  return meshserver::common::JobDetails(sid,data);
 }
+
 //------------------------------------------------------------------------------
 const meshserver::JobMessage& JobQueue::front()
 {
-  return this->Queue.front.Message();
+  return this->Queue.front().Message;
 }
 
 //------------------------------------------------------------------------------

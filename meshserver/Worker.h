@@ -37,9 +37,8 @@ public:
   //update the status of the worker
   void updateStatus(const meshserver::common::JobStatus& info);
 
-  //update the local cache of the mesh result.
-  //this will be sent to the server when it requests our mesh result
-  void returnMeshResults(const std::string& result);
+  //send to the server the mesh results.
+  void returnMeshResults(const meshserver::common::JobResult& result);
 
 private:
   //holds the type of mesh we support
@@ -64,15 +63,17 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
 meshserver::common::JobDetails Worker::getJob()
 {
   //send to the client that we are ready for a job.
-  bool messageSent = false;
   meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
 
-  //start the polling before we send the message, so we can't miss the response
   zmq::pollitem_t item =  { this->Broker,  0, ZMQ_POLLIN, 0 };
-  zmq::poll(&item,1,-1);
+
   canMesh.send(this->Broker);
+  std::cout << "sent message" << std::endl;
   while(true)
     {
+    std::cout << "pre-poll" << std::endl;
+    zmq::poll(&item,1,-1);
+    std::cout << "poll" << std::endl;
     if(item.revents & ZMQ_POLLIN)
       {
       //we have our message back
@@ -85,10 +86,12 @@ meshserver::common::JobDetails Worker::getJob()
       if(msg == meshserver::INVALID_MSG)
         {
         //send the request for a mesh again
+        std::cout << "request mesh" << std::endl;
         canMesh.send(this->Broker);
         }
       else
         {
+        std::cout << "got a mesh" << std::endl;
         return meshserver::to_JobDetails(msg);
         }
       }
@@ -103,16 +106,18 @@ void Worker::updateStatus(const meshserver::common::JobStatus& info)
   meshserver::JobMessage message(this->MeshType,
                                     meshserver::MESH_STATUS,
                                     msg.data(),msg.size());
+  message.send(this->Broker);
 }
 
 //-----------------------------------------------------------------------------
-void Worker::returnMeshResults(const std::string& result)
+void Worker::returnMeshResults(const meshserver::common::JobResult& result)
 {
   //send a message that contains, the path to the resulting file
+  std::string msg = meshserver::to_string(result);
   meshserver::JobMessage message(this->MeshType,
                                     meshserver::RETRIEVE_MESH,
-                                    result.data(),result.size());
-
+                                    msg.data(),msg.size());
+  message.send(this->Broker);
 }
 
 

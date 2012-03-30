@@ -53,5 +53,12 @@ inline meshserver::common::JobDetails to_JobDetails(const std::string& status)
   return meshserver::common::JobDetails(id,path);
 }
 
+//------------------------------------------------------------------------------
+inline meshserver::common::JobDetails to_JobDetails(const char* data, int size)
+{
+  //convert a job status from a string, used as a hack to serialize
+  return to_JobDetails( std::string(data,size) );
+}
+
 }
 #endif

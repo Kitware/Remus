@@ -20,6 +20,11 @@ struct JobResult
   std::string JobId;
   std::string Path; //path to the job file to start
 
+  JobResult(const std::string& id):
+    JobId(id),
+    Path()
+    {}
+
   JobResult(const std::string& id, const std::string& p):
     JobId(id),
     Path(p)

@@ -43,7 +43,7 @@ public:
 
   //Return the path of a completed mesh job. Will return an empty string
   //if the mesh is not completed
-  meshserver::common:JobResult retrieveMesh(meshserver::MESH_TYPE mtype,
+  meshserver::common::JobResult retrieveMesh(meshserver::MESH_TYPE mtype,
                            const std::string& jobId);
 
 private:
@@ -68,7 +68,7 @@ bool Client::canMesh(meshserver::MESH_TYPE mtype)
   j.send(this->Server);
 
   meshserver::JobResponse response(this->Server);
-  return response.dataAs<meshserver::STATUS_TYPE>() != meshserver::INVALID;
+  return response.dataAs<meshserver::STATUS_TYPE>() != meshserver::INVALID_STATUS;
 }
 
 //------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ meshserver::common::JobStatus Client::jobStatus(meshserver::MESH_TYPE mtype, con
 }
 
 //------------------------------------------------------------------------------
-meshserver::common:JobResult Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
+meshserver::common::JobResult Client::retrieveMesh(meshserver::MESH_TYPE mtype, const std::string& jobId)
 {
   meshserver::JobMessage j(mtype,
                            meshserver::MAKE_MESH,
