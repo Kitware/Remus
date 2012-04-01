@@ -12,20 +12,23 @@
 #include <string>
 #include <sstream>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 namespace meshserver {
 namespace common {
 
 struct JobResult
 {
-  std::string JobId;
+  boost::uuids::uuid JobId;
   std::string Path; //path to the job file to start
 
-  JobResult(const std::string& id):
+  JobResult(const boost::uuids::uuid& id):
     JobId(id),
     Path()
     {}
 
-  JobResult(const std::string& id, const std::string& p):
+  JobResult(const boost::uuids::uuid& id, const std::string& p):
     JobId(id),
     Path(p)
     {}
@@ -51,7 +54,7 @@ inline meshserver::common::JobResult to_JobResult(const std::string& status)
 
   std::stringstream buffer(status);
 
-  std::string id;
+  boost::uuids::uuid id;
   std::string path;
   buffer >> id;
   buffer >> path;

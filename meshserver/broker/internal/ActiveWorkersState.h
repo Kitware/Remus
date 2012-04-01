@@ -51,7 +51,7 @@ private:
       meshserver::common::JobStatus jstatus;
       meshserver::common::JobResult jresult;
 
-      workerState(const std::string& id, meshserver::STATUS_TYPE stat):
+      workerState(const boost::uuids::uuid& id, meshserver::STATUS_TYPE stat):
         haveStatus(false),haveResult(false),
         jstatus(id,stat),jresult(id)
       {}
@@ -68,7 +68,7 @@ bool ActiveWorkersState::add(const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
-    workerState ws(meshserver::to_string(id),meshserver::QUEUED);
+    workerState ws(id,meshserver::QUEUED);
     InfoPair pair(id,ws);
     this->Info.insert(pair);
     return true;
@@ -123,14 +123,14 @@ const common::JobResult& ActiveWorkersState::result(
 //-----------------------------------------------------------------------------
 void ActiveWorkersState::updateStatus(const meshserver::common::JobStatus& s)
 {
-  InfoIt item = this->Info.find(meshserver::to_uuid(s.JobId));
+  InfoIt item = this->Info.find(s.JobId);
   item->second.jstatus = s;
 }
 
 //-----------------------------------------------------------------------------
 void ActiveWorkersState::updateResult(const meshserver::common::JobResult& r)
 {
-  InfoIt item = this->Info.find(meshserver::to_uuid(r.JobId));
+  InfoIt item = this->Info.find(r.JobId);
   item->second.jresult = r;
 }
 

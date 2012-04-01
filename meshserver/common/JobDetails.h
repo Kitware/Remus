@@ -9,6 +9,9 @@
 #ifndef __meshserver_common_JobDetails_h
 #define __meshserver_common_JobDetails_h
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -17,10 +20,10 @@ namespace common {
 
 struct JobDetails
 {
-  std::string JobId;
+  boost::uuids::uuid JobId;
   std::string Path; //path to the job file to start
 
-  JobDetails(const std::string& id, const std::string& p):
+  JobDetails(const boost::uuids::uuid& id, const std::string& p):
     JobId(id),
     Path(p)
     {}
@@ -46,7 +49,7 @@ inline meshserver::common::JobDetails to_JobDetails(const std::string& status)
 
   std::stringstream buffer(status);
 
-  std::string id;
+  boost::uuids::uuid id;
   std::string path;
   buffer >> id;
   buffer >> path;

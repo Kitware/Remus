@@ -13,6 +13,9 @@
 #include <sstream>
 #include <algorithm>
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace
@@ -29,11 +32,11 @@ namespace meshserver {
 namespace common {
 struct JobStatus
 {
-  std::string JobId;
+  boost::uuids::uuid JobId;
   meshserver::STATUS_TYPE Status;
   int Progress;
 
-  JobStatus(const std::string& id, meshserver::STATUS_TYPE stat):
+  JobStatus(const boost::uuids::uuid& id, meshserver::STATUS_TYPE stat):
     JobId(id),
     Status(stat),
     Progress(0)
@@ -41,7 +44,7 @@ struct JobStatus
 
   //will make sure that the progress value is between 1 and 100 inclusive
   //on both ends. Progress value of zero is used when the status type is not progress
-  JobStatus(const std::string& id, meshserver::STATUS_TYPE stat, int progress):
+  JobStatus(const boost::uuids::uuid& id, meshserver::STATUS_TYPE stat, int progress):
     JobId(id),
     Status(stat),
     Progress( valid_progress_value(progress) )
@@ -66,7 +69,7 @@ inline meshserver::common::JobStatus to_JobStatus(const std::string& status)
   //convert a job status from a string, used as a hack to serialize
   std::stringstream buffer(status);
 
-  std::string id;
+  boost::uuids::uuid id;
   int t;
   int p;
 

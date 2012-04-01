@@ -138,9 +138,8 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 std::string Broker::meshStatus(const meshserver::JobMessage& msg)
 {
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
-  const std::string sid = meshserver::to_string(id);
 
-  meshserver::common::JobStatus js(sid,INVALID_STATUS);
+  meshserver::common::JobStatus js(id,INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(id))
     {
     js.Status = meshserver::QUEUED;
@@ -148,7 +147,7 @@ std::string Broker::meshStatus(const meshserver::JobMessage& msg)
   else if(this->ActiveJobs->haveUUID(id))
     {
     js = this->ActiveJobs->status(id);
-    }    
+    }
   return meshserver::to_string(js);
 }
 
@@ -174,9 +173,8 @@ std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
-  const std::string sid = meshserver::to_string(id);
 
-  meshserver::common::JobResult result(sid);
+  meshserver::common::JobResult result(id);
   if(this->ActiveJobs->haveUUID(id) && this->ActiveJobs->haveResult(id))
     {
     result = this->ActiveJobs->result(id);
@@ -238,7 +236,7 @@ std::string Broker::getJob(const meshserver::JobMessage& msg)
     msg.meshType() == this->QueuedJobs->front().meshType())
     {
       meshserver::common::JobDetails jd = this->QueuedJobs->pop();
-      this->ActiveJobs->add( meshserver::to_uuid(jd.JobId) );
+      this->ActiveJobs->add( jd.JobId );
       return meshserver::to_string(jd);
     }
   return meshserver::INVALID_MSG;

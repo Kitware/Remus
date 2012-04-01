@@ -81,8 +81,7 @@ meshserver::common::JobDetails JobQueue::pop()
 
   //convert the queued job into a job detail
   const std::string data(job.Message.data(),job.Message.dataSize());
-  const std::string sid = meshserver::to_string(job.Id);
-  return meshserver::common::JobDetails(sid,data);
+  return meshserver::common::JobDetails(job.Id,data);
 }
 
 //------------------------------------------------------------------------------

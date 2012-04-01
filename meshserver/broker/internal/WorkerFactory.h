@@ -12,7 +12,7 @@
 #include <queue>
 #include <set>
 
-#include <meshserver/common/meshServerGlobals.h>b
+#include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
 namespace broker{
