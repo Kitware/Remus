@@ -8,8 +8,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 add_subdirectory(internal)
 
 set(headers
-	broker.h
-	)
+    Broker.h
+    )
 set(broker_srcs
    ${headers}
    Broker.cxx
