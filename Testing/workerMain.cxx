@@ -6,11 +6,11 @@
 
 =========================================================================*/
 
-#include <meshserver/Worker.h>
+#include <meshserver/worker/Worker.h>
 
 int main ()
 {
-  meshserver::Worker w(meshserver::MESH2D);
+  meshserver::worker::Worker w(meshserver::MESH2D);
   meshserver::common::JobDetails jd = w.getJob();
 
   meshserver::common::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);

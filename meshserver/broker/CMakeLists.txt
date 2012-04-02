@@ -11,7 +11,6 @@ set(headers
     Broker.h
     )
 set(broker_srcs
-   ${headers}
    Broker.cxx
    )
 

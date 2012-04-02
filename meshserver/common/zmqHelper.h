@@ -32,14 +32,14 @@ inline void bindToSocket(zmq::socket_t &socket, const int num)
   socket.bind(buffer.str().c_str());
 }
 
-bool s_send(zmq::socket_t & socket, const std::string& contents)
+static bool s_send(zmq::socket_t & socket, const std::string& contents)
 {
   zmq::message_t message(contents.size());
   memcpy(message.data(), contents.data(), contents.size());
   return socket.send(message);
 }
 
-std::string s_recv(zmq::socket_t& socket)
+static std::string s_recv(zmq::socket_t& socket)
 {
   zmq::message_t message;
   socket.recv(&message);
@@ -48,7 +48,7 @@ std::string s_recv(zmq::socket_t& socket)
 
 //if a socket is type REP or REQ it prepends each message
 //with a null frame. So this common function removes that null frame
-void stripSocketSig(zmq::socket_t& socket)
+static void stripSocketSig(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
@@ -61,7 +61,7 @@ void stripSocketSig(zmq::socket_t& socket)
 }
 
 //if we are not a req socket make us look like one
-void attachReqHeader(zmq::socket_t& socket)
+ static void attachReqHeader(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
