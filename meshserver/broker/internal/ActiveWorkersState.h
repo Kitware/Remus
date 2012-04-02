@@ -124,7 +124,15 @@ const common::JobResult& ActiveWorkersState::result(
 void ActiveWorkersState::updateStatus(const meshserver::common::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
-  item->second.jstatus = s;
+
+  //The status enum is numbered in such away that a lower status value
+  //can't be reached from a higher status value. For example FAILED is status
+  //value 4, and can't be overwritten by status value 2 which is IN_PROGRESS.
+  //Since we are in asnyc land we could get a 4 than a 2 when a worker is crashing
+  if(s.Status >= item->second.jstatus.Status)
+    {
+    item->second.jstatus = s;
+    }
 }
 
 //-----------------------------------------------------------------------------
