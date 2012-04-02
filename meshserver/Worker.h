@@ -66,20 +66,23 @@ private:
   typedef std::set<boost::uuids::uuid>::const_iterator CJ_It;
   std::set<boost::uuids::uuid> CurrentJobIds;
 
-
   //this is the thread that handles notify the broker when we catch
   //a signal that means we have to die
   boost::thread* ExceptionHandlingThread;
   void reportCrash(); //method the thread uses to report to broker
+
   static int CaughtCrashSignal;
   static boost::condition_variable CrashCond;
   static boost::mutex CrashMutex;
+  static boost::mutex ExitMutex;
+
 };
 
 
 int Worker::CaughtCrashSignal = 0;
 boost::condition_variable Worker::CrashCond;
 boost::mutex Worker::CrashMutex;
+boost::mutex Worker::ExitMutex;
 
 //-----------------------------------------------------------------------------
 Worker::Worker(meshserver::MESH_TYPE mtype):
@@ -94,13 +97,15 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
   this->setupCrashHandling();
 
   //setup the thread that will report back to the broker
-  this->ExceptionHandlingThread = new boost::thread(&Worker::reportCrash,this);
+  this->ExceptionHandlingThread = new boost::thread(boost::bind(&Worker::reportCrash,this));
 
 }
 
 //-----------------------------------------------------------------------------
 Worker::~Worker()
 {
+  std::cout << "called destructor " << std::endl;
+  this->ExceptionHandlingThread->interrupt();
   delete this->ExceptionHandlingThread;
 }
 
@@ -118,9 +123,19 @@ void Worker::setupCrashHandling()
 //-----------------------------------------------------------------------------
 void Worker::crashHandler(int value)
 {
+  {
   boost::lock_guard<boost::mutex> lock(Worker::CrashMutex);
-  Worker::CaughtCrashSignal = value;
+  Worker::CaughtCrashSignal = 1;
+  }
   Worker::CrashCond.notify_all();
+
+  boost::unique_lock<boost::mutex> ulock(Worker::ExitMutex);
+  while(Worker::CaughtCrashSignal==1)
+    {
+    Worker::CrashCond.wait(ulock);
+    }
+  ulock.release();
+  abort();
 }
 
 //-----------------------------------------------------------------------------
@@ -141,7 +156,11 @@ void Worker::reportCrash()
     meshserver::JobMessage jm(this->MeshType,meshserver::MESH_STATUS,msg.data(),msg.size());
     jm.send(this->Broker);
     }
-  exit(this->CaughtCrashSignal);
+
+  this->CaughtCrashSignal = 0;
+  lock.release();
+  Worker::CrashCond.notify_one();
+  return;
 }
 
 //-----------------------------------------------------------------------------
