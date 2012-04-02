@@ -20,4 +20,4 @@ add_executable(TestMeshBroker ${SRCS_Broker} ${COMMON_SRCS})
 target_link_libraries(TestMeshBroker ${ZeroMQ_LIBRARIES} MeshServerBroker)
 
 add_executable(TestMeshWorker ${SRCS_Workers} ${COMMON_SRCS})
-target_link_libraries(TestMeshWorker ${ZeroMQ_LIBRARIES})
+target_link_libraries(TestMeshWorker ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES})

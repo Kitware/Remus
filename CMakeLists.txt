@@ -13,8 +13,9 @@ find_package(ZeroMQ REQUIRED)
 # List of Boost features used:
 # * UUID Generation
 # * Shared Ptr
-# * Scoped Ptr
-find_package(Boost 1.45.0 REQUIRED)
+# * Threads
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost 1.45.0 COMPONENTS thread REQUIRED)
 
 
 
