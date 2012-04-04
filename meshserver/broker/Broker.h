@@ -26,8 +26,9 @@ namespace broker{
   namespace internal
     {
     //forward declaration of classes only the implementation needs
-    class ActiveWorkersState;
+    class ActiveJobs;
     class JobQueue;
+    class WorkerPool;
     class WorkerFactory;
     }
 
@@ -54,15 +55,17 @@ protected:
                               const meshserver::JobMessage& msg);
   void storeMeshStatus(const meshserver::JobMessage& msg);
   void storeMesh(const meshserver::JobMessage& msg);
-  std::string getJob(const meshserver::JobMessage& msg);
+  bool haveJobForWorker(const meshserver::JobMessage& msg) const;
+  void assignJobToWorker(const std::string &workAddress);
 
-  void GenerateWorkerForQueuedJob();
+  void FindWorkerForQueuedJob();
 
 private:
   boost::uuids::random_generator UUIDGenerator;
 
   boost::scoped_ptr<meshserver::broker::internal::JobQueue> QueuedJobs;
-  boost::scoped_ptr<meshserver::broker::internal::ActiveWorkersState> ActiveJobs;
+  boost::scoped_ptr<meshserver::broker::internal::WorkerPool> WorkerPool;
+  boost::scoped_ptr<meshserver::broker::internal::ActiveJobs> ActiveJobs;
   boost::scoped_ptr<meshserver::broker::internal::WorkerFactory> WorkerFactory;
 
   zmq::context_t Context;

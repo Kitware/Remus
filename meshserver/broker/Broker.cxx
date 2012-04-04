@@ -9,6 +9,7 @@
 #include <meshserver/broker/Broker.h>
 
 #include <boost/uuid/uuid.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
@@ -21,7 +22,7 @@
 #include <meshserver/common/zmqHelper.h>
 
 #include <meshserver/broker/internal/uuidHelper.h>
-#include <meshserver/broker/internal/ActiveWorkersState.h>
+#include <meshserver/broker/internal/ActiveJobs.h>
 #include <meshserver/broker/internal/JobQueue.h>
 #include <meshserver/broker/internal/WorkerFactory.h>
 
@@ -33,7 +34,7 @@ namespace broker{
 Broker::Broker():
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::broker::internal::JobQueue() ),
-  ActiveJobs(new meshserver::broker::internal::ActiveWorkersState() ),
+  ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
   WorkerFactory(new meshserver::broker::internal::WorkerFactory() ),
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
@@ -59,7 +60,8 @@ bool Broker::startBrokering()
   //  Process messages from both sockets
   while (true)
     {
-    zmq::poll (&items[0], 2, -1);
+    zmq::poll (&items[0], 2, meshserver::HEARTBEAT_INTERVAL);
+    boost::posix_time::ptime hbTime = boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
@@ -80,11 +82,23 @@ bool Broker::startBrokering()
       //after the DetermineWorkerResponse call
       meshserver::JobMessage message(this->WorkerQueries);
       this->DetermineWorkerResponse(workerAddress,message);
+
+      //refresh all jobs for a given worker with a new expiry time
+      this->ActiveJobs->refreshJobs(workerAddress,hbTime);
+
+      //refresh the worker if it is actuall in the pool instead of doing a job
+      this->WorkerPool->refreshWorker(workerAddress,hbTime);
       }
 
-    //ask the factory to generate a worker
-    //that is of the same type as the first queued job
-    this->GenerateWorkerForQueuedJob();
+    //purge all jobs whose worker haven't sent a heartbeat in time
+    this->ActiveJobs->purgeDeadJobs(hbTime);
+
+    //purge all pending workers with jobs that haven't sent a heartbeat
+    this->WorkerPool->purgeDeadWorkers(hbTime);
+
+    //see if we have a worker in the pool for the next job in the queue,
+    //otherwise as the factory to generat a new worker to handle that job
+    this->FindWorkerForQueuedJob();
     }
   return true;
   }
@@ -190,15 +204,23 @@ std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
 void Broker::DetermineWorkerResponse(const std::string &workAddress,
                                      const meshserver::JobMessage& msg)
 {
-  meshserver::JobResponse response(workAddress);
-
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
-      //retrieve a job for the worker, have to respond
-      response.setData(this->getJob(msg));
-      response.send(this->WorkerQueries);
+    //the worker will block while it waits for a response.
+      if(this->haveJobForWorker(msg))
+        {
+        //we currently have a job for the worker, give it back now
+        this->assignJobToWorker(workAddress);
+        }
+      else
+        {
+        //we don't currently have a job, add the worker to a pool
+        //and check each event loop time if we have a job for that worker
+        this->WorkerPool.addWorker(workAddress,msg.serviceType());
+        }
+
       break;
     case meshserver::MESH_STATUS:
       //store the mesh status msg,  no response needed
@@ -229,27 +251,49 @@ void Broker::storeMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::getJob(const meshserver::JobMessage& msg)
+bool Broker::haveJobForWorker(const meshserver::JobMessage& msg) const
 {
   //lets see if the msg mesh type and the queue match up
-  if(this->QueuedJobs->size() > 0 &&
-    msg.meshType() == this->QueuedJobs->front().meshType())
-    {
-      meshserver::common::JobDetails jd = this->QueuedJobs->pop();
-      this->ActiveJobs->add( jd.JobId );
-      return meshserver::to_string(jd);
-    }
-  return meshserver::INVALID_MSG;
+  return (this->QueuedJobs->size() > 0 && msg.meshType() == this->QueuedJobs->front().meshType());
 }
 
+//------------------------------------------------------------------------------
+void Broker::assignJobToWorker(const std::string &workAddress)
+{
+  meshserver::common::JobDetails jd = this->QueuedJobs->pop();
+  this->ActiveJobs->add( workAddress, jd.JobId );
+
+  meshserver::JobResponse response(workAddress);
+  response.setData(meshserver::to_string(jd));
+  response.send(this->WorkerQueries);
+}
+
+//see if we have a worker in the pool for the next job in the queue,
+//otherwise as the factory to generat a new worker to handle that job
 //------------------------------------------------------------------------------
 void Broker::GenerateWorkerForQueuedJob()
 {
   //if we have something in the job queue ask the factory to generate a worker
   //for that job
-  if(this->QueuedJobs->size() > 0 )
+
+  //this has a bug that we can launch multiple workers for a same job before
+  //a single worker reports back. We need to rethink this entire framework.
+  //most likely change the QueuedJobs to a pool that has queued and pending status
+
+  if(this->QueuedJobs->size() == 0 )
     {
-    this->WorkerFactory->createWorker(this->QueuedJobs->front().meshType());
+    return;
+    }
+
+  meshserver::MESH_TYPE type = this->QueuedJobs->front().meshType();
+  if(this->WorkerPool.haveWorker(type))
+    {
+    //give this job to that worker
+    this->assignJobToWorker(this->WorkerPool.takeWorker(type));
+    }
+  else
+    {
+    this->WorkerFactory->createWorker();
     }
 }
 
