@@ -24,59 +24,56 @@ class Worker::BrokerCommunicator
 {
 public:
   BrokerCommunicator():
-    ContinueTalking(true),
-    Worker(NULL),
-    Broker(NULL)
+    ContinueTalking(true)
     {
     }
 
   ~BrokerCommunicator()
   {
-  if(this->Worker)
-    {
-    delete this->Worker;
-    delete this->Broker;
-    }
   }
 
   void run(zmq::context_t *context)
   {
-    this->Worker = new zmq::socket_t(*context,ZMQ_PAIR);
-    this->Broker = new zmq::socket_t(*context,ZMQ_DEALER);
+    std::cout << "thread started" << std::endl;
 
-    this->Worker->connect("inproc://worker");
-    zmq::connectToSocket(*this->Broker,meshserver::BROKER_WORKER_PORT);
+    zmq::socket_t Worker(*context,ZMQ_PAIR);
+    zmq::socket_t Broker(*context,ZMQ_DEALER);
 
-    zmq::pollitem_t item  = { this->Worker,  0, ZMQ_POLLIN, 0 };
+    Worker.connect("inproc://worker");
+    zmq::connectToSocket(Broker,meshserver::BROKER_WORKER_PORT);
+
+    zmq::pollitem_t item  = { Worker,  0, ZMQ_POLLIN, 0 };
 
     while(this->ContinueTalking)
       {
       zmq::poll(&item,1,meshserver::HEARTBEAT_INTERVAL);
       if(item.revents & ZMQ_POLLIN)
         {
-        meshserver::JobMessage message(*this->Worker);
+        std::cout << "got msg from worker" << std::endl;
+        meshserver::JobMessage message(Worker);
         //just pass the message on to the broker
-        message.send(*this->Broker);
+        message.send(Broker);
         if(message.serviceType() == meshserver::MAKE_MESH)
           {
+
           //if this is a get a mesh request, we need to send the
           //data to the worker
-          meshserver::JobResponse response(*this->Broker);
-          response.send(*this->Worker);
+          meshserver::JobResponse response(Broker);
+          std::cout << "sending job back to worker from broker" << std::endl;
+          response.send(Worker);
           }
         }
       else
         {
+        std::cout << "send heartbeat to broker" << std::endl;
         //send a heartbeat to the broker
         meshserver::JobMessage message(meshserver::INVALID_MESH,meshserver::HEARTBEAT);
-        message.send(*this->Broker);
+        message.send(Broker);
         }
       }
+
+    std::cout << "somehow we stopped polling" << std::endl;
     //close now
-    delete this->Worker;
-    delete this->Broker;
-    this->Worker=NULL;
-    this->Broker=NULL;
   }
 
   void stop()
@@ -86,8 +83,6 @@ public:
 
 private:
   bool ContinueTalking;
-  zmq::socket_t* Worker;
-  zmq::socket_t* Broker;
 };
 
 //-----------------------------------------------------------------------------
@@ -96,6 +91,7 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
   Context(1),
   BrokerComm(Context,ZMQ_PAIR)
 {
+  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
   this->BrokerComm.bind("inproc://worker");
   //start about the broker communication thread
   this->BComm = new Worker::BrokerCommunicator();
