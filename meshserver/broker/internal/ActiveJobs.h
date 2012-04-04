@@ -6,13 +6,14 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_ActiveWorkerState_h
-#define __meshserver_broker_internal_ActiveWorkerState_h
+#ifndef __meshserver_broker_internal_ActiveJobs_h
+#define __meshserver_broker_internal_ActiveJobs_h
 
-#include <queue>
-#include <set>
+#include <map>
 
 #include <boost/uuid/uuid.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <meshserver/broker/internal/uuidHelper.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
@@ -23,11 +24,11 @@ namespace meshserver{
 namespace broker{
 namespace internal{
 
-class ActiveWorkersState
+class ActiveJobs
 {
   public:
 
-    bool add(const boost::uuids::uuid& id);
+    bool add(const std::string& workerAddress, const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
@@ -43,32 +44,51 @@ class ActiveWorkersState
 
     void updateResult(const meshserver::common::JobResult& r);
 
+    void markFailedJobs(const boost::posix_time::ptime& time);
+
+    void refreshJobs(const std::string& workerAddress);
+
 private:
-    struct workerState
+    struct JobState
     {
-      bool haveStatus;
-      bool haveResult;
+      std::string WorkerAddress;
       meshserver::common::JobStatus jstatus;
       meshserver::common::JobResult jresult;
+      boost::posix_time::ptime expiry; //after this time the job should be purged
+      bool haveResult;
 
-      workerState(const boost::uuids::uuid& id, meshserver::STATUS_TYPE stat):
-        haveStatus(false),haveResult(false),
-        jstatus(id,stat),jresult(id)
-      {}
+      JobState(const std::string& workerAddress,
+               const boost::uuids::uuid& id,
+               meshserver::STATUS_TYPE stat):
+        WorkerAddress(workerAddress),
+        jstatus(id,stat),
+        jresult(id),
+        expiry(boost::posix_time::second_clock::local_time()),
+        haveResult(false)
+        {
+          //we give it two heartbeat cycles of lifetime to start
+          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
+        }
+
+        void refresh()
+        {
+          expiry = boost::posix_time::second_clock::local_time() +
+            boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
+        }
     };
 
-    typedef std::pair<boost::uuids::uuid, workerState> InfoPair;
-    typedef std::map< boost::uuids::uuid, workerState>::const_iterator InfoConstIt;
-    typedef std::map< boost::uuids::uuid, workerState>::iterator InfoIt;
-    std::map<boost::uuids::uuid, workerState> Info;
+    typedef std::pair<boost::uuids::uuid, JobState> InfoPair;
+    typedef std::map< boost::uuids::uuid, JobState>::const_iterator InfoConstIt;
+    typedef std::map< boost::uuids::uuid, JobState>::iterator InfoIt;
+    std::map<boost::uuids::uuid, JobState> Info;
 };
 
 //-----------------------------------------------------------------------------
-bool ActiveWorkersState::add(const boost::uuids::uuid& id)
+bool ActiveJobs::add(const std::string& workerAddress,const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
-    workerState ws(id,meshserver::QUEUED);
+    JobState ws(workerAddress,id,meshserver::QUEUED);
     InfoPair pair(id,ws);
     this->Info.insert(pair);
     return true;
@@ -77,7 +97,7 @@ bool ActiveWorkersState::add(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
-bool ActiveWorkersState::remove(const boost::uuids::uuid& id)
+bool ActiveJobs::remove(const boost::uuids::uuid& id)
 {
   if(this->haveUUID(id))
     {
@@ -88,13 +108,13 @@ bool ActiveWorkersState::remove(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
-bool ActiveWorkersState::haveUUID(const boost::uuids::uuid& id) const
+bool ActiveJobs::haveUUID(const boost::uuids::uuid& id) const
 {
   return this->Info.count(id) != 0;
 }
 
 //-----------------------------------------------------------------------------
-bool ActiveWorkersState::haveResult(const boost::uuids::uuid& id) const
+bool ActiveJobs::haveResult(const boost::uuids::uuid& id) const
 {
   InfoConstIt item = this->Info.find(id);
   if(item == this->Info.end())
@@ -105,7 +125,7 @@ bool ActiveWorkersState::haveResult(const boost::uuids::uuid& id) const
 }
 
 //-----------------------------------------------------------------------------
-const meshserver::common::JobStatus& ActiveWorkersState::status(
+const meshserver::common::JobStatus& ActiveJobs::status(
      const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -113,7 +133,7 @@ const meshserver::common::JobStatus& ActiveWorkersState::status(
 }
 
 //-----------------------------------------------------------------------------
-const common::JobResult& ActiveWorkersState::result(
+const common::JobResult& ActiveJobs::result(
     const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -121,7 +141,7 @@ const common::JobResult& ActiveWorkersState::result(
 }
 
 //-----------------------------------------------------------------------------
-void ActiveWorkersState::updateStatus(const meshserver::common::JobStatus& s)
+void ActiveJobs::updateStatus(const meshserver::common::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
@@ -136,10 +156,36 @@ void ActiveWorkersState::updateStatus(const meshserver::common::JobStatus& s)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveWorkersState::updateResult(const meshserver::common::JobResult& r)
+void ActiveJobs::updateResult(const meshserver::common::JobResult& r)
 {
   InfoIt item = this->Info.find(r.JobId);
   item->second.jresult = r;
+  item->second.haveResult = true;
+}
+
+//-----------------------------------------------------------------------------
+void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
+{
+  for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
+    {
+    if(item->second.expiry < time )
+      {
+      item->second.jstatus.Status = meshserver::FAILED;
+      item->second.jstatus.Progress = 0;
+      }
+    }
+}
+
+//-----------------------------------------------------------------------------
+void ActiveJobs::refreshJobs(const std::string& workerAddress)
+{
+  for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
+    {
+    if(item->second.WorkerAddress == worderAddress)
+      {
+      item->second.refresh();
+      }
+    }
 }
 
 }
