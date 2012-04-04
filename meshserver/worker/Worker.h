@@ -12,16 +12,14 @@
 #include <zmq.hpp>
 #include <set>
 
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread.hpp>
-
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 
 #include <meshserver/common/meshServerGlobals.h>
-#include <meshserver/common/zmqHelper.h>
+
+//forward declare boost::thread
+namespace boost { class thread; }
 
 namespace meshserver{
 namespace worker{
@@ -43,11 +41,7 @@ public:
   void returnMeshResults(const meshserver::common::JobResult& result);
 
 private:
-  //setups the signal handling for exceptions
-  //these allow us to register to a static variable that we should
-  //handle a crash.
-  void setupCrashHandling();
-  static void crashHandler(int value);
+  void stopCommunicatorThread();
 
   //holds the type of mesh we support
   const meshserver::MESH_TYPE MeshType;
@@ -55,21 +49,13 @@ private:
   zmq::context_t Context;
 
   //this socket is used to talk to broker
-  zmq::socket_t Broker;
+  zmq::socket_t BrokerComm;
 
-  //holds all the job ids this worker is processing
-  typedef std::set<boost::uuids::uuid>::const_iterator CJ_It;
-  std::set<boost::uuids::uuid> CurrentJobIds;
-
-  //this is the thread that handles notify the broker when we catch
-  //a signal that means we have to die
-  boost::thread* ExceptionHandlingThread;
-  void reportCrash(); //method the thread uses to report to broker
-
-  static int CaughtCrashSignal;
-  static boost::condition_variable CrashCond;
-  static boost::mutex CrashMutex;
-  static boost::mutex ExitMutex;
+  //this is the thread that handles talking with the broker
+  //and dealing with heartbeats
+  class BrokerCommunicator;
+  BrokerCommunicator *BComm;
+  boost::thread* BrokerCommThread;
 };
 
 }
