@@ -87,7 +87,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
 JobMessage::JobMessage(zmq::socket_t &socket)
 {
   //construct a job message from the socket
-  zmq::stripSocketSig(socket);
+  zmq::removeReqHeader(socket);
 
   zmq::message_t meshType;
   socket.recv(&meshType);

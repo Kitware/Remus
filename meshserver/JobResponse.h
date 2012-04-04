@@ -57,7 +57,7 @@ JobResponse::JobResponse(const std::string& client):
 JobResponse::JobResponse(zmq::socket_t& socket):
   Data(NULL)
 {
-  zmq::stripSocketSig(socket);
+  zmq::removeReqHeader(socket);
 
   zmq::message_t data(0);
   socket.recv(&data);

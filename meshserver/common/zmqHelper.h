@@ -60,27 +60,28 @@ static void empty_recv(zmq::socket_t& socket)
   return;
 }
 
-//if a socket is type REP or REQ it prepends each message
-//with a null frame. So this common function removes that null frame
-static void stripSocketSig(zmq::socket_t& socket)
+//we presume that every message needs to be stripped
+//as we make everything act like a req/rep and pad
+//a null message on everything
+static void removeReqHeader(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
-  if(socketType == ZMQ_ROUTER || socketType == ZMQ_DEALER)
+  if(socketType != ZMQ_REQ && socketType != ZMQ_REP)
     {
     zmq::message_t reqHeader;
     socket.recv(&reqHeader);
     }
 }
 
-//if we are not a req socket make us look like one
+//if we are not a req or rep socket make us look like one
  static void attachReqHeader(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
-  if(socketType != ZMQ_REQ)
+  if(socketType != ZMQ_REQ && socketType != ZMQ_REP)
     {
     zmq::message_t reqHeader(0);
     socket.send(reqHeader,ZMQ_SNDMORE);
