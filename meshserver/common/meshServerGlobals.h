@@ -16,6 +16,7 @@
 namespace meshserver {
 static const int BROKER_CLIENT_PORT = 5555;
 static const int BROKER_WORKER_PORT = 5556;
+static const int HEARTBEAT_INTERVAL = 3000;
 
 static const std::string INVALID_MSG = "INVALID_MSG";
 
@@ -33,7 +34,8 @@ enum SERVICE_TYPE
   MAKE_MESH = 1,
   MESH_STATUS = 2,
   CAN_MESH = 3,
-  RETRIEVE_MESH = 4
+  RETRIEVE_MESH = 4,
+  HEARTBEAT = 5
 };
 
 enum STATUS_TYPE

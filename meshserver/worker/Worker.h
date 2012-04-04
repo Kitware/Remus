@@ -10,7 +10,6 @@
 #define __meshserver_worker_h
 
 #include <zmq.hpp>
-#include <set>
 
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobResult.h>

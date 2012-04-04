@@ -37,11 +37,11 @@ public:
     delete this->Worker;
     delete this->Broker;
     }
-  }  
+  }
 
   void run(zmq::context_t *context)
   {
-    this->Worker = new zmq::socket_t(*context,ZMQ_ROUTER);
+    this->Worker = new zmq::socket_t(*context,ZMQ_PAIR);
     this->Broker = new zmq::socket_t(*context,ZMQ_DEALER);
 
     this->Worker->connect("inproc://worker");
@@ -50,44 +50,33 @@ public:
     zmq::pollitem_t item  = { this->Worker,  0, ZMQ_POLLIN, 0 };
 
     while(this->ContinueTalking)
-    {
-    zmq::poll(&item,1,-1);
-    if(item.revents & ZMQ_POLLIN)
       {
-      //a worker is registering
-      //we need to strip the worker address from the message
-      const std::string workerAddress = zmq::s_recv(*this->Worker);
-
-      meshserver::JobMessage message(*this->Worker);
-      if(message.serviceType() == meshserver::CAN_MESH)
+      zmq::poll(&item,1,meshserver::HEARTBEAT_INTERVAL);
+      if(item.revents & ZMQ_POLLIN)
         {
-        bool haveValidJob = false;
-        while(this->ContinueTalking && haveValidJob)
+        meshserver::JobMessage message(*this->Worker);
+        //just pass the message on to the broker
+        message.send(*this->Broker);
+        if(message.serviceType() == mesherserver::MAKE_MESH)
           {
-          //send the message to the broker
-          message.send(*this->Broker);
-
-          //we have our message back
+          //if this is a get a mesh request, we need to send the
+          //data to the worker
           meshserver::JobResponse response(*this->Broker);
-          
-          //we need a better serialization techinque
-          std::string responseMsg = response.dataAs<std::string>();
-
-          //see if we are given a job, or a request to poll again
-          if(responseMsg != meshserver::INVALID_MSG)
-            {
-            response.send(*this->Worker);
-            haveValidJob = true;
-            }
+          response.send(*this->Worker);
           }
         }
       else
         {
-        //just pass the message on to the broker
+        //send a heartbeat to the broker
+        meshserver::JobMessage message(meshserver::INVALID_MESH,meshserver::HEARTBEAT);
         message.send(*this->Broker);
         }
       }
-    }
+    //close now
+    delete this->Worker;
+    delete this->Broker;
+    this->Worker=NULL;
+    this->Broker=NULL;
   }
 
   void stop()
@@ -105,13 +94,18 @@ private:
 Worker::Worker(meshserver::MESH_TYPE mtype):
   MeshType(mtype),
   Context(1),
-  BrokerComm(Context,ZMQ_DEALER)
+  BrokerComm(Context,ZMQ_PAIR)
 {
   this->BrokerComm.connect("inproc://worker");
   //start about the broker communication thread
   this->BComm = new Worker::BrokerCommunicator();
   this->BrokerCommThread = new boost::thread(&Worker::BrokerCommunicator::run,
                                              this->BComm,&this->Context);
+
+
+  //register with the broker that we can mesh a certain type
+  meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
+  canMesh.send(this->BrokerComm);
 }
 
 //-----------------------------------------------------------------------------
@@ -135,11 +129,9 @@ void Worker::stopCommunicatorThread()
 //-----------------------------------------------------------------------------
 meshserver::common::JobDetails Worker::getJob()
 {
-  //send to the client that we are ready for a job.
-  meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
+  meshserver::JobMessage askForMesh(this->MeshType,meshserver::MAKE_MESH);
+  askForMesh.send(this->BrokerComm);
 
-
-  canMesh.send(this->BrokerComm);
   //we have our message back
   meshserver::JobResponse response(this->BrokerComm);
 
@@ -147,7 +139,7 @@ meshserver::common::JobDetails Worker::getJob()
   std::string msg = response.dataAs<std::string>();
 
   return meshserver::to_JobDetails(msg);
-}  
+}
 
 //-----------------------------------------------------------------------------
 void Worker::updateStatus(const meshserver::common::JobStatus& info)
