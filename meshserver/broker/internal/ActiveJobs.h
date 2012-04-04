@@ -181,7 +181,7 @@ void ActiveJobs::refreshJobs(const std::string& workerAddress)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
-    if(item->second.WorkerAddress == worderAddress)
+    if(item->second.WorkerAddress == workerAddress)
       {
       item->second.refresh();
       }

@@ -57,7 +57,7 @@ public:
         meshserver::JobMessage message(*this->Worker);
         //just pass the message on to the broker
         message.send(*this->Broker);
-        if(message.serviceType() == mesherserver::MAKE_MESH)
+        if(message.serviceType() == meshserver::MAKE_MESH)
           {
           //if this is a get a mesh request, we need to send the
           //data to the worker

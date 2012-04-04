@@ -15,6 +15,7 @@
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 
+#include <string>
 #include <vector>
 
 namespace meshserver{
@@ -25,7 +26,8 @@ class WorkerPool
 {
   public:
 
-    bool addWorker(const std::string& workerAddress, const meshserver::MESH_TYPE& type);
+    bool addWorker(const std::string& workerAddress,
+                   const meshserver::MESH_TYPE& type);
 
     bool haveWorker(const meshserver::MESH_TYPE& type) const;
 
@@ -78,7 +80,8 @@ private:
 };
 
 //------------------------------------------------------------------------------
-bool WorkerPool::addWorker(const std::string &workerAddress, const MESH_TYPE &type)
+bool WorkerPool::addWorker(const std::string &workerAddress,
+                           const meshserver::MESH_TYPE &type)
 {
   this->Pool.push_back( WorkerPool::WorkerInfo(workerAddress,type) );
   return true;
@@ -90,7 +93,7 @@ bool WorkerPool::haveWorker(const MESH_TYPE &type) const
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( (*i)->MType == type);
+    found = ( (*i).MType == type);
     }
   return found;
 }
@@ -100,13 +103,13 @@ std::string WorkerPool::takeWorker(const MESH_TYPE &type)
 {
 
   bool found = false;
-  ConstIt i;
+  It i;
   for(i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( (*i)->MType == type);
+    found = ( (*i).MType == type);
     }
 
-  std::string workerAddress = (*i)->WorkerAddress;
+  std::string workerAddress = (*i).WorkerAddress;
   this->Pool.erase(i);
   return workerAddress;
 }
@@ -125,13 +128,13 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 }
 
 //------------------------------------------------------------------------------
-void refreshWorker(const std::string& workerAddress)
+void WorkerPool::refreshWorker(const std::string& workerAddress)
 {
-  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+  for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {
-    if( (*i)->WorkerAddress == workerAddress)
+    if( (*i).WorkerAddress == workerAddress)
       {
-      (*i)->refresh();
+      (*i).refresh();
       }
     }
 }

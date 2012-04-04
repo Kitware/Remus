@@ -25,6 +25,7 @@
 #include <meshserver/broker/internal/ActiveJobs.h>
 #include <meshserver/broker/internal/JobQueue.h>
 #include <meshserver/broker/internal/WorkerFactory.h>
+#include <meshserver/broker/internal/WorkerPool.h>
 
 
 namespace meshserver{
@@ -34,6 +35,7 @@ namespace broker{
 Broker::Broker():
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::broker::internal::JobQueue() ),
+  WorkerPool(new meshserver::broker::internal::WorkerPool() ),
   ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
   WorkerFactory(new meshserver::broker::internal::WorkerFactory() ),
   Context(1),
@@ -219,7 +221,7 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
         {
         //we don't currently have a job, add the worker to a pool
         //and check each event loop time if we have a job for that worker
-        this->WorkerPool.addWorker(workAddress,msg.serviceType());
+        this->WorkerPool->addWorker(workAddress,msg.meshType());
         }
 
       break;
@@ -272,7 +274,7 @@ void Broker::assignJobToWorker(const std::string &workAddress)
 //see if we have a worker in the pool for the next job in the queue,
 //otherwise as the factory to generat a new worker to handle that job
 //------------------------------------------------------------------------------
-void Broker::GenerateWorkerForQueuedJob()
+void Broker::FindWorkerForQueuedJob()
 {
   //if we have something in the job queue ask the factory to generate a worker
   //for that job
@@ -287,14 +289,14 @@ void Broker::GenerateWorkerForQueuedJob()
     }
 
   meshserver::MESH_TYPE type = this->QueuedJobs->front().meshType();
-  if(this->WorkerPool.haveWorker(type))
+  if(this->WorkerPool->haveWorker(type))
     {
     //give this job to that worker
-    this->assignJobToWorker(this->WorkerPool.takeWorker(type));
+    this->assignJobToWorker(this->WorkerPool->takeWorker(type));
     }
   else
     {
-    this->WorkerFactory->createWorker();
+    this->WorkerFactory->createWorker(type);
     }
 }
 
