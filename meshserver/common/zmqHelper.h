@@ -46,6 +46,20 @@ static std::string s_recv(zmq::socket_t& socket)
   return std::string(static_cast<char*>(message.data()),message.size());
 }
 
+static void empty_send(zmq::socket_t& socket)
+{
+  zmq::message_t message;
+  socket.send(message);
+  return;
+}
+
+static void empty_recv(zmq::socket_t& socket)
+{
+  zmq::message_t message;
+  socket.recv(&message);
+  return;
+}
+
 //if a socket is type REP or REQ it prepends each message
 //with a null frame. So this common function removes that null frame
 static void stripSocketSig(zmq::socket_t& socket)
