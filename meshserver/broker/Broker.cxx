@@ -76,9 +76,11 @@ bool Broker::startBrokering()
       }
     else if (items[1].revents & ZMQ_POLLIN)
       {
+      std::cout << "got worker query" <<std::endl;
       //a worker is registering
       //we need to strip the worker address from the message
       std::string workerAddress = zmq::s_recv(this->WorkerQueries);
+      std::cout << "workerAddress: " << workerAddress << std::endl;
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
@@ -208,6 +210,7 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
                                      const meshserver::JobMessage& msg)
 {
   //we have a valid job, determine what to do with it
+  std::cout << meshserver::to_string(msg.serviceType()) << " msg parsed" << std::endl;
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:

@@ -49,13 +49,13 @@ public:
       zmq::poll(&item,1,meshserver::HEARTBEAT_INTERVAL);
       if(item.revents & ZMQ_POLLIN)
         {
-        std::cout << "got msg from worker" << std::endl;
         meshserver::JobMessage message(Worker);
+        std::cout << "got msg from worker of type" << meshserver::to_string(message.serviceType()) << std::endl;
+
         //just pass the message on to the broker
         message.send(Broker);
         if(message.serviceType() == meshserver::MAKE_MESH)
           {
-
           //if this is a get a mesh request, we need to send the
           //data to the worker
           meshserver::JobResponse response(Broker);
