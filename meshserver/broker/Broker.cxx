@@ -211,6 +211,7 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
+      std::cout << "adding worker to pool" <<std::endl;
       this->WorkerPool->addWorker(workAddress,msg.meshType());
       break;
     case meshserver::MAKE_MESH:
@@ -228,6 +229,7 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
           {
           this->WorkerPool->addWorker(workAddress,msg.meshType());
           }
+        std::cout << "marking worker ready for work" <<std::endl;
         this->WorkerPool->readyForWork(workAddress);
         }
 
@@ -270,6 +272,7 @@ bool Broker::haveJobForWorker(const meshserver::JobMessage& msg) const
 //------------------------------------------------------------------------------
 void Broker::assignJobToWorker(const std::string &workAddress)
 {
+  std::cout << "assigning job to worker" << std::endl;
   meshserver::common::JobDetails jd = this->QueuedJobs->pop();
   this->ActiveJobs->add( workAddress, jd.JobId );
 
