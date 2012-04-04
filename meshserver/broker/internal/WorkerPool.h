@@ -29,25 +29,35 @@ class WorkerPool
     bool addWorker(const std::string& workerAddress,
                    const meshserver::MESH_TYPE& type);
 
-    bool haveWorker(const meshserver::MESH_TYPE& type) const;
+    //do we have any worker waiting to take this type of job
+    bool haveWaitingWorker(const meshserver::MESH_TYPE& type) const;
+
+    //do we have a worker with this address?
+    bool haveWorker(const std::string& address) const;
+
+    //mark a worker with the given adress ready to take a job.
+    //returns false if a worker with that address wasn't found
+    bool readyForWork(const std::string& address);
 
     //returns the worker address and removes the worker from the pool
     std::string takeWorker(const meshserver::MESH_TYPE& type);
 
     void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
-    void refreshWorker(const std::string& workerAddress);
+    void refreshWorker(const std::string& address);
 
 private:
     struct WorkerInfo
     {
+      bool WaitingForWork;
       meshserver::MESH_TYPE MType;
-      std::string WorkerAddress;
+      std::string Address;
       boost::posix_time::ptime expiry; //after this time the job should be purged
 
-      WorkerInfo(const std::string& workerAddress, const meshserver::MESH_TYPE type):
+      WorkerInfo(const std::string& address, const meshserver::MESH_TYPE type):
+        WaitingForWork(false),
         MType(type),
-        WorkerAddress(workerAddress),
+        Address(address),
         expiry(boost::posix_time::second_clock::local_time())
         {
           //we give it two heartbeat cycles of lifetime to start
@@ -88,15 +98,42 @@ bool WorkerPool::addWorker(const std::string &workerAddress,
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWorker(const MESH_TYPE &type) const
+bool WorkerPool::haveWaitingWorker(const MESH_TYPE &type) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( (*i).MType == type);
+    found = ( (*i).MType == type && (*i).WaitingForWork );
     }
   return found;
 }
+
+//------------------------------------------------------------------------------
+bool WorkerPool::haveWorker(const std::string& address) const
+{
+  bool found = false;
+  for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
+    {
+    found = ( (*i).Address == address );
+    }
+  return found;
+}
+
+//------------------------------------------------------------------------------
+bool WorkerPool::readyForWork(const std::string& address)
+{
+  bool found = false;
+  for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
+    {
+    if((*i).Address == address)
+      {
+      found = true;
+      (*i).WaitingForWork = true;
+      }
+    }
+  return found;
+}
+
 
 //------------------------------------------------------------------------------
 std::string WorkerPool::takeWorker(const MESH_TYPE &type)
@@ -109,9 +146,13 @@ std::string WorkerPool::takeWorker(const MESH_TYPE &type)
     found = ( (*i).MType == type);
     }
 
-  std::string workerAddress = (*i).WorkerAddress;
-  this->Pool.erase(i);
-  return workerAddress;
+  if(found)
+    {
+    std::string workerAddress = (*i).Address;
+    this->Pool.erase(i);
+    return workerAddress;
+    }
+  return std::string();
 }
 
 //------------------------------------------------------------------------------
@@ -128,11 +169,11 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::refreshWorker(const std::string& workerAddress)
+void WorkerPool::refreshWorker(const std::string& address)
 {
   for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {
-    if( (*i).WorkerAddress == workerAddress)
+    if( (*i).Address == address)
       {
       (*i).refresh();
       }

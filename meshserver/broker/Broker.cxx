@@ -211,6 +211,9 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
+      this->WorkerPool->addWorker(workAddress,msg.meshType());
+      break;
+    case meshserver::MAKE_MESH:
     //the worker will block while it waits for a response.
       if(this->haveJobForWorker(msg))
         {
@@ -221,7 +224,11 @@ void Broker::DetermineWorkerResponse(const std::string &workAddress,
         {
         //we don't currently have a job, add the worker to a pool
         //and check each event loop time if we have a job for that worker
-        this->WorkerPool->addWorker(workAddress,msg.meshType());
+        if(!this->WorkerPool->haveWorker(workAddress))
+          {
+          this->WorkerPool->addWorker(workAddress,msg.meshType());
+          }
+        this->WorkerPool->readyForWork(workAddress);
         }
 
       break;
@@ -289,7 +296,7 @@ void Broker::FindWorkerForQueuedJob()
     }
 
   meshserver::MESH_TYPE type = this->QueuedJobs->front().meshType();
-  if(this->WorkerPool->haveWorker(type))
+  if(this->WorkerPool->haveWaitingWorker(type))
     {
     //give this job to that worker
     this->assignJobToWorker(this->WorkerPool->takeWorker(type));
