@@ -84,14 +84,15 @@ bool Broker::startBrokering()
       this->DetermineWorkerResponse(workerAddress,message);
 
       //refresh all jobs for a given worker with a new expiry time
-      this->ActiveJobs->refreshJobs(workerAddress,hbTime);
+      this->ActiveJobs->refreshJobs(workerAddress);
 
       //refresh the worker if it is actuall in the pool instead of doing a job
-      this->WorkerPool->refreshWorker(workerAddress,hbTime);
+      this->WorkerPool->refreshWorker(workerAddress);
       }
 
-    //purge all jobs whose worker haven't sent a heartbeat in time
-    this->ActiveJobs->purgeDeadJobs(hbTime);
+    //mark all jobs whose worker haven't sent a heartbeat in time
+    //as a job that failed.
+    this->ActiveJobs->markFailedJobs(hbTime);
 
     //purge all pending workers with jobs that haven't sent a heartbeat
     this->WorkerPool->purgeDeadWorkers(hbTime);
@@ -280,7 +281,7 @@ void Broker::GenerateWorkerForQueuedJob()
   //a single worker reports back. We need to rethink this entire framework.
   //most likely change the QueuedJobs to a pool that has queued and pending status
 
-  if(this->QueuedJobs->size() == 0 )
+  if(this->QueuedJobs->size() == 0)
     {
     return;
     }
