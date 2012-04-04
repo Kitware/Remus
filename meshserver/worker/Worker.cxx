@@ -96,7 +96,7 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
   Context(1),
   BrokerComm(Context,ZMQ_PAIR)
 {
-  this->BrokerComm.connect("inproc://worker");
+  this->BrokerComm.bind("inproc://worker");
   //start about the broker communication thread
   this->BComm = new Worker::BrokerCommunicator();
   this->BrokerCommThread = new boost::thread(&Worker::BrokerCommunicator::run,
