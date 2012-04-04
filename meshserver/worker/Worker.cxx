@@ -42,28 +42,31 @@ public:
     Worker.connect("inproc://worker");
     zmq::connectToSocket(Broker,meshserver::BROKER_WORKER_PORT);
 
-    zmq::pollitem_t item  = { Worker,  0, ZMQ_POLLIN, 0 };
+
+    zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
+                                  { Broker,  0, ZMQ_POLLIN, 0 } };
 
     while(this->ContinueTalking)
       {
-      zmq::poll(&item,1,meshserver::HEARTBEAT_INTERVAL);
-      if(item.revents & ZMQ_POLLIN)
+      zmq::poll(&items[0],2,meshserver::HEARTBEAT_INTERVAL);
+      bool sentToBroker=false;
+      if(items[0].revents & ZMQ_POLLIN)
         {
+        sentToBroker = true;
         meshserver::JobMessage message(Worker);
         std::cout << "got msg from worker of type" << meshserver::to_string(message.serviceType()) << std::endl;
-
         //just pass the message on to the broker
         message.send(Broker);
-        if(message.serviceType() == meshserver::MAKE_MESH)
-          {
-          //if this is a get a mesh request, we need to send the
-          //data to the worker
-          meshserver::JobResponse response(Broker);
-          std::cout << "sending job back to worker from broker" << std::endl;
-          response.send(Worker);
-          }
         }
-      else
+      if(items[1].revents & ZMQ_POLLIN)
+        {
+        //we have a message from the broker
+        //for know this can only be the reply back from a job query
+        //so send it to the worker.
+        meshserver::JobResponse response(Broker);
+        response.send(Worker);
+        }
+      if(!sentToBroker)
         {
         std::cout << "send heartbeat to broker" << std::endl;
         //send a heartbeat to the broker

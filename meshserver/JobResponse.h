@@ -55,6 +55,7 @@ JobResponse::JobResponse(const std::string& client):
   }
 
 JobResponse::JobResponse(zmq::socket_t& socket):
+  ClientAddress(),
   Data(NULL)
 {
   zmq::removeReqHeader(socket);
@@ -135,15 +136,17 @@ bool JobResponse::send(zmq::socket_t& socket) const
     }
 
   //we are sending our selves as a multi part message
-  //frame 0: client address we need to route too
+  //frame 0: client address we need to route too [optional]
   //frame 1: fake rep spacer
   //frame 2: data
-  zmq::message_t cAddress(this->ClientAddress.size());
-  memcpy(cAddress.data(),this->ClientAddress.data(),this->ClientAddress.size());
-  socket.send(cAddress,ZMQ_SNDMORE);
+  if(this->ClientAddress.size()>0)
+    {
+    zmq::message_t cAddress(this->ClientAddress.size());
+    memcpy(cAddress.data(),this->ClientAddress.data(),this->ClientAddress.size());
+    socket.send(cAddress,ZMQ_SNDMORE);
+    }
 
-  zmq::message_t reqHeader(0);
-  socket.send(reqHeader,ZMQ_SNDMORE);
+  zmq::attachReqHeader(socket);
 
   zmq::message_t realData;
   realData.move(this->Data);
