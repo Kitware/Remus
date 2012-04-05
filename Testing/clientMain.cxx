@@ -56,7 +56,8 @@ int main ()
             std::cout << " status of job is: " << meshserver::to_string(newStatus.Status)  << std::endl;
             }
           }
-        if(newStatus.Status == meshserver::FINISHED)
+        if(newStatus.Status == meshserver::FINISHED ||
+           newStatus.Status == meshserver::FAILED)
           {
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);
