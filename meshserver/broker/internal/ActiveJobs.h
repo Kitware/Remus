@@ -75,6 +75,13 @@ private:
           expiry = boost::posix_time::second_clock::local_time() +
             boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
         }
+
+        //we can only change the status of jobs that are
+        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
+        bool canUpdateStatus() const
+        {
+          return jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS;
+        }
     };
 
     typedef std::pair<boost::uuids::uuid, JobState> InfoPair;
@@ -145,11 +152,7 @@ void ActiveJobs::updateStatus(const meshserver::common::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
-  //The status enum is numbered in such away that a lower status value
-  //can't be reached from a higher status value. For example FAILED is status
-  //value 4, and can't be overwritten by status value 2 which is IN_PROGRESS.
-  //Since we are in asnyc land we could get a 4 than a 2 when a worker is crashing
-  if(s.Status >= item->second.jstatus.Status)
+  if(item->second.canUpdateStatus())
     {
     item->second.jstatus = s;
     item->second.refresh();
@@ -170,7 +173,9 @@ void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
-    if(item->second.expiry < time && item->second.jstatus.Status != meshserver::FAILED)
+    //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
+    //FINISHED is more important than failed
+    if (item->second.canUpdateStatus() && item->second.expiry < time)
       {
       item->second.jstatus.Status = meshserver::FAILED;
       item->second.jstatus.Progress = 0;

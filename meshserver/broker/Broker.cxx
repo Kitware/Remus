@@ -79,7 +79,6 @@ bool Broker::startBrokering()
       //a worker is registering
       //we need to strip the worker address from the message
       zmq::socketAddress workerAddress = zmq::address_recv(this->WorkerQueries);
-      std::cout << "workerAddress is " << std::string(workerAddress.data(),workerAddress.size())<< std::endl;
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call

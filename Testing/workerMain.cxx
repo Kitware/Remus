@@ -17,7 +17,8 @@ int main ()
   for(int i=1; i <= 100; ++i)
     {
     status.Progress = i;
-    sleep(1);
+    if(i%20==0)
+      sleep(1);
     w.updateStatus(status);
     }
 

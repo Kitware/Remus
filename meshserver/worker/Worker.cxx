@@ -46,7 +46,8 @@ public:
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
                                   { Broker,  0, ZMQ_POLLIN, 0 } };
 
-    while(this->ContinueTalking)
+    bool stopRunning = this->ContinueTalking;
+    while(stopRunning)
       {
       zmq::poll(&items[0],2,meshserver::HEARTBEAT_INTERVAL);
       bool sentToBroker=false;
@@ -54,17 +55,22 @@ public:
         {
         sentToBroker = true;
         meshserver::JobMessage message(Worker);
-        std::cout << "got msg from worker of type" << meshserver::to_string(message.serviceType()) << std::endl;
+        std::cout << "got msg from worker of type: " << meshserver::to_string(message.serviceType()) << std::endl;
         //just pass the message on to the broker
         message.send(Broker);
         }
-      if(items[1].revents & ZMQ_POLLIN)
+      if(items[1].revents & ZMQ_POLLIN && this->ContinueTalking)
         {
-        //we have a message from the broker
-        //for know this can only be the reply back from a job query
-        //so send it to the worker.
-        std::cout << "Sending a Broker response to the worker" << std::endl;
+        //we make sure ContinueTalking is valid so we know the worker
+        //is still listening and not in destructor
+
+        std::cout << "Building a response to send to the worker" << std::endl;
+
+        //we have a message from the broker for know this can only be the
+        //reply back from a job query so send it to the worker.
         meshserver::JobResponse response(Broker);
+
+        std::cout << "sending the response" << std::endl;
         response.send(Worker);
         }
       if(!sentToBroker)
@@ -74,6 +80,10 @@ public:
         meshserver::JobMessage message(meshserver::INVALID_MESH,meshserver::HEARTBEAT);
         message.send(Broker);
         }
+
+      //stop running when we are told by the worker to stop.
+      //AND we have finished reading the pending messages from that client
+      stopRunning = sentToBroker || this->ContinueTalking;
       }
 
     std::cout << "somehow we stopped polling" << std::endl;
@@ -134,6 +144,7 @@ meshserver::common::JobDetails Worker::getJob()
 
   //we have our message back
   meshserver::JobResponse response(this->BrokerComm);
+  std::cout << "have our job from the broker com in the real worker" <<std::endl;
 
   //we need a better serialization techinque
   std::string msg = response.dataAs<std::string>();
