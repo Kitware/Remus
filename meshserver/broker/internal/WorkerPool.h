@@ -165,12 +165,6 @@ zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
 //------------------------------------------------------------------------------
 void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 {
-  if(this->Pool.size())
-    {
-    std::cout << "Empty Worker Pool" << std::endl;
-    return;
-    }
-
   WorkerPool::expireFunctor pred(time);
 
   //remove if moves all bad items to end of the vector and returns
