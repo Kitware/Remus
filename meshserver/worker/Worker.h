@@ -27,20 +27,26 @@ class Worker
 public:
   //constuct a worker that can mesh a single type
   Worker(meshserver::MESH_TYPE mtype);
-  ~Worker();
+  virtual ~Worker();
 
   //gets back a job from the broker
   //this will lock the worker as it will wait on a job message
-  meshserver::common::JobDetails getJob();
+  virtual meshserver::common::JobDetails getJob();
 
   //update the status of the worker
-  void updateStatus(const meshserver::common::JobStatus& info);
+  virtual void updateStatus(const meshserver::common::JobStatus& info);
 
   //send to the server the mesh results.
-  void returnMeshResults(const meshserver::common::JobResult& result);
+  virtual void returnMeshResults(const meshserver::common::JobResult& result);
 
+protected:
+  //start communication. Currently is called by
+  //the constructor
+  bool startCommunicationThread();
+
+  //currently called by the destructor
+  bool stopCommunicationThread();
 private:
-  void stopCommunicatorThread();
 
   //holds the type of mesh we support
   const meshserver::MESH_TYPE MeshType;

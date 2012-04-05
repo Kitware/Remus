@@ -45,9 +45,7 @@ public:
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
                                   { Broker,  0, ZMQ_POLLIN, 0 } };
-
-    bool stopRunning = this->ContinueTalking;
-    while(stopRunning)
+    while( this->ContinueTalking)
       {
       zmq::poll(&items[0],2,meshserver::HEARTBEAT_INTERVAL);
       bool sentToBroker=false;
@@ -55,9 +53,15 @@ public:
         {
         sentToBroker = true;
         meshserver::JobMessage message(Worker);
-        std::cout << "got msg from worker of type: " << meshserver::to_string(message.serviceType()) << std::endl;
+
         //just pass the message on to the broker
         message.send(Broker);
+
+        //special case is that shutdown means we stop looping
+        if(message.serviceType()==meshserver::SHUTDOWN)
+          {
+          this->ContinueTalking = false;
+          }
         }
       if(items[1].revents & ZMQ_POLLIN && this->ContinueTalking)
         {
@@ -80,19 +84,7 @@ public:
         meshserver::JobMessage message(meshserver::INVALID_MESH,meshserver::HEARTBEAT);
         message.send(Broker);
         }
-
-      //stop running when we are told by the worker to stop.
-      //AND we have finished reading the pending messages from that client
-      stopRunning = sentToBroker || this->ContinueTalking;
       }
-
-    std::cout << "somehow we stopped polling" << std::endl;
-    //close now
-  }
-
-  void stop()
-  {
-    this->ContinueTalking = false;
   }
 
 private:
@@ -103,37 +95,58 @@ private:
 Worker::Worker(meshserver::MESH_TYPE mtype):
   MeshType(mtype),
   Context(1),
-  BrokerComm(Context,ZMQ_PAIR)
+  BrokerComm(Context,ZMQ_PAIR),
+  BComm(NULL),
+  BrokerCommThread(NULL)
 {
   //FIRST THREAD HAS TO BIND THE INPROC SOCKET
   this->BrokerComm.bind("inproc://worker");
-  //start about the broker communication thread
-  this->BComm = new Worker::BrokerCommunicator();
-  this->BrokerCommThread = new boost::thread(&Worker::BrokerCommunicator::run,
-                                             this->BComm,&this->Context);
 
-
-  //register with the broker that we can mesh a certain type
-  meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
-  canMesh.send(this->BrokerComm);
+  this->startCommunicationThread();
 }
 
 //-----------------------------------------------------------------------------
 Worker::~Worker()
 {
-  this->stopCommunicatorThread();
+  this->stopCommunicationThread();
 }
 
 //-----------------------------------------------------------------------------
-void Worker::stopCommunicatorThread()
+bool Worker::startCommunicationThread()
+{
+  if(!this->BrokerCommThread && !this->BComm)
+    {
+    //start about the broker communication thread
+    this->BComm = new Worker::BrokerCommunicator();
+    this->BrokerCommThread = new boost::thread(&Worker::BrokerCommunicator::run,
+                                             this->BComm,&this->Context);
+
+    //register with the broker that we can mesh a certain type
+    meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
+    canMesh.send(this->BrokerComm);
+    return true;
+    }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool Worker::stopCommunicationThread()
 {
   if(this->BrokerCommThread && this->BComm)
     {
-    this->BComm->stop();
+    //send message that we are shuting down communication
+    meshserver::JobMessage shutdown(this->MeshType,meshserver::SHUTDOWN);
+    shutdown.send(this->BrokerComm);
+
     this->BrokerCommThread->join();
     delete this->BComm;
     delete this->BrokerCommThread;
+
+    this->BComm = NULL;
+    this->BrokerCommThread = NULL;
+    return true;
     }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
