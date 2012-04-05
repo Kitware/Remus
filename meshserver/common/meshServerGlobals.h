@@ -36,7 +36,8 @@ enum SERVICE_TYPE
   MESH_STATUS = 2,
   CAN_MESH = 3,
   RETRIEVE_MESH = 4,
-  HEARTBEAT = 5
+  HEARTBEAT = 5,
+  SHUTDOWN = 6
 };
 
 enum STATUS_TYPE
@@ -52,7 +53,7 @@ namespace common
   {
   //a mapping of enum types to char*
   static const char *mesh_types[] = { "INVALID", "2D", "3D", "3D Surface" };
-  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT" };
+  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "SHUTDOWN" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED" };
   }
 
