@@ -17,7 +17,7 @@ int main ()
   if(c.canMesh(meshserver::MESH2D))
     {
     std::vector<std::string> jobs;
-    for(int i=0; i < 2; ++i)
+    for(int i=0; i < 12; ++i)
       {
       std::string jid = c.submitMeshJob(meshserver::MESH2D,"TEST");
       if(jid.size()>0)

@@ -11,6 +11,9 @@
 int main ()
 {
   meshserver::worker::Worker w(meshserver::MESH2D);
+
+  for(int i=0; i < 4; ++i)
+  {
   meshserver::common::JobDetails jd = w.getJob();
 
   meshserver::common::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);
@@ -27,6 +30,7 @@ int main ()
 
   meshserver::common::JobResult results(jd.JobId,"FAKE RESULTS");
   w.returnMeshResults(results);
+  }
 
   return 1;
 }
