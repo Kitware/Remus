@@ -26,7 +26,7 @@ class WorkerPool
 {
   public:
 
-    bool addWorker(const zmq::socketAddress& workerAddress,
+    bool addWorker(zmq::socketAddress workerAddress,
                    const meshserver::MESH_TYPE& type);
 
     //do we have any worker waiting to take this type of job
@@ -90,7 +90,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-bool WorkerPool::addWorker(const zmq::socketAddress &workerAddress,
+bool WorkerPool::addWorker(zmq::socketAddress workerAddress,
                            const meshserver::MESH_TYPE &type)
 {
   this->Pool.push_back( WorkerPool::WorkerInfo(workerAddress,type) );
@@ -127,6 +127,7 @@ bool WorkerPool::readyForWork(const zmq::socketAddress& address)
     {
     if((*i).Address == address)
       {
+      std::cout << "marking worker ready for work" <<std::endl;
       found = true;
       (*i).WaitingForWork = true;
       }
@@ -140,19 +141,18 @@ zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
 {
 
   bool found = false;
-  It i;
-  for(i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
+  int index = 0;
+  WorkerInfo* info;
+  for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i, ++index)
     {
-    found = ( (*i).MType == type);
+    info = &(*i);
+    found = (info->MType == type) && (info->WaitingForWork);
     }
 
   if(found)
     {
-    std::cout << "Found a worker for a meshtype " << std::endl;
-    zmq::socketAddress workerAddress = (*i).Address;
-    std::cout << "Pool size before erase " << this->Pool.size()<< std::endl;
-    this->Pool.erase(i);
-    std::cout << "Pool size after erase " << this->Pool.size()<< std::endl;
+    zmq::socketAddress workerAddress(info->Address);
+    this->Pool.erase(this->Pool.begin()+index);
     return workerAddress;
     }
   return zmq::socketAddress();

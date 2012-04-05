@@ -29,7 +29,7 @@ struct socketAddress
     }
 
   socketAddress():
-    Size(0),
+    Size(-1),
     Data()
     {}
 

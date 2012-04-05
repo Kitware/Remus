@@ -74,11 +74,12 @@ bool Broker::startBrokering()
       meshserver::JobMessage message(this->JobQueries);
       this->DetermineJobQueryResponse(clientAddress,message); //NOTE: this will queue jobs
       }
-    else if (items[1].revents & ZMQ_POLLIN)
+    if (items[1].revents & ZMQ_POLLIN)
       {
       //a worker is registering
       //we need to strip the worker address from the message
       zmq::socketAddress workerAddress = zmq::address_recv(this->WorkerQueries);
+      std::cout << "workerAddress is " << std::string(workerAddress.data(),workerAddress.size())<< std::endl;
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
@@ -211,28 +212,15 @@ void Broker::DetermineWorkerResponse(const zmq::socketAddress &workAddress,
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
-      std::cout << "adding worker to pool" <<std::endl;
       this->WorkerPool->addWorker(workAddress,msg.meshType());
       break;
     case meshserver::MAKE_MESH:
-    //the worker will block while it waits for a response.
-      if(this->haveJobForWorker(msg))
+      //the worker will block while it waits for a response.
+      if(!this->WorkerPool->haveWorker(workAddress))
         {
-        //we currently have a job for the worker, give it back now
-        this->assignJobToWorker(workAddress);
+        this->WorkerPool->addWorker(workAddress,msg.meshType());
         }
-      else
-        {
-        //we don't currently have a job, add the worker to a pool
-        //and check each event loop time if we have a job for that worker
-        if(!this->WorkerPool->haveWorker(workAddress))
-          {
-          this->WorkerPool->addWorker(workAddress,msg.meshType());
-          }
-        std::cout << "marking worker ready for work" <<std::endl;
-        this->WorkerPool->readyForWork(workAddress);
-        }
-
+      this->WorkerPool->readyForWork(workAddress);
       break;
     case meshserver::MESH_STATUS:
       //store the mesh status msg,  no response needed
@@ -272,13 +260,15 @@ bool Broker::haveJobForWorker(const meshserver::JobMessage& msg) const
 //------------------------------------------------------------------------------
 void Broker::assignJobToWorker(const zmq::socketAddress &workAddress)
 {
-  std::cout << "assigning job to worker" << std::endl;
+  std::cout << "assigning job to worker " <<
+               std::string(workAddress.data(),workAddress.size()) << std::endl;
+
   meshserver::common::JobDetails jd = this->QueuedJobs->pop();
   this->ActiveJobs->add( workAddress, jd.JobId );
 
   meshserver::JobResponse response(workAddress);
   response.setData(meshserver::to_string(jd));
-  std::cout << "Sending actual message to worker with jop details" <<std::endl;
+  std::cout << "Sending actual message to worker with job details" <<std::endl;
   response.send(this->WorkerQueries);
 }
 

@@ -16,7 +16,7 @@
 namespace meshserver {
 static const int BROKER_CLIENT_PORT = 5555;
 static const int BROKER_WORKER_PORT = 5556;
-static const int HEARTBEAT_INTERVAL_IN_SEC = 2;
+static const int HEARTBEAT_INTERVAL_IN_SEC = 6;
 static const int HEARTBEAT_INTERVAL = 1000000 * HEARTBEAT_INTERVAL_IN_SEC;
 
 static const std::string INVALID_MSG = "INVALID_MSG";
