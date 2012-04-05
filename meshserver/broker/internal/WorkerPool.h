@@ -14,6 +14,7 @@
 #include <meshserver/broker/internal/uuidHelper.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
+#include <meshserver/common/zmqHelper.h>
 
 #include <string>
 #include <vector>
@@ -127,7 +128,6 @@ bool WorkerPool::readyForWork(const zmq::socketAddress& address)
     {
     if((*i).Address == address)
       {
-      std::cout << "marking worker ready for work" <<std::endl;
       found = true;
       (*i).WaitingForWork = true;
       }
@@ -143,10 +143,14 @@ zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
   bool found = false;
   int index = 0;
   WorkerInfo* info;
-  for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i, ++index)
+  for(index=0; index < this->Pool.size(); ++index)
     {
-    info = &(*i);
+    info = &this->Pool[index];
     found = (info->MType == type) && (info->WaitingForWork);
+    if(found)
+      {
+      break;
+      }
     }
 
   if(found)

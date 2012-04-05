@@ -36,7 +36,7 @@ struct socketAddress
   bool operator ==(const socketAddress& b) const
   {
     if(this->size() != b.size()) { return false; }
-    return 0 == strncmp(this->data(),b.data(),this->size());
+    return 0 == (memcmp(this->data(),b.data(),this->size()));
   }
 
   const char* data() const { return &Data[0]; }
@@ -48,7 +48,10 @@ private:
 };
 
 
-
+inline std::string to_string(const zmq::socketAddress& add)
+{
+  return std::string(add.data(),add.size());
+}
 
 inline void connectToSocket(zmq::socket_t &socket, const int num)
 {
