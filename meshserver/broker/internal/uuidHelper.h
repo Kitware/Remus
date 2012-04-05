@@ -12,13 +12,9 @@
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/uuid/uuid_io.hpp> //needed to get to_string
+#include <boost/uuid/uuid_io.hpp>
 
 #include <meshserver/JobMessage.h>
-
-//The purpose of this header is to limit the number of files that
-//need to include boost, plus give better names to the conversion from and too
-//boost::uuid
 
 namespace meshserver
 {
