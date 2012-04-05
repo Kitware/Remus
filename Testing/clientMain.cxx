@@ -25,29 +25,46 @@ int main ()
         jobs.push_back(jid);
         }
       }
+
+    std::vector<meshserver::common::JobStatus> js;
+    //fill the status array.
+    for(int i=0; i < jobs.size(); ++i)
+      {
+      js.push_back(c.jobStatus(meshserver::MESH2D,jobs.at(i)));
+      }
+
     while(jobs.size() > 0)
       {
       for(int i=0; i < jobs.size(); ++i)
         {
-        std::cout << "job id " << jobs.at(i) << std::endl;
-        meshserver::common::JobStatus status = c.jobStatus(meshserver::MESH2D,jobs.at(i));
+        meshserver::common::JobStatus newStatus =
+            c.jobStatus(meshserver::MESH2D,jobs.at(i));
+        meshserver::common::JobStatus oldStatus =
+            js.at(i);
+        js[i]=newStatus;
 
-        if( status.Status == meshserver::IN_PROGRESS)
+        if(newStatus.Status != oldStatus.Status ||
+           newStatus.Progress != oldStatus.Progress)
           {
-          std::cout << "progress is " << status.Progress << std::endl;
+          std::cout << "job id " << jobs.at(i) << std::endl;
+          if( newStatus.Status == meshserver::IN_PROGRESS)
+            {
+            std::cout << "progress is " << newStatus.Progress << std::endl;
+            }
+          else
+            {
+            std::cout << " status of job is: " << meshserver::to_string(newStatus.Status)  << std::endl;
+            }
           }
-        else
-          {
-          std::cout << " status of job is: " << meshserver::to_string(status.Status)  << std::endl;
-          }
-
-        if(status.Status == meshserver::FINISHED)
+        if(newStatus.Status == meshserver::FINISHED)
           {
           jobs.erase(jobs.begin()+i);
+          js.erase(js.begin()+i);
           }
-        std::cout << std::endl;
         }
       }
     }
   return 1;
 }
+
+
