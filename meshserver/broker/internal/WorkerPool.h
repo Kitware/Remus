@@ -26,35 +26,35 @@ class WorkerPool
 {
   public:
 
-    bool addWorker(const std::string& workerAddress,
+    bool addWorker(const zmq::socketAddress& workerAddress,
                    const meshserver::MESH_TYPE& type);
 
     //do we have any worker waiting to take this type of job
     bool haveWaitingWorker(const meshserver::MESH_TYPE& type) const;
 
     //do we have a worker with this address?
-    bool haveWorker(const std::string& address) const;
+    bool haveWorker(const zmq::socketAddress& address) const;
 
     //mark a worker with the given adress ready to take a job.
     //returns false if a worker with that address wasn't found
-    bool readyForWork(const std::string& address);
+    bool readyForWork(const zmq::socketAddress& address);
 
     //returns the worker address and removes the worker from the pool
-    std::string takeWorker(const meshserver::MESH_TYPE& type);
+    zmq::socketAddress takeWorker(const meshserver::MESH_TYPE& type);
 
     void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
-    void refreshWorker(const std::string& address);
+    void refreshWorker(const zmq::socketAddress& address);
 
 private:
     struct WorkerInfo
     {
       bool WaitingForWork;
       meshserver::MESH_TYPE MType;
-      std::string Address;
+      zmq::socketAddress Address;
       boost::posix_time::ptime expiry; //after this time the job should be purged
 
-      WorkerInfo(const std::string& address, const meshserver::MESH_TYPE type):
+      WorkerInfo(const zmq::socketAddress& address, const meshserver::MESH_TYPE type):
         WaitingForWork(false),
         MType(type),
         Address(address),
@@ -90,7 +90,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-bool WorkerPool::addWorker(const std::string &workerAddress,
+bool WorkerPool::addWorker(const zmq::socketAddress &workerAddress,
                            const meshserver::MESH_TYPE &type)
 {
   this->Pool.push_back( WorkerPool::WorkerInfo(workerAddress,type) );
@@ -109,7 +109,7 @@ bool WorkerPool::haveWaitingWorker(const MESH_TYPE &type) const
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWorker(const std::string& address) const
+bool WorkerPool::haveWorker(const zmq::socketAddress& address) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -120,7 +120,7 @@ bool WorkerPool::haveWorker(const std::string& address) const
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::readyForWork(const std::string& address)
+bool WorkerPool::readyForWork(const zmq::socketAddress& address)
 {
   bool found = false;
   for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -136,7 +136,7 @@ bool WorkerPool::readyForWork(const std::string& address)
 
 
 //------------------------------------------------------------------------------
-std::string WorkerPool::takeWorker(const MESH_TYPE &type)
+zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
 {
 
   bool found = false;
@@ -148,11 +148,14 @@ std::string WorkerPool::takeWorker(const MESH_TYPE &type)
 
   if(found)
     {
-    std::string workerAddress = (*i).Address;
+    std::cout << "Found a worker for a meshtype " << std::endl;
+    zmq::socketAddress workerAddress = (*i).Address;
+    std::cout << "Pool size before erase " << this->Pool.size()<< std::endl;
     this->Pool.erase(i);
+    std::cout << "Pool size after erase " << this->Pool.size()<< std::endl;
     return workerAddress;
     }
-  return std::string();
+  return zmq::socketAddress();
 }
 
 //------------------------------------------------------------------------------
@@ -163,13 +166,17 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
   //remove if moves all bad items to end of the vector and returns
   //an iterator to the new end
   It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
+  if(std::distance(newEnd,this->Pool.end()) > 0)
+    {
+    std::cout << "Removing dead workers, num " << std::distance(newEnd,this->Pool.end()) << std::endl;
+    }
 
   //erase all the elements that remove_if moved to the end
   this->Pool.erase(newEnd,this->Pool.end());
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::refreshWorker(const std::string& address)
+void WorkerPool::refreshWorker(const zmq::socketAddress& address)
 {
   for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {

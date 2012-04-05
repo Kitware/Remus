@@ -10,9 +10,10 @@
 #define __broker_h
 
 #include <zmq.hpp>
+#include <meshserver/common/zmqHelper.h>
+
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
-
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
@@ -41,7 +42,7 @@ public:
 
 protected:
   //processes all job queries
-  void DetermineJobQueryResponse(const std::string &clientAddress,
+  void DetermineJobQueryResponse(const zmq::socketAddress &clientAddress,
                                  const meshserver::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
@@ -51,12 +52,12 @@ protected:
   std::string retrieveMesh(const meshserver::JobMessage& msg);
 
   //Methods for processing Worker queries
-  void DetermineWorkerResponse(const std::string &workAddress,
+  void DetermineWorkerResponse(const zmq::socketAddress &workAddress,
                               const meshserver::JobMessage& msg);
   void storeMeshStatus(const meshserver::JobMessage& msg);
   void storeMesh(const meshserver::JobMessage& msg);
   bool haveJobForWorker(const meshserver::JobMessage& msg) const;
-  void assignJobToWorker(const std::string &workAddress);
+  void assignJobToWorker(const zmq::socketAddress &workAddress);
 
   void FindWorkerForQueuedJob();
 

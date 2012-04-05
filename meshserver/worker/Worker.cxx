@@ -63,6 +63,7 @@ public:
         //we have a message from the broker
         //for know this can only be the reply back from a job query
         //so send it to the worker.
+        std::cout << "Sending a Broker response to the worker" << std::endl;
         meshserver::JobResponse response(Broker);
         response.send(Worker);
         }
@@ -136,6 +137,7 @@ meshserver::common::JobDetails Worker::getJob()
 
   //we need a better serialization techinque
   std::string msg = response.dataAs<std::string>();
+  std::cout << "Raw job details " << msg << std::endl;
 
   return meshserver::to_JobDetails(msg);
 }

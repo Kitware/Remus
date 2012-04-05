@@ -9,7 +9,7 @@
 #ifndef __meshserver_broker_internal_ActiveJobs_h
 #define __meshserver_broker_internal_ActiveJobs_h
 
-#include <map>
+#include <meshserver/common/zmqHelper.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -28,7 +28,7 @@ class ActiveJobs
 {
   public:
 
-    bool add(const std::string& workerAddress, const boost::uuids::uuid& id);
+    bool add(const zmq::socketAddress& workerAddress, const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
@@ -46,18 +46,18 @@ class ActiveJobs
 
     void markFailedJobs(const boost::posix_time::ptime& time);
 
-    void refreshJobs(const std::string& workerAddress);
+    void refreshJobs(const zmq::socketAddress &workerAddress);
 
 private:
     struct JobState
     {
-      std::string WorkerAddress;
+      zmq::socketAddress WorkerAddress;
       meshserver::common::JobStatus jstatus;
       meshserver::common::JobResult jresult;
       boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
-      JobState(const std::string& workerAddress,
+      JobState(const zmq::socketAddress& workerAddress,
                const boost::uuids::uuid& id,
                meshserver::STATUS_TYPE stat):
         WorkerAddress(workerAddress),
@@ -84,7 +84,7 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-bool ActiveJobs::add(const std::string& workerAddress,const boost::uuids::uuid& id)
+bool ActiveJobs::add(const zmq::socketAddress &workerAddress,const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
@@ -152,6 +152,7 @@ void ActiveJobs::updateStatus(const meshserver::common::JobStatus& s)
   if(s.Status >= item->second.jstatus.Status)
     {
     item->second.jstatus = s;
+    item->second.refresh();
     }
 }
 
@@ -161,6 +162,7 @@ void ActiveJobs::updateResult(const meshserver::common::JobResult& r)
   InfoIt item = this->Info.find(r.JobId);
   item->second.jresult = r;
   item->second.haveResult = true;
+  item->second.refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -168,16 +170,17 @@ void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
-    if(item->second.expiry < time )
+    if(item->second.expiry < time && item->second.jstatus.Status != meshserver::FAILED)
       {
       item->second.jstatus.Status = meshserver::FAILED;
       item->second.jstatus.Progress = 0;
+      std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
       }
     }
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::refreshJobs(const std::string& workerAddress)
+void ActiveJobs::refreshJobs(const zmq::socketAddress& workerAddress)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
