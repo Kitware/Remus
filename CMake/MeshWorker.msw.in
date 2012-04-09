@@ -1,2 +1,2 @@
-MeshType:@meshType@
-Name:@workerExecutableName@
+@meshType@
+@workerExecutableName@
