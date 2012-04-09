@@ -18,11 +18,12 @@ namespace broker{
 namespace internal{
 
 class MSWFinder;
-
 struct MeshWorkerInfo
 {
-  meshserver::MESH_TYPE;
+  meshserver::MESH_TYPE Type;
   std::string ExecutionPath;
+  MeshWorkerInfo(meshserver::MESH_TYPE t, const std::string& p):
+    Type(t),ExecutionPath(p){}
 };
 
 class WorkerFactory
@@ -30,13 +31,10 @@ class WorkerFactory
   public:
   	WorkerFactory();
     bool haveSupport(meshserver::MESH_TYPE type );
-
-    bool createWorker(meshserver::MESH_TYPE type);
+    bool createWorker(meshserver::MESH_TYPE type);    
 private:
-  bool launchWorkerProcess(const MeshWorkerInfo& worker);
-
   boost::scoped_pointer<MSWFinder> FileFinder;
-  std::vector<MeshWorkerInfo> PossibleWorkers;
+  std::vector<MeshWorkerInfo>& PossibleWorkers;
 };
 
 }

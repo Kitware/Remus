@@ -12,6 +12,7 @@ set(headers
     )
 set(broker_srcs
    Broker.cxx
+   internal/WorkerFactory.cxx
    )
 
 add_library(MeshServerBroker ${broker_srcs} ${headers})
