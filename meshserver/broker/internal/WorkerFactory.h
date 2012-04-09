@@ -9,23 +9,34 @@
 #ifndef __meshserver_broker_internal_WorkeryFactory_h
 #define __meshserver_broker_internal_WorkeryFactory_h
 
-#include <queue>
-#include <set>
-
 #include <meshserver/common/meshServerGlobals.h>
+#include <boost/scoped_pointer.hpp>
+
 
 namespace meshserver{
 namespace broker{
 namespace internal{
 
+class MSWFinder;
+
+struct MeshWorkerInfo
+{
+  meshserver::MESH_TYPE;
+  std::string ExecutionPath;
+};
+
 class WorkerFactory
 {
   public:
-    bool haveSupport(meshserver::MESH_TYPE type ) const { return true; }
+  	WorkerFactory();
+    bool haveSupport(meshserver::MESH_TYPE type );
 
-    bool createWorker(meshserver::MESH_TYPE type){return true;}
+    bool createWorker(meshserver::MESH_TYPE type);
+private:
+  bool launchWorkerProcess(const MeshWorkerInfo& worker);
 
-
+  boost::scoped_pointer<MSWFinder> FileFinder;
+  std::vector<MeshWorkerInfo> PossibleWorkers;
 };
 
 }
