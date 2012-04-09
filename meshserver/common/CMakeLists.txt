@@ -5,6 +5,7 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(headers
+  ExecuteProcess.h
   JobDetails.h
   JobResult.h
   JobStatus.h
