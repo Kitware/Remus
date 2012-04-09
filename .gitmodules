@@ -1,0 +1,3 @@
+[submodule "kwsys"]
+	path = kwsys
+	url = https://github.com/commontk/KWSys.git

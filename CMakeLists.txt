@@ -44,6 +44,13 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
+#setup the helper kwsys package, we just need system and process
+#to launch external processes.
+set(KWSYS_NAMESPACE kwtools)
+set(KWSYS_USE_Process 1)
+set(KWSYS_USE_System 1)
+add_subdirectory(kwsys)
+
 #add the actual code
 add_subdirectory(meshserver)
 
