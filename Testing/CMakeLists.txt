@@ -23,4 +23,4 @@ target_link_libraries(TestMeshBroker ${ZeroMQ_LIBRARIES} MeshServerBroker)
 
 add_executable(TestMeshWorker ${SRCS_Workers} ${COMMON_SRCS})
 target_link_libraries(TestMeshWorker ${ZeroMQ_LIBRARIES} MeshServerWorker)
-Register_Mesh_Worker(TestMeshWorker 2DMESH)
+Register_Mesh_Worker(TestMeshWorker 2D)
