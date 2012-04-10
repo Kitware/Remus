@@ -10,8 +10,8 @@
 #define __meshserver_broker_internal_WorkeryFactory_h
 
 #include <meshserver/common/meshServerGlobals.h>
-#include <boost/scoped_pointer.hpp>
-
+#include <boost/scoped_ptr.hpp>
+#include <vector>
 
 namespace meshserver{
 namespace broker{
@@ -30,11 +30,12 @@ class WorkerFactory
 {
   public:
   	WorkerFactory();
-    bool haveSupport(meshserver::MESH_TYPE type );
-    bool createWorker(meshserver::MESH_TYPE type);    
+    virtual ~WorkerFactory();
+    virtual bool haveSupport(meshserver::MESH_TYPE type ) const;
+    virtual bool createWorker(meshserver::MESH_TYPE type) const;
 private:
-  boost::scoped_pointer<MSWFinder> FileFinder;
-  std::vector<MeshWorkerInfo>& PossibleWorkers;
+  boost::scoped_ptr<MSWFinder> FileFinder;
+  std::vector<MeshWorkerInfo> PossibleWorkers;
 };
 
 }

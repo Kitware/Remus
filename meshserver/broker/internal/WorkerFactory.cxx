@@ -9,22 +9,22 @@
 #include <meshserver/broker/internal/WorkerFactory.h>
 #include <meshserver/common/ExecuteProcess.h>
 
-#include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
 
-
-#include <algorithm>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <iostream>
+#include <fstream>
 
 namespace
 {
-  typedef std::vector<MeshWorkerInfo>::iterator WorkerIterator;
+  typedef std::vector<meshserver::broker::internal::MeshWorkerInfo>::const_iterator WorkerIterator;
 
   struct support_meshType
   {
     meshserver::MESH_TYPE Type;
-    support_meshType(meshserver::MESH_TYPE type):Type(type);
-    bool operator()(const MeshWorkerInfo& info)
+    support_meshType(meshserver::MESH_TYPE type):Type(type){}
+    bool operator()(const meshserver::broker::internal::MeshWorkerInfo& info)
       {
       return info.Type == this->Type;
       }
@@ -44,42 +44,52 @@ class MSWFinder
 public:
   MSWFinder()
   {
-  const boost::regex filter( ".*\.msw" );
+  const std::string MSWExt( "MSW" );
   boost::filesystem::path cwd = boost::filesystem::current_path();
 
   boost::filesystem::directory_iterator end_itr;
-  boost::smatch match;
   for( boost::filesystem::directory_iterator i( cwd ); i != end_itr; ++i )
     {
     // Skip if not a file
-    if(boost::filesystem::is_regular_file( i->status() ) &&
-       boost::regex_match( i->leaf(), match, filter ))
+    if(boost::filesystem::is_regular_file( i->status() ))
       {
-      this->parseFile(i->leaf());
+      std::string ext = boost::algorithm::to_upper_copy(
+                          i->path().extension().string());
+      if(ext == MSWExt)
+        {
+        this->parseFile(i->path());
+        }
       }
     }
 
   //now that we have all the files parse each one  
   }
 
-  void parseFile(const std::string& file)
+  void parseFile(const boost::filesystem::path& file)
   {
     //open the file, parse two lines and close file
-    boost::filesystem::path cwd = boost::filesystem::current_path();
-    fstream f(file,"r");
-    if(f.open())
-    {
-      std::string type,name;
-      boost::filesystem::path p(cwd);
-      file >> type;
-      file >> name;
-      p /= name;
+    boost::filesystem::ifstream f;
+    f.open(file);
+    if(f.is_open())
+      {
+      std::string meshType,mesherName;
+      f >> meshType;
+      f >> mesherName;
+
+      //convert from string to the proper types
+      meshserver::MESH_TYPE type = meshserver::to_meshType(meshType);
+      boost::filesystem::path p(file.string());
+      p /= mesherName;
+
+
+      std::cout << p.string() << std::endl;
       this->Info.push_back(MeshWorkerInfo(type, p.string()));
-    }
+      }
+    f.close();
 
   }
 
-  const std::vector<MeshWorkerInfo>& results();
+  const std::vector<MeshWorkerInfo>& results(){return Info;}
 
 private:
   std::vector<MeshWorkerInfo> Info;  
@@ -88,10 +98,16 @@ private:
 
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory():
-FileFinder()
+ FileFinder(new MSWFinder())
 {
-  this->PossibleWorkers = this->FileFinder.results();
+  this->PossibleWorkers = this->FileFinder->results();
 }
+
+//----------------------------------------------------------------------------
+WorkerFactory::~WorkerFactory()
+{
+}
+
 
 //----------------------------------------------------------------------------
 bool WorkerFactory::haveSupport(meshserver::MESH_TYPE type ) const
@@ -103,7 +119,7 @@ bool WorkerFactory::haveSupport(meshserver::MESH_TYPE type ) const
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
+bool WorkerFactory::createWorker(meshserver::MESH_TYPE type) const
 {
   support_meshType pred(type);
   WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
@@ -115,7 +131,7 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
     return false;
     }
 
-  meshserver::common::ExecuteProcess ep(result.ExecutionPath);
+  meshserver::common::ExecuteProcess ep((*result).ExecutionPath);
   ep.execute(true);
   return true;
 }
@@ -124,4 +140,3 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 }
 }
 
-#endif

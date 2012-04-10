@@ -16,6 +16,6 @@ set(broker_srcs
    )
 
 add_library(MeshServerBroker ${broker_srcs} ${headers})
-target_link_libraries(MeshServerBroker ${ZeroMQ_LIBRARIES})
+target_link_libraries(MeshServerBroker ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} MeshServerCommon)
 
 meshserver_public_headers(${headers})

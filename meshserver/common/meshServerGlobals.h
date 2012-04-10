@@ -52,7 +52,7 @@ enum STATUS_TYPE
 namespace common
   {
   //a mapping of enum types to char*
-  static const char *mesh_types[] = { "INVALID", "2D", "3D", "3D Surface" };
+  static const char *mesh_types[] = { "INVALID","", "2D", "3D", "3D Surface" };
   static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "SHUTDOWN" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED" };
   }
@@ -61,6 +61,20 @@ namespace common
 inline std::string to_string(meshserver::MESH_TYPE t)
 {
   return std::string(meshserver::common::mesh_types[(int)t]);
+}
+
+//------------------------------------------------------------------------------
+inline meshserver::MESH_TYPE to_meshType(const std::string& t)
+{
+  for(int i=2; i <=4; i++)
+    {
+    meshserver::MESH_TYPE mt=static_cast<meshserver::MESH_TYPE>(i);
+    if (meshserver::to_string(mt) == t)
+      {
+      return mt;
+      }
+    }
+  return meshserver::INVALID_MESH;
 }
 
 //------------------------------------------------------------------------------
