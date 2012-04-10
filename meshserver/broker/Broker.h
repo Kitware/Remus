@@ -20,6 +20,9 @@
 
 namespace meshserver{
 //forward declaration of classes only the implementation needs
+  namespace common{
+  class JobDetails;
+  }
 class JobMessage;
 class JobQueue;
 }
@@ -59,8 +62,8 @@ protected:
                               const meshserver::JobMessage& msg);
   void storeMeshStatus(const meshserver::JobMessage& msg);
   void storeMesh(const meshserver::JobMessage& msg);
-  bool haveJobForWorker(const meshserver::JobMessage& msg) const;
-  void assignJobToWorker(const zmq::socketAddress &workAddress);
+  void assignJobToWorker(const zmq::socketAddress &workAddress,
+                         const meshserver::common::JobDetails& job);
 
   void FindWorkerForQueuedJob();
 

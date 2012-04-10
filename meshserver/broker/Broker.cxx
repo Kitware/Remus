@@ -192,7 +192,7 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
     //create a new job to place on the queue
     //This call will invalidate the msg as we are going to move the data
     //to another message to await sending to the worker
-    this->QueuedJobs->push(jobUUID,msg);
+    this->QueuedJobs->addJob(jobUUID,msg);
     //return the UUID
     return meshserver::to_string(jobUUID);
   }
@@ -264,24 +264,16 @@ void Broker::storeMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-bool Broker::haveJobForWorker(const meshserver::JobMessage& msg) const
+void Broker::assignJobToWorker(const zmq::socketAddress &workAddress,const meshserver::common::JobDetails& job )
 {
-  //lets see if the msg mesh type and the queue match up
-  return (this->QueuedJobs->size() > 0 && msg.meshType() == this->QueuedJobs->front().meshType());
-}
+  this->ActiveJobs->add( workAddress, job.JobId );
 
-//------------------------------------------------------------------------------
-void Broker::assignJobToWorker(const zmq::socketAddress &workAddress)
-{
+  meshserver::JobResponse response(workAddress);
+  response.setData(meshserver::to_string(job));
+
   std::cout << "assigning job to worker " <<
                std::string(workAddress.data(),workAddress.size()) << std::endl;
 
-  meshserver::common::JobDetails jd = this->QueuedJobs->pop();
-  this->ActiveJobs->add( workAddress, jd.JobId );
-
-  meshserver::JobResponse response(workAddress);
-  response.setData(meshserver::to_string(jd));
-  std::cout << "Sending actual message to worker with job details" <<std::endl;
   response.send(this->WorkerQueries);
 }
 
@@ -290,27 +282,32 @@ void Broker::assignJobToWorker(const zmq::socketAddress &workAddress)
 //------------------------------------------------------------------------------
 void Broker::FindWorkerForQueuedJob()
 {
-  //if we have something in the job queue ask the factory to generate a worker
-  //for that job
+  typedef std::set<meshserver::MESH_TYPE>::const_iterator it;
 
-  //this has a bug that we can launch multiple workers for a same job before
-  //a single worker reports back. We need to rethink this entire framework.
-  //most likely change the QueuedJobs to a pool that has queued and pending status
-
-  if(this->QueuedJobs->size() == 0)
+  //find all the jobs that have been marked as waiting for a worker
+  //and ask if we have a worker in the poll that can mesh that job
+  std::set<meshserver::MESH_TYPE> types = this->QueuedJobs->waitingForWorkerTypes();
+  for(it type = types.begin(); type != types.end(); ++type)
     {
-    return;
+    if(this->WorkerPool->haveWaitingWorker(*type))
+      {
+      //give this job to that worker
+      this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
+                              this->QueuedJobs->takeJob(*type));
+      }
     }
 
-  meshserver::MESH_TYPE type = this->QueuedJobs->front().meshType();
-  if(this->WorkerPool->haveWaitingWorker(type))
+  //now if we have room in our worker pool for more pending workers create some
+  //todo, make sure we ask the worker pool what its limit on number of pending
+  //workers is before creating more
+  types = this->QueuedJobs->queuedJobTypes();
+  for(it type = types.begin(); type != types.end(); ++type)
     {
-    //give this job to that worker
-    this->assignJobToWorker(this->WorkerPool->takeWorker(type));
-    }
-  else
-    {
-    this->WorkerFactory.createWorker(type);
+    bool workercreated = this->WorkerFactory.createWorker(*type);
+    if(workercreated)
+      {
+      this->QueuedJobs->workerDispatched(*type);
+      }
     }
 }
 
