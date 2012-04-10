@@ -6,15 +6,14 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_WorkeryFactory_h
-#define __meshserver_broker_internal_WorkeryFactory_h
+#ifndef __meshserver_broker_WorkeryFactory_h
+#define __meshserver_broker_WorkeryFactory_h
 
 #include <meshserver/common/meshServerGlobals.h>
 #include <vector>
 
 namespace meshserver{
 namespace broker{
-namespace internal{
 
 struct MeshWorkerInfo
 {
@@ -40,7 +39,6 @@ private:
   std::vector<MeshWorkerInfo> PossibleWorkers;
 };
 
-}
 }
 }
 

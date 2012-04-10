@@ -6,7 +6,7 @@
 
 =========================================================================*/
 
-#include <meshserver/broker/internal/WorkerFactory.h>
+#include <meshserver/broker/WorkerFactory.h>
 #include <meshserver/common/ExecuteProcess.h>
 
 #include <boost/filesystem.hpp>
@@ -15,13 +15,13 @@
 
 namespace
 {
-  typedef std::vector<meshserver::broker::internal::MeshWorkerInfo>::const_iterator WorkerIterator;
+  typedef std::vector<meshserver::broker::MeshWorkerInfo>::const_iterator WorkerIterator;
 
   struct support_meshType
   {
     meshserver::MESH_TYPE Type;
     support_meshType(meshserver::MESH_TYPE type):Type(type){}
-    bool operator()(const meshserver::broker::internal::MeshWorkerInfo& info)
+    bool operator()(const meshserver::broker::MeshWorkerInfo& info)
       {
       return info.Type == this->Type;
       }
@@ -31,7 +31,6 @@ namespace
 
 namespace meshserver{
 namespace broker{
-namespace internal{
 
 //class that loads all files in the executing directory
 //with the msw extension and creates a vector of possible
@@ -168,5 +167,3 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type) const
 
 }
 }
-}
-

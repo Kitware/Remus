@@ -9,10 +9,11 @@ add_subdirectory(internal)
 
 set(headers
     Broker.h
+    WorkerFactory.h
     )
 set(broker_srcs
    Broker.cxx
-   internal/WorkerFactory.cxx
+   WorkerFactory.cxx
    )
 
 add_library(MeshServerBroker ${broker_srcs} ${headers})

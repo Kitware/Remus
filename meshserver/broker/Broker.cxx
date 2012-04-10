@@ -24,7 +24,6 @@
 #include <meshserver/broker/internal/uuidHelper.h>
 #include <meshserver/broker/internal/ActiveJobs.h>
 #include <meshserver/broker/internal/JobQueue.h>
-#include <meshserver/broker/internal/WorkerFactory.h>
 #include <meshserver/broker/internal/WorkerPool.h>
 
 
@@ -37,7 +36,22 @@ Broker::Broker():
   QueuedJobs(new meshserver::broker::internal::JobQueue() ),
   WorkerPool(new meshserver::broker::internal::WorkerPool() ),
   ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
-  WorkerFactory(new meshserver::broker::internal::WorkerFactory() ),
+  WorkerFactory(),
+  Context(1),
+  JobQueries(this->Context,ZMQ_ROUTER),
+  WorkerQueries(this->Context,ZMQ_ROUTER)
+  {
+  zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
+  zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
+  }
+
+//------------------------------------------------------------------------------
+Broker::Broker(const meshserver::broker::WorkerFactory& factory):
+  UUIDGenerator(), //use default random number generator
+  QueuedJobs(new meshserver::broker::internal::JobQueue() ),
+  WorkerPool(new meshserver::broker::internal::WorkerPool() ),
+  ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
+  WorkerFactory(factory),
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
   WorkerQueries(this->Context,ZMQ_ROUTER)
@@ -148,7 +162,7 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
-  return this->WorkerFactory->haveSupport(msg.meshType());
+  return this->WorkerFactory.haveSupport(msg.meshType());
 }
 
 //------------------------------------------------------------------------------
@@ -296,7 +310,7 @@ void Broker::FindWorkerForQueuedJob()
     }
   else
     {
-    this->WorkerFactory->createWorker(type);
+    this->WorkerFactory.createWorker(type);
     }
 }
 

@@ -8,7 +8,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 set(headers
   ActiveJobs.h
 	JobQueue.h
-  WorkerFactory.h
   WorkerPool.h
   uuidHelper.h
 	)

@@ -14,6 +14,8 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
+
+#include <meshserver/broker/WorkerFactory.h>
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
@@ -30,13 +32,14 @@ namespace broker{
     class ActiveJobs;
     class JobQueue;
     class WorkerPool;
-    class WorkerFactory;
     }
 
 class Broker
 {
 public:
   Broker();
+  Broker(const meshserver::broker::WorkerFactory& factory);
+
   ~Broker();
   bool startBrokering();
 
@@ -67,7 +70,7 @@ private:
   boost::scoped_ptr<meshserver::broker::internal::JobQueue> QueuedJobs;
   boost::scoped_ptr<meshserver::broker::internal::WorkerPool> WorkerPool;
   boost::scoped_ptr<meshserver::broker::internal::ActiveJobs> ActiveJobs;
-  boost::scoped_ptr<meshserver::broker::internal::WorkerFactory> WorkerFactory;
+  meshserver::broker::WorkerFactory WorkerFactory;
 
   zmq::context_t Context;
   zmq::socket_t JobQueries;
