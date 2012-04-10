@@ -10,14 +10,12 @@
 #define __meshserver_broker_internal_WorkeryFactory_h
 
 #include <meshserver/common/meshServerGlobals.h>
-#include <boost/scoped_ptr.hpp>
 #include <vector>
 
 namespace meshserver{
 namespace broker{
 namespace internal{
 
-class MSWFinder;
 struct MeshWorkerInfo
 {
   meshserver::MESH_TYPE Type;
@@ -31,10 +29,14 @@ class WorkerFactory
   public:
   	WorkerFactory();
     virtual ~WorkerFactory();
+
+    //add a path to search for workers.
+    //by default we only search the current working directory
+    void addWorkerSearchDirectory(const std::string& directory);
+
     virtual bool haveSupport(meshserver::MESH_TYPE type ) const;
     virtual bool createWorker(meshserver::MESH_TYPE type) const;
 private:
-  boost::scoped_ptr<MSWFinder> FileFinder;
   std::vector<MeshWorkerInfo> PossibleWorkers;
 };
 
