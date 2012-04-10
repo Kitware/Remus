@@ -10,13 +10,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 #ZeroMQ is used for all message passing between components.
 find_package(ZeroMQ REQUIRED)
 
+
 # List of Boost features used:
 # * UUID Generation
 # * Shared Ptr
 # * Threads
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.45.0 COMPONENTS thread REQUIRED)
-
 
 
 #-----------------------------------------------------------------------------
@@ -46,10 +46,10 @@ include_directories(
 
 #setup the helper kwsys package, we just need system and process
 #to launch external processes.
-set(KWSYS_NAMESPACE kwtools)
+set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
-set(KWSYS_USE_System 1)
 add_subdirectory(kwsys)
+
 
 #add the actual code
 add_subdirectory(meshserver)
