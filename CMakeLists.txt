@@ -15,8 +15,9 @@ find_package(ZeroMQ REQUIRED)
 # * UUID Generation
 # * Shared Ptr
 # * Threads
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.45.0 COMPONENTS thread REQUIRED)
+# * filesystem
+# * string algorithms
+find_package(Boost 1.45.0 COMPONENTS thread filesystem system REQUIRED)
 
 
 #-----------------------------------------------------------------------------
