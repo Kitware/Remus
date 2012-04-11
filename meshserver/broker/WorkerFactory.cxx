@@ -16,6 +16,7 @@
 namespace
 {
   typedef std::vector<meshserver::broker::MeshWorkerInfo>::const_iterator WorkerIterator;
+  typedef std::vector< boost::shared_ptr<meshserver::common::ExecuteProcess> >::iterator ProcessIterator;
 
   struct support_meshType
   {
@@ -24,6 +25,14 @@ namespace
     bool operator()(const meshserver::broker::MeshWorkerInfo& info)
       {
       return info.Type == this->Type;
+      }
+  };
+
+  struct is_dead
+  {
+    bool operator()(boost::shared_ptr<meshserver::common::ExecuteProcess> ep)
+      {
+      return !ep->isAlive();
       }
   };
 }  
@@ -127,6 +136,7 @@ WorkerFactory::WorkerFactory()
 WorkerFactory::~WorkerFactory()
 {
 }
+
 //----------------------------------------------------------------------------
 void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 {
@@ -148,8 +158,10 @@ bool WorkerFactory::haveSupport(meshserver::MESH_TYPE type ) const
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::createWorker(meshserver::MESH_TYPE type) const
+bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 {
+  //this->removeDeadWorkers();
+
   support_meshType pred(type);
   WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
                       this->PossibleWorkers.end(),
@@ -159,10 +171,27 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type) const
     {
     return false;
     }
+  return this->addWorker( (*result).ExecutionPath );
+}
 
-  meshserver::common::ExecuteProcess ep((*result).ExecutionPath);
-  ep.execute(true);
+//----------------------------------------------------------------------------
+bool WorkerFactory::addWorker(const std::string& executable)
+{
+  //add this workers
+  ExecuteProcessPtr ep(new ExecuteProcess(executable) );
+  ep->execute();
+  this->CurrentProcesses.push_back(ep);
   return true;
+}
+
+//----------------------------------------------------------------------------
+void WorkerFactory::removeDeadWorkers()
+{
+  //foreach current worker remove any that return they are not alive
+  ProcessIterator result = std::remove_if(this->CurrentProcesses.begin(),
+                                          this->CurrentProcesses.end(),
+                                          is_dead());
+  this->CurrentProcesses.erase(result,this->CurrentProcesses.end());
 }
 
 }

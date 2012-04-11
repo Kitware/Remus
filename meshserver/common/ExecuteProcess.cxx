@@ -10,17 +10,15 @@ struct ExecuteProcess::Process
 {
 public:
   sysToolsProcess *Proc;
-  bool Alive;
-  bool Detached;
-  Process():Alive(false),Detached(false)
+  bool Created;
+  Process():Created(false)
     {
     this->Proc = sysToolsProcess_New();
     }
   ~Process()
     {
-    if(this->Alive && !this->Detached)
+    if(this->Created)
       {
-      //if the process isn't detached we should kill it too when we leave
       sysToolsProcess_Delete(this->Proc);
       }
 
@@ -51,7 +49,7 @@ ExecuteProcess::~ExecuteProcess()
 }
 
 //-----------------------------------------------------------------------------
-void ExecuteProcess::execute(const bool& detached)
+void ExecuteProcess::execute()
 {
   //allocate array large enough for command str, args, and null entry
   const std::size_t size(this->Args.size() + 2);
@@ -69,11 +67,10 @@ void ExecuteProcess::execute(const bool& detached)
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             sysToolsProcess_Option_HideWindow, true);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                            sysToolsProcess_Option_Detach, detached);
+  -                            sysToolsProcess_Option_Detach, true);
   sysToolsProcess_Execute(this->ExternalProcess->Proc);
 
-  this->ExternalProcess->Alive = true;
-  this->ExternalProcess->Detached = detached;
+  this->ExternalProcess->Created = true;
 
   delete[] cmds;
 }
@@ -82,7 +79,7 @@ void ExecuteProcess::execute(const bool& detached)
 //-----------------------------------------------------------------------------
 bool ExecuteProcess::kill()
 {
-  if(this->ExternalProcess->Alive &&
+  if(this->ExternalProcess->Created &&
      sysToolsProcess_GetState(this->ExternalProcess->Proc) ==
      sysToolsProcess_State_Executing)
     {
@@ -90,6 +87,18 @@ bool ExecuteProcess::kill()
     sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, 0);
     }
   return false;
+}
+
+//-----------------------------------------------------------------------------
+bool ExecuteProcess::isAlive()
+{
+  if(!this->ExternalProcess->Created)
+    {
+    //never was created can't be  alive
+    return false;
+    }
+  int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
+  return state == sysToolsProcess_State_Executing;
 }
 
 

@@ -29,12 +29,14 @@ public:
   //and wasn't set to run in detached mode
   virtual ~ExecuteProcess();
 
-  //execute the process, state if you want the process to be detached
-  //from the current process
-  virtual void execute(const bool& detached);
+  //execute the process
+  virtual void execute();
 
   //kills the process if running
   virtual bool kill();
+
+  //returns if the process is still alive
+  bool isAlive();
 
 private:
   ExecuteProcess(const ExecuteProcess&);

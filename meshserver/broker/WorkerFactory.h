@@ -11,6 +11,14 @@
 
 #include <meshserver/common/meshServerGlobals.h>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+
+//forward declare the execute process
+namespace meshserver{
+namespace common{
+class ExecuteProcess;
+}
+}
 
 namespace meshserver{
 namespace broker{
@@ -25,18 +33,25 @@ struct MeshWorkerInfo
 
 class WorkerFactory
 {
-  public:
-  	WorkerFactory();
-    virtual ~WorkerFactory();
+public:
+  WorkerFactory();
+  virtual ~WorkerFactory();
 
-    //add a path to search for workers.
-    //by default we only search the current working directory
-    void addWorkerSearchDirectory(const std::string& directory);
+  //add a path to search for workers.
+  //by default we only search the current working directory
+  void addWorkerSearchDirectory(const std::string& directory);
 
-    virtual bool haveSupport(meshserver::MESH_TYPE type ) const;
-    virtual bool createWorker(meshserver::MESH_TYPE type) const;
-private:
+  virtual bool haveSupport(meshserver::MESH_TYPE type ) const;
+  virtual bool createWorker(meshserver::MESH_TYPE type);
+protected:
+  typedef meshserver::common::ExecuteProcess ExecuteProcess;
+  typedef boost::shared_ptr<ExecuteProcess> ExecuteProcessPtr;
+
+  virtual bool addWorker(const std::string& executable);
+  virtual void removeDeadWorkers();
+
   std::vector<MeshWorkerInfo> PossibleWorkers;
+  std::vector<ExecuteProcessPtr> CurrentProcesses;
 };
 
 }
