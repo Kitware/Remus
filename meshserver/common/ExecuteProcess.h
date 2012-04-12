@@ -14,8 +14,6 @@
 
 //forward declare the systools
 
-
-
 namespace meshserver{
 namespace common{
 

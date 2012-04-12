@@ -104,7 +104,7 @@ bool WorkerPool::haveWaitingWorker(const MESH_TYPE &type) const
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( (*i).MType == type && (*i).WaitingForWork );
+    found = ( i->MType == type && i->WaitingForWork );
     }
   return found;
 }
@@ -115,7 +115,7 @@ bool WorkerPool::haveWorker(const zmq::socketAddress& address) const
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( (*i).Address == address );
+    found = ( i->Address == address );
     }
   return found;
 }
@@ -126,10 +126,10 @@ bool WorkerPool::readyForWork(const zmq::socketAddress& address)
   bool found = false;
   for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    if((*i).Address == address)
+    if(i->Address == address)
       {
       found = true;
-      (*i).WaitingForWork = true;
+      i->WaitingForWork = true;
       }
     }
   return found;
@@ -184,9 +184,9 @@ void WorkerPool::refreshWorker(const zmq::socketAddress& address)
 {
   for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {
-    if( (*i).Address == address)
+    if( i->Address == address)
       {
-      (*i).refresh();
+      i->refresh();
       }
     }
 }

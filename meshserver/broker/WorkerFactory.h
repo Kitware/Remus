@@ -9,8 +9,8 @@
 #ifndef __meshserver_broker_WorkeryFactory_h
 #define __meshserver_broker_WorkeryFactory_h
 
-#include <meshserver/common/meshServerGlobals.h>
 #include <vector>
+#include <meshserver/common/meshServerGlobals.h>
 #include <boost/shared_ptr.hpp>
 
 //forward declare the execute process

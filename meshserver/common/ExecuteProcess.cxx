@@ -1,6 +1,7 @@
 #include <meshserver/common/ExecuteProcess.h>
 
 #include <sysTools/Process.h>
+#include <iostream>
 
 namespace meshserver{
 namespace common{
@@ -19,6 +20,7 @@ public:
     {
     if(this->Created)
       {
+      std::cout << "Removing process " << std::endl;
       sysToolsProcess_Delete(this->Proc);
       }
 
@@ -45,6 +47,7 @@ ExecuteProcess::ExecuteProcess(const std::string& command):
 //-----------------------------------------------------------------------------
 ExecuteProcess::~ExecuteProcess()
 {
+  std::cout << "ExecuteProcess::~ExecuteProcess" << std::endl;
   delete this->ExternalProcess;
 }
 
@@ -79,6 +82,7 @@ void ExecuteProcess::execute()
 //-----------------------------------------------------------------------------
 bool ExecuteProcess::kill()
 {
+  std::cout << "killing process " << std::endl;
   if(this->ExternalProcess->Created &&
      sysToolsProcess_GetState(this->ExternalProcess->Proc) ==
      sysToolsProcess_State_Executing)

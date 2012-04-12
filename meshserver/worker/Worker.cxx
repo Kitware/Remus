@@ -108,6 +108,7 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
 //-----------------------------------------------------------------------------
 Worker::~Worker()
 {
+  std::cout << "Ending the worker" << std::endl;
   this->stopCommunicationThread();
 }
 

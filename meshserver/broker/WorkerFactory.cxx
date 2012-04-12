@@ -160,7 +160,11 @@ bool WorkerFactory::haveSupport(meshserver::MESH_TYPE type ) const
 //----------------------------------------------------------------------------
 bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 {
-  //this->removeDeadWorkers();
+  this->removeDeadWorkers();
+  if(this->CurrentProcesses.size() > 0)
+    {
+    return false;
+    }
 
   support_meshType pred(type);
   WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
@@ -178,6 +182,7 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 bool WorkerFactory::addWorker(const std::string& executable)
 {
   //add this workers
+  std::cout << "adding a worker" << std::endl;
   ExecuteProcessPtr ep(new ExecuteProcess(executable) );
   ep->execute();
   this->CurrentProcesses.push_back(ep);
