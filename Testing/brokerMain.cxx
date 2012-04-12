@@ -7,10 +7,14 @@
 =========================================================================*/
 
 #include <meshserver/broker/Broker.h>
-
+#include <meshserver/broker/WorkerFactory.h>
 int main ()
 {
-  meshserver::broker::Broker b;
+  meshserver::broker::WorkerFactory factory;
+  factory.setMaxWorkerCount(4);
+
+  meshserver::broker::Broker b(factory);
+
   bool valid = b.startBrokering();
   return valid ? 0 : 1;
 }
