@@ -126,10 +126,11 @@ private:
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory()
 {
-   MSWFinder finder; //default to current working directory
-   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
-                                finder.begin(),
-                                finder.end());
+  this->MaxWorkers = 1;
+  MSWFinder finder; //default to current working directory
+  this->PossibleWorkers.insert(this->PossibleWorkers.end(),
+                               finder.begin(),
+                               finder.end());
 }
 
 //----------------------------------------------------------------------------
@@ -160,8 +161,8 @@ bool WorkerFactory::haveSupport(meshserver::MESH_TYPE type ) const
 //----------------------------------------------------------------------------
 bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 {
-  this->removeDeadWorkers();
-  if(this->CurrentProcesses.size() > 0)
+  this->updateWorkerCount();
+  if(this->currentWorkerCount() >= this->maxWorkerCount())
     {
     return false;
     }
@@ -179,25 +180,32 @@ bool WorkerFactory::createWorker(meshserver::MESH_TYPE type)
 }
 
 //----------------------------------------------------------------------------
+void WorkerFactory::updateWorkerCount()
+{
+  //foreach current worker remove any that return they are not alive
+  ProcessIterator result = std::remove_if(this->CurrentProcesses.begin(),
+                                          this->CurrentProcesses.end(),
+                                          is_dead());
+  std::size_t size = std::distance(result,this->CurrentProcesses.end());
+  if( size > 0)
+    {
+    std::cout << "Removing dead workers processes, num " << size << std::endl;
+    }
+  this->CurrentProcesses.erase(result,this->CurrentProcesses.end());
+}
+
+
+//----------------------------------------------------------------------------
 bool WorkerFactory::addWorker(const std::string& executable)
 {
   //add this workers
-  std::cout << "adding a worker" << std::endl;
+  std::cout << "creating a new worker process" << std::endl;
   ExecuteProcessPtr ep(new ExecuteProcess(executable) );
   ep->execute();
   this->CurrentProcesses.push_back(ep);
   return true;
 }
 
-//----------------------------------------------------------------------------
-void WorkerFactory::removeDeadWorkers()
-{
-  //foreach current worker remove any that return they are not alive
-  ProcessIterator result = std::remove_if(this->CurrentProcesses.begin(),
-                                          this->CurrentProcesses.end(),
-                                          is_dead());
-  this->CurrentProcesses.erase(result,this->CurrentProcesses.end());
-}
 
 }
 }

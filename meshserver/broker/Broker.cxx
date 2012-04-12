@@ -283,6 +283,7 @@ void Broker::assignJobToWorker(const zmq::socketAddress &workAddress,const meshs
 void Broker::FindWorkerForQueuedJob()
 {
   typedef std::set<meshserver::MESH_TYPE>::const_iterator it;
+  this->WorkerFactory.updateWorkerCount();
 
   //find all the jobs that have been marked as waiting for a worker
   //and ask if we have a worker in the poll that can mesh that job

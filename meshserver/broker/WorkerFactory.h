@@ -34,6 +34,7 @@ struct MeshWorkerInfo
 class WorkerFactory
 {
 public:
+  //Work Factory defaults to creating a maximum of 1 workers at once
   WorkerFactory();
   virtual ~WorkerFactory();
 
@@ -43,13 +44,24 @@ public:
 
   virtual bool haveSupport(meshserver::MESH_TYPE type ) const;
   virtual bool createWorker(meshserver::MESH_TYPE type);
+
+  //checks all current processes and removes any that have
+  //shutdown
+  virtual void updateWorkerCount();
+
+  //Set the maximum number of total workers that can be returning at once
+  void setMaxWorkerCount(unsigned int count){MaxWorkers = count;}
+  unsigned int maxWorkerCount(){return MaxWorkers;}
+  unsigned int currentWorkerCount() const { return this->CurrentProcesses.size(); }
+
+
 protected:
   typedef meshserver::common::ExecuteProcess ExecuteProcess;
   typedef boost::shared_ptr<ExecuteProcess> ExecuteProcessPtr;
 
   virtual bool addWorker(const std::string& executable);
-  virtual void removeDeadWorkers();
 
+  unsigned int MaxWorkers;
   std::vector<MeshWorkerInfo> PossibleWorkers;
   std::vector<ExecuteProcessPtr> CurrentProcesses;
 };

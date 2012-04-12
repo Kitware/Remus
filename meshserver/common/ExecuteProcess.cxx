@@ -20,7 +20,6 @@ public:
     {
     if(this->Created)
       {
-      std::cout << "Removing process " << std::endl;
       sysToolsProcess_Delete(this->Proc);
       }
 
@@ -47,7 +46,6 @@ ExecuteProcess::ExecuteProcess(const std::string& command):
 //-----------------------------------------------------------------------------
 ExecuteProcess::~ExecuteProcess()
 {
-  std::cout << "ExecuteProcess::~ExecuteProcess" << std::endl;
   delete this->ExternalProcess;
 }
 
@@ -70,7 +68,7 @@ void ExecuteProcess::execute()
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             sysToolsProcess_Option_HideWindow, true);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-  -                            sysToolsProcess_Option_Detach, true);
+                              sysToolsProcess_Option_Detach, true);
   sysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   this->ExternalProcess->Created = true;
@@ -101,6 +99,10 @@ bool ExecuteProcess::isAlive()
     //never was created can't be  alive
     return false;
     }
+  //poll just to see if the state has changed
+  double timeout = -1; //set to a negative number to poll
+  sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
+
   int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
   return state == sysToolsProcess_State_Executing;
 }
