@@ -179,8 +179,8 @@ meshserver::common::ProcessPipe ExecuteProcess::poll(double timeout)
   //other wise we are the same
 
   //systools currently doesn't have a block for inifinte time that acutally works
-  const double fakeInfinteWait = 100000000;
-  double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? fakeInfinteWait : timeout;
+  const double fakeInfiniteWait = 100000000;
+  double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? fakeInfiniteWait : timeout;
 
 
   //poll sys tool for data
