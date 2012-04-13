@@ -7,6 +7,7 @@
 =========================================================================*/
 
 #include "OmicronWorker.h"
+
 #include <meshserver/common/ExecuteProcess.h>
 #include <boost/filesystem.hpp>
 
@@ -143,31 +144,30 @@ void OmicronWorker::cleanlyExitOmicron()
 bool OmicronWorker::pollOmicronStatus()
 {
   //loop on polling of the omicron process
-  typedef meshserver::common::ExecuteProcess::PolledPipes PolledPipes;
-  typedef meshserver::common::ExecuteProcess::PipeData PipeData;
+  typedef meshserver::common::ProcessPipe ProcessPipe;
 
   //poll on STDOUT and STDERRR only
-  PolledPipes items(PolledPipes::STDOUT,PolledPipes::STDERR);
-
   bool noErrorOutput=true;
-  while(this->OmicronProcess->isAlive()&&noErrorOutput)
+  while(this->OmicronProcess->isAlive()&& noErrorOutput )
     {
     //poll till we have a data, waiting for-ever!
-    PipeData data = this->OmicronProcess->poll(items,0);
-    if(data.type() == PollItems::STDOUT)
+    ProcessPipe data = this->OmicronProcess->poll(-1);
+    if(data.type == ProcessPipe::STDOUT)
       {
-      //we have something on stdOUT
-      std::size_t pos = data.text().find("Progress:");
+      //we have something on the output pipe
+      std::size_t pos = data.text.find("Progress:");
       if(pos != std::string::npos)
         {
         //get a subsection of the string with the progress value
-        int status=progress_value(std::string(data.text(),pos,data.size()-pos));
+        int status = progress_value(
+                       std::string(data.text,pos,data.text.size()-pos));
         this->updateProgress(status);
         }
       }
-    if(data.type() == PollItems::STDERR)
+    if(data.type == ProcessPipe::STDERR)
       {
       //we have data on std err which in omicron case is bad, so terminate
+      //the job to make sure the mesh is reported to have incorrectly meshed
       noErrorOutput = false;
       }
     }

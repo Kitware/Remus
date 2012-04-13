@@ -11,7 +11,6 @@
 int main (int argc, char* argv[])
 {
   OmicronWorker worker;
-  worker.setOmicronExecutableName("model");
   worker.meshJob();
   return 1;
 }
