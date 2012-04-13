@@ -142,6 +142,24 @@ bool ExecuteProcess::isAlive()
 }
 
 //-----------------------------------------------------------------------------
+bool ExecuteProcess::exitedNormally()
+{
+  if(!this->ExternalProcess->Created)
+    {
+    //never was created can't be  alive
+    return false;
+    }
+  //poll just to see if the state has changed
+  double timeout = -1; //set to a negative number to poll
+  sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
+
+  int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
+  return (state == sysToolsProcess_State_Exited);
+}
+
+
+
+//-----------------------------------------------------------------------------
 meshserver::common::ProcessPipe ExecuteProcess::poll(double timeout)
 {
   typedef meshserver::common::ProcessPipe ProcessPipe;

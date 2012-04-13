@@ -61,6 +61,11 @@ public:
   //returns if the process is still alive
   bool isAlive();
 
+  //returns if the process exited normally.
+  //If the process is still running, killed, disowned, not yet running
+  //this will return false
+  bool exitedNormally();
+
   //Will poll for a given timout value looking any output on the STDIN,STDOUT,and
   //STDERR streams.
   //If the value of timeout is zero or greater we will wait that duration.
