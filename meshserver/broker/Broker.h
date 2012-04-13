@@ -62,7 +62,7 @@ protected:
                               const meshserver::JobMessage& msg);
   void storeMeshStatus(const meshserver::JobMessage& msg);
   void storeMesh(const meshserver::JobMessage& msg);
-  void assignJobToWorker(const zmq::socketAddress &workAddress,
+  void assignJobToWorker(const zmq::socketAddress &workerAddress,
                          const meshserver::common::JobDetails& job);
 
   void FindWorkerForQueuedJob();

@@ -116,6 +116,7 @@ meshserver::common::JobDetails JobQueue::takeJob(MESH_TYPE type)
 
     this->QueuedIds.erase(id);
     this->Queue.erase(this->Queue.begin()+index);
+    std::cout << "num queued jobs left: " << this->Queue.size() << std::endl;
 
     return meshserver::common::JobDetails(id,data);
     }

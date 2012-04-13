@@ -264,15 +264,16 @@ void Broker::storeMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Broker::assignJobToWorker(const zmq::socketAddress &workAddress,const meshserver::common::JobDetails& job )
+void Broker::assignJobToWorker(const zmq::socketAddress &workerAddress,
+                               const meshserver::common::JobDetails& job )
 {
-  this->ActiveJobs->add( workAddress, job.JobId );
+  this->ActiveJobs->add( workerAddress, job.JobId );
 
-  meshserver::JobResponse response(workAddress);
+  meshserver::JobResponse response(workerAddress);
   response.setData(meshserver::to_string(job));
 
   std::cout << "assigning job to worker " <<
-               std::string(workAddress.data(),workAddress.size()) << std::endl;
+               zmq::to_string(workerAddress) << std::endl;
 
   response.send(this->WorkerQueries);
 }
@@ -284,10 +285,27 @@ void Broker::FindWorkerForQueuedJob()
 {
   typedef std::set<meshserver::MESH_TYPE>::const_iterator it;
   this->WorkerFactory.updateWorkerCount();
+  std::set<meshserver::MESH_TYPE> types;
+
+  //now if we have room in our worker pool for more pending workers create some
+  //todo, make sure we ask the worker pool what its limit on number of pending
+  //workers is before creating more
+  types = this->QueuedJobs->queuedJobTypes();
+  for(it type = types.begin(); type != types.end(); ++type)
+    {
+    //check if we have a waiting worker, if we don't than try
+    //ask the factory to create a worker of that type.
+    bool workerReady = this->WorkerPool->haveWaitingWorker(*type);
+    workerReady = workerReady || this->WorkerFactory.createWorker(*type);
+    if(workerReady)
+      {
+      this->QueuedJobs->workerDispatched(*type);
+      }
+    }
 
   //find all the jobs that have been marked as waiting for a worker
   //and ask if we have a worker in the poll that can mesh that job
-  std::set<meshserver::MESH_TYPE> types = this->QueuedJobs->waitingForWorkerTypes();
+  types = this->QueuedJobs->waitingForWorkerTypes();
   for(it type = types.begin(); type != types.end(); ++type)
     {
     if(this->WorkerPool->haveWaitingWorker(*type))
@@ -298,18 +316,7 @@ void Broker::FindWorkerForQueuedJob()
       }
     }
 
-  //now if we have room in our worker pool for more pending workers create some
-  //todo, make sure we ask the worker pool what its limit on number of pending
-  //workers is before creating more
-  types = this->QueuedJobs->queuedJobTypes();
-  for(it type = types.begin(); type != types.end(); ++type)
-    {
-    bool workercreated = this->WorkerFactory.createWorker(*type);
-    if(workercreated)
-      {
-      this->QueuedJobs->workerDispatched(*type);
-      }
-    }
+
 }
 
 }

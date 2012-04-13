@@ -95,6 +95,8 @@ private:
 bool WorkerPool::addWorker(zmq::socketAddress workerAddress,
                            const meshserver::MESH_TYPE &type)
 {
+  std::cout << "Adding worker " << zmq::to_string(workerAddress) <<
+               "for mesh type " << meshserver::to_string(type) << std::endl;
   this->Pool.push_back( WorkerPool::WorkerInfo(workerAddress,type) );
   return true;
 }
@@ -131,6 +133,8 @@ bool WorkerPool::readyForWork(const zmq::socketAddress& address)
       {
       found = true;
       i->WaitingForWork = true;
+      std::cout << "worker " << zmq::to_string(address) <<
+                   "is looking for work" << std::endl;
       }
     }
   return found;
@@ -144,14 +148,10 @@ zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
   bool found = false;
   int index = 0;
   WorkerInfo* info;
-  for(index=0; index < this->Pool.size(); ++index)
+  for(index=0; index < this->Pool.size() && !found; ++index)
     {
     info = &this->Pool[index];
     found = (info->MType == type) && (info->WaitingForWork);
-    if(found)
-      {
-      break;
-      }
     }
 
   if(found)
