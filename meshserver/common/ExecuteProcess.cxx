@@ -3,6 +3,40 @@
 #include <sysTools/Process.h>
 #include <iostream>
 
+
+namespace{
+
+meshserver::common::ProcessPipe::PipeType typeToType(int type)
+  {
+  typedef meshserver::common::ProcessPipe PPipe;
+  typedef meshserver::common::ProcessPipe::PipeType PipeType;
+
+  sysToolsProcess_Pipes_e processType =
+      static_cast<sysToolsProcess_Pipes_e>(type);
+  PipeType pipeType;
+  switch(processType)
+    {
+    case sysToolsProcess_Pipe_STDIN:
+      pipeType = PPipe::STDIN;
+      break;
+    case sysToolsProcess_Pipe_STDOUT:
+      pipeType = PPipe::STDOUT;
+      break;
+    case sysToolsProcess_Pipe_STDERR:
+      pipeType = PPipe::STDERR;
+      break;
+    case sysToolsProcess_Pipe_Timeout:
+      pipeType = PPipe::Timeout;
+      break;
+    case sysToolsProcess_Pipe_None:
+    default:
+      pipeType = PPipe::None;
+      break;
+    }
+  return pipeType;
+  }
+}
+
 namespace meshserver{
 namespace common{
 
@@ -50,7 +84,7 @@ ExecuteProcess::~ExecuteProcess()
 }
 
 //-----------------------------------------------------------------------------
-void ExecuteProcess::execute()
+void ExecuteProcess::execute(bool detachProcess)
 {
   //allocate array large enough for command str, args, and null entry
   const std::size_t size(this->Args.size() + 2);
@@ -68,7 +102,7 @@ void ExecuteProcess::execute()
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             sysToolsProcess_Option_HideWindow, true);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                              sysToolsProcess_Option_Detach, true);
+                              sysToolsProcess_Option_Detach, detachProcess);
   sysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   this->ExternalProcess->Created = true;
@@ -105,6 +139,37 @@ bool ExecuteProcess::isAlive()
 
   int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
   return state == sysToolsProcess_State_Executing;
+}
+
+//-----------------------------------------------------------------------------
+meshserver::common::ProcessPipe ExecuteProcess::poll(double timeout)
+{
+  typedef meshserver::common::ProcessPipe ProcessPipe;
+
+  if(!this->ExternalProcess->Created)
+    {
+    return ProcessPipe(ProcessPipe::None);
+    }
+
+  //convert our syntax for timout to the systools version
+  //our negative values mean zero for sysToolProcess
+  //our zero value means a negative value
+  //other wise we are the same
+  double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? 0 : timeout;
+
+  //poll sys tool for data
+  int length;
+  char* data;
+  int pipe = sysToolsProcess_WaitForData(this->ExternalProcess->Proc,
+                                          &data,&length,&realTimeOut);
+  ProcessPipe::PipeType type = typeToType(pipe);
+
+  ProcessPipe result(type);
+  if(result.valid())
+    {
+    result.text = std::string(data,length);
+    }
+  return result;
 }
 
 
