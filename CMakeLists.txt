@@ -56,5 +56,5 @@ add_subdirectory(kwsys)
 add_subdirectory(meshserver)
 
 
-#add the test code
-add_subdirectory(Testing)
+#add the examples code
+add_subdirectory(Examples)

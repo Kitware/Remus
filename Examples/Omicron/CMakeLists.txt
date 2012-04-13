@@ -1,0 +1,21 @@
+
+include(${MeshServer_SOURCE_DIR}/CMake/MeshServerRegisterWorker.cmake)
+include_directories(${Boost_INCLUDE_DIRS})
+
+set(SRCS_Client
+   omicronClient.cxx
+   )
+
+set(SRCS_Workers
+  OmicronWorker.cxx
+  OmicronWorker.h
+  workerMain.cxx
+  )
+
+
+add_executable(OmicronClient ${SRCS_Client} ${COMMON_SRCS})
+target_link_libraries(OmicronClient ${ZeroMQ_LIBRARIES})
+
+add_executable(OmicronWorker ${SRCS_Workers} ${COMMON_SRCS})
+target_link_libraries(OmicronWorker ${ZeroMQ_LIBRARIES} MeshServerWorker)
+Register_Mesh_Worker(OmicronWorker 3D)
