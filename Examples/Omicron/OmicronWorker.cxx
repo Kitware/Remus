@@ -11,16 +11,6 @@
 #include <meshserver/common/ExecuteProcess.h>
 #include <boost/filesystem.hpp>
 
-
-namespace {
-
-int progress_value(const std::string& p)
-{
-  return atoi(p.c_str());
-}
-
-}
-
 //-----------------------------------------------------------------------------
 omicronSettings::omicronSettings(meshserver::common::JobDetails *details):
   exec(),args()
@@ -147,40 +137,46 @@ bool OmicronWorker::pollOmicronStatus()
   typedef meshserver::common::ProcessPipe ProcessPipe;
 
   //poll on STDOUT and STDERRR only
-  bool noErrorOutput=true;
-  while(this->OmicronProcess->isAlive()&& noErrorOutput )
+  bool validExection=true;
+  int status = 0;
+  while(this->OmicronProcess->isAlive()&& validExection )
     {
     //poll till we have a data, waiting for-ever!
     ProcessPipe data = this->OmicronProcess->poll(-1);
     if(data.type == ProcessPipe::STDOUT)
       {
       //we have something on the output pipe
-      std::size_t pos = data.text.find("Progress:");
+      std::size_t pos = data.text.find("Progress: ");
       if(pos != std::string::npos)
         {
-        //get a subsection of the string with the progress value
-        int status = progress_value(
-                       std::string(data.text,pos,data.text.size()-pos));
+        //omicron doesn't actually report back precentage done,
+        //instead it reports back just messages. It will generate 10 progress messages
+        //during the execution so use that as a yardstick
+        status += 10;
         this->updateProgress(status);
         }
+
+      //for now also dump it to the console
+      std::cout << data.text << std::endl;
+
       }
     if(data.type == ProcessPipe::STDERR)
       {
       //we have data on std err which in omicron case is bad, so terminate
       //the job to make sure the mesh is reported to have incorrectly meshed
-      noErrorOutput = false;
+      validExection = false;
       }
     }
-  if(!noErrorOutput)
-    {
+
+  //verify we exited normally, not segfault or numeric exception
+  validExection &= this->OmicronProcess->exitedNormally();
+
+  if(!validExection)
+    {//we call terminate to make sure we send the message to the broker
+    //that we have failed to mesh the input correctly
     this->terminateMeshJob();
     return false;
     }
-
-  //update the broker with the fact that will have finish the job
-  meshserver::common::JobStatus status(this->JobDetails->JobId,
-                                       meshserver::FINISHED);
-  this->updateStatus(status);
   return true;
 }
 
