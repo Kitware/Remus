@@ -6,189 +6,189 @@
 
 =========================================================================*/
 
+#include "OmicronWorker.h"
+#include <meshserver/common/ExecuteProcess.h>
+#include <boost/filesystem.hpp>
 
-#include <meshserver/worker/Worker.h>
 
-#include <boost/thread.hpp>
-#include <string>
+namespace {
 
-#include <meshserver/JobMessage.h>
-#include <meshserver/JobResponse.h>
-#include <meshserver/common/zmqHelper.h>
+int progress_value(const std::string& p)
+{
+  return atoi(p.c_str());
+}
 
-namespace meshserver{
-namespace worker{
+}
 
 //-----------------------------------------------------------------------------
-class Worker::BrokerCommunicator
+omicronSettings::omicronSettings(meshserver::common::JobDetails *details):
+  exec(),args()
 {
-public:
-  BrokerCommunicator():
-    ContinueTalking(true)
+  //parse the details into a executable and a collection of arguments
+
+}
+
+//-----------------------------------------------------------------------------
+OmicronWorker::OmicronWorker():
+  meshserver::worker::Worker(meshserver::MESH3D),
+  JobDetails(NULL),
+  OmicronProcess(NULL),
+  Name("model"),
+  Directory(boost::filesystem::current_path().string())
+{
+
+}
+//-----------------------------------------------------------------------------
+OmicronWorker::~OmicronWorker()
+{
+  if(this->JobDetails)
     {
+    delete this->JobDetails;
+    }
+  this->cleanlyExitOmicron();
+}
+
+//-----------------------------------------------------------------------------
+void OmicronWorker::setExecutableName(const std::string& name)
+{
+  this->Name = name;
+}
+
+//-----------------------------------------------------------------------------
+const std::string& OmicronWorker::executableName() const
+{
+  return this->Name;
+}
+
+//-----------------------------------------------------------------------------
+void OmicronWorker::setExecutableDir(const std::string& path)
+{
+  this->Directory = path;
+}
+
+//-----------------------------------------------------------------------------
+const std::string& OmicronWorker::executableDir() const
+{
+  return this->Directory;
+}
+
+//-----------------------------------------------------------------------------
+void OmicronWorker::meshJob()
+{
+  if(this->JobDetails)
+    {
+    delete this->JobDetails;
+    this->JobDetails = NULL;
     }
 
-  ~BrokerCommunicator()
-  {
-  }
+  this->JobDetails = new meshserver::common::JobDetails(this->getJob());
+  this->launchOmicron( );
 
-  void run(zmq::context_t *context)
-  {
-    std::cout << "thread started" << std::endl;
+  //poll on omicron now
+  bool valid = this->pollOmicronStatus();
+  if(valid)
+    {
+    //send to the broker the mesh results too
+    meshserver::common::JobResult results(this->JobDetails->JobId,
+                                          "FAKE RESULTS");
+    this->returnMeshResults(results);
+    }
 
-    zmq::socket_t Worker(*context,ZMQ_PAIR);
-    zmq::socket_t Broker(*context,ZMQ_DEALER);
+  this->cleanlyExitOmicron();
+}
 
-    Worker.connect("inproc://worker");
-    zmq::connectToSocket(Broker,meshserver::BROKER_WORKER_PORT);
+//-----------------------------------------------------------------------------
+bool OmicronWorker::terminateMeshJob()
+{
+  if(this->OmicronProcess)
+    {
+    //update the broker with the fact that will had to kill the job
+    meshserver::common::JobStatus status(this->JobDetails->JobId,
+                                         meshserver::FAILED);
+    this->updateStatus(status);
 
+    this->OmicronProcess->kill();
+    return true;
+    }
+  return false;
+}
 
-    zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
-                                  { Broker,  0, ZMQ_POLLIN, 0 } };
-    while( this->ContinueTalking)
+//-----------------------------------------------------------------------------
+void OmicronWorker::launchOmicron()
+{
+  //wait for any current process to finish before starting new one
+  this->cleanlyExitOmicron();
+
+  omicronSettings settings(this->JobDetails);
+  this->OmicronProcess = new meshserver::common::ExecuteProcess(settings.exec,
+                                                                settings.args);
+
+  //actually launch the new process
+  this->OmicronProcess->execute(false);
+}
+
+//-----------------------------------------------------------------------------
+void OmicronWorker::cleanlyExitOmicron()
+{
+  //waits for omicron to exit and then cleans up the OmicronProcess
+  //Omicron process ptr will be NULL when this is finished
+  if(this->OmicronProcess)
+    {
+    delete this->OmicronProcess;
+    this->OmicronProcess = NULL;
+    }
+}
+
+//-----------------------------------------------------------------------------
+bool OmicronWorker::pollOmicronStatus()
+{
+  //loop on polling of the omicron process
+  typedef meshserver::common::ExecuteProcess::PolledPipes PolledPipes;
+  typedef meshserver::common::ExecuteProcess::PipeData PipeData;
+
+  //poll on STDOUT and STDERRR only
+  PolledPipes items(PolledPipes::STDOUT,PolledPipes::STDERR);
+
+  bool noErrorOutput=true;
+  while(this->OmicronProcess->isAlive()&&noErrorOutput)
+    {
+    //poll till we have a data, waiting for-ever!
+    PipeData data = this->OmicronProcess->poll(items,0);
+    if(data.type() == PollItems::STDOUT)
       {
-      zmq::poll(&items[0],2,meshserver::HEARTBEAT_INTERVAL);
-      bool sentToBroker=false;
-      if(items[0].revents & ZMQ_POLLIN)
+      //we have something on stdOUT
+      std::size_t pos = data.text().find("Progress:");
+      if(pos != std::string::npos)
         {
-        sentToBroker = true;
-        meshserver::JobMessage message(Worker);
-
-        //just pass the message on to the broker
-        message.send(Broker);
-
-        //special case is that shutdown means we stop looping
-        if(message.serviceType()==meshserver::SHUTDOWN)
-          {
-          this->ContinueTalking = false;
-          }
-        }
-      if(items[1].revents & ZMQ_POLLIN && this->ContinueTalking)
-        {
-        //we make sure ContinueTalking is valid so we know the worker
-        //is still listening and not in destructor
-
-        std::cout << "Building a response to send to the worker" << std::endl;
-
-        //we have a message from the broker for know this can only be the
-        //reply back from a job query so send it to the worker.
-        meshserver::JobResponse response(Broker);
-
-        std::cout << "sending the response" << std::endl;
-        response.send(Worker);
-        }
-      if(!sentToBroker)
-        {
-        std::cout << "send heartbeat to broker" << std::endl;
-        //send a heartbeat to the broker
-        meshserver::JobMessage message(meshserver::INVALID_MESH,meshserver::HEARTBEAT);
-        message.send(Broker);
+        //get a subsection of the string with the progress value
+        int status=progress_value(std::string(data.text(),pos,data.size()-pos));
+        this->updateProgress(status);
         }
       }
-  }
-
-private:
-  bool ContinueTalking;
-};
-
-//-----------------------------------------------------------------------------
-Worker::Worker(meshserver::MESH_TYPE mtype):
-  MeshType(mtype),
-  Context(1),
-  BrokerComm(Context,ZMQ_PAIR),
-  BComm(NULL),
-  BrokerCommThread(NULL)
-{
-  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
-  this->BrokerComm.bind("inproc://worker");
-
-  this->startCommunicationThread();
-}
-
-//-----------------------------------------------------------------------------
-Worker::~Worker()
-{
-  std::cout << "Ending the worker" << std::endl;
-  this->stopCommunicationThread();
-}
-
-//-----------------------------------------------------------------------------
-bool Worker::startCommunicationThread()
-{
-  if(!this->BrokerCommThread && !this->BComm)
-    {
-    //start about the broker communication thread
-    this->BComm = new Worker::BrokerCommunicator();
-    this->BrokerCommThread = new boost::thread(&Worker::BrokerCommunicator::run,
-                                             this->BComm,&this->Context);
-
-    //register with the broker that we can mesh a certain type
-    meshserver::JobMessage canMesh(this->MeshType,meshserver::CAN_MESH);
-    canMesh.send(this->BrokerComm);
-    return true;
+    if(data.type() == PollItems::STDERR)
+      {
+      //we have data on std err which in omicron case is bad, so terminate
+      noErrorOutput = false;
+      }
     }
-  return false;
-}
-
-//-----------------------------------------------------------------------------
-bool Worker::stopCommunicationThread()
-{
-  if(this->BrokerCommThread && this->BComm)
+  if(!noErrorOutput)
     {
-    //send message that we are shuting down communication
-    meshserver::JobMessage shutdown(this->MeshType,meshserver::SHUTDOWN);
-    shutdown.send(this->BrokerComm);
-
-    this->BrokerCommThread->join();
-    delete this->BComm;
-    delete this->BrokerCommThread;
-
-    this->BComm = NULL;
-    this->BrokerCommThread = NULL;
-    return true;
+    this->terminateMeshJob();
+    return false;
     }
-  return false;
+
+  //update the broker with the fact that will have finish the job
+  meshserver::common::JobStatus status(this->JobDetails->JobId,
+                                       meshserver::FINISHED);
+  this->updateStatus(status);
+  return true;
 }
 
 //-----------------------------------------------------------------------------
-meshserver::common::JobDetails Worker::getJob()
+void OmicronWorker::updateProgress(int value)
 {
-  meshserver::JobMessage askForMesh(this->MeshType,meshserver::MAKE_MESH);
-  askForMesh.send(this->BrokerComm);
-
-  //we have our message back
-  meshserver::JobResponse response(this->BrokerComm);
-  std::cout << "have our job from the broker com in the real worker" <<std::endl;
-
-  //we need a better serialization techinque
-  std::string msg = response.dataAs<std::string>();
-  std::cout << "Raw job details " << msg << std::endl;
-
-  return meshserver::to_JobDetails(msg);
-}
-
-//-----------------------------------------------------------------------------
-void Worker::updateStatus(const meshserver::common::JobStatus& info)
-{
-  //send a message that contains, the status
-  std::string msg = meshserver::to_string(info);
-  meshserver::JobMessage message(this->MeshType,
-                                    meshserver::MESH_STATUS,
-                                    msg.data(),msg.size());
-  message.send(this->BrokerComm);
-}
-
-//-----------------------------------------------------------------------------
-void Worker::returnMeshResults(const meshserver::common::JobResult& result)
-{
-  //send a message that contains, the path to the resulting file
-  std::string msg = meshserver::to_string(result);
-  meshserver::JobMessage message(this->MeshType,
-                                    meshserver::RETRIEVE_MESH,
-                                    msg.data(),msg.size());
-  message.send(this->BrokerComm);
-}
-
-
-}
+  meshserver::common::JobStatus status(this->JobDetails->JobId,
+                                       meshserver::IN_PROGRESS);
+  status.Progress = value;
+  this->updateStatus(status);
 }

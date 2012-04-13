@@ -7,3 +7,6 @@ set(SRCS_Broker
 
 add_executable(TestMeshBroker ${SRCS_Broker} ${COMMON_SRCS})
 target_link_libraries(TestMeshBroker ${ZeroMQ_LIBRARIES} MeshServerBroker)
+
+add_subdirectory(BasicExample)
+add_subdirectory(Omicron)
