@@ -96,7 +96,11 @@ void ExecuteProcess::execute(bool detachProcess)
     }
   cmds[size-1]=NULL;
 
-
+  std::cout << "Executing command " << this->Command << std::endl;
+  for(std::size_t i=0; i < this->Args.size();++i)
+    {
+    std::cout << "With Arguments " << this->Args[i] << std::endl;
+    }
 
   sysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
@@ -173,7 +177,11 @@ meshserver::common::ProcessPipe ExecuteProcess::poll(double timeout)
   //our negative values mean zero for sysToolProcess
   //our zero value means a negative value
   //other wise we are the same
-  double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? 0 : timeout;
+
+  //systools currently doesn't have a block for inifinte time that acutally works
+  const double fakeInfinteWait = 100000000;
+  double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? fakeInfinteWait : timeout;
+
 
   //poll sys tool for data
   int length;
