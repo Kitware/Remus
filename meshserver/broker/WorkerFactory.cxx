@@ -201,7 +201,7 @@ bool WorkerFactory::addWorker(const std::string& executable)
   //add this workers
   std::cout << "creating a new worker process" << std::endl;
   ExecuteProcessPtr ep(new ExecuteProcess(executable) );
-  ep->execute();
+  ep->execute(true); //detach worker
   this->CurrentProcesses.push_back(ep);
   return true;
 }
