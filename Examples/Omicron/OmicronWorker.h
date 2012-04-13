@@ -17,7 +17,6 @@ namespace meshserver{ namespace common { class ExecuteProcess; } }
 struct omicronSettings
 {
   omicronSettings(meshserver::common::JobDetails* details);
-  std::string exec;
   std::vector<std::string> args;
 };
 

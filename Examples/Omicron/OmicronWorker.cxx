@@ -13,10 +13,11 @@
 
 //-----------------------------------------------------------------------------
 omicronSettings::omicronSettings(meshserver::common::JobDetails *details):
-  exec(),args()
+  args()
 {
-  //parse the details into a executable and a collection of arguments
-
+  //job details are the arguments for the omicron instance we have
+  //dirty hack since we know that the client is only passing one argument to omicron
+  args.push_back(details->Path);
 }
 
 //-----------------------------------------------------------------------------
@@ -111,8 +112,14 @@ void OmicronWorker::launchOmicron()
   this->cleanlyExitOmicron();
 
   omicronSettings settings(this->JobDetails);
-  this->OmicronProcess = new meshserver::common::ExecuteProcess(settings.exec,
-                                                                settings.args);
+  boost::filesystem::path executionPath = this->Directory;
+  executionPath /= this->Name;
+#ifdef WIN32
+  executionPath.replace_extension(".exe");
+#endif
+
+  this->OmicronProcess = new meshserver::common::ExecuteProcess(
+                           executionPath.string(),settings.args);
 
   //actually launch the new process
   this->OmicronProcess->execute(false);
@@ -160,11 +167,15 @@ bool OmicronWorker::pollOmicronStatus()
       std::cout << data.text << std::endl;
 
       }
-    if(data.type == ProcessPipe::STDERR)
+    else if(data.type == ProcessPipe::STDERR)
       {
       //we have data on std err which in omicron case is bad, so terminate
       //the job to make sure the mesh is reported to have incorrectly meshed
       validExection = false;
+      }
+    else
+      {
+      std::cout << "No Poll" << std::endl;
       }
     }
 
