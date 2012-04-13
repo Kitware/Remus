@@ -26,6 +26,7 @@ namespace internal{
 class WorkerPool
 {
   public:
+    WorkerPool():Pool(){};
 
     bool addWorker(zmq::socketAddress workerAddress,
                    const meshserver::MESH_TYPE& type);

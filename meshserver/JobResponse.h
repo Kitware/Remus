@@ -20,8 +20,8 @@ namespace meshserver{
 class JobResponse
 {
 public:
-  JobResponse(const zmq::socketAddress& client);
-  JobResponse(zmq::socket_t& socket);
+  explicit JobResponse(const zmq::socketAddress& client);
+  explicit JobResponse(zmq::socket_t& socket);
   ~JobResponse();
 
   //Clears any existing data message, and reconstructs

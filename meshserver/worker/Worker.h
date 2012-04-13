@@ -26,7 +26,7 @@ class Worker
 {
 public:
   //constuct a worker that can mesh a single type
-  Worker(meshserver::MESH_TYPE mtype);
+  explicit Worker(meshserver::MESH_TYPE mtype);
   virtual ~Worker();
 
   //gets back a job from the broker

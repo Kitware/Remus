@@ -22,7 +22,7 @@ class JobMessage
 public:
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
-  JobMessage(zmq::socket_t& socket);
+  explicit JobMessage(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
   void releaseData() { this->Data = NULL; }

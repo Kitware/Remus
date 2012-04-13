@@ -41,7 +41,7 @@ class Broker
 {
 public:
   Broker();
-  Broker(const meshserver::broker::WorkerFactory& factory);
+  explicit Broker(const meshserver::broker::WorkerFactory& factory);
 
   ~Broker();
   bool startBrokering();

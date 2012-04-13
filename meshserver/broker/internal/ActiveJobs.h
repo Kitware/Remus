@@ -27,6 +27,7 @@ namespace internal{
 class ActiveJobs
 {
   public:
+    ActiveJobs():Info(){}
 
     bool add(const zmq::socketAddress& workerAddress, const boost::uuids::uuid& id);
 

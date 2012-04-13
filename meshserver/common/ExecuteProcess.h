@@ -21,7 +21,7 @@ class ExecuteProcess
 {
 public:
   ExecuteProcess(const std::string& command, const std::vector<std::string>& args);
-  ExecuteProcess(const std::string& command);
+  explicit ExecuteProcess(const std::string& command);
 
   //Will terminate the external process if has been started
   //and wasn't set to run in detached mode

@@ -23,7 +23,7 @@ struct JobResult
   boost::uuids::uuid JobId;
   std::string Path; //path to the job file to start
 
-  JobResult(const boost::uuids::uuid& id):
+  explicit JobResult(const boost::uuids::uuid& id):
     JobId(id),
     Path()
     {}
