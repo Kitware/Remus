@@ -67,7 +67,7 @@ Server::~Server()
 }
 
 //------------------------------------------------------------------------------
-bool Server::startServering()
+bool Server::startBrokering()
   {
   zmq::pollitem_t items[2] = {
       { this->JobQueries,  0, ZMQ_POLLIN, 0 },

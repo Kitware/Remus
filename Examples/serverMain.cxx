@@ -15,6 +15,6 @@ int main ()
 
   meshserver::server::Server b(factory);
 
-  bool valid = b.startServering();
+  bool valid = b.startBrokering();
   return valid ? 0 : 1;
 }

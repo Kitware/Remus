@@ -44,7 +44,7 @@ public:
   explicit Server(const meshserver::server::WorkerFactory& factory);
 
   ~Server();
-  bool startServering();
+  bool startBrokering();
 
 protected:
   //processes all job queries
