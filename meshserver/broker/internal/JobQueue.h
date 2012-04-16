@@ -6,8 +6,8 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_JobQueue_h
-#define __meshserver_broker_internal_JobQueue_h
+#ifndef __meshserver_server_internal_JobQueue_h
+#define __meshserver_server_internal_JobQueue_h
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -15,12 +15,12 @@
 #include <vector>
 #include <set>
 
-#include <meshserver/broker/internal/uuidHelper.h>
+#include <meshserver/server/internal/uuidHelper.h>
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/JobMessage.h>
 
 namespace meshserver{
-namespace broker{
+namespace server{
 namespace internal{
 
 //A FIFO queue. each mesh type has its own queue
@@ -185,6 +185,6 @@ bool JobQueue::haveUUID(const boost::uuids::uuid &id) const
 
 }
 }
-} //namespace meshserver::broker::internal
+} //namespace meshserver::server::internal
 
 #endif // JOBQUEUE_H

@@ -6,8 +6,8 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_uuidHelper_h
-#define __meshserver_broker_internal_uuidHelper_h
+#ifndef __meshserver_server_internal_uuidHelper_h
+#define __meshserver_server_internal_uuidHelper_h
 
 
 #include <boost/uuid/uuid.hpp>
@@ -42,4 +42,4 @@ inline boost::uuids::uuid to_uuid(const std::string& str)
 }
 }
 
-#endif // __meshserver_broker_internal_uuidHelper_h
+#endif // __meshserver_server_internal_uuidHelper_h

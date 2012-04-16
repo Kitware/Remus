@@ -6,15 +6,15 @@
 
 =========================================================================*/
 
-#include <meshserver/broker/Broker.h>
-#include <meshserver/broker/WorkerFactory.h>
+#include <meshserver/server/Server.h>
+#include <meshserver/server/WorkerFactory.h>
 int main ()
 {
-  meshserver::broker::WorkerFactory factory;
+  meshserver::server::WorkerFactory factory;
   factory.setMaxWorkerCount(4);
 
-  meshserver::broker::Broker b(factory);
+  meshserver::server::Server b(factory);
 
-  bool valid = b.startBrokering();
+  bool valid = b.startServering();
   return valid ? 0 : 1;
 }

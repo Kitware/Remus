@@ -6,22 +6,22 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_ActiveJobs_h
-#define __meshserver_broker_internal_ActiveJobs_h
+#ifndef __meshserver_server_internal_ActiveJobs_h
+#define __meshserver_server_internal_ActiveJobs_h
 
 #include <meshserver/common/zmqHelper.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <meshserver/broker/internal/uuidHelper.h>
+#include <meshserver/server/internal/uuidHelper.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 
 #include <map>
 
 namespace meshserver{
-namespace broker{
+namespace server{
 namespace internal{
 
 class ActiveJobs

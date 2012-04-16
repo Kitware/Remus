@@ -27,7 +27,7 @@ class Client
 public:
   Client();
 
-  //Submit a request to the broker to see if it support the type of mesh
+  //Submit a request to the server to see if it support the type of mesh
   bool canMesh(meshserver::MESH_TYPE mtype);
 
   //Submit a mesh job to the server. Currently only supports submitting

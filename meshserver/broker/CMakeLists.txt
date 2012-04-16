@@ -8,15 +8,15 @@ include_directories(${Boost_INCLUDE_DIRS})
 add_subdirectory(internal)
 
 set(headers
-    Broker.h
+    Server.h
     WorkerFactory.h
     )
-set(broker_srcs
-   Broker.cxx
+set(server_srcs
+   Server.cxx
    WorkerFactory.cxx
    )
 
-add_library(MeshServerBroker ${broker_srcs} ${headers})
-target_link_libraries(MeshServerBroker ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} MeshServerCommon)
+add_library(MeshServerServer ${server_srcs} ${headers})
+target_link_libraries(MeshServerServer ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} MeshServerCommon)
 
 meshserver_public_headers(${headers})

@@ -14,8 +14,8 @@ int main (int argc, char* argv[])
   int timesToAskForJobs = 1;
   int jobsToAskForEachTime =1;
 
-  //first argument is the number of times to as the broker for jobs
-  //the second argument is the number of jobs each time to ask for from the broker
+  //first argument is the number of times to as the server for jobs
+  //the second argument is the number of jobs each time to ask for from the server
   //both default to 1
   if (argc == 3)
     {

@@ -6,12 +6,12 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_internal_ActiveJobState_h
-#define __meshserver_broker_internal_ActiveJobState_h
+#ifndef __meshserver_server_internal_ActiveJobState_h
+#define __meshserver_server_internal_ActiveJobState_h
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <meshserver/broker/internal/uuidHelper.h>
+#include <meshserver/server/internal/uuidHelper.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 #include <meshserver/common/zmqHelper.h>
@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace meshserver{
-namespace broker{
+namespace server{
 namespace internal{
 
 class WorkerPool

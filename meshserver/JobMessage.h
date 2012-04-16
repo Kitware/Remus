@@ -57,7 +57,7 @@ private:
 
   //Storage is an optional allocation that is used when recieving job messages
   //when the process accepting the message has no memory already allocated to recieve it
-  //It isn't used when sending messages to the broker
+  //It isn't used when sending messages to the server
   boost::shared_ptr<DataStorage> Storage;
 };
 

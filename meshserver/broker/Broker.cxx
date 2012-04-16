@@ -6,7 +6,7 @@
 
 =========================================================================*/
 
-#include <meshserver/broker/Broker.h>
+#include <meshserver/server/Server.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -21,21 +21,21 @@
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
-#include <meshserver/broker/internal/uuidHelper.h>
-#include <meshserver/broker/internal/ActiveJobs.h>
-#include <meshserver/broker/internal/JobQueue.h>
-#include <meshserver/broker/internal/WorkerPool.h>
+#include <meshserver/server/internal/uuidHelper.h>
+#include <meshserver/server/internal/ActiveJobs.h>
+#include <meshserver/server/internal/JobQueue.h>
+#include <meshserver/server/internal/WorkerPool.h>
 
 
 namespace meshserver{
-namespace broker{
+namespace server{
 
 //------------------------------------------------------------------------------
-Broker::Broker():
+Server::Server():
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new meshserver::broker::internal::JobQueue() ),
-  WorkerPool(new meshserver::broker::internal::WorkerPool() ),
-  ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
+  QueuedJobs(new meshserver::server::internal::JobQueue() ),
+  WorkerPool(new meshserver::server::internal::WorkerPool() ),
+  ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
   WorkerFactory(),
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
@@ -46,11 +46,11 @@ Broker::Broker():
   }
 
 //------------------------------------------------------------------------------
-Broker::Broker(const meshserver::broker::WorkerFactory& factory):
+Server::Server(const meshserver::server::WorkerFactory& factory):
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new meshserver::broker::internal::JobQueue() ),
-  WorkerPool(new meshserver::broker::internal::WorkerPool() ),
-  ActiveJobs(new meshserver::broker::internal::ActiveJobs () ),
+  QueuedJobs(new meshserver::server::internal::JobQueue() ),
+  WorkerPool(new meshserver::server::internal::WorkerPool() ),
+  ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
   WorkerFactory(factory),
   Context(1),
   JobQueries(this->Context,ZMQ_ROUTER),
@@ -61,13 +61,13 @@ Broker::Broker(const meshserver::broker::WorkerFactory& factory):
   }
 
 //------------------------------------------------------------------------------
-Broker::~Broker()
+Server::~Server()
 {
 
 }
 
 //------------------------------------------------------------------------------
-bool Broker::startBrokering()
+bool Server::startServering()
   {
   zmq::pollitem_t items[2] = {
       { this->JobQueries,  0, ZMQ_POLLIN, 0 },
@@ -121,11 +121,11 @@ bool Broker::startBrokering()
   }
 
 //------------------------------------------------------------------------------
-void Broker::DetermineJobQueryResponse(const zmq::socketAddress& clientAddress,
+void Server::DetermineJobQueryResponse(const zmq::socketAddress& clientAddress,
                                   const meshserver::JobMessage& msg)
 {
   //msg.dump(std::cout);
-  //broker response is the general response message type
+  //server response is the general response message type
   //the client can than convert it to the expected type
   meshserver::JobResponse response(clientAddress);
   if(!msg.isValid())
@@ -158,7 +158,7 @@ void Broker::DetermineJobQueryResponse(const zmq::socketAddress& clientAddress,
 }
 
 //------------------------------------------------------------------------------
-bool Broker::canMesh(const meshserver::JobMessage& msg)
+bool Server::canMesh(const meshserver::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
@@ -166,7 +166,7 @@ bool Broker::canMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::meshStatus(const meshserver::JobMessage& msg)
+std::string Server::meshStatus(const meshserver::JobMessage& msg)
 {
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
 
@@ -183,7 +183,7 @@ std::string Broker::meshStatus(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::queueJob(const meshserver::JobMessage& msg)
+std::string Server::queueJob(const meshserver::JobMessage& msg)
 {
   if(this->canMesh(msg))
   {
@@ -200,7 +200,7 @@ std::string Broker::queueJob(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
+std::string Server::retrieveMesh(const meshserver::JobMessage& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
@@ -218,7 +218,7 @@ std::string Broker::retrieveMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Broker::DetermineWorkerResponse(const zmq::socketAddress &workAddress,
+void Server::DetermineWorkerResponse(const zmq::socketAddress &workAddress,
                                      const meshserver::JobMessage& msg)
 {
   //we have a valid job, determine what to do with it
@@ -249,7 +249,7 @@ void Broker::DetermineWorkerResponse(const zmq::socketAddress &workAddress,
 }
 
 //------------------------------------------------------------------------------
-void Broker::storeMeshStatus(const meshserver::JobMessage& msg)
+void Server::storeMeshStatus(const meshserver::JobMessage& msg)
 {
   //the string in the data is actualy a job status object
   meshserver::common::JobStatus js = meshserver::to_JobStatus(msg.data(),msg.dataSize());
@@ -257,14 +257,14 @@ void Broker::storeMeshStatus(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Broker::storeMesh(const meshserver::JobMessage& msg)
+void Server::storeMesh(const meshserver::JobMessage& msg)
 {
   meshserver::common::JobResult jr = meshserver::to_JobResult(msg.data(),msg.dataSize());
   this->ActiveJobs->updateResult(jr);
 }
 
 //------------------------------------------------------------------------------
-void Broker::assignJobToWorker(const zmq::socketAddress &workerAddress,
+void Server::assignJobToWorker(const zmq::socketAddress &workerAddress,
                                const meshserver::common::JobDetails& job )
 {
   this->ActiveJobs->add( workerAddress, job.JobId );
@@ -281,7 +281,7 @@ void Broker::assignJobToWorker(const zmq::socketAddress &workerAddress,
 //see if we have a worker in the pool for the next job in the queue,
 //otherwise as the factory to generat a new worker to handle that job
 //------------------------------------------------------------------------------
-void Broker::FindWorkerForQueuedJob()
+void Server::FindWorkerForQueuedJob()
 {
   typedef std::set<meshserver::MESH_TYPE>::const_iterator it;
   this->WorkerFactory.updateWorkerCount();

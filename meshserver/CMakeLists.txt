@@ -1,6 +1,6 @@
 
 add_subdirectory(common)
-add_subdirectory(broker)
+add_subdirectory(server)
 add_subdirectory(worker)
 
 

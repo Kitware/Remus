@@ -29,7 +29,7 @@ public:
   explicit Worker(meshserver::MESH_TYPE mtype);
   virtual ~Worker();
 
-  //gets back a job from the broker
+  //gets back a job from the server
   //this will lock the worker as it will wait on a job message
   virtual meshserver::common::JobDetails getJob();
 
@@ -53,14 +53,14 @@ private:
 
   zmq::context_t Context;
 
-  //this socket is used to talk to broker
-  zmq::socket_t BrokerComm;
+  //this socket is used to talk to server
+  zmq::socket_t ServerComm;
 
-  //this is the thread that handles talking with the broker
+  //this is the thread that handles talking with the server
   //and dealing with heartbeats
-  class BrokerCommunicator;
-  BrokerCommunicator *BComm;
-  boost::thread* BrokerCommThread;
+  class ServerCommunicator;
+  ServerCommunicator *BComm;
+  boost::thread* ServerCommThread;
 };
 
 }

@@ -6,8 +6,8 @@
 
 =========================================================================*/
 
-#ifndef __meshserver_broker_WorkeryFactory_h
-#define __meshserver_broker_WorkeryFactory_h
+#ifndef __meshserver_server_WorkeryFactory_h
+#define __meshserver_server_WorkeryFactory_h
 
 #include <vector>
 #include <meshserver/common/meshServerGlobals.h>
@@ -21,7 +21,7 @@ class ExecuteProcess;
 }
 
 namespace meshserver{
-namespace broker{
+namespace server{
 
 struct MeshWorkerInfo
 {

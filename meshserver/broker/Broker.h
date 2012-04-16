@@ -6,8 +6,8 @@
 
 =========================================================================*/
 
-#ifndef __broker_h
-#define __broker_h
+#ifndef __server_h
+#define __server_h
 
 #include <zmq.hpp>
 #include <meshserver/common/zmqHelper.h>
@@ -15,7 +15,7 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
 
-#include <meshserver/broker/WorkerFactory.h>
+#include <meshserver/server/WorkerFactory.h>
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
@@ -28,7 +28,7 @@ class JobQueue;
 }
 
 namespace meshserver{
-namespace broker{
+namespace server{
   namespace internal
     {
     //forward declaration of classes only the implementation needs
@@ -37,14 +37,14 @@ namespace broker{
     class WorkerPool;
     }
 
-class Broker
+class Server
 {
 public:
-  Broker();
-  explicit Broker(const meshserver::broker::WorkerFactory& factory);
+  Server();
+  explicit Server(const meshserver::server::WorkerFactory& factory);
 
-  ~Broker();
-  bool startBrokering();
+  ~Server();
+  bool startServering();
 
 protected:
   //processes all job queries
@@ -70,10 +70,10 @@ protected:
 private:
   boost::uuids::random_generator UUIDGenerator;
 
-  boost::scoped_ptr<meshserver::broker::internal::JobQueue> QueuedJobs;
-  boost::scoped_ptr<meshserver::broker::internal::WorkerPool> WorkerPool;
-  boost::scoped_ptr<meshserver::broker::internal::ActiveJobs> ActiveJobs;
-  meshserver::broker::WorkerFactory WorkerFactory;
+  boost::scoped_ptr<meshserver::server::internal::JobQueue> QueuedJobs;
+  boost::scoped_ptr<meshserver::server::internal::WorkerPool> WorkerPool;
+  boost::scoped_ptr<meshserver::server::internal::ActiveJobs> ActiveJobs;
+  meshserver::server::WorkerFactory WorkerFactory;
 
   zmq::context_t Context;
   zmq::socket_t JobQueries;

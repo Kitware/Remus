@@ -80,7 +80,7 @@ void OmicronWorker::meshJob()
   bool valid = this->pollOmicronStatus();
   if(valid)
     {
-    //send to the broker the mesh results too
+    //send to the server the mesh results too
     meshserver::common::JobResult results(this->JobDetails->JobId,
                                           "FAKE RESULTS");
     this->returnMeshResults(results);
@@ -94,7 +94,7 @@ bool OmicronWorker::terminateMeshJob()
 {
   if(this->OmicronProcess)
     {
-    //update the broker with the fact that will had to kill the job
+    //update the server with the fact that will had to kill the job
     meshserver::common::JobStatus status(this->JobDetails->JobId,
                                          meshserver::FAILED);
     this->updateStatus(status);
@@ -183,7 +183,7 @@ bool OmicronWorker::pollOmicronStatus()
   validExection &= this->OmicronProcess->exitedNormally();
 
   if(!validExection)
-    {//we call terminate to make sure we send the message to the broker
+    {//we call terminate to make sure we send the message to the server
     //that we have failed to mesh the input correctly
     this->terminateMeshJob();
     return false;
