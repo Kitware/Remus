@@ -5,6 +5,10 @@ project(MeshServer)
 # and can targets for unit tests
 include(CMake/MeshServerMacros.cmake)
 
+# include export header so that we can easily expose symbols
+# in dynamic libraries
+include(GenerateExportHeader)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MeshServer_SOURCE_DIR}/CMake)
 
 #ZeroMQ is used for all message passing between components.

@@ -17,13 +17,15 @@
 #include <string>
 #include <vector>
 
+#include "CommonExports.h"
+
 //forward declare the systools
 
 namespace meshserver{
 namespace common{
 
 
-struct ProcessPipe
+struct MESHSERVERCOMMON_EXPORT ProcessPipe
 {
   enum PipeType
     {
@@ -44,7 +46,7 @@ struct ProcessPipe
 };
 
 
-class ExecuteProcess
+class MESHSERVERCOMMON_EXPORT ExecuteProcess
 {
 public:
   ExecuteProcess(const std::string& command, const std::vector<std::string>& args);

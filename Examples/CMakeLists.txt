@@ -1,5 +1,6 @@
 
-include_directories(${Boost_INCLUDE_DIRS})
+meshserver_get_includes(MeshServerServer WorkIncludes)
+include_directories(${WorkIncludes})
 
 set(SRCS_Server
    serverMain.cxx

@@ -1,6 +1,8 @@
 
 include(${MeshServer_SOURCE_DIR}/CMake/MeshServerRegisterWorker.cmake)
-include_directories(${Boost_INCLUDE_DIRS})
+
+meshserver_get_includes(MeshServerWorker WorkIncludes)
+include_directories(${WorkIncludes})
 
 set(SRCS_Client
    clientMain.cxx

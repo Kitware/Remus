@@ -21,12 +21,15 @@
 
 #include <meshserver/common/meshServerGlobals.h>
 
+//included for symbol exports
+#include "WorkerExports.h"
+
 //forward declare boost::thread
 namespace boost { class thread; }
 
 namespace meshserver{
 namespace worker{
-class Worker
+class MESHSERVERWORKER_EXPORT Worker
 {
 public:
   //constuct a worker that can mesh a single type

@@ -22,6 +22,10 @@
 #include <meshserver/server/WorkerFactory.h>
 #include <meshserver/common/meshServerGlobals.h>
 
+
+//included for symbol exports
+#include "ServerExports.h"
+
 namespace meshserver{
 //forward declaration of classes only the implementation needs
   namespace common{
@@ -41,7 +45,7 @@ namespace server{
     class WorkerPool;
     }
 
-class Server
+class MESHSERVERSERVER_EXPORT Server
 {
 public:
   Server();

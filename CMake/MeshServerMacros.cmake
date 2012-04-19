@@ -32,6 +32,8 @@ function(ms_add_header_test name dir_prefix)
     set(cxxfiles ${cxxfiles} ${src})
   endforeach (header)
   include_directories(${sysTools_BINARY_DIR})
+  #include the build directory for the export header
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
   add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
   target_link_libraries(TestBuild_${name} sysTools)
   set_source_files_properties(${hfiles}
@@ -54,3 +56,25 @@ function(meshserver_private_headers)
   ms_get_kit_name(name dir_prefix)
   ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
 endfunction(meshserver_private_headers)
+
+
+#setup include directories as target properties
+function(meshserver_set_includes target)
+  #attach the current build and source directory
+  set(full_includes ${CMAKE_CURRENT_BINARY_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${ARGN}
+                    )
+  #include everything
+  include_directories(${full_includes})
+
+  #set up a property on the passed in target
+  set_property(TARGET ${target} PROPERTY SAVED_INCLUDE_DIRS ${full_includes})
+endfunction(meshserver_set_includes)
+
+#read the include directory proptery for a target and create a variable
+#in the callers scope with the name past names as the variable includes_var_name
+function(meshserver_get_includes target includes_var_name)
+  get_property(saved_includes TARGET ${target} PROPERTY SAVED_INCLUDE_DIRS)
+  set(${includes_var_name} ${saved_includes} PARENT_SCOPE)
+endfunction(meshserver_get_includes)

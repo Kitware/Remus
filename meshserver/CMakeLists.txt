@@ -16,7 +16,6 @@ set(headers
 meshserver_public_headers(${headers})
 
 #enable tests
-message(status "copyright test ${MeshServer_ENABLE_TESTING} ")
 if(MeshServer_ENABLE_TESTING) 
   #add in the test for copy right statements
   add_test(NAME CopyrightStatement

@@ -17,6 +17,9 @@
 #include <meshserver/common/meshServerGlobals.h>
 #include <boost/shared_ptr.hpp>
 
+//included for symbol exports
+#include "ServerExports.h"
+
 //forward declare the execute process
 namespace meshserver{
 namespace common{
@@ -27,7 +30,7 @@ class ExecuteProcess;
 namespace meshserver{
 namespace server{
 
-struct MeshWorkerInfo
+struct MESHSERVERSERVER_EXPORT MeshWorkerInfo
 {
   meshserver::MESH_TYPE Type;
   std::string ExecutionPath;
@@ -35,7 +38,7 @@ struct MeshWorkerInfo
     Type(t),ExecutionPath(p){}
 };
 
-class WorkerFactory
+class MESHSERVERSERVER_EXPORT WorkerFactory
 {
 public:
   //Work Factory defaults to creating a maximum of 1 workers at once

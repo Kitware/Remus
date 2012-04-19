@@ -1,9 +1,7 @@
+project(MeshServer_Server)
 
-#include ZeroMQ
-include_directories(${ZeroMQ_INCLUDE_DIR})
-
-#include Boost
-include_directories(${Boost_INCLUDE_DIRS})
+#include the include directories from the common library
+meshserver_get_includes(MeshServerCommon CommonIncludes)
 
 add_subdirectory(internal)
 
@@ -16,7 +14,10 @@ set(server_srcs
    WorkerFactory.cxx
    )
 
+
 add_library(MeshServerServer ${server_srcs} ${headers})
+generate_export_header(MeshServerServer EXPORT_FILE_NAME ServerExports.h)
 target_link_libraries(MeshServerServer ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} MeshServerCommon)
 
+meshserver_set_includes(MeshServerServer ${CommonIncludes})
 meshserver_public_headers(${headers})
