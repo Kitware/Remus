@@ -19,8 +19,15 @@ find_package(ZeroMQ REQUIRED)
 # * string algorithms
 find_package(Boost 1.45.0 COMPONENTS thread filesystem system REQUIRED)
 
+option(MeshServer_ENABLE_TESTING "Enable Testing" ON)
+option(MeshServer_ENABLE_EXAMPLES "Enable Examples" ON)
 
-#-----------------------------------------------------------------------------
+#turn on ctest if we want testing
+if (MeshServer_ENABLE_TESTING)
+  enable_testing()
+  include(CTest)
+endif()
+
 
 ## Set the directory where the binaries will be stored
 set( EXECUTABLE_OUTPUT_PATH
@@ -57,4 +64,6 @@ add_subdirectory(meshserver)
 
 
 #add the examples code
-add_subdirectory(Examples)
+if(MeshServer_ENABLE_EXAMPLES)
+  add_subdirectory(Examples)
+endif()
