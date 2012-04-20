@@ -10,7 +10,7 @@
 
 
 add_revision(meshserver
-  GIT_REPOSITORY "http://git.kwsource.kitwarein.com/meshserver/meshserver.git")
+  GIT_REPOSITORY "git://kwsource.kitwarein.com/meshserver/meshserver.git")
 
 if( NOT WIN32)
   add_revision(zeroMQ
