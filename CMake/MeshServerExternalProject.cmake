@@ -94,10 +94,15 @@ function (MKExternalProject_Add name)
     _EP_PROCESS_ENVIRONMENT)
   _ep_replace_location_tags(${name} process_environment)
 
+  if(WIN32)
+    set(configure_file "win32_configure.cmake.in")
+  else()
+    set(configure_file "unix_configure.cmake.in")
+  endif()
   if (has_configure_command)
     get_target_property(step_command mk-${name} _EP_CONFIGURE_COMMAND)
     _ep_replace_location_tags(${name} step_command)
-    configure_file(${MeshServerSuperBuild_CMAKE_DIR}/pep_configure.cmake.in
+    configure_file(${MeshServerSuperBuild_CMAKE_DIR}/${configure_file}
       ${CMAKE_CURRENT_BINARY_DIR}/mk-${name}-configure.cmake
       @ONLY
       )
@@ -106,7 +111,7 @@ function (MKExternalProject_Add name)
   if (has_build_command)
     get_target_property(step_command mk-${name} _EP_BUILD_COMMAND)
     _ep_replace_location_tags(${name} step_command)
-    configure_file(${MeshServerSuperBuild_CMAKE_DIR}/pep_configure.cmake.in
+    configure_file(${MeshServerSuperBuild_CMAKE_DIR}/${configure_file}
       ${CMAKE_CURRENT_BINARY_DIR}/mk-${name}-build.cmake
       @ONLY)
   endif()
