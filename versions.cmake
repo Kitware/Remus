@@ -14,8 +14,10 @@ add_revision(meshserver
 
 #we use the cmake boost repo
 add_revision(boost
-  GIT_REPOSITORY "https://git.gitorious.org/boost/cmake.git"
-  GIT_TAG "cmake-1.45.0")
+  GIT_REPOSITORY "git://kwsource.kitwarein.com/boost-cmake/boost-cmake.git"
+  #GIT_REPOSITORY "https://git.gitorious.org/boost/cmake.git"
+  #GIT_TAG "cmake-1.45.0"
+  )
 
 if( NOT WIN32)
   add_revision(zeroMQ
