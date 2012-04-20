@@ -12,19 +12,22 @@
 add_revision(meshserver
   GIT_REPOSITORY "http://git.kwsource.kitwarein.com/meshserver/meshserver.git")
 
-#we use the cmake boost repo
-add_revision(boost
-  GIT_REPOSITORY "git://kwsource.kitwarein.com/boost-cmake/boost-cmake.git"
-  #GIT_REPOSITORY "https://git.gitorious.org/boost/cmake.git"
-  #GIT_TAG "cmake-1.45.0"
-  )
-
 if( NOT WIN32)
   add_revision(zeroMQ
     URL "http://download.zeromq.org/zeromq-2.2.0.tar.gz"
     URL_MD5 1b11aae09b19d18276d0717b2ea288f6)
+
+  add_revision(boost
+    URL "http://sourceforge.net/projects/boost/files/boost/1.48.0/boost_1_48_0.tar.gz/download"
+    URL_MD5 313a11e97eb56eb7efd18325354631be
+    )
 elseif(WIN32)
   add_revision(zeroMQ
     URL "http://download.zeromq.org/zeromq-2.2.0.zip"
     URL_MD5 f95b6451b10fdd1416848bb3118c8380)
+
+  add_revision(boost
+    URL "http://sourceforge.net/projects/boost/files/boost/1.48.0/boost_1_48_0.zip/download"
+    URL_MD5 b08fda829eec96b4f1071ce2ea6831f5
+    )    
 endif()
