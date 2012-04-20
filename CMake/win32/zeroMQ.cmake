@@ -30,8 +30,10 @@ if(MSVC)
   build_zeroMQ_command(buildCommand)
 
   #add in a configure step that properly copies the solution files to zeroMQ source tree
-  #don't use add_external_project that is a unix helper cuurently
+  #don't use add_external_project that is a unix helper cuurently, so copy the prefix, downloaddir
+  #install dir and git url
   ExternalProject_Add(zeroMQ
+    PREFIX zeroMQ
     DOWNLOAD_DIR ${download_location}
     INSTALL_DIR ${install_location}
     # add url/mdf/git-repo etc. specified in versions.cmake
@@ -40,6 +42,8 @@ if(MSVC)
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name} ${buildCommand} 
     INSTALL_COMMAND ${CMAKE_COMMAND} -E echo
     )
+
+  message(STATUS "<SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name}" )
 
   #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
   ExternalProject_Add_Step(zeroMQ installDll
