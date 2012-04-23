@@ -6,29 +6,26 @@
 #the first step is to create an update step that moves the solution files
 #to the zeroMQ directory
 
-function(build_zeroMQ_command command)
+function(build_zeroMQ_command command solution)
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
-    set(zeroMQ_configuration "Release|x64")
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|x64" /project libzmq PARENT_SCOPE)
   else()
-    set(zeroMQ_configuration "Release|Win32")
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|Win32" /project libzmq  PARENT_SCOPE)
   endif()
-
-  set(${command} "/build ${zeroMQ_configuration} /project libzmq" PARENT_SCOPE)  
 endfunction(build_zeroMQ_command)
 
 if(MSVC)
-  if(MSVC10)
-    set(zeroMQ_sln_name "zeroMQ2010.sln")
-  elseif(MSVC09)
-    set(zeroMQ_sln_name "zeroMQ2008.sln")
+  if(MSVC10 OR MSVC09)
+    set(zeroMQ_sln_name "zeroMQ.sln")
   else()
     message(FATAL_ERROR "We only support 2008 and 2010")
   endif()
+
   set(zeroMQ_configure_sln ${CMAKE_CURRENT_SOURCE_DIR}/CMake/win32/${zeroMQ_sln_name})
   
   #get the arguments for devenv
-  build_zeroMQ_command(buildCommand)
-
+  build_zeroMQ_command(buildCommand ${zeroMQ_sln_name})
+  
   #add in a configure step that properly copies the solution files to zeroMQ source tree
   #don't use add_external_project that is a unix helper cuurently, so copy the prefix, downloaddir
   #install dir and git url
@@ -39,11 +36,17 @@ if(MSVC)
     # add url/mdf/git-repo etc. specified in versions.cmake
     ${zeroMQ_revision}
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ${zeroMQ_configure_sln}  <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name}
-    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name} ${buildCommand} 
+    BUILD_COMMAND ${buildCommand} 
     INSTALL_COMMAND ${CMAKE_COMMAND} -E echo
     )
 
-  message(STATUS "<SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name}" )
+  #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
+  ExternalProject_Add_Step(zeroMQ upgradeSLN
+    COMMAND ${CMAKE_MAKE_PROGRAM} <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name} /upgrade 
+    DEPENDERS build
+    DEPENDEES configure
+    )
+
 
   #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
   ExternalProject_Add_Step(zeroMQ installDll
