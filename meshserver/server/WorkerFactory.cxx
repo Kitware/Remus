@@ -13,6 +13,8 @@
 #include <meshserver/server/WorkerFactory.h>
 #include <meshserver/common/ExecuteProcess.h>
 
+//force to use filesystem version 3
+#define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
