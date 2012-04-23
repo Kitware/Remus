@@ -39,5 +39,5 @@ string (STRIP "${cxxflags}" cxxflags)
 string (STRIP "${cflags}"  cflags)
 
 add_project(zeroMQ REQUIRED)
-#add_project(boost REQUIRED)
-#add_project(meshserver REQUIRED)
+add_project(boost REQUIRED)
+add_project(meshserver REQUIRED)
