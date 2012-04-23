@@ -10,20 +10,26 @@
 
 
 add_revision(meshserver
-  GIT_REPOSITORY "git://kwsource.kitwarein.com/meshserver/meshserver.git")
-
-
-add_revision(boost
-  URL "http://www.vtk.org/files/support/boost-1.45.1-cmake.tar.gz"
-  URL_MD5 aec16c22af72afbcf96aad03f2187e8b
-  )
+  GIT_REPOSITORY "git://kwsource.kitwarein.com/meshserver/meshserver.git"
+  GIT_TAG master)
 
 if( NOT WIN32)
   add_revision(zeroMQ
     URL "http://download.zeromq.org/zeromq-2.2.0.tar.gz"
     URL_MD5 1b11aae09b19d18276d0717b2ea288f6)
+
+  add_revision(boost
+    URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download"
+    URL_MD5 aec16c22af72afbcf96aad03f2187e8b
+    )
+
 elseif(WIN32)
   add_revision(zeroMQ
     URL "http://download.zeromq.org/zeromq-2.2.0.zip"
     URL_MD5 f95b6451b10fdd1416848bb3118c8380)
+
+  add_revision(boost
+    URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.zip/download"
+    URL_MD5 854dcbbff31b896c85c38247060b7713
+    )    
 endif()
