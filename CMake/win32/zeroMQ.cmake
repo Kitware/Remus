@@ -47,7 +47,6 @@ if(MSVC)
     DEPENDEES configure
     )
 
-
   #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
   ExternalProject_Add_Step(zeroMQ installDll
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/libzmq.dll <INSTALL_DIR>/lib/libzmq.dll
@@ -59,10 +58,19 @@ if(MSVC)
     DEPENDEES install
     )
 
-  ExternalProject_Add_Step(zeroMQ installHeaders
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/include/* <INSTALL_DIR>/include/
+  #install header files
+  ExternalProject_Add_Step(zeroMQ installZmqHeader
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/include/zmq.h <INSTALL_DIR>/include/zmq.h
     DEPENDEES install
     )
+  ExternalProject_Add_Step(zeroMQ installZmqCPPHeader
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/include/zmq.hpp <INSTALL_DIR>/include/zmq.hpp
+    DEPENDEES install
+    )
+  ExternalProject_Add_Step(zeroMQ installZmqUtilHeader
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/include/zmq_utils.h <INSTALL_DIR>/include/zmq_utils.h
+    DEPENDEES install
+    )      
 
 elseif()
   add_external_project(zeroMQ
