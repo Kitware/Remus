@@ -1,0 +1,9 @@
+set (source_dir @source_dir@)
+set (binary_dir @binary_dir@)
+
+execute_process(COMMAND ${source_dir}/b2.exe --build_dir=${binary_dir} toolset=msvc --build-type=complete install
+                WORKING_DIRECTORY ${source_dir}
+                RESULT_VARIABLE rv)
+if (NOT "${rv}" STREQUAL "0")
+  message(FATAL_ERROR "Failed to build boost")
+endif()
