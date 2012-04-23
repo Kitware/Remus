@@ -1,4 +1,4 @@
-include(MeshServerExternalProject)
+include(ExternalProject)
 include(CMakeParseArguments)
 
 # Function to provide an option only if a set of other variables are ON.
@@ -75,10 +75,6 @@ function(add_project name)
 endfunction()
 
 function(add_external_project name)
-  #remove autoconf as it is used to add a custom external project step
-  cmake_parse_arguments(arg "USE_AUTOCONF" "" "" ${ARGN})
-  list(REMOVE_ITEM ARGN "USE_AUTOCONF")
-
   set (cmake_params)
   foreach (flag CMAKE_BUILD_TYPE
                 CMAKE_C_FLAGS_DEBUG
@@ -94,7 +90,7 @@ function(add_external_project name)
     endif()
   endforeach()
 
-  MKExternalProject_Add(${name} ${ARGN}
+  ExternalProject_Add(${name} ${ARGN}
     PREFIX ${name}
     DOWNLOAD_DIR ${download_location}
     INSTALL_DIR ${install_location}
@@ -102,13 +98,6 @@ function(add_external_project name)
     # add url/mdf/git-repo etc. specified in versions.cmake
     ${${name}_revision}
 
-    PROCESS_ENVIRONMENT
-      LDFLAGS "${ldflags}"
-      CPPFLAGS "${cppflags}"
-      CXXFLAGS "${cxxflags}"
-      CFLAGS "${cflags}"
-      LD_LIBRARY_PATH "${ld_library_path}"
-      CMAKE_PREFIX_PATH "${prefix_path}"
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX:PATH=${prefix_path}
       -DCMAKE_PREFIX_PATH:PATH=${prefix_path} 
@@ -117,9 +106,6 @@ function(add_external_project name)
       -DCMAKE_SHARED_LINKER_FLAGS:STRING=${ldflags}
       ${cmake_params}
     )
-  if(arg_USE_AUTOCONF)
-    MKExternalProject_AutoConf_Step(${name})
-  endif()
 endfunction()
 
 function(add_revision name)

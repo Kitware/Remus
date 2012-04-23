@@ -4,6 +4,5 @@ add_external_project(boost
   CONFIGURE_COMMAND "<SOURCE_DIR>/bootstrap.bat
     --prefix=<INSTALL_DIR>
     --with-libraries=filesystem,system,thread"
-  BUILD_COMMAND pwd
-  INSTALL_COMMAND <SOURCE_DIR>/b2 install toolset=msvc
+  BUILD_COMMAND <SOURCE_DIR>/b2 --toolset=msvc --buildtype=complete install
 )
