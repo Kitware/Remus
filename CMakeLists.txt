@@ -26,18 +26,6 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
 
-set (ldflags "$ENV{LDFLAGS} -L${install_location}/lib")
-set (cppflags "$ENV{CPPFLAGS} -I${install_location}/include -fPIC")
-set (cxxflags "$ENV{CXXFLAGS} -I${install_location}/include -fPIC")
-set (cflags "$ENV{CFLAGS} -I${install_location}/include")
-set (ld_library_path "${install_location}/lib:$ENV{LD_LIBRARY_PATH}")
-set (prefix_path "${install_location}")
-
-string (STRIP "${ldflags}" ldflags)
-string (STRIP "${cppflags}" cppflags)
-string (STRIP "${cxxflags}" cxxflags)
-string (STRIP "${cflags}"  cflags)
-
 add_project(zeroMQ REQUIRED)
 add_project(boost REQUIRED)
 add_project(meshserver REQUIRED)
