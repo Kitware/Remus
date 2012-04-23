@@ -8,9 +8,9 @@
 
 function(build_zeroMQ_command command solution)
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
-    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|x64" /project libzmq PARENT_SCOPE)
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build Release /project libzmq /projectconfig Release PARENT_SCOPE)
   else()
-    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|Win32" /project libzmq  PARENT_SCOPE)
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build Release /project libzmq /projectconfig Release PARENT_SCOPE)
   endif()
 endfunction(build_zeroMQ_command)
 
