@@ -19,6 +19,8 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
+#include <iostream>
+
 namespace
 {
   typedef std::vector<meshserver::server::MeshWorkerInfo>::const_iterator WorkerIterator;
@@ -41,7 +43,7 @@ namespace
       return !ep->isAlive();
       }
   };
-}  
+}
 
 
 namespace meshserver{
