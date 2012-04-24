@@ -4,9 +4,7 @@
 #to make sure we are in the correct working dirctory on windows
 add_external_project(boost
   BUILD_IN_SOURCE 1
-  CONFIGURE_COMMAND "<SOURCE_DIR>/bootstrap.bat
-    --prefix=<INSTALL_DIR>
-    --with-libraries=filesystem,system,thread"
+  CONFIGURE_COMMAND <SOURCE_DIR>/bootstrap.bat
   BUILD_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/boostBuild.cmake
   INSTALL_COMMAND ""
 )

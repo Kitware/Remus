@@ -20,7 +20,7 @@ if( NOT WIN32)
 
   add_revision(boost
     URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download"
-    URL_MD5 aec16c22af72afbcf96aad03f2187e8b
+    URL_MD5 e0defc8c818e4f1c5bbb29d0292b76ca 
     )
 
 elseif(WIN32)

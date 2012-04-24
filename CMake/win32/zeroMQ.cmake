@@ -8,20 +8,25 @@
 
 function(build_zeroMQ_command command solution)
   if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
-    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build Release /project libzmq /projectconfig Release PARENT_SCOPE)
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|x64" /project libzmq PARENT_SCOPE)
   else()
-    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build Release /project libzmq /projectconfig Release PARENT_SCOPE)
+    set(${command} "${CMAKE_MAKE_PROGRAM}" <SOURCE_DIR>/builds/msvc/${solution} /build "Release|Win32" /project libzmq PARENT_SCOPE)
   endif()
 endfunction(build_zeroMQ_command)
 
-if(MSVC)
-  if(MSVC10 OR MSVC09)
-    set(zeroMQ_sln_name "zeroMQ.sln")
+function(zeroMQ_libDir path)
+  if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
+    set(${path} <SOURCE_DIR>/builds/msvc/x64/Release/libzmq.lib PARENT_SCOPE)
   else()
-    message(FATAL_ERROR "We only support 2008 and 2010")
+    set(${path} <SOURCE_DIR>/builds/msvc/Win32/Release/libzmq.lib PARENT_SCOPE)
   endif()
+endfunction(zeroMQ_libDir)
 
+if(MSVC)
+  
+  set(zeroMQ_sln_name "zeroMQ.sln")
   set(zeroMQ_configure_sln ${CMAKE_CURRENT_SOURCE_DIR}/CMake/win32/${zeroMQ_sln_name})
+  set(zeroMQ_vcproj ${CMAKE_CURRENT_SOURCE_DIR}/CMake/win32/libzmq.vcproj)
   
   #get the arguments for devenv
   build_zeroMQ_command(buildCommand ${zeroMQ_sln_name})
@@ -35,11 +40,18 @@ if(MSVC)
     INSTALL_COMMAND ${CMAKE_COMMAND} -E echo
     )
 
-  #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
+  #add in a custom pre build, post configure step to install the proper libzmq vcproj
+  ExternalProject_Add_Step(zeroMQ add64BitSupportToSolution
+    COMMAND ${CMAKE_COMMAND} -E copy ${zeroMQ_vcproj} <SOURCE_DIR>/builds/msvc/libzmq
+    DEPENDERS build
+    DEPENDEES configure
+    )
+
+  #add in a custom pre build step that upgrades the solution file
   ExternalProject_Add_Step(zeroMQ upgradeSLN
     COMMAND ${CMAKE_MAKE_PROGRAM} <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name} /upgrade 
     DEPENDERS build
-    DEPENDEES configure
+    DEPENDEES add64BitSupportToSolution
     )
 
   #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
@@ -48,8 +60,9 @@ if(MSVC)
     DEPENDEES install
     )
 
+  zeroMQ_libDir(zeroLibDir)
   ExternalProject_Add_Step(zeroMQ installLib
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/builds/msvc/Release/libzmq.lib <INSTALL_DIR>/lib/libzmq.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${zeroLibDir} <INSTALL_DIR>/lib/libzmq.lib
     DEPENDEES install
     )
 
