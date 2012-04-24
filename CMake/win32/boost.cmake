@@ -1,16 +1,34 @@
-#Boost bjam version
+# Build boost via its bootstrap script. The build tree cannot contain a space.
+# This boost b2 build system yields errors with spaces in the name of the
+# build dir.
+#
+if("${CMAKE_CURRENT_BINARY_DIR}" MATCHES " ")
+  message(FATAL_ERROR "cannot use boost bootstrap with a space in the name of the build dir")
+endif()
 
-#configure build call for boost. we need to do it this way
-#to make sure we are in the correct working dirctory on windows
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(am 64)
+else()
+  set(am 32)
+endif()
+
+set(boost_with_args
+  --with-filesystem
+  --with-system
+  --with-thread
+  )
+
+set(boost_cmds
+  CONFIGURE_COMMAND bootstrap.bat
+  BUILD_COMMAND b2 address-model=${am} ${boost_with_args}
+  INSTALL_COMMAND b2 address-model=${am} ${boost_with_args}
+    --prefix=<INSTALL_DIR> install
+  )
+
 add_external_project(boost
+  ${boost_cmds}
   BUILD_IN_SOURCE 1
-  CONFIGURE_COMMAND <SOURCE_DIR>/bootstrap.bat
-  BUILD_COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/boostBuild.cmake
-  INSTALL_COMMAND ""
-)
+  )
 
-ExternalProject_Get_Property(boost source_dir)
-ExternalProject_Get_Property(boost binary_dir)
-configure_file(${MeshServerSuperBuild_CMAKE_DIR}/win32/boostBuild.cmake.in
-               ${CMAKE_CURRENT_BINARY_DIR}/boostBuild.cmake
-               @ONLY)
+ExternalProject_Get_Property(boost install_dir)
+set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")

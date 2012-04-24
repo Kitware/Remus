@@ -37,7 +37,7 @@ if(MSVC)
   add_external_project(zeroMQ
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy ${zeroMQ_configure_sln}  <SOURCE_DIR>/builds/msvc/${zeroMQ_sln_name}
     BUILD_COMMAND ${buildCommand} 
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E echo
+    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/libzmq.dll <INSTALL_DIR>/lib/zmq.dll
     )
 
   #add in a custom pre build, post configure step to install the proper libzmq vcproj
@@ -55,14 +55,9 @@ if(MSVC)
     )
 
   #add in a custom post install command that copy the zeroMQ dll and headers to the install directory
-  ExternalProject_Add_Step(zeroMQ installDll
-    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/lib/libzmq.dll <INSTALL_DIR>/lib/libzmq.dll
-    DEPENDEES install
-    )
-
   zeroMQ_libDir(zeroLibDir)
   ExternalProject_Add_Step(zeroMQ installLib
-    COMMAND ${CMAKE_COMMAND} -E copy ${zeroLibDir} <INSTALL_DIR>/lib/libzmq.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${zeroLibDir} <INSTALL_DIR>/lib/zmq.lib
     DEPENDEES install
     )
 
