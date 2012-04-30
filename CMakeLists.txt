@@ -21,6 +21,7 @@ find_package(ZeroMQ REQUIRED)
 # * Threads
 # * filesystem
 # * string algorithms
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.45.0 COMPONENTS thread filesystem system REQUIRED)
 
 option(MeshServer_ENABLE_TESTING "Enable Testing" ON)
