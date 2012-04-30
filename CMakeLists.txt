@@ -23,7 +23,7 @@ find_package(ZeroMQ REQUIRED)
 # * string algorithms
 # * date time
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.45.0 COMPONENTS thread filesystem system REQUIRED)
+find_package(Boost 1.45.0 COMPONENTS thread filesystem system date_time REQUIRED)
 
 option(MeshServer_ENABLE_TESTING "Enable Testing" ON)
 option(MeshServer_ENABLE_EXAMPLES "Enable Examples" ON)
