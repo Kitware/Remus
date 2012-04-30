@@ -154,8 +154,8 @@ bool JobResponse::send(zmq::socket_t& socket) const
   zmq::message_t realData;
   realData.move(this->Data);
   socket.send(realData);
+  return true;
   }
-
 }
 
 #endif // __meshserver_JobResponse_h

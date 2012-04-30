@@ -21,6 +21,7 @@ find_package(ZeroMQ REQUIRED)
 # * Threads
 # * filesystem
 # * string algorithms
+# * date time
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.45.0 COMPONENTS thread filesystem system REQUIRED)
 
@@ -62,6 +63,13 @@ include_directories(
 set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
 add_subdirectory(kwsys)
+
+
+#setup windows exception handling so we can compile properly
+#with boost enabled
+if(WIN32 AND MSVC)
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif()
 
 
 #add the actual code

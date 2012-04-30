@@ -94,6 +94,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 {
   this->Queue.push_back(QueuedJob(id,message));
   this->QueuedIds.insert(id);
+  return true;
 }
 
 //------------------------------------------------------------------------------

@@ -26,8 +26,8 @@ namespace
 {
 inline int valid_progress_value(int v)
 {
-  v = std::min(v,100);
-  v = std::max(v,1);
+  v = std::min<int>(v,100);
+  v = std::max<int>(v,1);
   return v;
 }
 }

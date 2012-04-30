@@ -39,7 +39,11 @@ int main (int argc, char* argv[])
     for(int progress=1; progress <= 100; ++progress)
       {
       if(progress%20==0)
+#ifdef _WIN32
+        Sleep(1000);
+#else
         sleep(1);
+#endif
       for(int j=0; j < jobsToAskForEachTime; ++j)
         {
         meshserver::common::JobStatus status(jobDetails[j].JobId,meshserver::IN_PROGRESS);

@@ -101,7 +101,12 @@ JobMessage::JobMessage(zmq::socket_t &socket)
   socket.recv(&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
+#ifdef _WIN32
+  __int64 more;
+#else
   int64_t more;
+#endif
+
   size_t more_size = sizeof(more);
   socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
   if(more>0)

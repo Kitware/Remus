@@ -25,15 +25,13 @@ namespace zmq
 struct socketAddress
 {
   socketAddress(char* data, std::size_t size):
-    Size(size),
-    Data()
+    Size(size)
     {
     memcpy(Data,data,size);
     }
 
   socketAddress():
-    Size(0),
-    Data()
+    Size(0)
     {}
 
   bool operator ==(const socketAddress& b) const

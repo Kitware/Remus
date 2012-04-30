@@ -42,8 +42,8 @@ Server::Server():
   ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
   WorkerFactory(),
   Context(1),
-  JobQueries(this->Context,ZMQ_ROUTER),
-  WorkerQueries(this->Context,ZMQ_ROUTER)
+  JobQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER)
   {
   zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
   zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
@@ -57,8 +57,8 @@ Server::Server(const meshserver::server::WorkerFactory& factory):
   ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
   WorkerFactory(factory),
   Context(1),
-  JobQueries(this->Context,ZMQ_ROUTER),
-  WorkerQueries(this->Context,ZMQ_ROUTER)
+  JobQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER)
   {
   zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
   zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
