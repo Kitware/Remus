@@ -13,9 +13,10 @@ else()
 endif()
 
 set(boost_with_args
+  --with-date_time
   --with-filesystem
   --with-system
-  --with-thread
+  --with-thread  
   )
 
 set(boost_cmds

@@ -13,6 +13,7 @@ else()
 endif()
 
 set(boost_with_args
+  --with-date_time
   --with-filesystem
   --with-system
   --with-thread
@@ -31,4 +32,4 @@ add_external_project(boost
   )
 
 ExternalProject_Get_Property(boost install_dir)
-set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
+set(BOOST_ROOT "${install_dir}/boost-1_49" CACHE INTERNAL "")
