@@ -25,4 +25,8 @@ target_link_libraries(MeshServerCommon ${ZeroMQ_LIBRARIES} sysTools)
 generate_export_header(MeshServerCommon EXPORT_FILE_NAME CommonExports.h)
 meshserver_set_includes(MeshServerCommon ${MeshServer_Common_INCLUDE_DIRS})
 
+#install the library
+meshserver_install_library(MeshServerCommon)
+
+#install the headers
 meshserver_public_headers(${headers})

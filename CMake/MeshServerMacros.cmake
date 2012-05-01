@@ -47,7 +47,7 @@ endfunction(ms_add_header_test)
 function(meshserver_public_headers)
   ms_get_kit_name(name dir_prefix)
   ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
-  install (FILES ${ARGN} DESTINATION include/meshserver)
+  install (FILES ${ARGN} DESTINATION include/${dir_prefix})
 endfunction(meshserver_public_headers)
 
 # Declare a list of header files.  Will make sure the header files get
@@ -56,6 +56,11 @@ function(meshserver_private_headers)
   ms_get_kit_name(name dir_prefix)
   ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
 endfunction(meshserver_private_headers)
+
+# Declare a library as needed to be installed
+function(meshserver_install_library target)
+  install(TARGETS ${target} DESTINATION lib)
+endfunction(meshserver_install_library)
 
 
 #setup include directories as target properties

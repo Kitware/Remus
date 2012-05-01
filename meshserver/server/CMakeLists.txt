@@ -20,4 +20,5 @@ generate_export_header(MeshServerServer EXPORT_FILE_NAME ServerExports.h)
 target_link_libraries(MeshServerServer ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} MeshServerCommon)
 
 meshserver_set_includes(MeshServerServer ${CommonIncludes})
+meshserver_install_library(MeshServerServer)
 meshserver_public_headers(${headers})
