@@ -25,6 +25,7 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
 set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
+set (prefix_path "${install_location}")
 
 add_project(zeroMQ REQUIRED)
 add_project(boost REQUIRED)

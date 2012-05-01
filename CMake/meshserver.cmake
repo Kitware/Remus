@@ -5,5 +5,4 @@ add_external_project(meshserver
     -DBOOST_ROOT:PATH=${BOOST_ROOT}
     -DBOOST_LIBRARYDIR:PATH=<INSTALL_DIR>/lib
     -DZeroMQ_ROOT_DIR:PATH=<INSTALL_DIR>
-    -DCMAKE_INSTALL_PREFIX:Path=<INSTALL_DIR>
-    )
+  )
