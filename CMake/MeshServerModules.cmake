@@ -32,12 +32,13 @@ function(dependent_option option doc default depends force)
     endif()
   else()
     set(${option} "${${option}_ISSET}")
-  endif() 
+  endif()
 endfunction()
 
 function(add_project name)
-  cmake_parse_arguments(arg "REQUIRED;DEFAULT_OFF" "" "DEPENDS" ${ARGN})
+  cmake_parse_arguments(arg "REQUIRED;DEFAULT_OFF;SYSTEM" "" "DEPENDS" ${ARGN})
   string(TOUPPER ${name} UNAME)
+
   if (arg_REQUIRED)
     set(ENABLE_${UNAME} ON CACHE INTERNAL "Project '${name}'" FORCE)
   else()
@@ -47,6 +48,12 @@ function(add_project name)
       option(ENABLE_${UNAME} "Enable sub-project '${name}'" OFF)
     endif()
     mark_as_advanced(ENABLE_${UNAME})
+  endif()
+
+ if (ENABLE_${UNAME} AND arg_SYSTEM)
+    #we have the option to use a system version
+    #don't display this option if they don't want to build the project
+    option(USE_SYSTEM_${UNAME} "Use System ${UNAME}" OFF)
   endif()
 
   if (ENABLE_${UNAME})
@@ -63,15 +70,32 @@ function(add_project name)
     endforeach()
   endif()
 
-  if (ENABLE_${UNAME})
+  if (ENABLE_${UNAME} AND NOT USE_SYSTEM_${UNAME})
     # check for platform specific file. It none exists, try the default file.
     include("${name}" RESULT_VARIABLE rv)
+    message(STATUS "Using configuration ${rv}")
+  elseif(ENABLE_${UNAME})
+    # we call the custom System_Name which will add a custom target
+    include("System_${name}" RESULT_VARIABLE rv)
     message(STATUS "Using configuration ${rv}")
   else ()
     # add dummy target to dependencies work even with subproject is disabled.
     add_custom_target(${name})
     SET (NO_${UNAME} TRUE)
   endif()
+endfunction()
+
+function(add_dummy_external_project name)
+
+  ExternalProject_Add(${name}
+  DOWNLOAD_COMMAND ""
+  SOURCE_DIR ""
+  UPDATE_COMMAND ""
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+  )
+
 endfunction()
 
 function(add_external_project name)
@@ -100,7 +124,7 @@ function(add_external_project name)
 
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX:PATH=${prefix_path}
-      -DCMAKE_PREFIX_PATH:PATH=${prefix_path} 
+      -DCMAKE_PREFIX_PATH:PATH=${prefix_path}
       -DCMAKE_C_FLAGS:STRING=${cflags}
       -DCMAKE_CXX_FLAGS:STRING=${cppflags}
       -DCMAKE_SHARED_LINKER_FLAGS:STRING=${ldflags}
@@ -111,4 +135,19 @@ endfunction()
 function(add_revision name)
   set(${name}_revision "${ARGN}" CACHE INTERNAL
       "Revision for ${name}")
+endfunction()
+
+function(add_project_property target name value)
+  #attach the name/value
+  get_property(properties TARGET ${target} PROPERTY SAVED_CMAKE_ARGS)
+  set(property "-D${name}=${value}")
+  list(APPEND properties ${property})
+
+  #set up a property on the passed in target
+  set_property(TARGET ${target} PROPERTY SAVED_CMAKE_ARGS ${properties})
+endfunction()
+
+function(get_project_properties target variable)
+  get_property(cmake_args TARGET ${target} PROPERTY SAVED_CMAKE_ARGS)
+  set(${variable} ${cmake_args} PARENT_SCOPE)
 endfunction()

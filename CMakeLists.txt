@@ -12,7 +12,8 @@ endif()
 # Setup CMAKE_MODULE_PATH so that platform specific configurations are processed
 # before the generic ones.
 set (CMAKE_MODULE_PATH
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake/${platform}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Projects/${platform}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Projects/"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
   ${CMAKE_MODULE_PATH}
   )
@@ -27,6 +28,6 @@ set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
 set (prefix_path "${install_location}")
 
-add_project(zeroMQ REQUIRED)
-add_project(boost REQUIRED)
+add_project(zeroMQ SYSTEM REQUIRED)
+add_project(boost SYSTEM REQUIRED)
 add_project(meshserver REQUIRED)

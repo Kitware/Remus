@@ -16,7 +16,7 @@ set(boost_with_args
   --with-date_time
   --with-filesystem
   --with-system
-  --with-thread  
+  --with-thread
   )
 
 set(boost_cmds
@@ -31,11 +31,6 @@ add_external_project(boost
   BUILD_IN_SOURCE 1
   )
 
-#remove the copied boost include
-ExternalProject_Add_Step(zeroMQ removeVersionedBoost
-  COMMAND ${CMAKE_COMMAND} -E remove_directory <INSTALL_DIR>/include/boost-1_49/boost
-  DEPENDEES install
-  )
-
 ExternalProject_Get_Property(boost install_dir)
-set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
+add_project_property(boost BOOST_INCLUDEDIR "${install_dir}/include/boost")
+add_project_property(boost BOOST_LIBRARYDIR "${install_dir}/lib")
