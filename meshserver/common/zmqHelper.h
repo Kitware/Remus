@@ -15,13 +15,15 @@
 
 #include <zmq.hpp>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
-//A collection of general helper methods
+#include <meshserver/common/zmqTraits.h>
 
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq
 {
-
+//holds the identity of a zero mq socket in a way that is
+//easier to copy around
 struct socketIdentity
 {
   socketIdentity(char* data, std::size_t size):
@@ -54,23 +56,36 @@ private:
 //transport ://address. The transport part specifies the underlying transport
 //protocol to use. The meaning of the address part is specific to the underlying
 //transport protocol selected.
+//for the socket info class we are going to separate out the port of the tcp
 
+//templated based on the transport types
+
+
+template<typename Transport>
 struct socketInfo
 {
-  socketInfo(): Transport(),Address(){}
 
-  socketInfo(const std::string& transport, const std::string& address):
-    Transport(transport), Address(address) {}
+  socketInfo():Host(){}
+  explicit socketInfo(const std::string& hostName):Host(hostName){}
+  std::string endpoint() const {return  zmq::to_string(Transport()) + Host;}
 
-  const std::string endpoint() const
-    {
-    return Transport + "://" + Address;
-    }
-
-
-  const std::string Transport;
-  const std::string Address;
+private:
+  std::string Host;
 };
+
+template<> struct socketInfo<zmq::proto::tcp>
+{
+  int Port;
+  socketInfo():Host(),Port(-1){}
+  explicit socketInfo(const std::string& hostName, int port):Host(hostName),Port(port){}
+  std::string endpoint() const
+    {
+    return  zmq::to_string(zmq::proto::tcp()) + Host + ":" + boost::lexical_cast<std::string>(Port);
+    }
+private:
+  std::string Host;
+};
+
 
 
 inline std::string to_string(const zmq::socketIdentity& add)
@@ -78,18 +93,44 @@ inline std::string to_string(const zmq::socketIdentity& add)
   return std::string(add.data(),add.size());
 }
 
-inline void connectToSocket(zmq::socket_t &socket, const int num)
+template<typename T>
+inline void connectToAddress(zmq::socket_t &socket,const zmq::socketInfo<T> &sInfo)
 {
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.connect(buffer.str().c_str());
+  socket.connect(sInfo.endpoint().c_str());
 }
 
-inline void bindToSocket(zmq::socket_t &socket, const int num)
+inline zmq::socketInfo<zmq::proto::tcp> bindToTCPSocket(zmq::socket_t &socket,
+                                                        int port)
 {
-  std::stringstream buffer;
-  buffer << "tcp://127.0.0.1:" << num;
-  socket.bind(buffer.str().c_str());
+  //given a default port try to connect using tcp on that port, continue
+  //till we hit maximum number of ports and if still failing throw execption
+  zmq::socketInfo<zmq::proto::tcp> socketInfo("*",port);
+  //go through all ports, I hope the input port is inside the Ephemeral range
+  int rc = -1;
+  int i=port;
+  for(;i < 65535 && rc != 0; ++i)
+    {
+    socketInfo.Port = i;
+    //using the C syntax to skip having to catch the exception;
+    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
+    }
+
+  if(rc!=0)
+    {
+    std::cout << "tcp socket binding failed" << std::endl;
+    throw zmq::error_t();
+    }
+  return socketInfo;
+}
+
+template<typename Proto>
+inline zmq::socketInfo<Proto> bindToAddress(zmq::socket_t &socket, const std::string &address)
+{
+  //given a default port try to connect using tcp on that port, continue
+  //till we hit maximum number of ports and if still failing throw execption
+  zmq::socketInfo<Proto> socketInfo(address);
+  socket.bind(socketInfo.endpoint().c_str());
+  return socketInfo;
 }
 
 static bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
