@@ -17,7 +17,6 @@
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
-#include <meshserver/Exceptions.h>
 
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobResult.h>
@@ -49,14 +48,16 @@ Server::Server():
   //attempts to bind to a tcp socket, with a prefered port number
   //For accurate information on what the socket actually bond to,
   //check the Job Socket Info class
-  this->ClientSocketInfo = zmq::bindToUsableSocket(this->ClientQueries,
-                                          meshserver::BROKER_CLIENT_PORT);
-  this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
-                                             meshserver::BROKER_WORKER_PORT);
+  this->ClientSocketInfo = zmq::bindToTCPSocket(
+                             this->ClientQueries,
+                             meshserver::BROKER_CLIENT_PORT);
+  this->WorkerSocketInfo = zmq::bindToTCPSocket(
+                             this->WorkerQueries,
+                             meshserver::BROKER_WORKER_PORT);
 
   //give the worker factory the information needed for workers
   //to connect back to us
-  this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
+  //this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
   }
 
 //------------------------------------------------------------------------------
@@ -73,14 +74,16 @@ Server::Server(const meshserver::server::WorkerFactory& factory):
   //attempts to bind to a tcp socket, with a prefered port number
   //For accurate information on what the socket actually bond to,
   //check the Job Socket Info class
-  this->ClientSocketInfo = zmq::bindToUsableSocket(this->ClientQueries,
-                                          meshserver::BROKER_CLIENT_PORT);
-  this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
-                                             meshserver::BROKER_WORKER_PORT);
+  this->ClientSocketInfo = zmq::bindToTCPSocket(
+                             this->ClientQueries,
+                             meshserver::BROKER_CLIENT_PORT);
+  this->WorkerSocketInfo = zmq::bindToTCPSocket(
+                             this->WorkerQueries,
+                             meshserver::BROKER_WORKER_PORT);
 
   //give the worker factory the information needed for workers
   //to connect back to us
-  this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
+  //this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
   }
 
 //------------------------------------------------------------------------------

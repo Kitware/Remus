@@ -54,8 +54,10 @@ public:
   ~Server();
   bool startBrokering();
 
-  const zmq::socketInfo& clientSocketInfo() const {return ClientSocketInfo;}
-  const zmq::socketInfo& workerSocketInfo() const {return WorkerSocketInfo;}
+  const zmq::socketInfo<zmq::proto::tcp>& clientSocketInfo() const
+    {return ClientSocketInfo;}
+  const zmq::socketInfo<zmq::proto::tcp>& workerSocketInfo() const
+    {return WorkerSocketInfo;}
 
 protected:
   //processes all job queries
@@ -91,8 +93,8 @@ protected:
   boost::scoped_ptr<meshserver::server::internal::ActiveJobs> ActiveJobs;
 
   meshserver::server::WorkerFactory WorkerFactory;
-  zmq::socketInfo ClientSocketInfo;
-  zmq::socketInfo WorkerSocketInfo;
+  zmq::socketInfo<zmq::proto::tcp> ClientSocketInfo;
+  zmq::socketInfo<zmq::proto::tcp> WorkerSocketInfo;
 };
 
 }
