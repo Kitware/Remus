@@ -13,7 +13,7 @@
 #ifndef __meshserver_worker_h
 #define __meshserver_worker_h
 
-#include <zmq.hpp>
+#include <meshserver/common/zmqHelper.h>
 
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobResult.h>
@@ -33,7 +33,14 @@ class MESHSERVERWORKER_EXPORT Worker
 {
 public:
   //constuct a worker that can mesh a single type
+  //it uses the default tcp connection to local host on the default port
   explicit Worker(meshserver::MESH_TYPE mtype);
+
+  //construct a worker that can mesh a single type,
+  //it uses the host and port to determine a custom tcp connection
+  //so that we can talk to a remote meshserver::server
+  Worker(const std::string &host, int port, meshserver::MESH_TYPE mtype);
+
   virtual ~Worker();
 
   //gets back a job from the server
@@ -49,7 +56,8 @@ public:
 protected:
   //start communication. Currently is called by
   //the constructor
-  bool startCommunicationThread();
+  bool startCommunicationThread(const zmq::socketInfo<zmq::proto::tcp> &serverInfo,
+                                const zmq::socketInfo<zmq::proto::inproc> &internalCommInfo);
 
   //currently called by the destructor
   bool stopCommunicationThread();

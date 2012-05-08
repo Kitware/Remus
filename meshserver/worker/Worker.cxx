@@ -27,8 +27,11 @@ namespace worker{
 class Worker::ServerCommunicator
 {
 public:
-  ServerCommunicator():
-    ContinueTalking(true)
+  ServerCommunicator(const zmq::socketInfo<zmq::proto::tcp>& serverInfo,
+                     const zmq::socketInfo<zmq::proto::inproc>& mainThreadInfo):
+    ContinueTalking(true),
+    ServerInfo(serverInfo),
+    MainThreadInfo(mainThreadInfo)
     {
     }
 
@@ -43,8 +46,8 @@ public:
     zmq::socket_t Worker(*context,ZMQ_PAIR);
     zmq::socket_t Server(*context,ZMQ_DEALER);
 
-    Worker.connect("inproc://worker");
-    zmq::connectToSocket(Server,meshserver::BROKER_WORKER_PORT);
+    zmq::connectToAddress(Worker,this->MainThreadInfo);
+    zmq::connectToAddress(Server,this->ServerInfo);
 
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
@@ -93,6 +96,8 @@ public:
 
 private:
   bool ContinueTalking;
+  zmq::socketInfo<zmq::proto::tcp> ServerInfo;
+  zmq::socketInfo<zmq::proto::inproc> MainThreadInfo;
 };
 
 //-----------------------------------------------------------------------------
@@ -104,9 +109,27 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
   ServerCommThread(NULL)
 {
   //FIRST THREAD HAS TO BIND THE INPROC SOCKET
-  this->ServerComm.bind("inproc://worker");
+  zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
+      zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
 
-  this->startCommunicationThread();
+  zmq::socketInfo<zmq::proto::tcp> serverInfo("localhost",meshserver::BROKER_WORKER_PORT);
+  this->startCommunicationThread(serverInfo,internalCommInfo);
+}
+
+//-----------------------------------------------------------------------------
+Worker::Worker(const std::string &host, int port, meshserver::MESH_TYPE mtype):
+  MeshType(mtype),
+  Context(1),
+  ServerComm(Context,ZMQ_PAIR),
+  BComm(NULL),
+  ServerCommThread(NULL)
+{
+  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
+  zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
+      zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
+
+  zmq::socketInfo<zmq::proto::tcp> serverInfo(host,port);
+  this->startCommunicationThread(serverInfo,internalCommInfo);
 }
 
 //-----------------------------------------------------------------------------
@@ -117,12 +140,13 @@ Worker::~Worker()
 }
 
 //-----------------------------------------------------------------------------
-bool Worker::startCommunicationThread()
+bool Worker::startCommunicationThread(const zmq::socketInfo<zmq::proto::tcp> &serverInfo,
+                                      const zmq::socketInfo<zmq::proto::inproc>& internalCommInfo)
 {
   if(!this->ServerCommThread && !this->BComm)
     {
     //start about the server communication thread
-    this->BComm = new Worker::ServerCommunicator();
+    this->BComm = new Worker::ServerCommunicator(serverInfo,internalCommInfo);
     this->ServerCommThread = new boost::thread(&Worker::ServerCommunicator::run,
                                              this->BComm,&this->Context);
 
