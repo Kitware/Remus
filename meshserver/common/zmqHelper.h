@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_internal_zeroHelper_h
-#define __meshserver_internal_zeroHelper_h
+#ifndef __meshserver_common_zeroHelper_h
+#define __meshserver_common_zeroHelper_h
 
 #include <zmq.hpp>
 #include <sstream>
@@ -123,6 +123,7 @@ static void removeReqHeader(zmq::socket_t& socket)
     socket.send(reqHeader,ZMQ_SNDMORE);
     }
 }
+
 }
 
-#endif // __meshserver_internal_zeroHelper_h
+#endif // __meshserver_common_zeroHelper_h

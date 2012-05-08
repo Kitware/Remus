@@ -96,4 +96,4 @@ inline std::string to_string(meshserver::STATUS_TYPE t)
 
 }
 
-#endif // __meshserver_internal_MeshServerInfo_h
+#endif // __meshserver_common_MeshServerInfo_h

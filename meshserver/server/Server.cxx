@@ -22,6 +22,7 @@
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 
+#include <meshserver/common/Exceptions.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -45,8 +46,16 @@ Server::Server():
   JobQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER)
   {
-  zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-  zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
+  try{
+     zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
+     zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
+     }
+  catch(zmq::error_t er)
+    {
+    std::cout << "Unable to bind to required sockets, " <<
+                 "can only have one server running at a time" << std::endl;
+    throw meshserver::ZmqError(er.what());
+    }
   }
 
 //------------------------------------------------------------------------------
@@ -60,8 +69,16 @@ Server::Server(const meshserver::server::WorkerFactory& factory):
   JobQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER)
   {
-  zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-  zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
+  try{
+    zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
+    zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
+    }
+  catch(zmq::error_t er)
+    {
+    std::cout << "Unable to bind to required sockets, " <<
+              "can only have one server running at a time" << std::endl;
+    throw meshserver::ZmqError(er.what());
+    }
   }
 
 //------------------------------------------------------------------------------
