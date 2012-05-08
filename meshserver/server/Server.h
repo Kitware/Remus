@@ -76,16 +76,20 @@ protected:
   void FindWorkerForQueuedJob();
 
 private:
-  boost::uuids::random_generator UUIDGenerator;
-
-  boost::scoped_ptr<meshserver::server::internal::JobQueue> QueuedJobs;
-  boost::scoped_ptr<meshserver::server::internal::WorkerPool> WorkerPool;
-  boost::scoped_ptr<meshserver::server::internal::ActiveJobs> ActiveJobs;
-  meshserver::server::WorkerFactory WorkerFactory;
-
   zmq::context_t Context;
   zmq::socket_t JobQueries;
   zmq::socket_t WorkerQueries;
+
+//allow subclasses to override these internal containers
+protected:
+  boost::uuids::random_generator UUIDGenerator;
+  boost::scoped_ptr<meshserver::server::internal::JobQueue> QueuedJobs;
+  boost::scoped_ptr<meshserver::server::internal::WorkerPool> WorkerPool;
+  boost::scoped_ptr<meshserver::server::internal::ActiveJobs> ActiveJobs;
+
+  meshserver::server::WorkerFactory WorkerFactory;
+  zmq::socketInfo JobSocketInfo;
+  zmq::socketInfo WorkerSocketInfo;
 };
 
 }

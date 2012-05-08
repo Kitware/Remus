@@ -48,6 +48,30 @@ private:
   char Data[256];
 };
 
+//holds the information needed to construct a zmq socket connection
+//from zmq documentation:
+//endpoint argument is a string consisting of two parts as follows:
+//transport ://address. The transport part specifies the underlying transport
+//protocol to use. The meaning of the address part is specific to the underlying
+//transport protocol selected.
+
+struct socketInfo
+{
+  socketInfo(): Transport(),Address(){}
+
+  socketInfo(const std::string& transport, const std::string& address):
+    Transport(transport), Address(address) {}
+
+  const std::string endpoint() const
+    {
+    return Transport + "://" + Address;
+    }
+
+
+  const std::string Transport;
+  const std::string Address;
+};
+
 
 inline std::string to_string(const zmq::socketAddress& add)
 {

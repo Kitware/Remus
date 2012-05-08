@@ -17,12 +17,12 @@
 
 #include <meshserver/JobMessage.h>
 #include <meshserver/JobResponse.h>
+#include <meshserver/Exceptions.h>
 
 #include <meshserver/common/JobDetails.h>
 #include <meshserver/common/JobResult.h>
 #include <meshserver/common/JobStatus.h>
 
-#include <meshserver/common/Exceptions.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
 
@@ -37,48 +37,50 @@ namespace server{
 
 //------------------------------------------------------------------------------
 Server::Server():
+  Context(1),
+  JobQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::server::internal::JobQueue() ),
   WorkerPool(new meshserver::server::internal::WorkerPool() ),
   ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
-  WorkerFactory(),
-  Context(1),
-  JobQueries(Context,ZMQ_ROUTER),
-  WorkerQueries(Context,ZMQ_ROUTER)
+  WorkerFactory()
   {
-  try{
-     zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-     zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
-     }
-  catch(zmq::error_t er)
-    {
-    std::cout << "Unable to bind to required sockets, " <<
-                 "can only have one server running at a time" << std::endl;
-    throw meshserver::ZmqError(er.what());
-    }
+  //attempts to bind to a tcp socket, with a prefered port number
+  //For accurate information on what the socket actually bond to,
+  //check the Job Socket Info class
+  this->JobSocketInfo = zmq::bindToUsableSocket(this->JobQueries,
+                                          meshserver::BROKER_CLIENT_PORT);
+  this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
+                                             meshserver::BROKER_WORKER_PORT);
+
+  //give the worker factory the information needed for workers
+  //to connect back to us
+  this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
   }
 
 //------------------------------------------------------------------------------
 Server::Server(const meshserver::server::WorkerFactory& factory):
+  Context(1),
+  JobQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::server::internal::JobQueue() ),
   WorkerPool(new meshserver::server::internal::WorkerPool() ),
   ActiveJobs(new meshserver::server::internal::ActiveJobs () ),
-  WorkerFactory(factory),
-  Context(1),
-  JobQueries(Context,ZMQ_ROUTER),
-  WorkerQueries(Context,ZMQ_ROUTER)
+  WorkerFactory(factory)
   {
-  try{
-    zmq::bindToSocket(JobQueries,meshserver::BROKER_CLIENT_PORT);
-    zmq::bindToSocket(WorkerQueries,meshserver::BROKER_WORKER_PORT);
-    }
-  catch(zmq::error_t er)
-    {
-    std::cout << "Unable to bind to required sockets, " <<
-              "can only have one server running at a time" << std::endl;
-    throw meshserver::ZmqError(er.what());
-    }
+  //attempts to bind to a tcp socket, with a prefered port number
+  //For accurate information on what the socket actually bond to,
+  //check the Job Socket Info class
+  this->JobSocketInfo = zmq::bindToUsableSocket(this->JobQueries,
+                                          meshserver::BROKER_CLIENT_PORT);
+  this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
+                                             meshserver::BROKER_WORKER_PORT);
+
+  //give the worker factory the information needed for workers
+  //to connect back to us
+  this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
   }
 
 //------------------------------------------------------------------------------
