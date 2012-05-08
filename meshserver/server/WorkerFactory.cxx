@@ -139,11 +139,18 @@ WorkerFactory::WorkerFactory()
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
+
 }
 
 //----------------------------------------------------------------------------
 WorkerFactory::~WorkerFactory()
 {
+}
+
+//----------------------------------------------------------------------------
+void WorkerFactory::addCommandLineArgument(const std::string& argument)
+{
+  this->GlobalArguments.push_back(argument);
 }
 
 //----------------------------------------------------------------------------
@@ -208,7 +215,7 @@ bool WorkerFactory::addWorker(const std::string& executable)
 {
   //add this workers
   std::cout << "creating a new worker process" << std::endl;
-  ExecuteProcessPtr ep(new ExecuteProcess(executable) );
+  ExecuteProcessPtr ep(new ExecuteProcess(executable,this->GlobalArguments) );
   ep->execute(true); //detach worker
   this->CurrentProcesses.push_back(ep);
   return true;

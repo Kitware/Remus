@@ -45,6 +45,10 @@ public:
   WorkerFactory();
   virtual ~WorkerFactory();
 
+  //add command line argument to be passed to all workers that
+  //are created
+  void addCommandLineArgument(const std::string& argument);
+
   //add a path to search for workers.
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
@@ -71,6 +75,7 @@ protected:
   unsigned int MaxWorkers;
   std::vector<MeshWorkerInfo> PossibleWorkers;
   std::vector<ExecuteProcessPtr> CurrentProcesses;
+  std::vector<std::string> GlobalArguments;
 };
 
 }

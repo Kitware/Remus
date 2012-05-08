@@ -68,6 +68,7 @@ struct socketInfo
   socketInfo():Host(){}
   explicit socketInfo(const std::string& hostName):Host(hostName){}
   std::string endpoint() const {return  zmq::to_string(Transport()) + Host;}
+  const std::string& host() const{ return Host; }
 
 private:
   std::string Host;
@@ -75,14 +76,20 @@ private:
 
 template<> struct socketInfo<zmq::proto::tcp>
 {
-  int Port;
   socketInfo():Host(),Port(-1){}
   explicit socketInfo(const std::string& hostName, int port):Host(hostName),Port(port){}
   std::string endpoint() const
     {
     return  zmq::to_string(zmq::proto::tcp()) + Host + ":" + boost::lexical_cast<std::string>(Port);
     }
+
+  const std::string& host() const{ return Host; }
+  int port() const { return Port; }
+
+  void setPort(int p){ Port=p; }
+
 private:
+  int Port;
   std::string Host;
 };
 
@@ -110,7 +117,7 @@ inline zmq::socketInfo<zmq::proto::tcp> bindToTCPSocket(zmq::socket_t &socket,
   int i=port;
   for(;i < 65535 && rc != 0; ++i)
     {
-    socketInfo.Port = i;
+    socketInfo.setPort(i);
     //using the C syntax to skip having to catch the exception;
     rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
     }

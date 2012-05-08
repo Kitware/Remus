@@ -55,9 +55,13 @@ Server::Server():
                              this->WorkerQueries,
                              meshserver::BROKER_WORKER_PORT);
 
-  //give the worker factory the information needed for workers
-  //to connect back to us
-  //this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
+  //give to the worker factory the endpoint information needed to connect
+  //to myself. The WorkerSocketInfo host name is not what we want to
+  //give to the factory as it might not
+  //be the external name we are interested in
+  zmq::socketInfo<zmq::proto::tcp> externalInfo("127.0.0.1",
+                                                this->WorkerSocketInfo.port());
+  this->WorkerFactory.addCommandLineArgument(externalInfo.endpoint());
   }
 
 //------------------------------------------------------------------------------
@@ -81,9 +85,13 @@ Server::Server(const meshserver::server::WorkerFactory& factory):
                              this->WorkerQueries,
                              meshserver::BROKER_WORKER_PORT);
 
-  //give the worker factory the information needed for workers
-  //to connect back to us
-  //this->WorkerFactory.setServerSocketInfo(this->WorkerSocketInfo);
+  //give to the worker factory the endpoint information needed to connect
+  //to myself. The WorkerSocketInfo host name is not what we want to
+  //give to the factory as it might not
+  //be the external name we are interested in
+  zmq::socketInfo<zmq::proto::tcp> externalInfo("127.0.0.1",
+                                                this->WorkerSocketInfo.port());
+  this->WorkerFactory.addCommandLineArgument(externalInfo.endpoint());
   }
 
 //------------------------------------------------------------------------------
