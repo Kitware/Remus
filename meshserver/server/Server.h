@@ -54,6 +54,9 @@ public:
   ~Server();
   bool startBrokering();
 
+  const zmq::socketInfo& clientSocketInfo() const {return ClientSocketInfo;}
+  const zmq::socketInfo& workerSocketInfo() const {return WorkerSocketInfo;}
+
 protected:
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
@@ -77,7 +80,7 @@ protected:
 
 private:
   zmq::context_t Context;
-  zmq::socket_t JobQueries;
+  zmq::socket_t ClientQueries;
   zmq::socket_t WorkerQueries;
 
 //allow subclasses to override these internal containers
@@ -88,7 +91,7 @@ protected:
   boost::scoped_ptr<meshserver::server::internal::ActiveJobs> ActiveJobs;
 
   meshserver::server::WorkerFactory WorkerFactory;
-  zmq::socketInfo JobSocketInfo;
+  zmq::socketInfo ClientSocketInfo;
   zmq::socketInfo WorkerSocketInfo;
 };
 

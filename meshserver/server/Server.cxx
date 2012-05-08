@@ -38,7 +38,7 @@ namespace server{
 //------------------------------------------------------------------------------
 Server::Server():
   Context(1),
-  JobQueries(Context,ZMQ_ROUTER),
+  ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::server::internal::JobQueue() ),
@@ -49,7 +49,7 @@ Server::Server():
   //attempts to bind to a tcp socket, with a prefered port number
   //For accurate information on what the socket actually bond to,
   //check the Job Socket Info class
-  this->JobSocketInfo = zmq::bindToUsableSocket(this->JobQueries,
+  this->ClientSocketInfo = zmq::bindToUsableSocket(this->ClientQueries,
                                           meshserver::BROKER_CLIENT_PORT);
   this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
                                              meshserver::BROKER_WORKER_PORT);
@@ -62,7 +62,7 @@ Server::Server():
 //------------------------------------------------------------------------------
 Server::Server(const meshserver::server::WorkerFactory& factory):
   Context(1),
-  JobQueries(Context,ZMQ_ROUTER),
+  ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new meshserver::server::internal::JobQueue() ),
@@ -73,7 +73,7 @@ Server::Server(const meshserver::server::WorkerFactory& factory):
   //attempts to bind to a tcp socket, with a prefered port number
   //For accurate information on what the socket actually bond to,
   //check the Job Socket Info class
-  this->JobSocketInfo = zmq::bindToUsableSocket(this->JobQueries,
+  this->ClientSocketInfo = zmq::bindToUsableSocket(this->ClientQueries,
                                           meshserver::BROKER_CLIENT_PORT);
   this->WorkerSocketInfo = zmq::bindToUsableSocket(this->WorkerQueries,
                                              meshserver::BROKER_WORKER_PORT);
@@ -93,7 +93,7 @@ Server::~Server()
 bool Server::startBrokering()
   {
   zmq::pollitem_t items[2] = {
-      { this->JobQueries,  0, ZMQ_POLLIN, 0 },
+      { this->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
   //  Process messages from both sockets
@@ -104,29 +104,29 @@ bool Server::startBrokering()
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
-      zmq::socketIdentity clientIdentity = zmq::address_recv(this->JobQueries);
+      zmq::socketIdentity clientIdentity = zmq::address_recv(this->ClientQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
-      meshserver::JobMessage message(this->JobQueries);
+      meshserver::JobMessage message(this->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
       }
     if (items[1].revents & ZMQ_POLLIN)
       {
       //a worker is registering
       //we need to strip the worker address from the message
-      zmq::socketIdentity workerAddress = zmq::address_recv(this->WorkerQueries);
+      zmq::socketIdentity workerIdentity = zmq::address_recv(this->WorkerQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
       meshserver::JobMessage message(this->WorkerQueries);
-      this->DetermineWorkerResponse(workerAddress,message);
+      this->DetermineWorkerResponse(workerIdentity,message);
 
       //refresh all jobs for a given worker with a new expiry time
-      this->ActiveJobs->refreshJobs(workerAddress);
+      this->ActiveJobs->refreshJobs(workerIdentity);
 
       //refresh the worker if it is actuall in the pool instead of doing a job
-      this->WorkerPool->refreshWorker(workerAddress);
+      this->WorkerPool->refreshWorker(workerIdentity);
       }
 
     //mark all jobs whose worker haven't sent a heartbeat in time
@@ -154,7 +154,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
   if(!msg.isValid())
     {
     response.setData(meshserver::INVALID_MSG);
-    response.send(this->JobQueries);
+    response.send(this->ClientQueries);
     return; //no need to continue
     }
 
@@ -176,7 +176,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     default:
       response.setData(meshserver::INVALID_STATUS);
     }
-  response.send(this->JobQueries);
+  response.send(this->ClientQueries);
   return;
 }
 
@@ -287,16 +287,16 @@ void Server::storeMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::assignJobToWorker(const zmq::socketIdentity &workerAddress,
+void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
                                const meshserver::common::JobDetails& job )
 {
-  this->ActiveJobs->add( workerAddress, job.JobId );
+  this->ActiveJobs->add( workerIdentity, job.JobId );
 
-  meshserver::JobResponse response(workerAddress);
+  meshserver::JobResponse response(workerIdentity);
   response.setData(meshserver::to_string(job));
 
   std::cout << "assigning job to worker " <<
-               zmq::to_string(workerAddress) << std::endl;
+               zmq::to_string(workerIdentity) << std::endl;
 
   response.send(this->WorkerQueries);
 }
