@@ -22,19 +22,19 @@
 namespace zmq
 {
 
-struct socketAddress
+struct socketIdentity
 {
-  socketAddress(char* data, std::size_t size):
+  socketIdentity(char* data, std::size_t size):
     Size(size)
     {
     memcpy(Data,data,size);
     }
 
-  socketAddress():
+  socketIdentity():
     Size(0)
     {}
 
-  bool operator ==(const socketAddress& b) const
+  bool operator ==(const socketIdentity& b) const
   {
     if(this->size() != b.size()) { return false; }
     return 0 == (memcmp(this->data(),b.data(),this->size()));
@@ -73,7 +73,7 @@ struct socketInfo
 };
 
 
-inline std::string to_string(const zmq::socketAddress& add)
+inline std::string to_string(const zmq::socketIdentity& add)
 {
   return std::string(add.data(),add.size());
 }
@@ -92,18 +92,18 @@ inline void bindToSocket(zmq::socket_t &socket, const int num)
   socket.bind(buffer.str().c_str());
 }
 
-static bool address_send(zmq::socket_t & socket, const zmq::socketAddress& address)
+static bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
 {
   zmq::message_t message(address.size());
   memcpy(message.data(), address.data(), address.size());
   return socket.send(message);
 }
 
-static zmq::socketAddress address_recv(zmq::socket_t& socket)
+static zmq::socketIdentity address_recv(zmq::socket_t& socket)
 {
   zmq::message_t message;
   socket.recv(&message);
-  return zmq::socketAddress((char*)message.data(),message.size());
+  return zmq::socketIdentity((char*)message.data(),message.size());
 }
 
 static void empty_send(zmq::socket_t& socket)

@@ -104,18 +104,18 @@ bool Server::startBrokering()
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
-      zmq::socketAddress clientAddress = zmq::address_recv(this->JobQueries);
+      zmq::socketIdentity clientIdentity = zmq::address_recv(this->JobQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
       meshserver::JobMessage message(this->JobQueries);
-      this->DetermineJobQueryResponse(clientAddress,message); //NOTE: this will queue jobs
+      this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
       }
     if (items[1].revents & ZMQ_POLLIN)
       {
       //a worker is registering
       //we need to strip the worker address from the message
-      zmq::socketAddress workerAddress = zmq::address_recv(this->WorkerQueries);
+      zmq::socketIdentity workerAddress = zmq::address_recv(this->WorkerQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
@@ -144,13 +144,13 @@ bool Server::startBrokering()
   }
 
 //------------------------------------------------------------------------------
-void Server::DetermineJobQueryResponse(const zmq::socketAddress& clientAddress,
+void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity,
                                   const meshserver::JobMessage& msg)
 {
   //msg.dump(std::cout);
   //server response is the general response message type
   //the client can than convert it to the expected type
-  meshserver::JobResponse response(clientAddress);
+  meshserver::JobResponse response(clientIdentity);
   if(!msg.isValid())
     {
     response.setData(meshserver::INVALID_MSG);
@@ -241,22 +241,22 @@ std::string Server::retrieveMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::DetermineWorkerResponse(const zmq::socketAddress &workAddress,
+void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
                                      const meshserver::JobMessage& msg)
 {
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
     case meshserver::CAN_MESH:
-      this->WorkerPool->addWorker(workAddress,msg.meshType());
+      this->WorkerPool->addWorker(workerIdentity,msg.meshType());
       break;
     case meshserver::MAKE_MESH:
       //the worker will block while it waits for a response.
-      if(!this->WorkerPool->haveWorker(workAddress))
+      if(!this->WorkerPool->haveWorker(workerIdentity))
         {
-        this->WorkerPool->addWorker(workAddress,msg.meshType());
+        this->WorkerPool->addWorker(workerIdentity,msg.meshType());
         }
-      this->WorkerPool->readyForWork(workAddress);
+      this->WorkerPool->readyForWork(workerIdentity);
       break;
     case meshserver::MESH_STATUS:
       //store the mesh status msg,  no response needed
@@ -287,7 +287,7 @@ void Server::storeMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::assignJobToWorker(const zmq::socketAddress &workerAddress,
+void Server::assignJobToWorker(const zmq::socketIdentity &workerAddress,
                                const meshserver::common::JobDetails& job )
 {
   this->ActiveJobs->add( workerAddress, job.JobId );

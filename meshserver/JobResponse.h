@@ -24,7 +24,7 @@ namespace meshserver{
 class JobResponse
 {
 public:
-  explicit JobResponse(const zmq::socketAddress& client);
+  explicit JobResponse(const zmq::socketIdentity& client);
   explicit JobResponse(zmq::socket_t& socket);
   ~JobResponse();
 
@@ -43,7 +43,7 @@ public:
 
 private:
   void clearData();
-  const zmq::socketAddress ClientAddress;
+  const zmq::socketIdentity ClientAddress;
   zmq::message_t* Data;
 
   //make copying not possible
@@ -52,7 +52,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-JobResponse::JobResponse(const zmq::socketAddress& client):
+JobResponse::JobResponse(const zmq::socketIdentity& client):
   ClientAddress(client),
   Data(NULL)
   {

@@ -56,7 +56,7 @@ public:
 
 protected:
   //processes all job queries
-  void DetermineJobQueryResponse(const zmq::socketAddress &clientAddress,
+  void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
                                  const meshserver::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
@@ -66,11 +66,11 @@ protected:
   std::string retrieveMesh(const meshserver::JobMessage& msg);
 
   //Methods for processing Worker queries
-  void DetermineWorkerResponse(const zmq::socketAddress &workAddress,
+  void DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
                               const meshserver::JobMessage& msg);
   void storeMeshStatus(const meshserver::JobMessage& msg);
   void storeMesh(const meshserver::JobMessage& msg);
-  void assignJobToWorker(const zmq::socketAddress &workerAddress,
+  void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
                          const meshserver::common::JobDetails& job);
 
   void FindWorkerForQueuedJob();

@@ -32,35 +32,35 @@ class WorkerPool
   public:
     WorkerPool():Pool(){};
 
-    bool addWorker(zmq::socketAddress workerAddress,
+    bool addWorker(zmq::socketIdentity workerIdentity,
                    const meshserver::MESH_TYPE& type);
 
     //do we have any worker waiting to take this type of job
     bool haveWaitingWorker(const meshserver::MESH_TYPE& type) const;
 
     //do we have a worker with this address?
-    bool haveWorker(const zmq::socketAddress& address) const;
+    bool haveWorker(const zmq::socketIdentity& address) const;
 
     //mark a worker with the given adress ready to take a job.
     //returns false if a worker with that address wasn't found
-    bool readyForWork(const zmq::socketAddress& address);
+    bool readyForWork(const zmq::socketIdentity& address);
 
     //returns the worker address and removes the worker from the pool
-    zmq::socketAddress takeWorker(const meshserver::MESH_TYPE& type);
+    zmq::socketIdentity takeWorker(const meshserver::MESH_TYPE& type);
 
     void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
-    void refreshWorker(const zmq::socketAddress& address);
+    void refreshWorker(const zmq::socketIdentity& address);
 
 private:
     struct WorkerInfo
     {
       bool WaitingForWork;
       meshserver::MESH_TYPE MType;
-      zmq::socketAddress Address;
+      zmq::socketIdentity Address;
       boost::posix_time::ptime expiry; //after this time the job should be purged
 
-      WorkerInfo(const zmq::socketAddress& address, const meshserver::MESH_TYPE type):
+      WorkerInfo(const zmq::socketIdentity& address, const meshserver::MESH_TYPE type):
         WaitingForWork(false),
         MType(type),
         Address(address),
@@ -96,12 +96,12 @@ private:
 };
 
 //------------------------------------------------------------------------------
-bool WorkerPool::addWorker(zmq::socketAddress workerAddress,
+bool WorkerPool::addWorker(zmq::socketIdentity workerIdentity,
                            const meshserver::MESH_TYPE &type)
 {
-  std::cout << "Adding worker " << zmq::to_string(workerAddress) <<
+  std::cout << "Adding worker " << zmq::to_string(workerIdentity) <<
                "for mesh type " << meshserver::to_string(type) << std::endl;
-  this->Pool.push_back( WorkerPool::WorkerInfo(workerAddress,type) );
+  this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,type) );
   return true;
 }
 
@@ -117,7 +117,7 @@ bool WorkerPool::haveWaitingWorker(const MESH_TYPE &type) const
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWorker(const zmq::socketAddress& address) const
+bool WorkerPool::haveWorker(const zmq::socketIdentity& address) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -128,7 +128,7 @@ bool WorkerPool::haveWorker(const zmq::socketAddress& address) const
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::readyForWork(const zmq::socketAddress& address)
+bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
 {
   bool found = false;
   for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -146,7 +146,7 @@ bool WorkerPool::readyForWork(const zmq::socketAddress& address)
 
 
 //------------------------------------------------------------------------------
-zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
+zmq::socketIdentity WorkerPool::takeWorker(const MESH_TYPE &type)
 {
 
   bool found = false;
@@ -160,11 +160,11 @@ zmq::socketAddress WorkerPool::takeWorker(const MESH_TYPE &type)
 
   if(found)
     {
-    zmq::socketAddress workerAddress(info->Address);
+    zmq::socketIdentity workerIdentity(info->Address);
     this->Pool.erase(this->Pool.begin()+index);
-    return workerAddress;
+    return workerIdentity;
     }
-  return zmq::socketAddress();
+  return zmq::socketIdentity();
 }
 
 //------------------------------------------------------------------------------
@@ -185,7 +185,7 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::refreshWorker(const zmq::socketAddress& address)
+void WorkerPool::refreshWorker(const zmq::socketIdentity& address)
 {
   for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {

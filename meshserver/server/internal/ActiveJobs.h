@@ -33,7 +33,7 @@ class ActiveJobs
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketAddress& workerAddress, const boost::uuids::uuid& id);
+    bool add(const zmq::socketIdentity& workerIdentity, const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
@@ -51,21 +51,21 @@ class ActiveJobs
 
     void markFailedJobs(const boost::posix_time::ptime& time);
 
-    void refreshJobs(const zmq::socketAddress &workerAddress);
+    void refreshJobs(const zmq::socketIdentity &workerIdentity);
 
 private:
     struct JobState
     {
-      zmq::socketAddress WorkerAddress;
+      zmq::socketIdentity WorkerAddress;
       meshserver::common::JobStatus jstatus;
       meshserver::common::JobResult jresult;
       boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
-      JobState(const zmq::socketAddress& workerAddress,
+      JobState(const zmq::socketIdentity& workerIdentity,
                const boost::uuids::uuid& id,
                meshserver::STATUS_TYPE stat):
-        WorkerAddress(workerAddress),
+        WorkerAddress(workerIdentity),
         jstatus(id,stat),
         jresult(id),
         expiry(boost::posix_time::second_clock::local_time()),
@@ -96,11 +96,11 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-bool ActiveJobs::add(const zmq::socketAddress &workerAddress,const boost::uuids::uuid& id)
+bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
-    JobState ws(workerAddress,id,meshserver::QUEUED);
+    JobState ws(workerIdentity,id,meshserver::QUEUED);
     InfoPair pair(id,ws);
     this->Info.insert(pair);
     return true;
@@ -190,11 +190,11 @@ void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::refreshJobs(const zmq::socketAddress& workerAddress)
+void ActiveJobs::refreshJobs(const zmq::socketIdentity& workerIdentity)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
-    if(item->second.WorkerAddress == workerAddress)
+    if(item->second.WorkerAddress == workerIdentity)
       {
       item->second.refresh();
       }
