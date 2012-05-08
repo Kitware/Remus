@@ -29,7 +29,11 @@ namespace meshserver
 class Client
 {
 public:
+  //connect to the localhost on the default port, using tcp
   Client();
+
+  //connect to a given host on a given port with tcp
+  Client(const std::string &host, int port);
 
   //Submit a request to the server to see if it support the type of mesh
   bool canMesh(meshserver::MESH_TYPE mtype);
@@ -62,7 +66,19 @@ Client::Client():
 {
   //in the future this should be a dealer, but that will require
   //handling of all requests to be asynchronous
-  zmq::connectToSocket(this->Server,meshserver::BROKER_CLIENT_PORT);
+  zmq::socketInfo<zmq::proto::tcp> info("localhost",meshserver::BROKER_CLIENT_PORT);
+  zmq::connectToAddress(this->Server,info);
+}
+
+//------------------------------------------------------------------------------
+Client::Client(const std::string& host, int port):
+  Context(1),
+  Server(this->Context, ZMQ_REQ)
+{
+  //in the future this should be a dealer, but that will require
+  //handling of all requests to be asynchronous
+  zmq::socketInfo<zmq::proto::tcp> info(host,port);
+  zmq::connectToAddress(this->Server,info);
 }
 
 //------------------------------------------------------------------------------
