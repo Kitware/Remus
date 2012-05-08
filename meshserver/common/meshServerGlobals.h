@@ -18,8 +18,8 @@
 //Define global information that the mesh server needs
 
 namespace meshserver {
-static const int BROKER_CLIENT_PORT = 5555;
-static const int BROKER_WORKER_PORT = 5556;
+static const int BROKER_CLIENT_PORT = 50505;
+static const int BROKER_WORKER_PORT = 50510;
 static const int HEARTBEAT_INTERVAL_IN_SEC = 5;
 static const int HEARTBEAT_INTERVAL = 1000000 * HEARTBEAT_INTERVAL_IN_SEC;
 
