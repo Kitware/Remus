@@ -13,6 +13,7 @@ set(headers
   JobStatus.h
   meshServerGlobals.h
   zmqHelper.h
+  zmqTraits.h
   )
 
 set(common_srcs
