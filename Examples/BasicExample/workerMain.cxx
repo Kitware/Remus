@@ -8,62 +8,47 @@
 
 #include <meshserver/worker/Worker.h>
 #include <vector>
+#include <string>
 
 int main (int argc, char* argv[])
 {
-  int timesToAskForJobs = 1;
-  int jobsToAskForEachTime =1;
+  bool haveCustomServer=false;
+  std::string serverEndpoint;
 
-  //first argument is the number of times to as the server for jobs
-  //the second argument is the number of jobs each time to ask for from the server
-  //both default to 1
-  if (argc == 3)
+  //first argument is the server you want to connect too
+  meshserver::worker::Worker* w;
+  if (argc == 2)
     {
-    jobsToAskForEachTime = atoi(argv[2]);
+    haveCustomServer = true;
+    serverEndpoint=std::string(argv[1]);
+    w =  new meshserver::worker::Worker(serverEndpoint,meshserver::MESH2D);
     }
-  if (argc >= 2)
+  else
     {
-    timesToAskForJobs = atoi(argv[1]);
+    w = new meshserver::worker::Worker(meshserver::MESH2D);
     }
 
-  meshserver::worker::Worker w(meshserver::MESH2D);
+  meshserver::common::JobDetails jd = w->getJob();
 
-  for(int i=0; i < timesToAskForJobs; ++i)
-  {
-    std::vector<meshserver::common::JobDetails> jobDetails;
-    for(int j=0; j < jobsToAskForEachTime; ++j)
-      {
-      jobDetails.push_back(w.getJob());
-      }
-
-    for(int progress=1; progress <= 100; ++progress)
-      {
-      if(progress%20==0)
+  for(int progress=1; progress <= 100; ++progress)
+    {
+    if(progress%20==0)
 #ifdef _WIN32
-        Sleep(1000);
+      Sleep(1000);
 #else
-        sleep(1);
+      sleep(1);
 #endif
-      for(int j=0; j < jobsToAskForEachTime; ++j)
-        {
-        meshserver::common::JobStatus status(jobDetails[j].JobId,meshserver::IN_PROGRESS);
-        status.Progress = progress;
-        w.updateStatus(status);
-        }
-      }
+    meshserver::common::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);
+    status.Progress = progress;
+    w->updateStatus(status);
+    }
 
-    for(int j=0; j < jobsToAskForEachTime; ++j)
-      {
-      meshserver::common::JobStatus status(jobDetails[j].JobId,meshserver::FINISHED);
-      w.updateStatus(status);
-      }
+  meshserver::common::JobStatus status(jd.JobId,meshserver::FINISHED);
+  w->updateStatus(status);
 
-    for(int j=0; j < jobsToAskForEachTime; ++j)
-      {
-      meshserver::common::JobResult results(jobDetails[j].JobId,"FAKE RESULTS");
-      w.returnMeshResults(results);
-      }
-  }
+  meshserver::common::JobResult results(jd.JobId,"FAKE RESULTS");
+  w->returnMeshResults(results);
 
+  delete w;
   return 1;
 }
