@@ -41,6 +41,12 @@ public:
   //so that we can talk to a remote meshserver::server
   Worker(const std::string &host, int port, meshserver::MESH_TYPE mtype);
 
+  //construct a worker that can mesh a single type,
+  //it uses the endpoint to determine a custom tcp connection
+  //so that we can talk to a remote meshserver::server
+  //Todo: Support custom protocol parsing instead of forcing to tcp
+  Worker(const std::string &endpoint, meshserver::MESH_TYPE mtype);
+
   virtual ~Worker();
 
   //gets back a job from the server
@@ -56,8 +62,8 @@ public:
 protected:
   //start communication. Currently is called by
   //the constructor
-  bool startCommunicationThread(const zmq::socketInfo<zmq::proto::tcp> &serverInfo,
-                                const zmq::socketInfo<zmq::proto::inproc> &internalCommInfo);
+  bool startCommunicationThread(const std::string &serverEndpoint,
+                                const std::string &commEndpoint);
 
   //currently called by the destructor
   bool stopCommunicationThread();

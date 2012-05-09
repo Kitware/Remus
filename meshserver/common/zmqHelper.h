@@ -93,11 +93,14 @@ private:
   std::string Host;
 };
 
-
-
 inline std::string to_string(const zmq::socketIdentity& add)
 {
   return std::string(add.data(),add.size());
+}
+
+inline void connectToAddress(zmq::socket_t &socket,const std::string &endpoint)
+{
+  socket.connect(endpoint.c_str());
 }
 
 template<typename T>
