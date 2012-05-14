@@ -24,6 +24,10 @@ class OmicronWorker : public meshserver::worker::Worker
 {
 public:
   //construct a worker that can mesh a single type
+  //give it a zeroMQ endpoint to connect too
+  explicit OmicronWorker(const std::string &endpoint);
+
+  //connect an omicron worker to the default server
   OmicronWorker();
 
   //will wait for the omicron process to close

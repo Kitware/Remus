@@ -12,15 +12,11 @@
 
 int main (int argc, char* argv[])
 {
-  bool haveCustomServer=false;
-  std::string serverEndpoint;
-
   //first argument is the server you want to connect too
   meshserver::worker::Worker* w;
   if (argc == 2)
     {
-    haveCustomServer = true;
-    serverEndpoint=std::string(argv[1]);
+    std::string serverEndpoint=std::string(argv[1]);
     w =  new meshserver::worker::Worker(serverEndpoint,meshserver::MESH2D);
     }
   else

@@ -25,6 +25,17 @@ omicronSettings::omicronSettings(meshserver::common::JobDetails *details):
 }
 
 //-----------------------------------------------------------------------------
+OmicronWorker::OmicronWorker(const std::string& endpoint):
+  meshserver::worker::Worker(endpoint, meshserver::MESH3D),
+  JobDetails(NULL),
+  OmicronProcess(NULL),
+  Name("model"),
+  Directory(boost::filesystem::current_path().string())
+{
+
+}
+
+//-----------------------------------------------------------------------------
 OmicronWorker::OmicronWorker():
   meshserver::worker::Worker(meshserver::MESH3D),
   JobDetails(NULL),
