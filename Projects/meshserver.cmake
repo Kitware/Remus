@@ -9,6 +9,7 @@ message(STATUS "zeroMQ args are: ${zero_args}")
 add_external_project(meshserver
   DEPENDS boost zeroMQ
   CMAKE_ARGS
+   -DMeshServer_ENABLE_EXAMPLES:BOOL=FALSE
     ${boost_args}
     ${zero_args}
   )
