@@ -46,8 +46,10 @@ public:
     zmq::socket_t Worker(*context,ZMQ_PAIR);
     zmq::socket_t Server(*context,ZMQ_DEALER);
 
-    zmq::connectToAddress(Worker,this->ServerEndpoint);
-    zmq::connectToAddress(Server,this->MainEndpoint);
+    std::cout << "Server endpoint is: " << this->ServerEndpoint << std::endl;
+    zmq::connectToAddress(Server,this->ServerEndpoint);
+    std::cout << "Worker internal comm is: " << this->MainEndpoint << std::endl;
+    zmq::connectToAddress(Worker,this->MainEndpoint);
 
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
@@ -75,13 +77,10 @@ public:
         //we make sure ContinueTalking is valid so we know the worker
         //is still listening and not in destructor
 
-        std::cout << "Building a response to send to the worker" << std::endl;
-
         //we have a message from the server for know this can only be the
         //reply back from a job query so send it to the worker.
         meshserver::common::JobResponse response(Server);
 
-        std::cout << "sending the response" << std::endl;
         response.send(Worker);
         }
       if(!sentToServer)
