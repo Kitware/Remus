@@ -10,18 +10,13 @@
 
 int main (int argc, char* argv[])
 {
-  //first argument is the server you want to connect too
-  OmicronWorker *worker;
-  if (argc == 2)
+  meshserver::worker::ServerConnection connection;
+  if(argc>=2)
     {
-    std::string serverEndpoint(argv[1]);
-    worker =  new OmicronWorker(serverEndpoint);
+    //let the server connection handle parsing the command arguments
+    connection = meshserver::worker::ServerConnection(std::string(argv[1]));
     }
-  else
-    {
-    worker = new OmicronWorker();
-    }
-  worker->meshJob();
-  delete worker;
+  OmicronWorker worker( connection );
+  worker.meshJob();
   return 1;
 }

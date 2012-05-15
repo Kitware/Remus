@@ -64,7 +64,6 @@ private:
 template<typename Transport>
 struct socketInfo
 {
-
   socketInfo():Host(){}
   explicit socketInfo(const std::string& hostName):Host(hostName){}
   std::string endpoint() const {return  zmq::to_string(Transport()) + Host;}
