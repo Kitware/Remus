@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_common_JobDetails_h
-#define __meshserver_common_JobDetails_h
+#ifndef __meshserver_JobDetails_h
+#define __meshserver_JobDetails_h
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -20,8 +20,6 @@
 #include <sstream>
 
 namespace meshserver {
-namespace common {
-
 struct JobDetails
 {
   boost::uuids::uuid JobId;
@@ -32,10 +30,9 @@ struct JobDetails
     Path(p)
     {}
 };
-}
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const meshserver::common::JobDetails& status)
+inline std::string to_string(const meshserver::JobDetails& status)
 {
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline seperated
@@ -47,7 +44,7 @@ inline std::string to_string(const meshserver::common::JobDetails& status)
 
 
 //------------------------------------------------------------------------------
-inline meshserver::common::JobDetails to_JobDetails(const std::string& status)
+inline meshserver::JobDetails to_JobDetails(const std::string& status)
 {
   //convert a job detail from a string, used as a hack to serialize
 
@@ -57,11 +54,11 @@ inline meshserver::common::JobDetails to_JobDetails(const std::string& status)
   std::string path;
   buffer >> id;
   buffer >> path;
-  return meshserver::common::JobDetails(id,path);
+  return meshserver::JobDetails(id,path);
 }
 
 //------------------------------------------------------------------------------
-inline meshserver::common::JobDetails to_JobDetails(const char* data, int size)
+inline meshserver::JobDetails to_JobDetails(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
   return to_JobDetails( std::string(data,size) );

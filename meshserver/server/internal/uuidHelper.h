@@ -18,7 +18,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <meshserver/JobMessage.h>
+#include <meshserver/common/JobMessage.h>
 
 namespace meshserver
 {
@@ -31,7 +31,7 @@ inline std::string to_string(const boost::uuids::uuid& id)
 }
 
 //------------------------------------------------------------------------------
-inline boost::uuids::uuid to_uuid(const meshserver::JobMessage& msg)
+inline boost::uuids::uuid to_uuid(const meshserver::common::JobMessage& msg)
 {
   //take the contents of the msg and convert it to an uuid
   //no type checking will be done to make sure this is valid for now

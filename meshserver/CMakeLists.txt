@@ -1,5 +1,6 @@
 
 add_subdirectory(common)
+add_subdirectory(client)
 add_subdirectory(server)
 add_subdirectory(worker)
 
@@ -9,9 +10,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${ZeroMQ_INCLUDE_DIR})
 
 set(headers
-  Client.h
-  JobMessage.h
-  JobResponse.h
+  JobDetails.h
+  JobResult.h
+  JobStatus.h
   )
 
 meshserver_public_headers(${headers})

@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_JobResponse_h
-#define __meshserver_JobResponse_h
+#ifndef __meshserver_common_JobResponse_h
+#define __meshserver_common_JobResponse_h
 
 #include <cstddef>
 #include <zmq.hpp>
@@ -21,6 +21,7 @@
 #include <iostream>
 
 namespace meshserver{
+namespace common{
 class JobResponse
 {
 public:
@@ -157,5 +158,6 @@ bool JobResponse::send(zmq::socket_t& socket) const
   return true;
   }
 }
+}
 
-#endif // __meshserver_JobResponse_h
+#endif // __meshserver_common_JobResponse_h

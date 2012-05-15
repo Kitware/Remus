@@ -10,14 +10,14 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_worker_serverConnection_h
-#define __meshserver_worker_serverConnection_h
+#ifndef __meshserver_client_serverConnection_h
+#define __meshserver_client_serverConnection_h
 
 #include <meshserver/common/zmqHelper.h>
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
-namespace worker{
+namespace client{
 
 class ServerConnection
 {
@@ -25,7 +25,7 @@ public:
   //create a connection object that represents connecting to
   //the default meshserver server.
   ServerConnection():
-    Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",meshserver::BROKER_WORKER_PORT).endpoint())
+    Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",meshserver::BROKER_CLIENT_PORT).endpoint())
     {
     }
 

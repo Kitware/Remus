@@ -6,13 +6,13 @@
 
 =========================================================================*/
 
-#include <meshserver/Client.h>
+#include <meshserver/client/Client.h>
 
 #include <vector>
 #include <iostream>
 int main ()
 {
-  meshserver::Client c;
+  meshserver::client::Client c;
 
   if(c.canMesh(meshserver::MESH3D))
     {
@@ -21,13 +21,13 @@ int main ()
                                       omicronModel);
     std::cout << "job submitted" << std::endl;
 
-    meshserver::common::JobStatus oldStatus = c.jobStatus(meshserver::MESH3D,jid);
+    meshserver::JobStatus oldStatus = c.jobStatus(meshserver::MESH3D,jid);
     std::cout << " status of job is: " << meshserver::to_string(oldStatus.Status)  << std::endl;
 
     while(oldStatus.Status != meshserver::FINISHED &&
           oldStatus.Status != meshserver::FAILED)
       {
-      meshserver::common::JobStatus newStatus = c.jobStatus(meshserver::MESH3D,jid);
+      meshserver::JobStatus newStatus = c.jobStatus(meshserver::MESH3D,jid);
       if(newStatus.Status != oldStatus.Status ||
          newStatus.Progress != oldStatus.Progress)
         {

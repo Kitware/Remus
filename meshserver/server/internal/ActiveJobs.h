@@ -13,14 +13,14 @@
 #ifndef __meshserver_server_internal_ActiveJobs_h
 #define __meshserver_server_internal_ActiveJobs_h
 
+#include <meshserver/JobResult.h>
+#include <meshserver/JobStatus.h>
 #include <meshserver/common/zmqHelper.h>
+#include <meshserver/server/internal/uuidHelper.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <meshserver/server/internal/uuidHelper.h>
-#include <meshserver/common/JobResult.h>
-#include <meshserver/common/JobStatus.h>
 
 #include <map>
 
@@ -41,13 +41,13 @@ class ActiveJobs
 
     bool haveResult(const boost::uuids::uuid& id) const;
 
-    const meshserver::common::JobStatus& status(const boost::uuids::uuid& id);
+    const meshserver::JobStatus& status(const boost::uuids::uuid& id);
 
-    const meshserver::common::JobResult& result(const boost::uuids::uuid& id);
+    const meshserver::JobResult& result(const boost::uuids::uuid& id);
 
-    void updateStatus(const meshserver::common::JobStatus& s);
+    void updateStatus(const meshserver::JobStatus& s);
 
-    void updateResult(const meshserver::common::JobResult& r);
+    void updateResult(const meshserver::JobResult& r);
 
     void markFailedJobs(const boost::posix_time::ptime& time);
 
@@ -57,8 +57,8 @@ private:
     struct JobState
     {
       zmq::socketIdentity WorkerAddress;
-      meshserver::common::JobStatus jstatus;
-      meshserver::common::JobResult jresult;
+      meshserver::JobStatus jstatus;
+      meshserver::JobResult jresult;
       boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
@@ -137,7 +137,7 @@ bool ActiveJobs::haveResult(const boost::uuids::uuid& id) const
 }
 
 //-----------------------------------------------------------------------------
-const meshserver::common::JobStatus& ActiveJobs::status(
+const meshserver::JobStatus& ActiveJobs::status(
      const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -145,7 +145,7 @@ const meshserver::common::JobStatus& ActiveJobs::status(
 }
 
 //-----------------------------------------------------------------------------
-const common::JobResult& ActiveJobs::result(
+const meshserver::JobResult& ActiveJobs::result(
     const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -153,7 +153,7 @@ const common::JobResult& ActiveJobs::result(
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::updateStatus(const meshserver::common::JobStatus& s)
+void ActiveJobs::updateStatus(const meshserver::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
@@ -165,7 +165,7 @@ void ActiveJobs::updateStatus(const meshserver::common::JobStatus& s)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::updateResult(const meshserver::common::JobResult& r)
+void ActiveJobs::updateResult(const meshserver::JobResult& r)
 {
   InfoIt item = this->Info.find(r.JobId);
   item->second.jresult = r;

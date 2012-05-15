@@ -29,10 +29,9 @@
 namespace meshserver{
 //forward declaration of classes only the implementation needs
   namespace common{
-  class JobDetails;
+  class JobMessage;
   }
-class JobMessage;
-class JobQueue;
+  class JobDetails;
 }
 
 namespace meshserver{
@@ -62,21 +61,21 @@ public:
 protected:
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
-                                 const meshserver::JobMessage& msg);
+                                 const meshserver::common::JobMessage& msg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(const meshserver::JobMessage& msg);
-  std::string meshStatus(const meshserver::JobMessage& msg);
-  std::string queueJob(const meshserver::JobMessage& msg);
-  std::string retrieveMesh(const meshserver::JobMessage& msg);
+  bool canMesh(const meshserver::common::JobMessage& msg);
+  std::string meshStatus(const meshserver::common::JobMessage& msg);
+  std::string queueJob(const meshserver::common::JobMessage& msg);
+  std::string retrieveMesh(const meshserver::common::JobMessage& msg);
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
-                              const meshserver::JobMessage& msg);
-  void storeMeshStatus(const meshserver::JobMessage& msg);
-  void storeMesh(const meshserver::JobMessage& msg);
+                              const meshserver::common::JobMessage& msg);
+  void storeMeshStatus(const meshserver::common::JobMessage& msg);
+  void storeMesh(const meshserver::common::JobMessage& msg);
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
-                         const meshserver::common::JobDetails& job);
+                         const meshserver::JobDetails& job);
 
   void FindWorkerForQueuedJob();
 
