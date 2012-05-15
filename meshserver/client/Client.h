@@ -16,24 +16,22 @@
 #include <zmq.hpp>
 #include <string>
 
-#include <meshserver/common/JobMessage.h>
-#include <meshserver/common/JobResponse.h>
 #include <meshserver/JobResult.h>
 #include <meshserver/JobStatus.h>
-
+#include <meshserver/common/JobMessage.h>
+#include <meshserver/common/JobResponse.h>
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
+#include <meshserver/client/ServerConnection.h>
+
 
 namespace meshserver{
 namespace client{
 class Client
 {
 public:
-  //connect to the localhost on the default port, using tcp
-  Client();
-
   //connect to a given host on a given port with tcp
-  Client(const std::string &host, int port);
+  explicit Client(const meshserver::client::ServerConnection& conn);
 
   //Submit a request to the server to see if it support the type of mesh
   bool canMesh(meshserver::MESH_TYPE mtype);
@@ -60,25 +58,11 @@ private:
 };
 
 //------------------------------------------------------------------------------
-Client::Client():
+Client::Client(const meshserver::client::ServerConnection &conn):
   Context(1),
   Server(this->Context, ZMQ_REQ)
 {
-  //in the future this should be a dealer, but that will require
-  //handling of all requests to be asynchronous
-  zmq::socketInfo<zmq::proto::tcp> info("localhost",meshserver::BROKER_CLIENT_PORT);
-  zmq::connectToAddress(this->Server,info);
-}
-
-//------------------------------------------------------------------------------
-Client::Client(const std::string& host, int port):
-  Context(1),
-  Server(this->Context, ZMQ_REQ)
-{
-  //in the future this should be a dealer, but that will require
-  //handling of all requests to be asynchronous
-  zmq::socketInfo<zmq::proto::tcp> info(host,port);
-  zmq::connectToAddress(this->Server,info);
+  zmq::connectToAddress(this->Server,conn.endpoint());
 }
 
 //------------------------------------------------------------------------------

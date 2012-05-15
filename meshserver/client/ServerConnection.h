@@ -45,6 +45,7 @@ public:
 
   inline std::string const& endpoint() const{ return Endpoint; }
 
+
 private:
   std::string Endpoint;
 };

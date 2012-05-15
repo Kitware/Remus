@@ -12,7 +12,8 @@
 #include <iostream>
 int main ()
 {
-  meshserver::client::Client c;
+  meshserver::client::ServerConnection conn;
+  meshserver::client::Client c(conn);
 
   if(c.canMesh(meshserver::MESH3D))
     {
