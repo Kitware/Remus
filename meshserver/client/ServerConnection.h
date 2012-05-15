@@ -36,9 +36,14 @@ public:
     {
     }
 
+  explicit ServerConnection(zmq::socketInfo<zmq::proto::tcp> const& socket):
+    Endpoint(socket.endpoint())
+    {
+    }
+
   //create a connection object that represent connection to a non
   //standard meshserver server
-  explicit ServerConnection(std::string const& hostName, int port):
+  ServerConnection(std::string const& hostName, int port):
     Endpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port).endpoint())
     {
     }
