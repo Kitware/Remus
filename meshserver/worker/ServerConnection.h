@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_serverConnection_h
-#define __meshserver_serverConnection_h
+#ifndef __meshserver_worker_serverConnection_h
+#define __meshserver_worker_serverConnection_h
 
 //included for symbol exports
 #include "WorkerExports.h"
@@ -46,7 +46,7 @@ public:
     {
     }
 
-  std::string endpoint() const{ return Endpoint; }
+  inline std::string const& endpoint() const{ return Endpoint; }
 
 private:
   std::string Endpoint;
