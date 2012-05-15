@@ -16,7 +16,7 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-omicronSettings::omicronSettings(meshserver::common::JobDetails *details):
+omicronSettings::omicronSettings(meshserver::JobDetails *details):
   args()
 {
   //job details are the arguments for the omicron instance we have
@@ -78,7 +78,7 @@ void OmicronWorker::meshJob()
     this->JobDetails = NULL;
     }
 
-  this->JobDetails = new meshserver::common::JobDetails(this->getJob());
+  this->JobDetails = new meshserver::JobDetails(this->getJob());
   this->launchOmicron( );
 
   //poll on omicron now
@@ -86,7 +86,7 @@ void OmicronWorker::meshJob()
   if(valid)
     {
     //send to the server the mesh results too
-    meshserver::common::JobResult results(this->JobDetails->JobId,
+    meshserver::JobResult results(this->JobDetails->JobId,
                                           "FAKE RESULTS");
     this->returnMeshResults(results);
     }
@@ -100,7 +100,7 @@ bool OmicronWorker::terminateMeshJob()
   if(this->OmicronProcess)
     {
     //update the server with the fact that will had to kill the job
-    meshserver::common::JobStatus status(this->JobDetails->JobId,
+    meshserver::JobStatus status(this->JobDetails->JobId,
                                          meshserver::FAILED);
     this->updateStatus(status);
 
@@ -199,7 +199,7 @@ bool OmicronWorker::pollOmicronStatus()
 //-----------------------------------------------------------------------------
 void OmicronWorker::updateProgress(int value)
 {
-  meshserver::common::JobStatus status(this->JobDetails->JobId,
+  meshserver::JobStatus status(this->JobDetails->JobId,
                                        meshserver::IN_PROGRESS);
   status.Progress = value;
   this->updateStatus(status);

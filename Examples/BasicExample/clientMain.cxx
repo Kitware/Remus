@@ -6,13 +6,13 @@
 
 =========================================================================*/
 
-#include <meshserver/Client.h>
+#include <meshserver/client/Client.h>
 
 #include <vector>
 #include <iostream>
 int main ()
 {
-  meshserver::Client c;
+  meshserver::client::Client c;
 
   if(c.canMesh(meshserver::MESH2D))
     {
@@ -26,7 +26,7 @@ int main ()
         }
       }
 
-    std::vector<meshserver::common::JobStatus> js;
+    std::vector<meshserver::JobStatus> js;
     //fill the status array.
     for(int i=0; i < jobs.size(); ++i)
       {
@@ -37,9 +37,9 @@ int main ()
       {
       for(int i=0; i < jobs.size(); ++i)
         {
-        meshserver::common::JobStatus newStatus =
+        meshserver::JobStatus newStatus =
             c.jobStatus(meshserver::MESH2D,jobs.at(i));
-        meshserver::common::JobStatus oldStatus =
+        meshserver::JobStatus oldStatus =
             js.at(i);
         js[i]=newStatus;
 

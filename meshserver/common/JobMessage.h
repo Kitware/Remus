@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_JobMessage_h
-#define __meshserver_JobMessage_h
+#ifndef __meshserver_common_JobMessage_h
+#define __meshserver_common_JobMessage_h
 
 #include <boost/shared_ptr.hpp>
 #include <zmq.hpp>
@@ -21,6 +21,7 @@
 #include <meshserver/common/meshServerGlobals.h>
 
 namespace meshserver{
+namespace common{
 class JobMessage
 {
 public:
@@ -182,5 +183,6 @@ void JobMessage::dump(T& t) const
     t << "Data: " << std::string(this->Data,this->dataSize()) << std::endl;
     }
   }
+}
 }
 #endif //__meshserver_JobMessage_h

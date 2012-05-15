@@ -19,9 +19,9 @@
 #include <vector>
 #include <set>
 
+#include <meshserver/JobDetails.h>
+#include <meshserver/common/JobMessage.h>
 #include <meshserver/server/internal/uuidHelper.h>
-#include <meshserver/common/JobDetails.h>
-#include <meshserver/JobMessage.h>
 
 namespace meshserver{
 namespace server{
@@ -37,11 +37,11 @@ public:
 
   //Convert a JobMessage and UUID into a WorkerMessage.
   bool addJob( const boost::uuids::uuid& id,
-             const meshserver::JobMessage& message);
+             const meshserver::common::JobMessage& message);
 
   //Removes a job from the queue of the given mesh type.
   //Return it as a JobDetail
-  meshserver::common::JobDetails takeJob(meshserver::MESH_TYPE type);
+  meshserver::JobDetails takeJob(meshserver::MESH_TYPE type);
 
   //returns the types of jobs that are waiting for a worker
   std::set<meshserver::MESH_TYPE> waitingForWorkerTypes() const;
@@ -60,7 +60,7 @@ private:
   struct QueuedJob
   {
     QueuedJob(const boost::uuids::uuid& id,
-              const meshserver::JobMessage& message):
+              const meshserver::common::JobMessage& message):
               Id(id),
               Message(message),
               WaitingForWorker(false),
@@ -68,7 +68,7 @@ private:
               {}
 
     boost::uuids::uuid Id;
-    meshserver::JobMessage Message;
+    meshserver::common::JobMessage Message;
 
     //information on when the job was marked as scheduled
     bool WaitingForWorker;
@@ -90,7 +90,7 @@ private:
 
 //------------------------------------------------------------------------------
 bool JobQueue::addJob(const boost::uuids::uuid &id,
-                    const meshserver::JobMessage& message)
+                    const meshserver::common::JobMessage& message)
 {
   this->Queue.push_back(QueuedJob(id,message));
   this->QueuedIds.insert(id);
@@ -98,7 +98,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-meshserver::common::JobDetails JobQueue::takeJob(MESH_TYPE type)
+meshserver::JobDetails JobQueue::takeJob(MESH_TYPE type)
 {
   QueuedJob* job;
   int index = 0;
@@ -123,11 +123,11 @@ meshserver::common::JobDetails JobQueue::takeJob(MESH_TYPE type)
     this->Queue.erase(this->Queue.begin()+index);
     std::cout << "num queued jobs left: " << this->Queue.size() << std::endl;
 
-    return meshserver::common::JobDetails(id,data);
+    return meshserver::JobDetails(id,data);
     }
 
   std::cout << "returning fake job" << std::endl;
-  return meshserver::common::JobDetails(boost::uuids::uuid(),"INVALID");
+  return meshserver::JobDetails(boost::uuids::uuid(),"INVALID");
 }
 
 //------------------------------------------------------------------------------

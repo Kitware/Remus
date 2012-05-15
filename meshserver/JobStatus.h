@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __meshserver_common_JobStatus_h
-#define __meshserver_common_JobStatus_h
+#ifndef __meshserver_JobStatus_h
+#define __meshserver_JobStatus_h
 
 #include <string>
 #include <sstream>
@@ -33,7 +33,6 @@ inline int valid_progress_value(int v)
 }
 
 namespace meshserver {
-namespace common {
 struct JobStatus
 {
   boost::uuids::uuid JobId;
@@ -54,10 +53,9 @@ struct JobStatus
     Progress( valid_progress_value(progress) )
     {}
 };
-}
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const meshserver::common::JobStatus& status)
+inline std::string to_string(const meshserver::JobStatus& status)
 {
   //convert a job status to a string, used as a hack to serialize
   std::stringstream buffer;
@@ -68,7 +66,7 @@ inline std::string to_string(const meshserver::common::JobStatus& status)
 }
 
 //------------------------------------------------------------------------------
-inline meshserver::common::JobStatus to_JobStatus(const std::string& status)
+inline meshserver::JobStatus to_JobStatus(const std::string& status)
 {
   //convert a job status from a string, used as a hack to serialize
   std::stringstream buffer(status);
@@ -83,16 +81,14 @@ inline meshserver::common::JobStatus to_JobStatus(const std::string& status)
 
   const meshserver::STATUS_TYPE type = static_cast<meshserver::STATUS_TYPE>(t);
 
-  return meshserver::common::JobStatus(id,type,p);
+  return meshserver::JobStatus(id,type,p);
 }
 
 //------------------------------------------------------------------------------
-inline meshserver::common::JobStatus to_JobStatus(const char* data, int size)
+inline meshserver::JobStatus to_JobStatus(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
   return to_JobStatus( std::string(data,size) );
 }
-
-
 }
 #endif

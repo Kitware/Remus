@@ -15,9 +15,9 @@
 
 #include <meshserver/common/zmqHelper.h>
 
-#include <meshserver/common/JobDetails.h>
-#include <meshserver/common/JobResult.h>
-#include <meshserver/common/JobStatus.h>
+#include <meshserver/JobDetails.h>
+#include <meshserver/JobResult.h>
+#include <meshserver/JobStatus.h>
 
 #include <meshserver/common/meshServerGlobals.h>
 
@@ -44,13 +44,13 @@ public:
 
   //gets back a job from the server
   //this will lock the worker as it will wait on a job message
-  virtual meshserver::common::JobDetails getJob();
+  virtual meshserver::JobDetails getJob();
 
   //update the status of the worker
-  virtual void updateStatus(const meshserver::common::JobStatus& info);
+  virtual void updateStatus(const meshserver::JobStatus& info);
 
   //send to the server the mesh results.
-  virtual void returnMeshResults(const meshserver::common::JobResult& result);
+  virtual void returnMeshResults(const meshserver::JobResult& result);
 
 protected:
   //start communication. Currently is called by

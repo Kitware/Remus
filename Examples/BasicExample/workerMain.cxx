@@ -21,7 +21,7 @@ int main (int argc, char* argv[])
 
   meshserver::worker::Worker w(meshserver::MESH2D,connection);
 
-  meshserver::common::JobDetails jd = w.getJob();
+  meshserver::JobDetails jd = w.getJob();
 
   for(int progress=1; progress <= 100; ++progress)
     {
@@ -31,15 +31,15 @@ int main (int argc, char* argv[])
 #else
       sleep(1);
 #endif
-    meshserver::common::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);
+    meshserver::JobStatus status(jd.JobId,meshserver::IN_PROGRESS);
     status.Progress = progress;
     w.updateStatus(status);
     }
 
-  meshserver::common::JobStatus status(jd.JobId,meshserver::FINISHED);
+  meshserver::JobStatus status(jd.JobId,meshserver::FINISHED);
   w.updateStatus(status);
 
-  meshserver::common::JobResult results(jd.JobId,"FAKE RESULTS");
+  meshserver::JobResult results(jd.JobId,"FAKE RESULTS");
   w.returnMeshResults(results);
 
   return 1;

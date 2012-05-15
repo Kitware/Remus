@@ -8,9 +8,8 @@ set(MeshServer_Common_INCLUDE_DIRS
 
 set(headers
   ExecuteProcess.h
-  JobDetails.h
-  JobResult.h
-  JobStatus.h
+  JobMessage.h
+  JobResponse.h
   meshServerGlobals.h
   zmqHelper.h
   zmqTraits.h

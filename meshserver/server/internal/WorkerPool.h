@@ -15,9 +15,9 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <meshserver/JobResult.h>
+#include <meshserver/JobStatus.h>
 #include <meshserver/server/internal/uuidHelper.h>
-#include <meshserver/common/JobResult.h>
-#include <meshserver/common/JobStatus.h>
 #include <meshserver/common/zmqHelper.h>
 
 #include <string>
@@ -30,7 +30,7 @@ namespace internal{
 class WorkerPool
 {
   public:
-    WorkerPool():Pool(){};
+    WorkerPool():Pool(){}
 
     bool addWorker(zmq::socketIdentity workerIdentity,
                    const meshserver::MESH_TYPE& type);

@@ -15,12 +15,12 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <meshserver/JobMessage.h>
-#include <meshserver/JobResponse.h>
+#include <meshserver/JobDetails.h>
+#include <meshserver/JobResult.h>
+#include <meshserver/JobStatus.h>
 
-#include <meshserver/common/JobDetails.h>
-#include <meshserver/common/JobResult.h>
-#include <meshserver/common/JobStatus.h>
+#include <meshserver/common/JobMessage.h>
+#include <meshserver/common/JobResponse.h>
 
 #include <meshserver/common/meshServerGlobals.h>
 #include <meshserver/common/zmqHelper.h>
@@ -119,7 +119,7 @@ bool Server::startBrokering()
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
-      meshserver::JobMessage message(this->ClientQueries);
+      meshserver::common::JobMessage message(this->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
       }
     if (items[1].revents & ZMQ_POLLIN)
@@ -130,7 +130,7 @@ bool Server::startBrokering()
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
-      meshserver::JobMessage message(this->WorkerQueries);
+      meshserver::common::JobMessage message(this->WorkerQueries);
       this->DetermineWorkerResponse(workerIdentity,message);
 
       //refresh all jobs for a given worker with a new expiry time
@@ -156,12 +156,12 @@ bool Server::startBrokering()
 
 //------------------------------------------------------------------------------
 void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity,
-                                  const meshserver::JobMessage& msg)
+                                  const meshserver::common::JobMessage& msg)
 {
   //msg.dump(std::cout);
   //server response is the general response message type
   //the client can than convert it to the expected type
-  meshserver::JobResponse response(clientIdentity);
+  meshserver::common::JobResponse response(clientIdentity);
   if(!msg.isValid())
     {
     response.setData(meshserver::INVALID_MSG);
@@ -192,7 +192,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
 }
 
 //------------------------------------------------------------------------------
-bool Server::canMesh(const meshserver::JobMessage& msg)
+bool Server::canMesh(const meshserver::common::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
@@ -200,11 +200,11 @@ bool Server::canMesh(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::meshStatus(const meshserver::JobMessage& msg)
+std::string Server::meshStatus(const meshserver::common::JobMessage& msg)
 {
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
 
-  meshserver::common::JobStatus js(id,INVALID_STATUS);
+  meshserver::JobStatus js(id,INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(id))
     {
     js.Status = meshserver::QUEUED;
@@ -217,7 +217,7 @@ std::string Server::meshStatus(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::queueJob(const meshserver::JobMessage& msg)
+std::string Server::queueJob(const meshserver::common::JobMessage& msg)
 {
   if(this->canMesh(msg))
   {
@@ -234,12 +234,12 @@ std::string Server::queueJob(const meshserver::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::retrieveMesh(const meshserver::JobMessage& msg)
+std::string Server::retrieveMesh(const meshserver::common::JobMessage& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
   const boost::uuids::uuid id = meshserver::to_uuid(msg);
 
-  meshserver::common::JobResult result(id);
+  meshserver::JobResult result(id);
   if(this->ActiveJobs->haveUUID(id) && this->ActiveJobs->haveResult(id))
     {
     result = this->ActiveJobs->result(id);
@@ -253,7 +253,7 @@ std::string Server::retrieveMesh(const meshserver::JobMessage& msg)
 
 //------------------------------------------------------------------------------
 void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
-                                     const meshserver::JobMessage& msg)
+                                     const meshserver::common::JobMessage& msg)
 {
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
@@ -283,27 +283,27 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
 }
 
 //------------------------------------------------------------------------------
-void Server::storeMeshStatus(const meshserver::JobMessage& msg)
+void Server::storeMeshStatus(const meshserver::common::JobMessage& msg)
 {
   //the string in the data is actualy a job status object
-  meshserver::common::JobStatus js = meshserver::to_JobStatus(msg.data(),msg.dataSize());
+  meshserver::JobStatus js = meshserver::to_JobStatus(msg.data(),msg.dataSize());
   this->ActiveJobs->updateStatus(js);
 }
 
 //------------------------------------------------------------------------------
-void Server::storeMesh(const meshserver::JobMessage& msg)
+void Server::storeMesh(const meshserver::common::JobMessage& msg)
 {
-  meshserver::common::JobResult jr = meshserver::to_JobResult(msg.data(),msg.dataSize());
+  meshserver::JobResult jr = meshserver::to_JobResult(msg.data(),msg.dataSize());
   this->ActiveJobs->updateResult(jr);
 }
 
 //------------------------------------------------------------------------------
 void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
-                               const meshserver::common::JobDetails& job )
+                               const meshserver::JobDetails& job )
 {
   this->ActiveJobs->add( workerIdentity, job.JobId );
 
-  meshserver::JobResponse response(workerIdentity);
+  meshserver::common::JobResponse response(workerIdentity);
   response.setData(meshserver::to_string(job));
 
   std::cout << "assigning job to worker " <<

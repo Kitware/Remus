@@ -16,7 +16,7 @@ namespace meshserver{ namespace common { class ExecuteProcess; } }
 
 struct omicronSettings
 {
-  omicronSettings(meshserver::common::JobDetails* details);
+  omicronSettings(meshserver::JobDetails* details);
   std::vector<std::string> args;
 };
 
@@ -57,7 +57,7 @@ protected:
   bool pollOmicronStatus();
   void updateProgress(int value);
 
-  meshserver::common::JobDetails* JobDetails;
+  meshserver::JobDetails* JobDetails;
   meshserver::common::ExecuteProcess* OmicronProcess;
   std::string Name;
   std::string Directory;
