@@ -12,9 +12,14 @@
 
 int main (int argc, char* argv[])
 {
-  //first argument is the server you want to connect too
-  meshserver::worker::ServerConnection connection(argc,argv);
-  meshserver::worker::Worker w(connection);
+  meshserver::worker::ServerConnection connection;
+  if(argc>=2)
+    {
+    //let the server connection handle parsing the command arguments
+    connection = meshserver::worker::ServerConnection(std::string(argv[1]));
+    }
+
+  meshserver::worker::Worker w(meshserver::MESH2D,connection);
 
   meshserver::common::JobDetails jd = w.getJob();
 

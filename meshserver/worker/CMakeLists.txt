@@ -5,6 +5,7 @@ meshserver_get_includes(MeshServerCommon CommonIncludes)
 
 set(headers
     Worker.h
+    ServerConnection.h
     )
 
 set(worker_srcs

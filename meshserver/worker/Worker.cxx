@@ -101,7 +101,8 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-Worker::Worker(meshserver::MESH_TYPE mtype):
+Worker::Worker(meshserver::MESH_TYPE mtype,
+               meshserver::worker::ServerConnection const& conn):
   MeshType(mtype),
   Context(1),
   ServerComm(Context,ZMQ_PAIR),
@@ -112,41 +113,7 @@ Worker::Worker(meshserver::MESH_TYPE mtype):
   zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
       zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
 
-  zmq::socketInfo<zmq::proto::tcp> serverInfo("localhost",meshserver::BROKER_WORKER_PORT);
-  this->startCommunicationThread(serverInfo.endpoint(),
-                                 internalCommInfo.endpoint());
-}
-
-//-----------------------------------------------------------------------------
-Worker::Worker(const std::string &host, int port, meshserver::MESH_TYPE mtype):
-  MeshType(mtype),
-  Context(1),
-  ServerComm(Context,ZMQ_PAIR),
-  BComm(NULL),
-  ServerCommThread(NULL)
-{
-  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
-  zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
-      zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
-
-  zmq::socketInfo<zmq::proto::tcp> serverInfo(host,port);
-  this->startCommunicationThread(serverInfo.endpoint(),
-                                 internalCommInfo.endpoint());
-}
-
-//-----------------------------------------------------------------------------
-Worker::Worker(const std::string &endpoint, meshserver::MESH_TYPE mtype):
-  MeshType(mtype),
-  Context(1),
-  ServerComm(Context,ZMQ_PAIR),
-  BComm(NULL),
-  ServerCommThread(NULL)
-{
-  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
-  zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
-      zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
-
-  this->startCommunicationThread(endpoint,internalCommInfo.endpoint());
+  this->startCommunicationThread(conn.endpoint(),internalCommInfo.endpoint());
 }
 
 

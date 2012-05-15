@@ -21,6 +21,8 @@
 
 #include <meshserver/common/meshServerGlobals.h>
 
+#include <meshserver/worker/ServerConnection.h>
+
 //included for symbol exports
 #include "WorkerExports.h"
 
@@ -33,19 +35,10 @@ class MESHSERVERWORKER_EXPORT Worker
 {
 public:
   //constuct a worker that can mesh a single type
-  //it uses the default tcp connection to local host on the default port
-  explicit Worker(meshserver::MESH_TYPE mtype);
-
-  //construct a worker that can mesh a single type,
-  //it uses the host and port to determine a custom tcp connection
-  //so that we can talk to a remote meshserver::server
-  Worker(const std::string &host, int port, meshserver::MESH_TYPE mtype);
-
-  //construct a worker that can mesh a single type,
-  //it uses the endpoint to determine a custom tcp connection
-  //so that we can talk to a remote meshserver::server
-  //Todo: Support custom protocol parsing instead of forcing to tcp
-  Worker(const std::string &endpoint, meshserver::MESH_TYPE mtype);
+  //it uses the server connection object to determine what server
+  //to connect too
+  explicit Worker(meshserver::MESH_TYPE mtype,
+                  meshserver::worker::ServerConnection const& conn);
 
   virtual ~Worker();
 
