@@ -24,7 +24,9 @@ set (MeshServerSuperBuild_CMAKE_DIR
 include (MeshServerModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
-set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
+option(MESHSERVER_INSTALL_DIR "Where to install mesh server external project" "${CMAKE_CURRENT_BINARY_DIR}/install")
+
+set (install_location "${MESHSERVER_INSTALL_DIR}")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
 set (prefix_path "${install_location}")
 
