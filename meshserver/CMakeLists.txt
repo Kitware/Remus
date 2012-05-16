@@ -13,6 +13,7 @@ set(headers
   JobDetails.h
   JobResult.h
   JobStatus.h
+  version.h
   )
 
 meshserver_public_headers(${headers})
