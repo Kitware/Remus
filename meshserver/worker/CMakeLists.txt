@@ -13,9 +13,10 @@ set(worker_srcs
    )
 
 add_library(MeshServerWorker ${worker_srcs} ${headers})
-generate_export_header(MeshServerWorker EXPORT_FILE_NAME WorkerExports.h)
 target_link_libraries(MeshServerWorker ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES})
 
 meshserver_set_includes(MeshServerWorker ${CommonIncludes})
+
+meshserver_export_header(MeshServerWorker WorkerExports.h)
 meshserver_install_library(MeshServerWorker)
 meshserver_public_headers(${headers})

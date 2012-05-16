@@ -83,3 +83,11 @@ function(meshserver_get_includes target includes_var_name)
   get_property(saved_includes TARGET ${target} PROPERTY SAVED_INCLUDE_DIRS)
   set(${includes_var_name} ${saved_includes} PARENT_SCOPE)
 endfunction(meshserver_get_includes)
+
+
+#generate an export header and create an install target for it
+function(meshserver_export_header target file)
+  ms_get_kit_name(name dir_prefix)
+  generate_export_header(${target} EXPORT_FILE_NAME ${file})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${file}  DESTINATION include/${dir_prefix})
+endfunction(meshserver_export_header)
