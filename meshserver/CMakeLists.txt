@@ -19,9 +19,13 @@ set(headers
 meshserver_public_headers(${headers})
 
 #enable tests
-if(MeshServer_ENABLE_TESTING) 
+if(MeshServer_ENABLE_TESTING)
   #add in the test for copy right statements
   add_test(NAME CopyrightStatement
     COMMAND ${CMAKE_COMMAND} "-DMeshServer_SOURCE_DIR=${MeshServer_SOURCE_DIR}" -P "${MeshServer_SOURCE_DIR}/CMake/CheckCopyright.cmake"
     )
 endif()
+
+
+#setup the exports for the library when used from an installed location
+install(EXPORT MeshServer-targets DESTINATION lib)

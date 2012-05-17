@@ -22,11 +22,17 @@ set(common_srcs
 add_library(MeshServerCommon ${common_srcs} ${headers})
 target_link_libraries(MeshServerCommon ${ZeroMQ_LIBRARIES} sysTools)
 
-generate_export_header(MeshServerCommon EXPORT_FILE_NAME CommonExports.h)
 meshserver_set_includes(MeshServerCommon ${MeshServer_Common_INCLUDE_DIRS})
+
+#create the export header symbol exporting
+meshserver_export_header(MeshServerCommon CommonExports.h)
 
 #install the library
 meshserver_install_library(MeshServerCommon)
 
 #install the headers
 meshserver_public_headers(${headers})
+
+#setup the exports for the library when used from a build tree
+export(PACKAGE MeshServerCommon)
+export(TARGETS MeshServerCommon sysTools FILE MeshServerCommon-exports.cmake)
