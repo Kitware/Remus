@@ -62,8 +62,9 @@ include_directories(
 #to launch external processes.
 set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
+set(KWSYS_INSTALL_LIB_DIR "lib")
+set(KWSYS_INSTALL_EXPORT_NAME MeshServer-targets)
 add_subdirectory(kwsys)
-
 
 #setup windows exception handling so we can compile properly
 #with boost enabled
@@ -71,10 +72,8 @@ if(WIN32 AND MSVC)
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif()
 
-
 #add the actual code
 add_subdirectory(meshserver)
-
 
 #add the examples code
 if(MeshServer_ENABLE_EXAMPLES)
