@@ -7,7 +7,7 @@ set(SRCS_Server
    )
 
 add_executable(TestMeshServer ${SRCS_Server} ${COMMON_SRCS})
-target_link_libraries(TestMeshServer ${ZeroMQ_LIBRARIES} MeshServerServer)
+target_link_libraries(TestMeshServer MeshServerServer)
 
 add_subdirectory(BasicExample)
 add_subdirectory(Omicron)
