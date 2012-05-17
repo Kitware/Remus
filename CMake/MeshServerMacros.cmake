@@ -59,7 +59,7 @@ endfunction(meshserver_private_headers)
 
 # Declare a library as needed to be installed
 function(meshserver_install_library target)
-  install(TARGETS ${target} DESTINATION lib)
+  install(TARGETS ${target} DESTINATION lib EXPORT MeshServer-targets)
 endfunction(meshserver_install_library)
 
 
