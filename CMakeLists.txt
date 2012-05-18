@@ -18,13 +18,12 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-set (MeshServerSuperBuild_CMAKE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set (MeshServerSuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 include (MeshServerModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
-option(MESHSERVER_INSTALL_DIR "Where to install mesh server external project" "${CMAKE_CURRENT_BINARY_DIR}/install")
+set(MESHSERVER_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/install" CACHE FILEPATH "Location to build MeshServer.")
 
 set (install_location "${MESHSERVER_INSTALL_DIR}")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
