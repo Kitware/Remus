@@ -25,8 +25,8 @@ endfunction(zeroMQ_libDir)
 if(MSVC)
 
   set(zeroMQ_sln_name "zeroMQ.sln")
-  set(zeroMQ_configure_sln ${CMAKE_CURRENT_SOURCE_DIR}/CMake/win32/${zeroMQ_sln_name})
-  set(zeroMQ_vcproj ${CMAKE_CURRENT_SOURCE_DIR}/CMake/win32/libzmq.vcproj)
+  set(zeroMQ_configure_sln ${CMAKE_CURRENT_SOURCE_DIR}/Projects/win32/${zeroMQ_sln_name})
+  set(zeroMQ_vcproj ${CMAKE_CURRENT_SOURCE_DIR}/Projects/win32/libzmq.vcproj)
 
   #get the arguments for devenv
   build_zeroMQ_command(buildCommand ${zeroMQ_sln_name})
