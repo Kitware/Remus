@@ -30,7 +30,17 @@ add_external_project(boost
   ${boost_cmds}
   BUILD_IN_SOURCE 1
   )
+  
+  #install header files
+  ExternalProject_Add_Step(boost fixBoostInstallStage1
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <INSTALL_DIR>/include/boost-1_49/boost <INSTALL_DIR>/include/boost
+    DEPENDEES install
+    )
+  ExternalProject_Add_Step(boost fixBoostInstallStage2
+    COMMAND ${CMAKE_COMMAND} -E remove_directory <INSTALL_DIR>/include/boost-1_49
+    DEPENDEES fixBoostInstallStage1
+    )  
 
 ExternalProject_Get_Property(boost install_dir)
-add_project_property(boost BOOST_INCLUDEDIR "${install_dir}/include/boost-1_49/boost")
+add_project_property(boost BOOST_INCLUDEDIR "${install_dir}/include/boost")
 add_project_property(boost BOOST_LIBRARYDIR "${install_dir}/lib")
