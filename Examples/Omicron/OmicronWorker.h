@@ -9,23 +9,23 @@
 #ifndef __omicron_worker_h
 #define __omicron_worker_h
 
-#include <meshserver/worker/Worker.h>
+#include <remus/worker/Worker.h>
 #include <vector>
 
-namespace meshserver{ namespace common { class ExecuteProcess; } }
+namespace remus{ namespace common { class ExecuteProcess; } }
 
 struct omicronSettings
 {
-  omicronSettings(meshserver::JobDetails* details);
+  omicronSettings(remus::JobDetails* details);
   std::vector<std::string> args;
 };
 
-class OmicronWorker : public meshserver::worker::Worker
+class OmicronWorker : public remus::worker::Worker
 {
 public:
   //construct a worker that can mesh a single type
   //give it a zeroMQ endpoint to connect too
-  explicit OmicronWorker(meshserver::worker::ServerConnection const& conn);
+  explicit OmicronWorker(remus::worker::ServerConnection const& conn);
 
   //will wait for the omicron process to close
   //before destroying self
@@ -57,8 +57,8 @@ protected:
   bool pollOmicronStatus();
   void updateProgress(int value);
 
-  meshserver::JobDetails* JobDetails;
-  meshserver::common::ExecuteProcess* OmicronProcess;
+  remus::JobDetails* JobDetails;
+  remus::common::ExecuteProcess* OmicronProcess;
   std::string Name;
   std::string Directory;
 

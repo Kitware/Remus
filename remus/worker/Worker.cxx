@@ -1,0 +1,206 @@
+//=============================================================================
+//
+//  Copyright (c) Kitware, Inc.
+//  All rights reserved.
+//  See LICENSE.txt for details.
+//
+//  This software is distributed WITHOUT ANY WARRANTY; without even
+//  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+//  PURPOSE.  See the above copyright notice for more information.
+//
+//=============================================================================
+
+
+#include <remus/worker/Worker.h>
+
+#include <boost/thread.hpp>
+#include <string>
+
+#include <remus/common/JobMessage.h>
+#include <remus/common/JobResponse.h>
+#include <remus/common/zmqHelper.h>
+
+namespace remus{
+namespace worker{
+
+//-----------------------------------------------------------------------------
+class Worker::ServerCommunicator
+{
+public:
+  ServerCommunicator(const std::string& serverInfo,
+                     const std::string& mainThreadInfo):
+    ContinueTalking(true),
+    ServerEndpoint(serverInfo),
+    MainEndpoint(mainThreadInfo)
+    {
+    }
+
+  ~ServerCommunicator()
+  {
+  }
+
+  void run(zmq::context_t *context)
+  {
+    std::cout << "thread started" << std::endl;
+
+    zmq::socket_t Worker(*context,ZMQ_PAIR);
+    zmq::socket_t Server(*context,ZMQ_DEALER);
+
+    std::cout << "Server endpoint is: " << this->ServerEndpoint << std::endl;
+    zmq::connectToAddress(Server,this->ServerEndpoint);
+    std::cout << "Worker internal comm is: " << this->MainEndpoint << std::endl;
+    zmq::connectToAddress(Worker,this->MainEndpoint);
+
+
+    zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
+                                  { Server,  0, ZMQ_POLLIN, 0 } };
+    while( this->ContinueTalking)
+      {
+      zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
+      bool sentToServer=false;
+      if(items[0].revents & ZMQ_POLLIN)
+        {
+        sentToServer = true;
+        remus::common::JobMessage message(Worker);
+
+        //just pass the message on to the server
+        message.send(Server);
+
+        //special case is that shutdown means we stop looping
+        if(message.serviceType()==remus::SHUTDOWN)
+          {
+          this->ContinueTalking = false;
+          }
+        }
+      if(items[1].revents & ZMQ_POLLIN && this->ContinueTalking)
+        {
+        //we make sure ContinueTalking is valid so we know the worker
+        //is still listening and not in destructor
+
+        //we have a message from the server for know this can only be the
+        //reply back from a job query so send it to the worker.
+        remus::common::JobResponse response(Server);
+
+        response.send(Worker);
+        }
+      if(!sentToServer)
+        {
+        std::cout << "send heartbeat to server" << std::endl;
+        //send a heartbeat to the server
+        remus::common::JobMessage message(remus::INVALID_MESH,remus::HEARTBEAT);
+        message.send(Server);
+        }
+      }
+  }
+
+private:
+  bool ContinueTalking;
+  std::string ServerEndpoint;
+  std::string MainEndpoint;
+};
+
+//-----------------------------------------------------------------------------
+Worker::Worker(remus::MESH_TYPE mtype,
+               remus::worker::ServerConnection const& conn):
+  MeshType(mtype),
+  Context(1),
+  ServerComm(Context,ZMQ_PAIR),
+  BComm(NULL),
+  ServerCommThread(NULL)
+{
+  //FIRST THREAD HAS TO BIND THE INPROC SOCKET
+  zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
+      zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
+
+  this->startCommunicationThread(conn.endpoint(),internalCommInfo.endpoint());
+}
+
+
+//-----------------------------------------------------------------------------
+Worker::~Worker()
+{
+  std::cout << "Ending the worker" << std::endl;
+  this->stopCommunicationThread();
+}
+
+//-----------------------------------------------------------------------------
+bool Worker::startCommunicationThread(const std::string &serverEndpoint,
+                                      const std::string &commEndpoint)
+{
+  if(!this->ServerCommThread && !this->BComm)
+    {
+    //start about the server communication thread
+    this->BComm = new Worker::ServerCommunicator(serverEndpoint,commEndpoint);
+    this->ServerCommThread = new boost::thread(&Worker::ServerCommunicator::run,
+                                             this->BComm,&this->Context);
+
+    //register with the server that we can mesh a certain type
+    remus::common::JobMessage canMesh(this->MeshType,remus::CAN_MESH);
+    canMesh.send(this->ServerComm);
+    return true;
+    }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool Worker::stopCommunicationThread()
+{
+  if(this->ServerCommThread && this->BComm)
+    {
+    //send message that we are shuting down communication
+    remus::common::JobMessage shutdown(this->MeshType,remus::SHUTDOWN);
+    shutdown.send(this->ServerComm);
+
+    this->ServerCommThread->join();
+    delete this->BComm;
+    delete this->ServerCommThread;
+
+    this->BComm = NULL;
+    this->ServerCommThread = NULL;
+    return true;
+    }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+remus::JobDetails Worker::getJob()
+{
+  remus::common::JobMessage askForMesh(this->MeshType,remus::MAKE_MESH);
+  askForMesh.send(this->ServerComm);
+
+  //we have our message back
+  remus::common::JobResponse response(this->ServerComm);
+  std::cout << "have our job from the server com in the real worker" <<std::endl;
+
+  //we need a better serialization techinque
+  std::string msg = response.dataAs<std::string>();
+  std::cout << "Raw job details " << msg << std::endl;
+
+  return remus::to_JobDetails(msg);
+}
+
+//-----------------------------------------------------------------------------
+void Worker::updateStatus(const remus::JobStatus& info)
+{
+  //send a message that contains, the status
+  std::string msg = remus::to_string(info);
+  remus::common::JobMessage message(this->MeshType,
+                                    remus::MESH_STATUS,
+                                    msg.data(),msg.size());
+  message.send(this->ServerComm);
+}
+
+//-----------------------------------------------------------------------------
+void Worker::returnMeshResults(const remus::JobResult& result)
+{
+  //send a message that contains, the path to the resulting file
+  std::string msg = remus::to_string(result);
+  remus::common::JobMessage message(this->MeshType,
+                                    remus::RETRIEVE_MESH,
+                                    msg.data(),msg.size());
+  message.send(this->ServerComm);
+}
+
+
+}
+}

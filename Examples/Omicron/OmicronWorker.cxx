@@ -8,7 +8,7 @@
 
 #include "OmicronWorker.h"
 
-#include <meshserver/common/ExecuteProcess.h>
+#include <remus/common/ExecuteProcess.h>
 
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
@@ -16,7 +16,7 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-omicronSettings::omicronSettings(meshserver::JobDetails *details):
+omicronSettings::omicronSettings(remus::JobDetails *details):
   args()
 {
   //job details are the arguments for the omicron instance we have
@@ -25,8 +25,8 @@ omicronSettings::omicronSettings(meshserver::JobDetails *details):
 }
 
 //-----------------------------------------------------------------------------
-OmicronWorker::OmicronWorker(const meshserver::worker::ServerConnection &conn):
-  meshserver::worker::Worker(meshserver::MESH3D,conn),
+OmicronWorker::OmicronWorker(const remus::worker::ServerConnection &conn):
+  remus::worker::Worker(remus::MESH3D,conn),
   JobDetails(NULL),
   OmicronProcess(NULL),
   Name("model"),
@@ -78,7 +78,7 @@ void OmicronWorker::meshJob()
     this->JobDetails = NULL;
     }
 
-  this->JobDetails = new meshserver::JobDetails(this->getJob());
+  this->JobDetails = new remus::JobDetails(this->getJob());
   this->launchOmicron( );
 
   //poll on omicron now
@@ -86,7 +86,7 @@ void OmicronWorker::meshJob()
   if(valid)
     {
     //send to the server the mesh results too
-    meshserver::JobResult results(this->JobDetails->JobId,
+    remus::JobResult results(this->JobDetails->JobId,
                                           "FAKE RESULTS");
     this->returnMeshResults(results);
     }
@@ -100,8 +100,8 @@ bool OmicronWorker::terminateMeshJob()
   if(this->OmicronProcess)
     {
     //update the server with the fact that will had to kill the job
-    meshserver::JobStatus status(this->JobDetails->JobId,
-                                         meshserver::FAILED);
+    remus::JobStatus status(this->JobDetails->JobId,
+                                         remus::FAILED);
     this->updateStatus(status);
 
     this->OmicronProcess->kill();
@@ -123,7 +123,7 @@ void OmicronWorker::launchOmicron()
   executionPath.replace_extension(".exe");
 #endif
 
-  this->OmicronProcess = new meshserver::common::ExecuteProcess(
+  this->OmicronProcess = new remus::common::ExecuteProcess(
                            executionPath.string(),settings.args);
 
   //actually launch the new process
@@ -146,7 +146,7 @@ void OmicronWorker::cleanlyExitOmicron()
 bool OmicronWorker::pollOmicronStatus()
 {
   //loop on polling of the omicron process
-  typedef meshserver::common::ProcessPipe ProcessPipe;
+  typedef remus::common::ProcessPipe ProcessPipe;
 
   //poll on STDOUT and STDERRR only
   bool validExection=true;
@@ -199,8 +199,8 @@ bool OmicronWorker::pollOmicronStatus()
 //-----------------------------------------------------------------------------
 void OmicronWorker::updateProgress(int value)
 {
-  meshserver::JobStatus status(this->JobDetails->JobId,
-                                       meshserver::IN_PROGRESS);
+  remus::JobStatus status(this->JobDetails->JobId,
+                                       remus::IN_PROGRESS);
   status.Progress = value;
   this->updateStatus(status);
 }

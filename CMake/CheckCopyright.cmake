@@ -12,7 +12,7 @@
 
 ## This CMake script checks source files for the appropriate copyright
 ## statement, which is stored in:
-## MeshServer_SOURCE_DIR/CMake/CopyrightStatement.txt
+## Remus_SOURCE_DIR/CMake/CopyrightStatement.txt
 ## To run this script, execute CMake as follows:
 
 cmake_minimum_required(VERSION 2.8)
@@ -22,11 +22,11 @@ set(FILES_TO_CHECK
   *.cxx
   )
 
-if (NOT MeshServer_SOURCE_DIR)
-  message(SEND_ERROR "MeshServer_SOURCE_DIR not defined.")
-endif (NOT MeshServer_SOURCE_DIR)
+if (NOT Remus_SOURCE_DIR)
+  message(SEND_ERROR "Remus_SOURCE_DIR not defined.")
+endif (NOT Remus_SOURCE_DIR)
 
-set(copyright_file ${MeshServer_SOURCE_DIR}/CMake/CopyrightStatement.txt)
+set(copyright_file ${Remus_SOURCE_DIR}/CMake/CopyrightStatement.txt)
 
 if (NOT EXISTS ${copyright_file})
   message(SEND_ERROR "Cannot find CopyrightStatement.txt")
@@ -162,11 +162,11 @@ endfunction(check_copyright)
 
 foreach (glob_expression ${FILES_TO_CHECK})
   file(GLOB_RECURSE file_list
-    RELATIVE "${MeshServer_SOURCE_DIR}/meshserver"
-    "${MeshServer_SOURCE_DIR}/meshserver/${glob_expression}"
+    RELATIVE "${Remus_SOURCE_DIR}/remus"
+    "${Remus_SOURCE_DIR}/remus/${glob_expression}"
     )
   foreach (file ${file_list})
     message("Checking ${file}")
-    check_copyright("${MeshServer_SOURCE_DIR}/meshserver/${file}")
+    check_copyright("${Remus_SOURCE_DIR}/remus/${file}")
   endforeach (file)
 endforeach (glob_expression)

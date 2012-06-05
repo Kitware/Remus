@@ -6,41 +6,41 @@
 
 =========================================================================*/
 
-#include <meshserver/client/Client.h>
+#include <remus/client/Client.h>
 
 #include <vector>
 #include <iostream>
 int main ()
 {
-  meshserver::client::ServerConnection conn;
-  meshserver::client::Client c(conn);
+  remus::client::ServerConnection conn;
+  remus::client::Client c(conn);
 
-  if(c.canMesh(meshserver::MESH2D))
+  if(c.canMesh(remus::MESH2D))
     {
     std::vector<std::string> jobs;
     for(int i=0; i < 12; ++i)
       {
-      std::string jid = c.submitMeshJob(meshserver::MESH2D,"TEST");
+      std::string jid = c.submitMeshJob(remus::MESH2D,"TEST");
       if(jid.size()>0)
         {
         jobs.push_back(jid);
         }
       }
 
-    std::vector<meshserver::JobStatus> js;
+    std::vector<remus::JobStatus> js;
     //fill the status array.
     for(int i=0; i < jobs.size(); ++i)
       {
-      js.push_back(c.jobStatus(meshserver::MESH2D,jobs.at(i)));
+      js.push_back(c.jobStatus(remus::MESH2D,jobs.at(i)));
       }
 
     while(jobs.size() > 0)
       {
       for(int i=0; i < jobs.size(); ++i)
         {
-        meshserver::JobStatus newStatus =
-            c.jobStatus(meshserver::MESH2D,jobs.at(i));
-        meshserver::JobStatus oldStatus =
+        remus::JobStatus newStatus =
+            c.jobStatus(remus::MESH2D,jobs.at(i));
+        remus::JobStatus oldStatus =
             js.at(i);
         js[i]=newStatus;
 
@@ -48,17 +48,17 @@ int main ()
            newStatus.Progress != oldStatus.Progress)
           {
           std::cout << "job id " << jobs.at(i) << std::endl;
-          if( newStatus.Status == meshserver::IN_PROGRESS)
+          if( newStatus.Status == remus::IN_PROGRESS)
             {
             std::cout << "progress is " << newStatus.Progress << std::endl;
             }
           else
             {
-            std::cout << " status of job is: " << meshserver::to_string(newStatus.Status)  << std::endl;
+            std::cout << " status of job is: " << remus::to_string(newStatus.Status)  << std::endl;
             }
           }
-        if(newStatus.Status == meshserver::FINISHED ||
-           newStatus.Status == meshserver::FAILED)
+        if(newStatus.Status == remus::FINISHED ||
+           newStatus.Status == remus::FAILED)
           {
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);

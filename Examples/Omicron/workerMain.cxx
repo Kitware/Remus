@@ -10,11 +10,11 @@
 
 int main (int argc, char* argv[])
 {
-  meshserver::worker::ServerConnection connection;
+  remus::worker::ServerConnection connection;
   if(argc>=2)
     {
     //let the server connection handle parsing the command arguments
-    connection = meshserver::worker::ServerConnection(std::string(argv[1]));
+    connection = remus::worker::ServerConnection(std::string(argv[1]));
     }
   OmicronWorker worker( connection );
   worker.meshJob();

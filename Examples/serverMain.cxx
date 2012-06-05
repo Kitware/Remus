@@ -6,14 +6,14 @@
 
 =========================================================================*/
 
-#include <meshserver/server/Server.h>
-#include <meshserver/server/WorkerFactory.h>
+#include <remus/server/Server.h>
+#include <remus/server/WorkerFactory.h>
 int main ()
 {
-  meshserver::server::WorkerFactory factory;
+  remus::server::WorkerFactory factory;
   factory.setMaxWorkerCount(4);
 
-  meshserver::server::Server b(factory);
+  remus::server::Server b(factory);
 
   bool valid = b.startBrokering();
   return valid ? 0 : 1;
