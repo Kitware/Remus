@@ -9,7 +9,7 @@
 # endif()
 
 
-add_revision(meshserver
+add_revision(remus
   GIT_REPOSITORY "git://kwsource.kitwarein.com/meshserver/meshserver.git"
   GIT_TAG master)
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(MeshServerSuperBuild)
+project(RemusSuperBuild)
 set (platform)
 if (UNIX)
   set (platform "unix")
@@ -18,9 +18,10 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-set (MeshServerSuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set (RemusSuperBuild_CMAKE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
-include (MeshServerModules)
+include (RemusModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
 set(MESHSERVER_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/install" CACHE FILEPATH "Location to build MeshServer.")
@@ -31,4 +32,4 @@ set (prefix_path "${install_location}")
 
 add_project(zeroMQ SYSTEM REQUIRED)
 add_project(boost SYSTEM REQUIRED)
-add_project(meshserver REQUIRED)
+add_project(remus REQUIRED)
