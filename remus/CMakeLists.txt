@@ -10,8 +10,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${ZeroMQ_INCLUDE_DIR})
 
 set(headers
-  JobDetails.h
+  Job.h
   JobResult.h
+  JobRequest.h
   JobStatus.h
   version.h
   )

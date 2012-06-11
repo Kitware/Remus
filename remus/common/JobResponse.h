@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <zmq.hpp>
 #include <remus/common/zmqHelper.h>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 #include <iostream>
 
@@ -40,11 +40,17 @@ public:
   template<typename T>
   T dataAs();
 
+  //Set the service type that this response is responding too.
+  //By default the service type is set to invalid if you don't specify one.
+  void setServiceType(remus::SERVICE_TYPE type) { SType = type; }
+  remus::SERVICE_TYPE serviceType() const { return SType; }
+
   bool send(zmq::socket_t& socket) const;
 
 private:
   void clearData();
   const zmq::socketIdentity ClientAddress;
+  remus::SERVICE_TYPE SType;
   zmq::message_t* Data;
 
   //make copying not possible
@@ -55,15 +61,21 @@ private:
 //------------------------------------------------------------------------------
 JobResponse::JobResponse(const zmq::socketIdentity& client):
   ClientAddress(client),
+  SType(remus::INVALID_SERVICE),
   Data(NULL)
   {
   }
 
 JobResponse::JobResponse(zmq::socket_t& socket):
   ClientAddress(),
+  SType(remus::INVALID_SERVICE),
   Data(NULL)
 {
   zmq::removeReqHeader(socket);
+
+  zmq::message_t servType;
+  socket.recv(&servType);
+  this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
   zmq::message_t data(0);
   socket.recv(&data);
@@ -142,7 +154,8 @@ bool JobResponse::send(zmq::socket_t& socket) const
   //we are sending our selves as a multi part message
   //frame 0: client address we need to route too [optional]
   //frame 1: fake rep spacer
-  //frame 2: data
+  //frame 2: Service Type we are responding too
+  //frame 3: data
   if(this->ClientAddress.size()>0)
     {
     zmq::message_t cAddress(this->ClientAddress.size());
@@ -151,6 +164,10 @@ bool JobResponse::send(zmq::socket_t& socket) const
     }
 
   zmq::attachReqHeader(socket);
+
+  zmq::message_t service(sizeof(this->SType));
+  memcpy(service.data(),&this->SType,sizeof(this->SType));
+  socket.send(service,ZMQ_SNDMORE);
 
   zmq::message_t realData;
   realData.move(this->Data);

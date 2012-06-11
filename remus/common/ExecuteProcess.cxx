@@ -108,12 +108,6 @@ void ExecuteProcess::execute(bool detachProcess)
     }
   cmds[size-1]=NULL;
 
-  std::cout << "Executing command " << this->Command << std::endl;
-  for(std::size_t i=0; i < this->Args.size();++i)
-    {
-    std::cout << "With Arguments " << this->Args[i] << std::endl;
-    }
-
   sysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             sysToolsProcess_Option_HideWindow, true);

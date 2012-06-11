@@ -126,7 +126,7 @@ inline zmq::socketInfo<zmq::proto::tcp> bindToTCPSocket(zmq::socket_t &socket,
 
   if(rc!=0)
     {
-    std::cout << "tcp socket binding failed" << std::endl;
+    std::cerr << "tcp socket binding failed" << std::endl;
     throw zmq::error_t();
     }
   return socketInfo;

@@ -18,13 +18,14 @@
 
 #include <cstddef>
 #include <remus/common/zmqHelper.h>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 namespace remus{
 namespace common{
 class JobMessage
 {
 public:
+  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data);
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
   explicit JobMessage(zmq::socket_t& socket);
@@ -65,6 +66,18 @@ private:
   //It isn't used when sending messages to the server
   boost::shared_ptr<DataStorage> Storage;
 };
+
+//------------------------------------------------------------------------------
+JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
+  MType(mtype),
+  SType(stype),
+  Data(data.data()),
+  Size(data.size()),
+  ValidMsg(true),
+  Storage(new DataStorage())
+  {
+  }
+
 
 //------------------------------------------------------------------------------
 JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):

@@ -37,6 +37,8 @@ class ActiveJobs
 
     bool remove(const boost::uuids::uuid& id);
 
+    zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
+
     bool haveUUID(const boost::uuids::uuid& id) const;
 
     bool haveResult(const boost::uuids::uuid& id) const;
@@ -72,7 +74,7 @@ private:
         haveResult(false)
         {
           //we give it two heartbeat cycles of lifetime to start
-          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
+          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
 
         void refresh()
@@ -120,6 +122,17 @@ bool ActiveJobs::remove(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
+zmq::socketIdentity ActiveJobs::workerAddress(const boost::uuids::uuid& id) const
+{
+  InfoConstIt item = this->Info.find(id);
+  if(item == this->Info.end())
+    {
+    return zmq::socketIdentity();
+    }
+  return item->second.WorkerAddress;
+}
+
+//-----------------------------------------------------------------------------
 bool ActiveJobs::haveUUID(const boost::uuids::uuid& id) const
 {
   return this->Info.count(id) != 0;
@@ -157,7 +170,8 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
-  if(item->second.canUpdateStatus())
+  if(item != this->Info.end() &&
+     item->second.canUpdateStatus())
     {
     item->second.jstatus = s;
     item->second.refresh();
@@ -168,9 +182,12 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
 void ActiveJobs::updateResult(const remus::JobResult& r)
 {
   InfoIt item = this->Info.find(r.JobId);
-  item->second.jresult = r;
-  item->second.haveResult = true;
-  item->second.refresh();
+  if(item != this->Info.end())
+    {
+    item->second.jresult = r;
+    item->second.haveResult = true;
+    item->second.refresh();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -184,7 +201,7 @@ void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
       {
       item->second.jstatus.Status = remus::FAILED;
       item->second.jstatus.Progress = 0;
-      std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
+      //std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
       }
     }
 }

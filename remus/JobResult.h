@@ -19,20 +19,27 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+//Job result holds the result that the worker generated for a given job.
+//The Data string will hold the actual job result, be it a file path or a custom
+//serialized data structure.
+
 namespace remus {
 struct JobResult
 {
   boost::uuids::uuid JobId;
-  std::string Path; //path to the job file to start
+  std::string Data; //data of the result of a job
 
+  //construct a job result with no data. This would be considered to be an
+  //invalid job result
   explicit JobResult(const boost::uuids::uuid& id):
     JobId(id),
-    Path()
+    Data()
     {}
 
-  JobResult(const boost::uuids::uuid& id, const std::string& p):
+  //construct a result with actual data.
+  JobResult(const boost::uuids::uuid& id, const std::string& d):
     JobId(id),
-    Path(p)
+    Data(d)
     {}
 };
 
@@ -40,10 +47,10 @@ struct JobResult
 inline std::string to_string(const remus::JobResult& status)
 {
   //convert a job detail to a string, used as a hack to serialize
-  //encoding is simple, contents newline seperated
+  //encoding is simple, contents newline separated
   std::stringstream buffer;
   buffer << status.JobId << std::endl;
-  buffer << status.Path << std::endl;
+  buffer << status.Data << std::endl;
   return buffer.str();
 }
 
@@ -56,10 +63,10 @@ inline remus::JobResult to_JobResult(const std::string& status)
   std::stringstream buffer(status);
 
   boost::uuids::uuid id;
-  std::string path;
+  std::string data;
   buffer >> id;
-  buffer >> path;
-  return remus::JobResult(id,path);
+  buffer >> data;
+  return remus::JobResult(id,data);
 }
 
 //------------------------------------------------------------------------------

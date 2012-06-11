@@ -41,16 +41,11 @@ public:
 
   void run(zmq::context_t *context)
   {
-    std::cout << "thread started" << std::endl;
-
     zmq::socket_t Worker(*context,ZMQ_PAIR);
     zmq::socket_t Server(*context,ZMQ_DEALER);
 
-    std::cout << "Server endpoint is: " << this->ServerEndpoint << std::endl;
     zmq::connectToAddress(Server,this->ServerEndpoint);
-    std::cout << "Worker internal comm is: " << this->MainEndpoint << std::endl;
     zmq::connectToAddress(Worker,this->MainEndpoint);
-
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
                                   { Server,  0, ZMQ_POLLIN, 0 } };
@@ -77,15 +72,23 @@ public:
         //we make sure ContinueTalking is valid so we know the worker
         //is still listening and not in destructor
 
-        //we have a message from the server for know this can only be the
-        //reply back from a job query so send it to the worker.
+        //we can have two  response types, one which is for the Service MakeMesh
+        //and the other for the Service shutdown which kills the worker process
         remus::common::JobResponse response(Server);
-
-        response.send(Worker);
+        if(response.serviceType() != remus::SHUTDOWN)
+          {
+          response.send(Worker);
+          }
+        else
+          {
+          //Todo: we should allow the worker to add in a hook to only terminate
+          //a single job or handle doing a clean shutdown
+          exit(1);
+          }
         }
       if(!sentToServer)
         {
-        std::cout << "send heartbeat to server" << std::endl;
+        //std::cout << "send heartbeat to server" << std::endl;
         //send a heartbeat to the server
         remus::common::JobMessage message(remus::INVALID_MESH,remus::HEARTBEAT);
         message.send(Server);
@@ -163,20 +166,20 @@ bool Worker::stopCommunicationThread()
 }
 
 //-----------------------------------------------------------------------------
-remus::JobDetails Worker::getJob()
+remus::Job Worker::getJob()
 {
   remus::common::JobMessage askForMesh(this->MeshType,remus::MAKE_MESH);
   askForMesh.send(this->ServerComm);
 
   //we have our message back
   remus::common::JobResponse response(this->ServerComm);
-  std::cout << "have our job from the server com in the real worker" <<std::endl;
+  //std::cout << "have our job from the server com in the real worker" <<std::endl;
 
-  //we need a better serialization techinque
+  //we need a better serialization technique
   std::string msg = response.dataAs<std::string>();
-  std::cout << "Raw job details " << msg << std::endl;
+  //std::cout << "Raw job details " << msg << std::endl;
 
-  return remus::to_JobDetails(msg);
+  return remus::to_Job(msg);
 }
 
 //-----------------------------------------------------------------------------

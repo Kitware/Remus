@@ -52,23 +52,23 @@ namespace server{
 //class that loads all files in the executing directory
 //with the msw extension and creates a vector of possible
 //meshers with that info
-class MSWFinder
+class RWFinder
 {
 public:
   typedef std::vector<MeshWorkerInfo>::const_iterator const_iterator;
   typedef std::vector<MeshWorkerInfo>::iterator iterator;
-  const std::string MSWExt;
+  const std::string RWExt;
 
 
-  MSWFinder():
-    MSWExt(".MSW")
+  RWFinder():
+    RWExt(".RW")
     {
     boost::filesystem::path cwd = boost::filesystem::current_path();
     this->parseDirectory(cwd);
     }
 
-  MSWFinder(const boost::filesystem::path& path):
-    MSWExt(".MSW")
+  RWFinder(const boost::filesystem::path& path):
+    RWExt(".RW")
     {
     this->parseDirectory(path);
     }
@@ -83,7 +83,7 @@ public:
         {
         std::string ext = boost::algorithm::to_upper_copy(
                             i->path().extension().string());
-        if(ext == MSWExt)
+        if(ext == RWExt)
           {
           this->parseFile(i->path());
           }
@@ -127,7 +127,7 @@ public:
   const_iterator end() const {return this->Info.end();}
 
 private:
-  std::vector<MeshWorkerInfo> Info;  
+  std::vector<MeshWorkerInfo> Info;
 
 };
 
@@ -135,7 +135,7 @@ private:
 WorkerFactory::WorkerFactory()
 {
   this->MaxWorkers = 1;
-  MSWFinder finder; //default to current working directory
+  RWFinder finder; //default to current working directory
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
@@ -157,7 +157,7 @@ void WorkerFactory::addCommandLineArgument(const std::string& argument)
 void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 {
   boost::filesystem::path dir(directory);
-  MSWFinder finder(dir);
+  RWFinder finder(dir);
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
@@ -201,12 +201,12 @@ void WorkerFactory::updateWorkerCount()
   ProcessIterator result = std::remove_if(this->CurrentProcesses.begin(),
                                           this->CurrentProcesses.end(),
                                           is_dead());
-  std::size_t size = std::distance(result,this->CurrentProcesses.end());
-  if( size > 0)
-    {
-    std::cout << "Removing dead workers processes, num " << size << std::endl;
-    }
-  this->CurrentProcesses.erase(result,this->CurrentProcesses.end());
+  std::size_t numDead = std::distance(result,this->CurrentProcesses.end());
+  // if( numDead > 0)
+  //   {
+  //   std::cout << "Removing dead workers processes, num " << numDead << std::endl;
+  //   }
+  this->CurrentProcesses.resize(this->CurrentProcesses.size()-numDead);
 }
 
 
@@ -214,7 +214,6 @@ void WorkerFactory::updateWorkerCount()
 bool WorkerFactory::addWorker(const std::string& executable)
 {
   //add this workers
-  std::cout << "creating a new worker process" << std::endl;
   ExecuteProcessPtr ep(new ExecuteProcess(executable,this->GlobalArguments) );
   ep->execute(true); //detach worker
   this->CurrentProcesses.push_back(ep);

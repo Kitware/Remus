@@ -10,13 +10,18 @@
 
 int main (int argc, char* argv[])
 {
+  //create a default server connection object
   remus::worker::ServerConnection connection;
   if(argc>=2)
     {
-    //let the server connection handle parsing the command arguments
+    //if we are passed a custom end point to connect to on the command line
+    //use that over the default server connection options
     connection = remus::worker::ServerConnection(std::string(argv[1]));
     }
-  OmicronWorker worker( connection );
+
+  //create a 3d omicron mesher
+  OmicronWorker worker(remus::MESH3D, connection );
+  worker.setExecutableName("model");
   worker.meshJob();
   return 1;
 }

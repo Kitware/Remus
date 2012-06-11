@@ -14,7 +14,7 @@
 #define __remus_server_WorkeryFactory_h
 
 #include <vector>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 #include <boost/shared_ptr.hpp>
 
 //included for symbol exports
