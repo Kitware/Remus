@@ -1,6 +1,6 @@
 [hooks]
 	url = http://public.kitware.com/SiMBA.git
 [gerrit]
-	project = ERDC/remus
+	project = ERDC/Remus
 	site = http://review.source.kitware.com
-	url = $username@review.source.kitware.com:ERDC/remus
+	url = $username@review.source.kitware.com:ERDC/Remus
