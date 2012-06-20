@@ -68,6 +68,19 @@ inline std::string to_string(remus::MESH_TYPE t)
 }
 
 //------------------------------------------------------------------------------
+inline std::string to_string(remus::SERVICE_TYPE t)
+{
+  return std::string(remus::common::serv_types[(int)t]);
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(remus::STATUS_TYPE t)
+{
+  return std::string(remus::common::stat_types[(int)t]);
+}
+
+
+//------------------------------------------------------------------------------
 inline remus::MESH_TYPE to_meshType(const std::string& t)
 {
   for(int i=2; i <=4; i++)
@@ -82,16 +95,20 @@ inline remus::MESH_TYPE to_meshType(const std::string& t)
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(remus::SERVICE_TYPE t)
+inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 {
-  return std::string(remus::common::serv_types[(int)t]);
+  for(int i=1; i <=6; i++)
+    {
+    remus::SERVICE_TYPE mt=static_cast<remus::SERVICE_TYPE>(i);
+    if (remus::to_string(mt) == t)
+      {
+      return mt;
+      }
+    }
+  return remus::INVALID_SERVICE;
 }
 
-//------------------------------------------------------------------------------
-inline std::string to_string(remus::STATUS_TYPE t)
-{
-  return std::string(remus::common::stat_types[(int)t]);
-}
+
 
 
 }

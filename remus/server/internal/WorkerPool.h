@@ -99,8 +99,6 @@ private:
 bool WorkerPool::addWorker(zmq::socketIdentity workerIdentity,
                            const remus::MESH_TYPE &type)
 {
-  std::cout << "Adding worker " << zmq::to_string(workerIdentity) <<
-               "for mesh type " << remus::to_string(type) << std::endl;
   this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,type) );
   return true;
 }
@@ -137,8 +135,6 @@ bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
       {
       found = true;
       i->WaitingForWork = true;
-      std::cout << "worker " << zmq::to_string(address) <<
-                   "is looking for work" << std::endl;
       }
     }
   return found;
@@ -152,10 +148,14 @@ zmq::socketIdentity WorkerPool::takeWorker(const MESH_TYPE &type)
   bool found = false;
   int index = 0;
   WorkerInfo* info;
-  for(index=0; index < this->Pool.size() && !found; ++index)
+  for(index=0; index < this->Pool.size(); ++index)
     {
     info = &this->Pool[index];
     found = (info->MType == type) && (info->WaitingForWork);
+    if(found)
+      {
+      break;
+      }
     }
 
   if(found)
@@ -175,10 +175,10 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
   //remove if moves all bad items to end of the vector and returns
   //an iterator to the new end
   It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
-  if(std::distance(newEnd,this->Pool.end()) > 0)
-    {
-    std::cout << "Removing dead workers, num " << std::distance(newEnd,this->Pool.end()) << std::endl;
-    }
+  // if(std::distance(newEnd,this->Pool.end()) > 0)
+  //   {
+  //   std::cout << "Purging dead workers, num " << std::distance(newEnd,this->Pool.end()) << std::endl;
+  //   }
 
   //erase all the elements that remove_if moved to the end
   this->Pool.erase(newEnd,this->Pool.end());

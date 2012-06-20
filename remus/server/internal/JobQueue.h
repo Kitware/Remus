@@ -19,7 +19,7 @@
 #include <vector>
 #include <set>
 
-#include <remus/JobDetails.h>
+#include <remus/Job.h>
 #include <remus/common/JobMessage.h>
 #include <remus/server/internal/uuidHelper.h>
 
@@ -40,8 +40,8 @@ public:
              const remus::common::JobMessage& message);
 
   //Removes a job from the queue of the given mesh type.
-  //Return it as a JobDetail
-  remus::JobDetails takeJob(remus::MESH_TYPE type);
+  //Return it as a Job
+  remus::Job takeJob(remus::MESH_TYPE type);
 
   //returns the types of jobs that are waiting for a worker
   std::set<remus::MESH_TYPE> waitingForWorkerTypes() const;
@@ -55,6 +55,9 @@ public:
 
   //Returns true if we contain the UUID
   bool haveUUID(const boost::uuids::uuid& id) const;
+
+  //Returns true if we can remove a job with a give uuid
+  bool remove(const boost::uuids::uuid& id);
 
 private:
   struct QueuedJob
@@ -98,7 +101,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-remus::JobDetails JobQueue::takeJob(MESH_TYPE type)
+remus::Job JobQueue::takeJob(MESH_TYPE type)
 {
   QueuedJob* job;
   int index = 0;
@@ -116,18 +119,18 @@ remus::JobDetails JobQueue::takeJob(MESH_TYPE type)
   if(found)
     {
     boost::uuids::uuid id = job->Id;
-    //convert the queued job into a job detail
+    //convert the queued job request into a job
     const std::string data(job->Message.data(),job->Message.dataSize());
 
     this->QueuedIds.erase(id);
     this->Queue.erase(this->Queue.begin()+index);
-    std::cout << "num queued jobs left: " << this->Queue.size() << std::endl;
+    //std::cout << "num queued jobs left: " << this->Queue.size() << std::endl;
 
-    return remus::JobDetails(id,data);
+    return remus::Job(id,type,data);
     }
 
-  std::cout << "returning fake job" << std::endl;
-  return remus::JobDetails(boost::uuids::uuid(),"INVALID");
+  //std::cout << "returning fake job" << std::endl;
+  return remus::Job(boost::uuids::uuid(),type);
 }
 
 //------------------------------------------------------------------------------
@@ -186,6 +189,31 @@ bool JobQueue::workerDispatched(remus::MESH_TYPE type)
 bool JobQueue::haveUUID(const boost::uuids::uuid &id) const
 {
   return this->QueuedIds.count(id) == 1 ? true : false;
+}
+
+//------------------------------------------------------------------------------
+bool JobQueue::remove(const boost::uuids::uuid& id)
+{
+  QueuedJob* job;
+  int index = 0;
+  bool found = false;
+  for(index=0; index < this->Queue.size(); ++index)
+    {
+    job = &this->Queue[index];
+    if(job->Id == id)
+      {
+      found = true;
+      break;
+      }
+    }
+
+  if(found)
+    {
+    boost::uuids::uuid id = job->Id;
+    this->QueuedIds.erase(id);
+    this->Queue.erase(this->Queue.begin()+index);
+    }
+  return found;
 }
 
 }

@@ -10,21 +10,28 @@
 //
 //=============================================================================
 
-#ifndef __remus_client_h
-#define __remus_client_h
+#ifndef __remus_client_client_h
+#define __remus_client_client_h
 
 #include <zmq.hpp>
 #include <string>
+#include <vector>
 
+#include <remus/Job.h>
 #include <remus/JobResult.h>
+#include <remus/JobRequest.h>
 #include <remus/JobStatus.h>
+
 #include <remus/common/JobMessage.h>
 #include <remus/common/JobResponse.h>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
 #include <remus/client/ServerConnection.h>
 
 
+//The client class is used to submit meshing jobs to a remus server.
+//The class also allows you to query on the state of a given job and
+//to retrieve the results of the job when it is finished.
 namespace remus{
 namespace client{
 class Client
@@ -33,24 +40,23 @@ public:
   //connect to a given host on a given port with tcp
   explicit Client(const remus::client::ServerConnection& conn);
 
-  //Submit a request to the server to see if it support the type of mesh
-  bool canMesh(remus::MESH_TYPE mtype);
+  //Submit a request to the server to see if it support the requirements
+  //of a given job request
+  bool canMesh(const remus::JobRequest& request);
 
-  //Submit a mesh job to the server. Currently only supports submitting
-  //text/file path based jobs. Returns the job unique id as a string. Failure
-  //to submit the job is handled by return an empty string
-  std::string submitMeshJob(remus::MESH_TYPE mtype,
-                            const std::string& fpath);
+  //Submit a job to the server.
+  remus::Job submitJob(const remus::JobRequest& request);
 
-  //Given a mesh type and the job unique id as a string will return the
-  //status of the job.
-  remus::JobStatus jobStatus(remus::MESH_TYPE mtype,
-                                    const std::string& jobId);
+  //Given a remus Job object returns the status of the job
+  remus::JobStatus jobStatus(const remus::Job& job);
 
-  //Return the path of a completed mesh job. Will return an empty string
-  //if the mesh is not completed
-  remus::JobResult retrieveMesh(remus::MESH_TYPE mtype,
-                           const std::string& jobId);
+  //Return job result of of a give job
+  remus::JobResult retrieveResults(const remus::Job& job);
+
+  //attempts to terminate a given job, will kill the worker of a job
+  //if the job is still pending. If the job has been finished and the results
+  //are on the server the results will be deleted.
+  remus::JobStatus terminate(const remus::Job& job);
 
 private:
   zmq::context_t Context;
@@ -66,9 +72,11 @@ Client::Client(const remus::client::ServerConnection &conn):
 }
 
 //------------------------------------------------------------------------------
-bool Client::canMesh(remus::MESH_TYPE mtype)
+bool Client::canMesh(const remus::JobRequest& request)
 {
-  remus::common::JobMessage j(mtype,remus::CAN_MESH);
+  remus::common::JobMessage j(request.type(),
+                              remus::CAN_MESH,
+                              remus::to_string(request));
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
@@ -76,24 +84,24 @@ bool Client::canMesh(remus::MESH_TYPE mtype)
 }
 
 //------------------------------------------------------------------------------
-std::string Client::submitMeshJob(remus::MESH_TYPE mtype, const std::string& fpath)
+remus::Job Client::submitJob(const remus::JobRequest& request)
 {
-  remus::common::JobMessage j(mtype,
-                           remus::MAKE_MESH,
-                           fpath.data(),
-                           fpath.size());
+  remus::common::JobMessage j(request.type(),
+                              remus::MAKE_MESH,
+                              remus::to_string(request));
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
-  return response.dataAs<std::string>();
+  const std::string job = response.dataAs<std::string>();
+  return remus::to_Job(job);
 }
 
 //------------------------------------------------------------------------------
-remus::JobStatus Client::jobStatus(remus::MESH_TYPE mtype, const std::string& job)
+remus::JobStatus Client::jobStatus(const remus::Job& job)
 {
-  remus::common::JobMessage j(mtype,
-                           remus::MESH_STATUS,
-                           job.data(), job.size());
+  remus::common::JobMessage j(job.type(),
+                              remus::MESH_STATUS,
+                              remus::to_string(job));
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
@@ -102,12 +110,11 @@ remus::JobStatus Client::jobStatus(remus::MESH_TYPE mtype, const std::string& jo
 }
 
 //------------------------------------------------------------------------------
-remus::JobResult Client::retrieveMesh(remus::MESH_TYPE mtype, const std::string& jobId)
+remus::JobResult Client::retrieveResults(const remus::Job& job)
 {
-  remus::common::JobMessage j(mtype,
-                           remus::MAKE_MESH,
-                           jobId.data(),
-                           jobId.size());
+  remus::common::JobMessage j(job.type(),
+                              remus::RETRIEVE_MESH,
+                              remus::to_string(job));
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
@@ -115,7 +122,23 @@ remus::JobResult Client::retrieveMesh(remus::MESH_TYPE mtype, const std::string&
   return remus::to_JobResult(result);
 }
 
+//------------------------------------------------------------------------------
+remus::JobStatus Client::terminate(const remus::Job& job)
+{
+  remus::common::JobMessage j(job.type(),
+                              remus::SHUTDOWN,
+                              remus::to_string(job));
+  j.send(this->Server);
+
+  remus::common::JobResponse response(this->Server);
+  const std::string status = response.dataAs<std::string>();
+  return remus::to_JobStatus(status);
 }
+}
+
+//We want the user to have a nicer experience creating the client interface.
+//For this reason we remove the stuttering when making an instance of the client.
+typedef remus::client::Client Client;
 }
 
 #endif

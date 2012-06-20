@@ -14,22 +14,30 @@
 #include <boost/filesystem.hpp>
 
 #include <iostream>
+#include <sstream>
 
 //-----------------------------------------------------------------------------
-omicronSettings::omicronSettings(remus::JobDetails *details):
+omicronSettings::omicronSettings(remus::Job *job):
   args()
 {
-  //job details are the arguments for the omicron instance we have
-  //dirty hack since we know that the client is only passing one argument to omicron
-  args.push_back(details->Path);
+  //job details are the arguments for the omicron instance we have.
+  std::stringstream buffer(job->details());
+  std::string arg;
+
+  //get all the arguments from the string which are split by the new line char
+  while(getline(buffer,arg))
+    {
+    args.push_back(arg);
+    }
 }
 
 //-----------------------------------------------------------------------------
-OmicronWorker::OmicronWorker(const remus::worker::ServerConnection &conn):
-  remus::worker::Worker(remus::MESH3D,conn),
-  JobDetails(NULL),
+OmicronWorker::OmicronWorker(remus::MESH_TYPE type,
+                             const remus::worker::ServerConnection &conn):
+  remus::worker::Worker(type,conn),
+  Job(NULL),
   OmicronProcess(NULL),
-  Name("model"),
+  Name(),
   Directory(boost::filesystem::current_path().string())
 {
 
@@ -38,9 +46,9 @@ OmicronWorker::OmicronWorker(const remus::worker::ServerConnection &conn):
 //-----------------------------------------------------------------------------
 OmicronWorker::~OmicronWorker()
 {
-  if(this->JobDetails)
+  if(this->Job)
     {
-    delete this->JobDetails;
+    delete this->Job;
     }
   this->cleanlyExitOmicron();
 }
@@ -72,13 +80,13 @@ const std::string& OmicronWorker::executableDir() const
 //-----------------------------------------------------------------------------
 void OmicronWorker::meshJob()
 {
-  if(this->JobDetails)
+  if(this->Job)
     {
-    delete this->JobDetails;
-    this->JobDetails = NULL;
+    delete this->Job;
+    this->Job = NULL;
     }
 
-  this->JobDetails = new remus::JobDetails(this->getJob());
+  this->Job = new remus::Job(this->getJob());
   this->launchOmicron( );
 
   //poll on omicron now
@@ -86,8 +94,7 @@ void OmicronWorker::meshJob()
   if(valid)
     {
     //send to the server the mesh results too
-    remus::JobResult results(this->JobDetails->JobId,
-                                          "FAKE RESULTS");
+    remus::JobResult results(this->Job->id(),"FAKE RESULTS");
     this->returnMeshResults(results);
     }
 
@@ -100,8 +107,7 @@ bool OmicronWorker::terminateMeshJob()
   if(this->OmicronProcess)
     {
     //update the server with the fact that will had to kill the job
-    remus::JobStatus status(this->JobDetails->JobId,
-                                         remus::FAILED);
+    remus::JobStatus status(this->Job->id(),remus::FAILED);
     this->updateStatus(status);
 
     this->OmicronProcess->kill();
@@ -116,7 +122,7 @@ void OmicronWorker::launchOmicron()
   //wait for any current process to finish before starting new one
   this->cleanlyExitOmicron();
 
-  omicronSettings settings(this->JobDetails);
+  omicronSettings settings(this->Job);
   boost::filesystem::path executionPath = this->Directory;
   executionPath /= this->Name;
 #ifdef WIN32
@@ -199,8 +205,7 @@ bool OmicronWorker::pollOmicronStatus()
 //-----------------------------------------------------------------------------
 void OmicronWorker::updateProgress(int value)
 {
-  remus::JobStatus status(this->JobDetails->JobId,
-                                       remus::IN_PROGRESS);
+  remus::JobStatus status(this->Job->id(),remus::IN_PROGRESS);
   status.Progress = value;
   this->updateStatus(status);
 }

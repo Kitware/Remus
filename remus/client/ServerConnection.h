@@ -14,7 +14,7 @@
 #define __remus_client_serverConnection_h
 
 #include <remus/common/zmqHelper.h>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 namespace remus{
 namespace client{
@@ -36,7 +36,11 @@ public:
     {
     }
 
-  explicit ServerConnection(zmq::socketInfo<zmq::proto::tcp> const& socket):
+  //create a connection object that connects to the server specified by the
+  //zmq::socketInfo. This is another way to connect to a non default server
+  //with a custom protocol
+  template<typename T>
+  explicit ServerConnection(zmq::socketInfo<T> const& socket):
     Endpoint(socket.endpoint())
     {
     }

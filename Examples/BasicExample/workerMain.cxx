@@ -19,27 +19,29 @@ int main (int argc, char* argv[])
     connection = remus::worker::ServerConnection(std::string(argv[1]));
     }
 
-  remus::worker::Worker w(remus::MESH2D,connection);
+  remus::Worker w(remus::MESH2D,connection);
 
-  remus::JobDetails jd = w.getJob();
+  remus::Job jd = w.getJob();
 
   for(int progress=1; progress <= 100; ++progress)
     {
     if(progress%20==0)
+      {
 #ifdef _WIN32
       Sleep(1000);
 #else
       sleep(1);
 #endif
-    remus::JobStatus status(jd.JobId,remus::IN_PROGRESS);
-    status.Progress = progress;
-    w.updateStatus(status);
+      remus::JobStatus status(jd.id(),remus::IN_PROGRESS);
+      status.Progress = progress;
+      w.updateStatus(status);
+      }
     }
 
-  remus::JobStatus status(jd.JobId,remus::FINISHED);
+  remus::JobStatus status(jd.id(),remus::FINISHED);
   w.updateStatus(status);
 
-  remus::JobResult results(jd.JobId,"FAKE RESULTS");
+  remus::JobResult results(jd.id(),"FAKE RESULTS");
   w.returnMeshResults(results);
 
   return 1;

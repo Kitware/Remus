@@ -15,11 +15,11 @@
 
 #include <remus/common/zmqHelper.h>
 
-#include <remus/JobDetails.h>
+#include <remus/Job.h>
 #include <remus/JobResult.h>
 #include <remus/JobStatus.h>
 
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 #include <remus/worker/ServerConnection.h>
 
@@ -31,10 +31,15 @@ namespace boost { class thread; }
 
 namespace remus{
 namespace worker{
+
+//The worker class is the interface for accepting jobs to process from a
+// remus server. Once you get a job from the server you process the given
+// job reporting back the status of the job, and than once finished the
+// results of the job.
 class REMUSWORKER_EXPORT Worker
 {
 public:
-  //constuct a worker that can mesh a single type
+  //construct a worker that can mesh a single type
   //it uses the server connection object to determine what server
   //to connect too
   explicit Worker(remus::MESH_TYPE mtype,
@@ -44,7 +49,7 @@ public:
 
   //gets back a job from the server
   //this will lock the worker as it will wait on a job message
-  virtual remus::JobDetails getJob();
+  virtual remus::Job getJob();
 
   //update the status of the worker
   virtual void updateStatus(const remus::JobStatus& info);
@@ -78,5 +83,10 @@ private:
 };
 
 }
+
+//We want the user to have a nicer experience creating the worker interface.
+//For this reason we remove the stuttering when making an instance of the worker.
+typedef remus::worker::Worker Worker;
+
 }
 #endif

@@ -20,7 +20,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 namespace
 {

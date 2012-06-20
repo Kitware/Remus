@@ -14,7 +14,7 @@
 #define __remus_worker_serverConnection_h
 
 #include <remus/common/zmqHelper.h>
-#include <remus/common/meshServerGlobals.h>
+#include <remus/common/remusGlobals.h>
 
 namespace remus{
 namespace worker{
