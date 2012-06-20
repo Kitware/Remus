@@ -10,7 +10,7 @@ set(headers
   ExecuteProcess.h
   JobMessage.h
   JobResponse.h
-  meshServerGlobals.h
+  remusGlobals.h
   zmqHelper.h
   zmqTraits.h
   )
