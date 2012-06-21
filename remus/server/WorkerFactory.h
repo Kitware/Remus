@@ -38,11 +38,23 @@ struct REMUSSERVER_EXPORT MeshWorkerInfo
     Type(t),ExecutionPath(p){}
 };
 
+//The Worker Factory has two tasks.
+//First it locates all files that match a given extension of the default extension
+//of .rw. These files are than parsed to determine what type of local Remus workers
+//we can launch.
+//The second tasks the factory has is the ability to launch workers when requested.
+//You can control the number of launched workers, by calling setMaxWorkerCount.
 class REMUSSERVER_EXPORT WorkerFactory
 {
 public:
-  //Work Factory defaults to creating a maximum of 1 workers at once
+  //Work Factory defaults to creating a maximum of 1 workers at once,
+  //with a default extension to search for of "rw"
   WorkerFactory();
+
+  //Create a worker factory with a different file extension to
+  //search for. The extension must start with a peroid.
+  WorkerFactory(const std::string& ext);
+
   virtual ~WorkerFactory();
 
   //add command line argument to be passed to all workers that
@@ -73,9 +85,12 @@ protected:
   virtual bool addWorker(const std::string& executable);
 
   unsigned int MaxWorkers;
+  std::string WorkerExtension;
+
   std::vector<MeshWorkerInfo> PossibleWorkers;
   std::vector<ExecuteProcessPtr> CurrentProcesses;
   std::vector<std::string> GlobalArguments;
+
 };
 
 }

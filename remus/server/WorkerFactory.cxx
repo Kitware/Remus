@@ -52,23 +52,24 @@ namespace server{
 //class that loads all files in the executing directory
 //with the msw extension and creates a vector of possible
 //meshers with that info
-class RWFinder
+class WorkerFinder
 {
 public:
   typedef std::vector<MeshWorkerInfo>::const_iterator const_iterator;
   typedef std::vector<MeshWorkerInfo>::iterator iterator;
-  const std::string RWExt;
+  const std::string FileExt;
 
 
-  RWFinder():
-    RWExt(".RW")
+  WorkerFinder(const std::string& ext):
+    FileExt(ext)
     {
     boost::filesystem::path cwd = boost::filesystem::current_path();
     this->parseDirectory(cwd);
     }
 
-  RWFinder(const boost::filesystem::path& path):
-    RWExt(".RW")
+  WorkerFinder(const boost::filesystem::path& path,
+               const std::string& ext):
+    FileExt(ext)
     {
     this->parseDirectory(path);
     }
@@ -83,7 +84,7 @@ public:
         {
         std::string ext = boost::algorithm::to_upper_copy(
                             i->path().extension().string());
-        if(ext == RWExt)
+        if(ext == FileExt)
           {
           this->parseFile(i->path());
           }
@@ -132,14 +133,32 @@ private:
 };
 
 //----------------------------------------------------------------------------
-WorkerFactory::WorkerFactory()
+WorkerFactory::WorkerFactory():
+  MaxWorkers(1),
+  WorkerExtension(".RW"),
+  PossibleWorkers(),
+  CurrentProcesses(),
+  GlobalArguments()
 {
-  this->MaxWorkers = 1;
-  RWFinder finder; //default to current working directory
+  WorkerFinder finder(this->WorkerExtension); //default to current working directory
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
 
+}
+
+//----------------------------------------------------------------------------
+WorkerFactory::WorkerFactory(const std::string& ext):
+  MaxWorkers(1),
+  WorkerExtension(ext),
+  PossibleWorkers(),
+  CurrentProcesses(),
+  GlobalArguments()
+{
+  WorkerFinder finder(this->WorkerExtension); //default to current working directory
+  this->PossibleWorkers.insert(this->PossibleWorkers.end(),
+                               finder.begin(),
+                               finder.end());
 }
 
 //----------------------------------------------------------------------------
@@ -157,7 +176,7 @@ void WorkerFactory::addCommandLineArgument(const std::string& argument)
 void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 {
   boost::filesystem::path dir(directory);
-  RWFinder finder(dir);
+  WorkerFinder finder(dir,this->WorkerExtension);
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
