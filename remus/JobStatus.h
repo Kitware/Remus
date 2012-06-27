@@ -39,6 +39,12 @@ struct JobStatus
   remus::STATUS_TYPE Status;
   int Progress;
 
+  JobStatus():
+    JobId(),
+    Status(remus::INVALID_STATUS),
+    Progress(-1)
+    {}
+
   JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
     JobId(id),
     Status(stat),
