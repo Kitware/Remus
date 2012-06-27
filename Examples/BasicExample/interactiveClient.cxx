@@ -44,12 +44,38 @@ void dumpJobInfo(remus::Client& client)
     }
 }
 
+void submitJob(remus::Client& client)
+{
+  for(int i=2; i <=4; i++)
+    {
+    remus::MESH_TYPE mt=static_cast<remus::MESH_TYPE>(i);
+    std::cout << i << " " << remus::to_string(mt) << std::endl;
+    }
+  std::cout<<"Enter Job Type (integer): " << std::endl;
+  int type;
+  std::cin >>type;
+
+  std::string data;
+  std::cout<<"Enter Job Dat (string) : " << std::endl;
+  std::cin >> data;
+
+  remus::JobRequest request(static_cast<remus::MESH_TYPE>(type),data);
+  remus::Job job = client.submitJob(request);
+
+  std::cout << "Job Submitted, info is: " << std::endl;
+  std::cout << "Job Valid: " << job.valid() << std::endl;
+  std::cout << "Job Id: " << job.id() << std::endl;
+  std::cout << "Job Type: " << remus::to_string(job.type()) << std::endl;
+  return;
+}
+
 
 int showMenu()
 {
   std::cout << "Options Are:" << std::endl;
   std::cout << "1: Dump Aviable Worker Types" << std::endl;
   std::cout << "2: Dump Info On Job" << std::endl;
+  std::cout << "3: Submit Job" << std::endl;
   std::cout << std::endl;
   std::cout << "All other will quit application." << std::endl;
   int returnValue;
@@ -78,6 +104,9 @@ int main ()
         break;
       case 2:
         dumpJobInfo(c);
+        break;
+      case 3:
+        submitJob(c);
         break;
       default:
         wantInfo=false;
