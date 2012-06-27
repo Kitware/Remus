@@ -25,9 +25,17 @@ namespace common{
 class JobMessage
 {
 public:
+  //pass in a data string the job message will copy and send
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data);
+
+  //pass in a data pointer that the message will use when sending
+  //the pointer data can't become invalid before you call send.
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
+
+  //creates a job message with no data
   JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
+
+  //creates a job message from reading in the socket
   explicit JobMessage(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
@@ -71,11 +79,15 @@ private:
 JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
   MType(mtype),
   SType(stype),
-  Data(data.data()),
+  Data(NULL),
   Size(data.size()),
   ValidMsg(true),
-  Storage(new DataStorage())
+  Storage(new DataStorage(data.size()))
   {
+  //copy the string into local held storage, the string passed in can
+  //be temporary, so we want to copy it.
+  memcpy(this->Storage->Space,data.data(),this->Size);
+  this->Data = this->Storage->Space;
   }
 
 
@@ -129,6 +141,7 @@ JobMessage::JobMessage(zmq::socket_t &socket)
     socket.recv(&data);
     this->Size = data.size();
     this->Storage.reset(new DataStorage(this->Size));
+
     memcpy(this->Storage->Space,data.data(),this->Size);
     this->Data = this->Storage->Space;
     }
@@ -170,9 +183,9 @@ bool JobMessage::send(zmq::socket_t &socket) const
     //send the service line not as the last line
     socket.send(service,ZMQ_SNDMORE);
 
-    //send the data
     zmq::message_t data(this->Size);
     memcpy(data.data(),this->Data,this->Size);
+
     socket.send(data);
     }
   else //we are done
