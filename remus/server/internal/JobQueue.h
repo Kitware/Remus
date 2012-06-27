@@ -20,6 +20,7 @@
 #include <set>
 
 #include <remus/Job.h>
+#include <remus/JobRequest.h>
 #include <remus/common/JobMessage.h>
 #include <remus/server/internal/uuidHelper.h>
 
@@ -103,13 +104,13 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 //------------------------------------------------------------------------------
 remus::Job JobQueue::takeJob(MESH_TYPE type)
 {
-  QueuedJob* job;
+  QueuedJob* queued;
   int index = 0;
   bool found = false;
   for(index=0; index < this->Queue.size(); ++index)
     {
-    job = &this->Queue[index];
-    if(job->Message.meshType()==type)
+    queued = &this->Queue[index];
+    if(queued->Message.meshType()==type)
       {
       found = true;
       break;
@@ -118,19 +119,20 @@ remus::Job JobQueue::takeJob(MESH_TYPE type)
 
   if(found)
     {
-    boost::uuids::uuid id = job->Id;
-    //convert the queued job request into a job
-    const std::string data(job->Message.data(),job->Message.dataSize());
+    boost::uuids::uuid id = queued->Id;
+
+    //todo this needs to be easier to convert an encoded job request
+    //into the job that is being sent to the worker, without having to copy
+    //the data so many times.
+    const remus::JobRequest request(remus::to_JobRequest(queued->Message.data(),
+                                                         queued->Message.dataSize()));
+    remus::Job job(id,type,request.jobInfo());
 
     this->QueuedIds.erase(id);
     this->Queue.erase(this->Queue.begin()+index);
-    //std::cout << "num queued jobs left: " << this->Queue.size() << std::endl;
-
-    return remus::Job(id,type,data);
+    return job;
     }
-
-  //std::cout << "returning fake job" << std::endl;
-  return remus::Job(boost::uuids::uuid(),type);
+  return remus::Job();
 }
 
 //------------------------------------------------------------------------------
@@ -194,13 +196,13 @@ bool JobQueue::haveUUID(const boost::uuids::uuid &id) const
 //------------------------------------------------------------------------------
 bool JobQueue::remove(const boost::uuids::uuid& id)
 {
-  QueuedJob* job;
+  QueuedJob* queued;
   int index = 0;
   bool found = false;
   for(index=0; index < this->Queue.size(); ++index)
     {
-    job = &this->Queue[index];
-    if(job->Id == id)
+    queued = &this->Queue[index];
+    if(queued->Id == id)
       {
       found = true;
       break;
@@ -209,7 +211,8 @@ bool JobQueue::remove(const boost::uuids::uuid& id)
 
   if(found)
     {
-    boost::uuids::uuid id = job->Id;
+    boost::uuids::uuid id = queued->Id;
+
     this->QueuedIds.erase(id);
     this->Queue.erase(this->Queue.begin()+index);
     }

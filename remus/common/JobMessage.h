@@ -39,7 +39,7 @@ public:
   explicit JobMessage(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
-  void releaseData() { this->Data = NULL; }
+  void releaseData() { this->Data = NULL; this->Size = 0;}
 
   const remus::MESH_TYPE& meshType() const { return MType; }
   const remus::SERVICE_TYPE& serviceType() const { return SType; }
