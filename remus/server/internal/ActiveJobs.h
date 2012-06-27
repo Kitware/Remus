@@ -51,7 +51,7 @@ class ActiveJobs
 
     void updateResult(const remus::JobResult& r);
 
-    void markFailedJobs(const boost::posix_time::ptime& time);
+    void markExpiredJobs(const boost::posix_time::ptime& time);
 
     void refreshJobs(const zmq::socketIdentity &workerIdentity);
 
@@ -191,7 +191,7 @@ void ActiveJobs::updateResult(const remus::JobResult& r)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
+void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
@@ -199,7 +199,7 @@ void ActiveJobs::markFailedJobs(const boost::posix_time::ptime& time)
     //FINISHED is more important than failed
     if (item->second.canUpdateStatus() && item->second.expiry < time)
       {
-      item->second.jstatus.Status = remus::FAILED;
+      item->second.jstatus.Status = remus::EXPIRED;
       item->second.jstatus.Progress = 0;
       //std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
       }

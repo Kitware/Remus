@@ -142,7 +142,7 @@ bool Server::startBrokering()
 
     //mark all jobs whose worker haven't sent a heartbeat in time
     //as a job that failed.
-    this->ActiveJobs->markFailedJobs(hbTime);
+    this->ActiveJobs->markExpiredJobs(hbTime);
 
     //purge all pending workers with jobs that haven't sent a heartbeat
     this->WorkerPool->purgeDeadWorkers(hbTime);

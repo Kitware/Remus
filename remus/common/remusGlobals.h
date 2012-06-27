@@ -50,7 +50,8 @@ enum STATUS_TYPE
   QUEUED = 1,
   IN_PROGRESS = 2,
   FINISHED = 3,
-  FAILED = 4
+  FAILED = 4,
+  EXPIRED = 5
 };
 
 namespace common
@@ -58,7 +59,7 @@ namespace common
   //a mapping of enum types to char*
   static const char *mesh_types[] = { "INVALID","", "2D", "3D", "3D Surface" };
   static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "SHUTDOWN" };
-  static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED" };
+  static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
   }
 
 //------------------------------------------------------------------------------
