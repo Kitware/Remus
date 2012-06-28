@@ -10,7 +10,7 @@
 
 
 add_revision(remus
-  GIT_REPOSITORY "git://kwsource.kitwarein.com/meshserver/meshserver.git"
+  GIT_REPOSITORY "git://public.kitware.com/Remus.git"
   GIT_TAG master)
 
 if( NOT WIN32)
