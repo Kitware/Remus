@@ -15,7 +15,7 @@
 
 void dumpCanMeshInfo(remus::Client& client)
 {
-  std::cout << "Aviable Worker Types : " << std::endl;
+  std::cout << "Available Worker Types : " << std::endl;
   std::cout << "2DMesh: " << client.canMesh(remus::MESH2D) << std::endl;
   std::cout << "3DMesh: " << client.canMesh(remus::MESH3D) << std::endl;
   std::cout << "3D Surface: " << client.canMesh(remus::MESH3DSurface) << std::endl;
@@ -86,7 +86,7 @@ int showMenu()
 int main ()
 {
 
-  std::cout << "What is the port you are connecting too: " << std::endl;
+  std::cout << "What is the port you are connecting to: " << std::endl;
   int portNumber;
   std::cin >> portNumber;
 
