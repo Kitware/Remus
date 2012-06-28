@@ -142,7 +142,7 @@ bool Server::startBrokering()
 
     //mark all jobs whose worker haven't sent a heartbeat in time
     //as a job that failed.
-    this->ActiveJobs->markFailedJobs(hbTime);
+    this->ActiveJobs->markExpiredJobs(hbTime);
 
     //purge all pending workers with jobs that haven't sent a heartbeat
     this->WorkerPool->purgeDeadWorkers(hbTime);
@@ -201,7 +201,9 @@ bool Server::canMesh(const remus::common::JobMessage& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
-  return this->WorkerFactory.haveSupport(msg.meshType());
+  bool haveSupport = this->WorkerFactory.haveSupport(msg.meshType());
+  haveSupport = haveSupport || this->WorkerPool->haveWaitingWorker(msg.meshType());
+  return haveSupport;
 }
 
 //------------------------------------------------------------------------------

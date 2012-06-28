@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_client_client_h
-#define __remus_client_client_h
+#ifndef __remus_client_Client_h
+#define __remus_client_Client_h
 
 #include <zmq.hpp>
 #include <string>
@@ -74,9 +74,12 @@ Client::Client(const remus::client::ServerConnection &conn):
 //------------------------------------------------------------------------------
 bool Client::canMesh(const remus::JobRequest& request)
 {
+  //hold as a string so message doesn't have to copy a second time
+  const std::string stringRequest(remus::to_string(request));
   remus::common::JobMessage j(request.type(),
                               remus::CAN_MESH,
-                              remus::to_string(request));
+                              stringRequest.data(),
+                              stringRequest.size());
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
@@ -86,9 +89,12 @@ bool Client::canMesh(const remus::JobRequest& request)
 //------------------------------------------------------------------------------
 remus::Job Client::submitJob(const remus::JobRequest& request)
 {
+  //hold as a string so message doesn't have to copy a second time
+  const std::string stringRequest(remus::to_string(request));
   remus::common::JobMessage j(request.type(),
                               remus::MAKE_MESH,
-                              remus::to_string(request));
+                              stringRequest.data(),
+                              stringRequest.size());
   j.send(this->Server);
 
   remus::common::JobResponse response(this->Server);
