@@ -100,8 +100,8 @@ public:
     if(f.is_open())
       {
       std::string meshType,mesherName;
-      f >> meshType;
-      f >> mesherName;
+      getline(f,meshType);
+      getline(f,mesherName);
 
       //convert from string to the proper types
       remus::MESH_TYPE type = remus::to_meshType(meshType);
