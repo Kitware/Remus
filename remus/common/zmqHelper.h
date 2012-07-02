@@ -170,6 +170,38 @@ static void empty_recv(zmq::socket_t& socket)
   return;
 }
 
+//A wrapper around zeroMQ send. When we call the standard send call
+//from a Qt class we experience high number of system level interrupts which
+//cause zero to throw an exception. This eats all the exceptions and continues
+//to try and send the message. In the future we need to change the client server
+//communication in Remus to be async instead of req/reply based.
+static void blocking_send(zmq::socket_t& socket, zmq::message_t& message, int flags=0)
+{
+  bool sent = false;
+  while(!sent)
+    {
+    try{sent = socket.send(message,flags);}
+    catch(error_t){}
+    }
+  return;
+}
+
+//A wrapper around zeroMQ recv. When we call the standard recv call
+//from a Qt class we experience high number of system level interrupts which
+//cause zero to throw an exception. This eats all the exceptions and continues
+//to try and recv the message. In the future we need to change the client server
+//communication in Remus to be async instead of req/reply based.
+static void blocking_recv(zmq::socket_t& socket, zmq::message_t* message, int flags=0)
+{
+  bool recieved = false;
+  while(!recieved)
+    {
+    try{recieved = socket.recv(message,flags);}
+    catch(error_t){}
+    }
+  return;
+}
+
 //we presume that every message needs to be stripped
 //as we make everything act like a req/rep and pad
 //a null message on everything
