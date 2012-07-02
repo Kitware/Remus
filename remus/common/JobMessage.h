@@ -120,11 +120,11 @@ JobMessage::JobMessage(zmq::socket_t &socket)
   zmq::removeReqHeader(socket);
 
   zmq::message_t meshType;
-  socket.recv(&meshType);
+  zmq::blocking_recv(socket,&meshType);
   this->MType = *(reinterpret_cast<MESH_TYPE*>(meshType.data()));
 
   zmq::message_t servType;
-  socket.recv(&servType);
+  zmq::blocking_recv(socket,&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
 #ifdef _WIN32
@@ -138,7 +138,7 @@ JobMessage::JobMessage(zmq::socket_t &socket)
   if(more>0)
     {
     zmq::message_t data;
-    socket.recv(&data);
+    zmq::blocking_recv(socket,&data);
     this->Size = data.size();
     this->Storage.reset(new DataStorage(this->Size));
 
@@ -174,23 +174,23 @@ bool JobMessage::send(zmq::socket_t &socket) const
 
   zmq::message_t meshType(sizeof(this->MType));
   memcpy(meshType.data(),&this->MType,sizeof(this->MType));
-  socket.send(meshType,ZMQ_SNDMORE);
+  zmq::blocking_send(socket,meshType,ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
   if(this->Size> 0)
     {
     //send the service line not as the last line
-    socket.send(service,ZMQ_SNDMORE);
+    zmq::blocking_send(socket,service,ZMQ_SNDMORE);
 
     zmq::message_t data(this->Size);
     memcpy(data.data(),this->Data,this->Size);
 
-    socket.send(data);
+    zmq::blocking_send(socket,data);
     }
   else //we are done
     {
-    socket.send(service);
+    zmq::blocking_send(socket,service);
     }
   return true;
   }
