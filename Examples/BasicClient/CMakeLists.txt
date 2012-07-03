@@ -1,3 +1,5 @@
+remus_get_includes(RemusCommon CommonIncludes)
+include_directories(${CommonIncludes})
 
 set(SRCS_Client
    clientMain.cxx

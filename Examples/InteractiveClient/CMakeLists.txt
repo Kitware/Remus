@@ -1,3 +1,6 @@
+remus_get_includes(RemusCommon CommonIncludes)
+include_directories(${CommonIncludes})
+
 
 set(client_two
   interactiveClient.cxx
