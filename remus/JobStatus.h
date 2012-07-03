@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <iostream>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -23,6 +24,8 @@
 #include <remus/common/remusGlobals.h>
 
 namespace remus {
+
+class JobStatus;
 
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.
@@ -113,6 +116,9 @@ struct JobProgress
   }
 
 private:
+  friend JobStatus to_JobStatus(const std::string& status);
+  void setUncheckedValue(int value){Value=value;}
+
   int Value;
   std::string Message;
 };
@@ -188,11 +194,36 @@ inline remus::JobStatus to_JobStatus(const std::string& status)
     {
     //if we are progress status message we have two more pieces of info to decode
     int progressValue;
-    std::string progressMessage;
-
     buffer >> progressValue;
-    buffer >> progressMessage;
-    JobProgress pr(progressValue,progressMessage);
+
+    //this is really important, the progress message can have multiple words and/or
+    //new line characters. so we want all of the left over characters in the
+    //buffer to be the progress message.
+
+    //the first step is we bump the buffer by a single character, to get
+    //of the new line character that is after progressValue
+    buffer.rdbuf()->sbumpc();
+
+    //we than get the size of the remaining buffer
+    std::size_t size = buffer.rdbuf()->in_avail();
+
+    std::string progressMessage;
+    if(size > 1) //empty strings are 1 character
+      {
+      //copy all the outstanding characters into a temporary char buffer
+      //and make sure it is null terminated.
+      char* rawData = new char[size+1];
+      buffer.rdbuf()->sgetn(rawData,size);
+      rawData[size]='\0';
+      progressMessage = std::string(rawData);
+      delete[] rawData;
+      }
+
+    //don't use any of the constructors as we want a -1 or a 0 value
+    //not to be converted to a value of 1.
+    JobProgress pr(progressMessage);
+    pr.setUncheckedValue(progressValue);
+
     return remus::JobStatus(id,pr);
     }
 }

@@ -34,6 +34,7 @@ int main (int argc, char* argv[])
       sleep(1);
 #endif
       status.Progress.setValue(progress);
+      status.Progress.setMessage("Example Message With Random Content");
       w.updateStatus(status);
       }
     }
