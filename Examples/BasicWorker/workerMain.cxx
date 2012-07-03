@@ -23,6 +23,7 @@ int main (int argc, char* argv[])
 
   remus::Job jd = w.getJob();
 
+  remus::JobStatus status(jd.id(),remus::IN_PROGRESS);
   for(int progress=1; progress <= 100; ++progress)
     {
     if(progress%20==0)
@@ -32,13 +33,13 @@ int main (int argc, char* argv[])
 #else
       sleep(1);
 #endif
-      remus::JobStatus status(jd.id(),remus::IN_PROGRESS);
-      status.Progress = progress;
+      status.Progress.setValue(progress);
       w.updateStatus(status);
       }
     }
 
-  remus::JobStatus status(jd.id(),remus::FINISHED);
+  //mark the status as finished now, and resend.
+  status.Status = remus::FINISHED;
   w.updateStatus(status);
 
   remus::JobResult results(jd.id(),"FAKE RESULTS");

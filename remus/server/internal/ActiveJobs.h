@@ -200,7 +200,7 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
     if (item->second.canUpdateStatus() && item->second.expiry < time)
       {
       item->second.jstatus.Status = remus::EXPIRED;
-      item->second.jstatus.Progress = 0;
+      item->second.jstatus.Progress = remus::JobProgress(remus::EXPIRED);
       //std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
       }
     }

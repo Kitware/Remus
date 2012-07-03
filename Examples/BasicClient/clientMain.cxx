@@ -57,7 +57,7 @@ int main ()
           std::cout << "job id " << jobs.at(i).id() << std::endl;
           if( newStatus.Status == remus::IN_PROGRESS)
             {
-            std::cout << "progress is " << newStatus.Progress << std::endl;
+            std::cout << newStatus.Progress << std::endl;
             }
           else
             {
