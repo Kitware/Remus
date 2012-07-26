@@ -1,11 +1,3 @@
-# Build boost via its bootstrap script. The build tree cannot contain a space.
-# This boost b2 build system yields errors with spaces in the name of the
-# build dir.
-#
-if("${CMAKE_CURRENT_BINARY_DIR}" MATCHES " ")
-  message(FATAL_ERROR "cannot use boost bootstrap with a space in the name of the build dir")
-endif()
-
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(am 64)
 else()
@@ -29,9 +21,9 @@ string(REPLACE " " "\\ " boost_install_dir ${install_location})
 
 set(boost_cmds
   CONFIGURE_COMMAND bootstrap.bat
-  BUILD_COMMAND b2 --build-dir="${boost_build_dir}" address-model=${am} ${boost_with_args}
+  BUILD_COMMAND b2 --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args}
   INSTALL_COMMAND b2 address-model=${am} ${boost_with_args}
-    --prefix="${boost_install_dir}" install
+    --prefix=${boost_install_dir} install
   )
 
 add_external_project(boost
