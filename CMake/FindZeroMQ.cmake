@@ -23,7 +23,7 @@ find_path(ZeroMQ_ROOT_DIR
 )
 
 find_library(ZeroMQ_LIBRARIES
-    NAMES zmq
+    NAMES zmq libzmq
     HINTS ${ZeroMQ_ROOT_DIR}/lib
 )
 
