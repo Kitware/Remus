@@ -24,11 +24,11 @@ set (RemusSuperBuild_CMAKE_DIR
 include (RemusModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
-if(NOT MESHSERVER_INSTALL_DIR)
-  set(MESHSERVER_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/install" CACHE FILEPATH "Location to build MeshServer.")
+if(NOT REMUS_INSTALL_DIR)
+  set(REMUS_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/install" CACHE FILEPATH "Location to build Remus.")
 endif()
 
-set (install_location "${MESHSERVER_INSTALL_DIR}")
+set (install_location "${REMUS_INSTALL_DIR}")
 set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
 set (prefix_path "${install_location}")
 
