@@ -13,7 +13,6 @@
 #include <remus/common/ExecuteProcess.h>
 
 #include <sysTools/Process.h>
-#include <iostream>
 
 
 namespace{
@@ -124,7 +123,6 @@ void ExecuteProcess::execute(bool detachProcess)
 //-----------------------------------------------------------------------------
 bool ExecuteProcess::kill()
 {
-  std::cout << "killing process " << std::endl;
   if(this->ExternalProcess->Created &&
      sysToolsProcess_GetState(this->ExternalProcess->Proc) ==
      sysToolsProcess_State_Executing)

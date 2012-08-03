@@ -9,6 +9,7 @@
 #include <remus/worker/Worker.h>
 #include <vector>
 #include <string>
+#include <iostream>
 
 int main (int argc, char* argv[])
 {

@@ -13,10 +13,7 @@
 #ifndef __remus_JobStatus_h
 #define __remus_JobStatus_h
 
-#include <string>
-#include <sstream>
 #include <algorithm>
-#include <iostream>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
