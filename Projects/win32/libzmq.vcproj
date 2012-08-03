@@ -63,7 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -135,7 +135,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -211,7 +211,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib libpgm.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				AdditionalLibraryDirectories="../../../../OpenPGM/lib"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
@@ -286,7 +286,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				GenerateDebugInformation="true"
 				TargetMachine="17"
 			/>
@@ -359,7 +359,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -436,7 +436,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Ws2_32.lib Rpcrt4.lib libpgm.lib"
-				OutputFile="../../../lib/libzmq.dll"
+				OutputFile="@zeroMQ_dll_installLocation/libzmq.dll"
 				AdditionalLibraryDirectories="../../../../OpenPGM/lib"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
