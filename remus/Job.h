@@ -13,9 +13,6 @@
 #ifndef __remus_Job_h
 #define __remus_Job_h
 
-#include <string>
-#include <sstream>
-
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -92,7 +89,7 @@ inline std::string to_string(const remus::Job& job)
   std::stringstream buffer;
   buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
-  buffer << job.details() << std::endl;
+  buffer << job.details().size() << job.details() << std::endl;
   return buffer.str();
 }
 
@@ -105,11 +102,13 @@ inline remus::Job to_Job(const std::string& msg)
   std::stringstream buffer(msg);
 
   boost::uuids::uuid id;
-  int t;
+  int t, dataLen;
   std::string data;
+
   buffer >> t;
   buffer >> id;
-  buffer >> data;
+  buffer >> dataLen;
+  data = remus::internal::extractString(buffer,dataLen);
 
   const remus::MESH_TYPE type = static_cast<remus::MESH_TYPE>(t);
   return remus::Job(id,type,data);

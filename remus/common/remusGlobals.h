@@ -14,6 +14,7 @@
 #define __remus_common_RemusInfo_h
 
 #include <string>
+#include <sstream>
 
 //Define global information that the mesh server needs
 
@@ -109,8 +110,19 @@ inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
   return remus::INVALID_SERVICE;
 }
 
-
-
+namespace internal
+{
+//------------------------------------------------------------------------------
+inline std::string extractString(std::stringstream& buffer, int size)
+{
+  char* rawData = new char[size+1];
+  buffer.rdbuf()->sgetn(rawData,size);
+  rawData[size]='\0';
+  std::string msg = std::string(rawData);
+  delete[] rawData;
+  return msg;
+}
+}
 
 }
 

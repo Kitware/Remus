@@ -206,17 +206,12 @@ inline remus::JobStatus to_JobStatus(const std::string& status)
 
     //we than get the size of the remaining buffer
     std::size_t size = buffer.rdbuf()->in_avail();
-
     std::string progressMessage;
     if(size > 1) //empty strings are 1 character
       {
       //copy all the outstanding characters into a temporary char buffer
       //and make sure it is null terminated.
-      char* rawData = new char[size+1];
-      buffer.rdbuf()->sgetn(rawData,size);
-      rawData[size]='\0';
-      progressMessage = std::string(rawData);
-      delete[] rawData;
+      progressMessage = remus::internal::extractString(buffer,size);
       }
 
     //don't use any of the constructors as we want a -1 or a 0 value

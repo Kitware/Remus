@@ -13,9 +13,6 @@
 #ifndef __remus_JobRequest_h
 #define __remus_JobRequest_h
 
-#include <string>
-#include <sstream>
-
 #include <remus/common/remusGlobals.h>
 
 //A job request has two purposes. First it is sent to the server to determine
@@ -91,8 +88,8 @@ inline std::string to_string(const remus::JobRequest& request)
   //encoding is simple, contents newline separated
   std::stringstream buffer;
   buffer << request.type() << std::endl;
-  buffer << request.jobInfo() << std::endl;
-  buffer << request.specificMesher() << std::endl;
+  buffer << request.jobInfo().length() << request.jobInfo() << std::endl;
+  buffer << request.specificMesher().length() << request.specificMesher() << std::endl;
   return buffer.str();
 }
 
@@ -104,11 +101,14 @@ inline remus::JobRequest to_JobRequest(const std::string& msg)
 
   std::stringstream buffer(msg);
 
-  int t;
+
+  int t, dataLen, nameLen;
   std::string data,name;
-  buffer >> t;
-  buffer >> data;
-  buffer >> name;
+  buffer >> t; //type first
+  buffer >> dataLen;
+  data = remus::internal::extractString(buffer,dataLen);
+  buffer >> nameLen;
+  name = remus::internal::extractString(buffer,nameLen);
 
   const remus::MESH_TYPE type = static_cast<remus::MESH_TYPE>(t);
   return remus::JobRequest(type,data,name);
