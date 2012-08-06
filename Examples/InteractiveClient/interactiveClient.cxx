@@ -69,6 +69,28 @@ void submitJob(remus::Client& client)
   return;
 }
 
+void changeConntion(remus::Client*& c)
+{
+
+  std::cout << "What is the ip to connect too: " << std::endl;
+  std::string hostname;
+  std::cin >> hostname;
+
+  std::cout << "What is the port you are connecting to: " << std::endl;
+  int portNumber;
+  std::cin >> portNumber;
+
+
+  remus::client::ServerConnection conn(hostname,portNumber);
+  if(c != NULL)
+    {
+    delete c;
+    }
+  std::cout << conn.endpoint() << std::endl;
+  c = new remus::Client(conn);
+
+}
+
 
 int showMenu()
 {
@@ -76,6 +98,7 @@ int showMenu()
   std::cout << "1: Dump Aviable Worker Types" << std::endl;
   std::cout << "2: Dump Info On Job" << std::endl;
   std::cout << "3: Submit Job" << std::endl;
+  std::cout << "9: Connect to different server" << std::endl;
   std::cout << std::endl;
   std::cout << "All other will quit application." << std::endl;
   int returnValue;
@@ -86,13 +109,8 @@ int showMenu()
 int main ()
 {
 
-  std::cout << "What is the port you are connecting to: " << std::endl;
-  int portNumber;
-  std::cin >> portNumber;
-
-
-  remus::client::ServerConnection conn("127.0.0.1",portNumber);
-  remus::Client c(conn);
+  remus::Client *c = NULL;
+  changeConntion(c);
 
   bool wantInfo=true;
   while(wantInfo)
@@ -100,14 +118,16 @@ int main ()
     switch(showMenu())
       {
       case 1: //dump can mesh
-        dumpCanMeshInfo(c);
+        dumpCanMeshInfo(*c);
         break;
       case 2:
-        dumpJobInfo(c);
+        dumpJobInfo(*c);
         break;
       case 3:
-        submitJob(c);
+        submitJob(*c);
         break;
+      case 9:
+        changeConntion(c);
       default:
         wantInfo=false;
         break;
