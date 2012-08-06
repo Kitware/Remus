@@ -166,7 +166,7 @@ inline std::string to_string(const remus::JobStatus& status)
   if(status.Status == remus::IN_PROGRESS)
     {
     buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message() << std::endl;
+    buffer << status.Progress.message().size() << status.Progress.message() << std::endl;
     }
   return buffer.str();
 }
@@ -193,23 +193,14 @@ inline remus::JobStatus to_JobStatus(const std::string& status)
     int progressValue;
     buffer >> progressValue;
 
+    int progressMessageLen;
+    std::string progressMessage;
+
     //this is really important, the progress message can have multiple words and/or
     //new line characters. so we want all of the left over characters in the
     //buffer to be the progress message.
-
-    //the first step is we bump the buffer by a single character, to get
-    //of the new line character that is after progressValue
-    buffer.rdbuf()->sbumpc();
-
-    //we than get the size of the remaining buffer
-    std::size_t size = buffer.rdbuf()->in_avail();
-    std::string progressMessage;
-    if(size > 1) //empty strings are 1 character
-      {
-      //copy all the outstanding characters into a temporary char buffer
-      //and make sure it is null terminated.
-      progressMessage = remus::internal::extractString(buffer,size);
-      }
+    buffer >>progressMessageLen;
+    progressMessage = remus::internal::extractString(buffer,progressMessageLen);
 
     //don't use any of the constructors as we want a -1 or a 0 value
     //not to be converted to a value of 1.
