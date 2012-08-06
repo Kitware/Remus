@@ -19,8 +19,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 
-#include <iostream>
-
 namespace
 {
   typedef std::vector<remus::server::MeshWorkerInfo>::const_iterator WorkerIterator;

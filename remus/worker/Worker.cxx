@@ -122,7 +122,7 @@ Worker::Worker(remus::MESH_TYPE mtype,
 //-----------------------------------------------------------------------------
 Worker::~Worker()
 {
-  std::cout << "Ending the worker" << std::endl;
+  //std::cout << "Ending the worker" << std::endl;
   this->stopCommunicationThread();
 }
 

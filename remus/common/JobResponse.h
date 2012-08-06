@@ -18,8 +18,6 @@
 #include <remus/common/zmqHelper.h>
 #include <remus/common/remusGlobals.h>
 
-#include <iostream>
-
 namespace remus{
 namespace common{
 class JobResponse
