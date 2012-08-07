@@ -15,6 +15,7 @@
 
 #include <remus/common/zmqHelper.h>
 #include <remus/common/remusGlobals.h>
+#include <assert.h>
 
 namespace remus{
 namespace client{
@@ -34,6 +35,7 @@ public:
   explicit ServerConnection(std::string const& endpoint):
     Endpoint(endpoint)
     {
+    assert(Endpoint.size() > 0);
     }
 
   //create a connection object that connects to the server specified by the
@@ -49,7 +51,11 @@ public:
   //standard remus server
   ServerConnection(std::string const& hostName, int port):
     Endpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port).endpoint())
+
     {
+
+    assert(hostName.size() > 0);
+    assert(port > 0 && port < 65536);
     }
 
   inline std::string const& endpoint() const{ return Endpoint; }

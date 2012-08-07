@@ -15,6 +15,7 @@
 
 #include <remus/common/zmqHelper.h>
 #include <remus/common/remusGlobals.h>
+#include <assert.h>
 
 namespace remus{
 namespace worker{
@@ -27,6 +28,7 @@ public:
   ServerConnection():
     Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",remus::BROKER_WORKER_PORT).endpoint())
     {
+    assert(Endpoint.size() > 0);
     }
 
   //create a connection object that represent connection to a non
@@ -41,6 +43,8 @@ public:
   explicit ServerConnection(std::string const& hostName, int port):
     Endpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port).endpoint())
     {
+    assert(hostName.size() > 0);
+    assert(port > 0 && port < 65536);
     }
 
   inline std::string const& endpoint() const{ return Endpoint; }
