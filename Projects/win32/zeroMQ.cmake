@@ -15,11 +15,11 @@ function(build_zeroMQ_command command solution)
 endfunction(build_zeroMQ_command)
 
 
-function(zeroMQ_libDir path msvc_version)
+function(zeroMQ_libDir path  msvc_version)
   #location of lib is different on vs2008 and vs2010
   if("${msvc_version}" MATCHES "vc90")
     #vs2008
-    set(${path} <SOURCE_DIR>/lib/libzmq.lib PARENT_SCOPE)
+    set(${path} FALSE PARENT_SCOPE)
   else()
     #vs2010
     if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
@@ -73,12 +73,17 @@ if(MSVC)
     DEPENDEES add64BitSupportToSolution
     )
 
+
   #add in a custom post install command that copy the zeroMQ lib to the install directory
+  #when the MSVCVersion is 2008 the install rule isn't actually needed. So if we are
+  #using 2008 to build we don't have this step as the zeroLibDir is set to FALSE
   zeroMQ_libDir(zeroLibDir ${MSVCVersion})
-  ExternalProject_Add_Step(zeroMQ installLib
-    COMMAND ${CMAKE_COMMAND} -E copy ${zeroLibDir} <INSTALL_DIR>/lib/libzmq.lib
-    DEPENDEES install
-    )
+  if(${zeroLibDir})
+    ExternalProject_Add_Step(zeroMQ installLib
+      COMMAND ${CMAKE_COMMAND} -E copy ${zeroLibDir} <INSTALL_DIR>/lib/libzmq.lib
+      DEPENDEES install
+      )
+  endif()
 
   #install header files
   ExternalProject_Add_Step(zeroMQ installZmqCPPHeader
