@@ -22,11 +22,19 @@ string(REPLACE " " "\\ " boost_build_dir ${CMAKE_CURRENT_BINARY_DIR}/boost/src/b
 #such a mess on support for directories with spaces in the name
 
 
+set(msvc_version FALSE)
+if(${MSVCVersion} MATCHES "vc10")
+  set(msvc_version "msvc-10.0")
+elseif(${MSVCVersion} MATCHES "vc90")
+  set(msvc_version "msvc-9.0")
+elseif(${MSVCVersion} MATCHES "vc80")
+  set(msvc_version "msvc-8.0")
+endif()
+
 set(boost_cmds
   CONFIGURE_COMMAND bootstrap.bat
-  BUILD_COMMAND b2 --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args}
-  INSTALL_COMMAND b2 address-model=${am} ${boost_with_args}
-    --prefix=${install_location} install
+  BUILD_COMMAND b2 --build-dir=${boost_build_dir} toolset=${msvc_version} address-model=${am} ${boost_with_args}
+  INSTALL_COMMAND b2 toolset=${msvc_version} address-model=${am} ${boost_with_args} --prefix=${install_location} install
   )
 
 add_external_project(boost
