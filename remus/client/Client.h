@@ -24,7 +24,6 @@
 
 #include <remus/common/Message.h>
 #include <remus/common/Response.h>
-#include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
 #include <remus/client/ServerConnection.h>
 

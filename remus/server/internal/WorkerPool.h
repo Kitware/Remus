@@ -33,10 +33,10 @@ class WorkerPool
     WorkerPool():Pool(){}
 
     bool addWorker(zmq::socketIdentity workerIdentity,
-                   const remus::MESH_TYPE& type);
+                   const remus::common::MeshIOType& type);
 
     //do we have any worker waiting to take this type of job
-    bool haveWaitingWorker(const remus::MESH_TYPE& type) const;
+    bool haveWaitingWorker(const remus::common::MeshIOType& type) const;
 
     //do we have a worker with this address?
     bool haveWorker(const zmq::socketIdentity& address) const;
@@ -46,7 +46,7 @@ class WorkerPool
     bool readyForWork(const zmq::socketIdentity& address);
 
     //returns the worker address and removes the worker from the pool
-    zmq::socketIdentity takeWorker(const remus::MESH_TYPE& type);
+    zmq::socketIdentity takeWorker(const remus::common::MeshIOType& type);
 
     void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
@@ -56,11 +56,11 @@ private:
     struct WorkerInfo
     {
       bool WaitingForWork;
-      remus::MESH_TYPE MType;
+      remus::common::MeshIOType MType;
       zmq::socketIdentity Address;
       boost::posix_time::ptime expiry; //after this time the job should be purged
 
-      WorkerInfo(const zmq::socketIdentity& address, const remus::MESH_TYPE type):
+      WorkerInfo(const zmq::socketIdentity& address, const remus::common::MeshIOType type):
         WaitingForWork(false),
         MType(type),
         Address(address),
@@ -97,14 +97,14 @@ private:
 
 //------------------------------------------------------------------------------
 bool WorkerPool::addWorker(zmq::socketIdentity workerIdentity,
-                           const remus::MESH_TYPE &type)
+                           const remus::common::MeshIOType &type)
 {
   this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,type) );
   return true;
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWaitingWorker(const MESH_TYPE &type) const
+bool WorkerPool::haveWaitingWorker(const remus::common::MeshIOType &type) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -142,7 +142,7 @@ bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
 
 
 //------------------------------------------------------------------------------
-zmq::socketIdentity WorkerPool::takeWorker(const MESH_TYPE &type)
+zmq::socketIdentity WorkerPool::takeWorker(const remus::common::MeshIOType &type)
 {
 
   bool found = false;

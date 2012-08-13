@@ -18,7 +18,6 @@
 #include <boost/cstdint.hpp>
 
 //Define global information that the mesh server needs
-
 namespace remus {
 static const int BROKER_CLIENT_PORT = 50505;
 static const int BROKER_WORKER_PORT = 50510;
@@ -26,6 +25,7 @@ static const int HEARTBEAT_INTERVAL_IN_SEC = 5;
 static const int HEARTBEAT_INTERVAL = 1000000 * HEARTBEAT_INTERVAL_IN_SEC;
 
 static const std::string INVALID_MSG = "INVALID_MSG";
+
 
 //------------------------------------------------------------------------------
 enum MESH_INPUT_TYPE
@@ -47,7 +47,6 @@ enum MESH_OUTPUT_TYPE
   MESH3DSurface = 4,
   NUM_MESH_OUTPUT_TYPES=5
 };
-
 
 //------------------------------------------------------------------------------
 enum SERVICE_TYPE
@@ -72,63 +71,6 @@ enum STATUS_TYPE
   EXPIRED = 5
 };
 
-
-//------------------------------------------------------------------------------
-//MESH_TYPE is a union of the
-//mesh input and output types into a single integer
-struct MESH_TYPE
-{
-
-  //construct an invalid mesh type
-  MESH_TYPE():
-    combined_type(0)
-    {}
-
-  MESH_TYPE(remus::MESH_INPUT_TYPE in, remus::MESH_OUTPUT_TYPE out)
-    {
-    Both.input = in;
-    Both.output = out;
-    }
-
-  boost::int32_t type() const { return combined_type; }
-  remus::MESH_INPUT_TYPE inputType() const
-    { return static_cast<remus::MESH_INPUT_TYPE>(this->Both.input); }
-  remus::MESH_OUTPUT_TYPE outputType() const
-    { return static_cast<remus::MESH_OUTPUT_TYPE>(this->Both.output); }
-
-  //since zero for input and out is invalid a combined value of
-  //zero for the full int32 is also invalid
-  bool valid() const { return combined_type != 0; }
-
-  //needed to see if a client request type and a workers type are equal
-  bool operator ==(const MESH_TYPE& b) const { return combined_type == b.combined_type; }
-
-  //needed to properly store mesh types into stl containers
-  bool operator <(const MESH_TYPE& b) const { return combined_type < b.combined_type; }
-
-  //needed to encode the object on the wire
-  friend std::ostream& operator<<(std::ostream &os, const MESH_TYPE &ctype)
-    {
-    os << ctype.type();
-    return os;
-    }
-
-  //needed to decode the object from the wire
-  friend std::istream& operator>>(std::istream &is, MESH_TYPE &ctype)
-    {
-    is >> ctype.combined_type;
-    return is;
-    }
-
-protected:
-  union {
-    boost::int32_t combined_type;
-    struct {
-      boost::int16_t input;
-      boost::int16_t output;
-      } Both;
-  };
-};
 
 //------------------------------------------------------------------------------
 namespace common
@@ -192,20 +134,6 @@ inline remus::MESH_OUTPUT_TYPE to_meshOutType(const std::string& t)
     }
   return remus::INVALID_MESH_OUT;
 }
-
-//------------------------------------------------------------------------------
-//inline remus::MESH_TYPE to_meshType(const std::string& t)
-//{
-//  for(int i=1; i <=4; i++)
-//    {
-//    remus::MESH_TYPE mt=static_cast<remus::MESH_TYPE>(i);
-//    if (remus::to_string(mt) == t)
-//      {
-//      return mt;
-//      }
-//    }
-//  return remus::INVALID_MESH_OUT;
-//}
 
 //------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)

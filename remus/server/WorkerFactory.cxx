@@ -24,10 +24,10 @@ namespace
   typedef std::vector<remus::server::MeshWorkerInfo>::const_iterator WorkerIterator;
   typedef std::vector< boost::shared_ptr<remus::common::ExecuteProcess> >::iterator ProcessIterator;
 
-  struct support_meshType
+  struct support_MeshIOType
   {
-    remus::MESH_TYPE Type;
-    support_meshType(remus::MESH_TYPE type):Type(type){}
+    remus::common::MeshIOType Type;
+    support_MeshIOType(remus::common::MeshIOType type):Type(type){}
     bool operator()(const remus::server::MeshWorkerInfo& info)
       {
       return info.Type == this->Type;
@@ -97,14 +97,14 @@ public:
     f.open(file);
     if(f.is_open())
       {
-      std::string inputFileType,outputMeshType,mesherName;
+      std::string inputFileType,outputMeshIOType,mesherName;
       getline(f,inputFileType);
-      getline(f,outputMeshType);
+      getline(f,outputMeshIOType);
       getline(f,mesherName);
 
       //convert from string to the proper types
       remus::MESH_INPUT_TYPE itype = remus::to_meshInType(inputFileType);
-      remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshType);
+      remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshIOType);
       boost::filesystem::path p(file.parent_path());
       p /= mesherName;
 #ifdef WIN32
@@ -112,7 +112,7 @@ public:
 #endif
       if(boost::filesystem::is_regular_file(p))
         {
-        remus::MESH_TYPE combinedType(itype,otype);
+        remus::common::MeshIOType combinedType(itype,otype);
         this->Info.push_back(MeshWorkerInfo(combinedType, p.string()));
         }
      }
@@ -184,9 +184,9 @@ void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::haveSupport(remus::MESH_TYPE type ) const
+bool WorkerFactory::haveSupport(remus::common::MeshIOType type ) const
 {
-  support_meshType pred(type);
+  support_MeshIOType pred(type);
   WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
                       this->PossibleWorkers.end(),
                       pred);
@@ -194,7 +194,7 @@ bool WorkerFactory::haveSupport(remus::MESH_TYPE type ) const
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::createWorker(remus::MESH_TYPE type)
+bool WorkerFactory::createWorker(remus::common::MeshIOType type)
 {
   this->updateWorkerCount();
   if(this->currentWorkerCount() >= this->maxWorkerCount())
@@ -202,7 +202,7 @@ bool WorkerFactory::createWorker(remus::MESH_TYPE type)
     return false;
     }
 
-  support_meshType pred(type);
+  support_MeshIOType pred(type);
   WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
                       this->PossibleWorkers.end(),
                       pred);

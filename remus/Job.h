@@ -16,7 +16,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <remus/common/remusGlobals.h>
+#include <remus/common/MeshIOType.h>
 
 //The remus::Job class has two purposes.
 // For the client side interface it holds the Id and Type of a submitted job.
@@ -44,7 +44,7 @@ public:
 
   //construct a valid client side job object with only an Id and Type
   Job(const boost::uuids::uuid& id,
-      const remus::MESH_TYPE& type):
+      const remus::common::MeshIOType& type):
   Id(id),
   Type(type),
   JobDetails()
@@ -53,7 +53,7 @@ public:
 
   //construct a valid server side job object with Id, Type, and JobDetails
   Job(const boost::uuids::uuid& id,
-      const remus::MESH_TYPE& type,
+      const remus::common::MeshIOType& type,
       const std::string& data):
   Id(id),
   Type(type),
@@ -69,7 +69,7 @@ public:
   const boost::uuids::uuid& id() const { return Id; }
 
   //get the mesh type of the job
-  const remus::MESH_TYPE& type() const { return Type; }
+  const remus::common::MeshIOType& type() const { return Type; }
 
   //get the details of the job, only a call that the worker should expect
   //to return a non empty string
@@ -77,7 +77,7 @@ public:
 
 private:
   boost::uuids::uuid Id;
-  remus::MESH_TYPE Type;
+  remus::common::MeshIOType Type;
   std::string JobDetails;
 };
 
@@ -102,7 +102,7 @@ inline remus::Job to_Job(const std::string& msg)
   std::stringstream buffer(msg);
 
   boost::uuids::uuid id;
-  remus::MESH_TYPE type;
+  remus::common::MeshIOType type;
   int dataLen;
   std::string data;
 

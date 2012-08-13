@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <zmq.hpp>
 #include <remus/common/zmqHelper.h>
-#include <remus/common/remusGlobals.h>
+#include <remus/common/MeshIOType.h>
 
 namespace remus{
 namespace common{

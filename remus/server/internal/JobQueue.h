@@ -42,17 +42,17 @@ public:
 
   //Removes a job from the queue of the given mesh type.
   //Return it as a Job
-  remus::Job takeJob(remus::MESH_TYPE type);
+  remus::Job takeJob(remus::common::MeshIOType type);
 
   //returns the types of jobs that are waiting for a worker
-  std::set<remus::MESH_TYPE> waitingForWorkerTypes() const;
+  std::set<remus::common::MeshIOType> waitingForWorkerTypes() const;
 
   //returns the types of jobs that are queued and aren't waiting for a woker
-  std::set<remus::MESH_TYPE> queuedJobTypes() const;
+  std::set<remus::common::MeshIOType> queuedJobTypes() const;
 
   //marks the first job with the given type as having
   //a worker dispatched for it.
-  bool workerDispatched(remus::MESH_TYPE type);
+  bool workerDispatched(remus::common::MeshIOType type);
 
   //Returns true if we contain the UUID
   bool haveUUID(const boost::uuids::uuid& id) const;
@@ -102,7 +102,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-remus::Job JobQueue::takeJob(MESH_TYPE type)
+remus::Job JobQueue::takeJob(remus::common::MeshIOType type)
 {
   QueuedJob* queued;
   int index = 0;
@@ -110,7 +110,7 @@ remus::Job JobQueue::takeJob(MESH_TYPE type)
   for(index=0; index < this->Queue.size(); ++index)
     {
     queued = &this->Queue[index];
-    if(queued->Message.meshType()==type)
+    if(queued->Message.MeshIOType()==type)
       {
       found = true;
       break;
@@ -136,39 +136,39 @@ remus::Job JobQueue::takeJob(MESH_TYPE type)
 }
 
 //------------------------------------------------------------------------------
-std::set<remus::MESH_TYPE> JobQueue::waitingForWorkerTypes() const
+std::set<remus::common::MeshIOType> JobQueue::waitingForWorkerTypes() const
 {
   typedef std::vector<QueuedJob>::const_iterator it;
-  std::set<remus::MESH_TYPE> types;
+  std::set<remus::common::MeshIOType> types;
   for(it i = this->Queue.begin(); i != this->Queue.end(); ++i)
     {
     const QueuedJob& job = *i;
     if(job.WaitingForWorker)
       {
-      types.insert(job.Message.meshType());
+      types.insert(job.Message.MeshIOType());
       }
     }
   return types;
 }
 
 //------------------------------------------------------------------------------
-std::set<remus::MESH_TYPE> JobQueue::queuedJobTypes() const
+std::set<remus::common::MeshIOType> JobQueue::queuedJobTypes() const
 {
   typedef std::vector<QueuedJob>::const_iterator it;
-  std::set<remus::MESH_TYPE> types;
+  std::set<remus::common::MeshIOType> types;
   for(it i = this->Queue.begin(); i != this->Queue.end(); ++i)
     {
     const QueuedJob& job = *i;
     if(!job.WaitingForWorker)
       {
-      types.insert(job.Message.meshType());
+      types.insert(job.Message.MeshIOType());
       }
     }
   return types;
 }
 
 //------------------------------------------------------------------------------
-bool JobQueue::workerDispatched(remus::MESH_TYPE type)
+bool JobQueue::workerDispatched(remus::common::MeshIOType type)
 {
   bool found = false;
   typedef std::vector<QueuedJob>::iterator it;
@@ -177,7 +177,7 @@ bool JobQueue::workerDispatched(remus::MESH_TYPE type)
     QueuedJob& job = *i;
     //find the first work of a given mesh type that isn't already
     //waiting for a worker
-    if(job.Message.meshType() == type && !job.WaitingForWorker)
+    if(job.Message.MeshIOType() == type && !job.WaitingForWorker)
       {
       job.WaitingForWorker = true;
       job.WorkerDispatchTime = boost::posix_time::second_clock::local_time();

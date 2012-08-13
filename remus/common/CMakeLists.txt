@@ -9,6 +9,7 @@ set(Remus_Common_INCLUDE_DIRS
 set(headers
   ExecuteProcess.h
   Message.h
+  MeshIOType.h
   Response.h
   remusGlobals.h
   zmqHelper.h

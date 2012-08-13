@@ -14,7 +14,7 @@
 #define __remus_server_WorkeryFactory_h
 
 #include <vector>
-#include <remus/common/remusGlobals.h>
+#include <remus/common/MeshIOType.h>
 #include <boost/shared_ptr.hpp>
 
 //included for symbol exports
@@ -32,9 +32,9 @@ namespace server{
 
 struct REMUSSERVER_EXPORT MeshWorkerInfo
 {
-  remus::MESH_TYPE Type;
+  remus::common::MeshIOType Type;
   std::string ExecutionPath;
-  MeshWorkerInfo(remus::MESH_TYPE t, const std::string& p):
+  MeshWorkerInfo(remus::common::MeshIOType t, const std::string& p):
     Type(t),ExecutionPath(p){}
 };
 
@@ -65,8 +65,8 @@ public:
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
 
-  virtual bool haveSupport(remus::MESH_TYPE type ) const;
-  virtual bool createWorker(remus::MESH_TYPE type);
+  virtual bool haveSupport(remus::common::MeshIOType type ) const;
+  virtual bool createWorker(remus::common::MeshIOType type);
 
   //checks all current processes and removes any that have
   //shutdown

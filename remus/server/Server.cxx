@@ -201,8 +201,8 @@ bool Server::canMesh(const remus::common::Message& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
-  bool haveSupport = this->WorkerFactory.haveSupport(msg.meshType());
-  haveSupport = haveSupport || this->WorkerPool->haveWaitingWorker(msg.meshType());
+  bool haveSupport = this->WorkerFactory.haveSupport(msg.MeshIOType());
+  haveSupport = haveSupport || this->WorkerPool->haveWaitingWorker(msg.MeshIOType());
   return haveSupport;
 }
 
@@ -235,7 +235,7 @@ std::string Server::queueJob(const remus::common::Message& msg)
     this->QueuedJobs->addJob(jobUUID,msg);
     //return the UUID
 
-    const remus::Job validJob(jobUUID,msg.meshType());
+    const remus::Job validJob(jobUUID,msg.MeshIOType());
     return remus::to_string(validJob);
   }
   return remus::INVALID_MSG;
@@ -277,7 +277,7 @@ std::string Server::terminateJob(const remus::common::Message& msg)
     if(removed && worker.size() > 0)
       {
       remus::Job terminateJob(job.id(),
-                              remus::MESH_TYPE(),
+                              remus::common::MeshIOType(),
                               remus::to_string(remus::SHUTDOWN));
       remus::common::Response response(worker);
       response.setServiceType(remus::SHUTDOWN);
@@ -299,13 +299,13 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
   switch(msg.serviceType())
     {
     case remus::CAN_MESH:
-      this->WorkerPool->addWorker(workerIdentity,msg.meshType());
+      this->WorkerPool->addWorker(workerIdentity,msg.MeshIOType());
       break;
     case remus::MAKE_MESH:
       //the worker will block while it waits for a response.
       if(!this->WorkerPool->haveWorker(workerIdentity))
         {
-        this->WorkerPool->addWorker(workerIdentity,msg.meshType());
+        this->WorkerPool->addWorker(workerIdentity,msg.MeshIOType());
         }
       this->WorkerPool->readyForWork(workerIdentity);
       break;
@@ -361,9 +361,9 @@ void Server::FindWorkerForQueuedJob()
   //This gives the new workers the opportunity of getting assigned multiple jobs.
 
 
-  typedef std::set<remus::MESH_TYPE>::const_iterator it;
+  typedef std::set<remus::common::MeshIOType>::const_iterator it;
   this->WorkerFactory.updateWorkerCount();
-  std::set<remus::MESH_TYPE> types;
+  std::set<remus::common::MeshIOType> types;
 
 
   //find all the jobs that have been marked as waiting for a worker

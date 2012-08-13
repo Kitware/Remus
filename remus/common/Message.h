@@ -18,7 +18,7 @@
 
 #include <cstddef>
 #include <remus/common/zmqHelper.h>
-#include <remus/common/remusGlobals.h>
+#include <remus/common/MeshIOType.h>
 
 namespace remus{
 namespace common{
@@ -26,14 +26,14 @@ class Message
 {
 public:
   //pass in a data string the job message will copy and send
-  Message(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const std::string& data);
 
   //pass in a data pointer that the message will use when sending
   //the pointer data can't become invalid before you call send.
-  Message(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const char* data, int size);
 
   //creates a job message with no data
-  Message(MESH_TYPE mtype, SERVICE_TYPE stype);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype);
 
   //creates a job message from reading in the socket
   explicit Message(zmq::socket_t& socket);
@@ -41,7 +41,7 @@ public:
   bool send(zmq::socket_t& socket) const;
   void releaseData() { this->Data = NULL; this->Size = 0;}
 
-  const remus::MESH_TYPE& meshType() const { return MType; }
+  const remus::common::MeshIOType& MeshIOType() const { return MType; }
   const remus::SERVICE_TYPE& serviceType() const { return SType; }
 
   const char* const data() const { return Data; }
@@ -63,7 +63,7 @@ private:
     char* Space;
     };
 
-  remus::MESH_TYPE MType;
+  remus::common::MeshIOType MType;
   remus::SERVICE_TYPE SType;
   const char* Data; //points to the message contents to send
   int Size;
@@ -76,7 +76,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
+Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const std::string& data):
   MType(mtype),
   SType(stype),
   Data(NULL),
@@ -92,7 +92,7 @@ Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
 
 
 //------------------------------------------------------------------------------
-Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
+Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const char* data, int size):
   MType(mtype),
   SType(stype),
   Data(data),
@@ -103,7 +103,7 @@ Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size
   }
 
 //------------------------------------------------------------------------------
-Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype):
+Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype):
   MType(mtype),
   SType(stype),
   Data(NULL),
@@ -119,9 +119,9 @@ Message::Message(zmq::socket_t &socket)
   //construct a job message from the socket
   zmq::removeReqHeader(socket);
 
-  zmq::message_t meshType;
-  zmq::blocking_recv(socket,&meshType);
-  this->MType = *(reinterpret_cast<MESH_TYPE*>(meshType.data()));
+  zmq::message_t MeshIOType;
+  zmq::blocking_recv(socket,&MeshIOType);
+  this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(MeshIOType.data()));
 
   zmq::message_t servType;
   zmq::blocking_recv(socket,&servType);
@@ -172,9 +172,9 @@ bool Message::send(zmq::socket_t &socket) const
     }
   zmq::attachReqHeader(socket);
 
-  zmq::message_t meshType(sizeof(this->MType));
-  memcpy(meshType.data(),&this->MType,sizeof(this->MType));
-  zmq::blocking_send(socket,meshType,ZMQ_SNDMORE);
+  zmq::message_t MeshIOType(sizeof(this->MType));
+  memcpy(MeshIOType.data(),&this->MType,sizeof(this->MType));
+  zmq::blocking_send(socket,MeshIOType,ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
@@ -201,7 +201,7 @@ void Message::dump(T& t) const
   {
   //dump the info to the t stream
   t << "Valid: " << this->isValid() << std::endl;
-  t << "Mesh Type: " << this->meshType() << std::endl;
+  t << "Mesh Type: " << this->MeshIOType() << std::endl;
   t << "Serivce Type: " << this->serviceType() << std::endl;
   t << "Size: " << this->dataSize() << std::endl;
   if(this->dataSize() > 0)

@@ -20,7 +20,7 @@
 #include <boost/uuid/random_generator.hpp>
 
 #include <remus/server/WorkerFactory.h>
-#include <remus/common/remusGlobals.h>
+
 
 
 //included for symbol exports

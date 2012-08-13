@@ -19,7 +19,7 @@
 #include <remus/JobResult.h>
 #include <remus/JobStatus.h>
 
-#include <remus/common/remusGlobals.h>
+#include <remus/common/MeshIOType.h>
 
 #include <remus/worker/ServerConnection.h>
 
@@ -42,7 +42,7 @@ public:
   //construct a worker that can mesh a single type
   //it uses the server connection object to determine what server
   //to connect too
-  explicit Worker(remus::MESH_TYPE mtype,
+  explicit Worker(remus::common::MeshIOType mtype,
                   remus::worker::ServerConnection const& conn);
 
   virtual ~Worker();
@@ -68,7 +68,7 @@ protected:
 private:
 
   //holds the type of mesh we support
-  const remus::MESH_TYPE MeshType;
+  const remus::common::MeshIOType MeshIOType;
 
   zmq::context_t Context;
 
