@@ -19,7 +19,7 @@ int main ()
   remus::Client c(conn);
 
   //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::JobRequest request(remus::MESH2D,"TEST THE APPLICATION BY PASSING SPACES");
+  remus::JobRequest request(remus::MESH2D,remus::RAWTRIANGLES, "TEST THE APPLICATION BY PASSING SPACES");
   if(c.canMesh(request))
     {
     //if we can mesh 2D mesh jobs, we are going to submit 8 jobs to the server

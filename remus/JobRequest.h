@@ -16,11 +16,13 @@
 #include <remus/common/remusGlobals.h>
 
 //A job request has two purposes. First it is sent to the server to determine
-//if the mesh type and possible mesher name is supported. Secondly it is used
-//to request a job to be run given a mesh type and an optional mesher name.
+//if the mesh type and data model that the job request has is supported.
+//Secondly it is used to transport the actual job to the server
 
 //Note: Currently no server supports the ability to restrict a mesh request
 //to a single named mesher. This option is expected to be supported in the future.
+//For now we replicate this feature by making <meshType,inputMeshDataType> be
+//unique for each mesher
 namespace remus{
 class JobRequest
 {
@@ -28,57 +30,47 @@ public:
 
   //Construct a job request with only a mesher type given. This is used to
   //when asking a server if it supports a type of mesh
-  JobRequest(remus::MESH_TYPE type):
-    Type(type),
-    JobInfo(),
-    NeedsSpecificMesher(false),
-    MesherName()
+  JobRequest(remus::MESH_OUTPUT_TYPE outputMeshType,
+             remus::MESH_INPUT_TYPE inputFileType):
+    CombinedType(inputFileType,outputMeshType),
+    JobInfo()
     {
     }
 
   //Construct a job request with a mesh type and the info required by the worker
   //to run the job. This is used when submitting a job from the client to the server.
-  JobRequest(remus::MESH_TYPE type,
+  JobRequest(remus::MESH_OUTPUT_TYPE outputMeshType,
+             remus::MESH_INPUT_TYPE inputFileType,
              const std::string& info):
-    Type(type),
-    JobInfo(info),
-    NeedsSpecificMesher(false),
-    MesherName()
+    CombinedType(inputFileType,outputMeshType),
+    JobInfo(info)
     {
     }
 
-  //Construct a job request with a mesh type, job data and a required mesher name.
-  //This is used when you need a specific mesher only to take this job from the
-  //server. Note: The feature of workers getting jobs by mesher name is currently
-  //unsupported.
-  JobRequest(remus::MESH_TYPE type,
-             const std::string& info,
-             const std::string name):
-    Type(type),
-    JobInfo(info),
-    NeedsSpecificMesher(name.size() > 0),
-    MesherName(name)
+  //Construct a job request with the given types held inside the MESH_TYPE object
+  explicit JobRequest(remus::MESH_TYPE combinedType)
     {
+
     }
 
-  //specify a specific mesher is required to run this job
-  void specificMesherRequired() { NeedsSpecificMesher = true; }
+  //Construct a job request with the given types held inside the MESH_TYPE object
+  JobRequest(remus::MESH_TYPE combinedType, const std::string& info)
+    {
 
-  //state that any mesh worker can do this job
-  void specificMesherOptional() { NeedsSpecificMesher = false; }
+    }
 
-  remus::MESH_TYPE type() const { return Type; }
+  //constructs a variable that represents the combination of the input
+  //and output type as a single integer
+  remus::MESH_TYPE type() const { return this->CombinedType; }
 
+  remus::MESH_OUTPUT_TYPE outputType() const { return CombinedType.outputType(); }
+  remus::MESH_INPUT_TYPE inputType() const { return CombinedType.inputType(); }
   const std::string& jobInfo() const { return JobInfo; }
 
-  bool requiresSpecificMesher() const { return NeedsSpecificMesher; }
-  const std::string& specificMesher() const { return MesherName; }
-
 private:
-  remus::MESH_TYPE Type;
+  remus::MESH_TYPE CombinedType;
   std::string JobInfo;
-  bool NeedsSpecificMesher;
-  std::string MesherName;
+
 };
 
 //------------------------------------------------------------------------------
@@ -89,7 +81,6 @@ inline std::string to_string(const remus::JobRequest& request)
   std::stringstream buffer;
   buffer << request.type() << std::endl;
   buffer << request.jobInfo().length() << request.jobInfo() << std::endl;
-  buffer << request.specificMesher().length() << request.specificMesher() << std::endl;
   return buffer.str();
 }
 
@@ -98,20 +89,20 @@ inline std::string to_string(const remus::JobRequest& request)
 inline remus::JobRequest to_JobRequest(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
-
   std::stringstream buffer(msg);
 
 
-  int t, dataLen, nameLen;
-  std::string data,name;
-  buffer >> t; //type first
+  int out, in, dataLen;
+  std::string data;
+  buffer >> out; //out type first
+  buffer >> in; //in type second
+
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
-  buffer >> nameLen;
-  name = remus::internal::extractString(buffer,nameLen);
 
-  const remus::MESH_TYPE type = static_cast<remus::MESH_TYPE>(t);
-  return remus::JobRequest(type,data,name);
+  const remus::MESH_OUTPUT_TYPE outType = static_cast<remus::MESH_OUTPUT_TYPE>(out);
+  const remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(in);
+  return remus::JobRequest(outType,inType,data);
 }
 
 //------------------------------------------------------------------------------

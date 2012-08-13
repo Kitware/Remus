@@ -90,7 +90,7 @@ public:
         {
         //std::cout << "send heartbeat to server" << std::endl;
         //send a heartbeat to the server
-        remus::common::JobMessage message(remus::INVALID_MESH,remus::HEARTBEAT);
+        remus::common::JobMessage message(remus::MESH_TYPE(),remus::HEARTBEAT);
         message.send(Server);
         }
       }

@@ -97,12 +97,14 @@ public:
     f.open(file);
     if(f.is_open())
       {
-      std::string meshType,mesherName;
-      getline(f,meshType);
+      std::string inputFileType,outputMeshType,mesherName;
+      getline(f,inputFileType);
+      getline(f,outputMeshType);
       getline(f,mesherName);
 
       //convert from string to the proper types
-      remus::MESH_TYPE type = remus::to_meshType(meshType);
+      remus::MESH_INPUT_TYPE itype = remus::to_meshInType(inputFileType);
+      remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshType);
       boost::filesystem::path p(file.parent_path());
       p /= mesherName;
 #ifdef WIN32
@@ -110,7 +112,8 @@ public:
 #endif
       if(boost::filesystem::is_regular_file(p))
         {
-        this->Info.push_back(MeshWorkerInfo(type, p.string()));
+        remus::MESH_TYPE combinedType(itype,otype);
+        this->Info.push_back(MeshWorkerInfo(combinedType, p.string()));
         }
      }
     f.close();

@@ -277,7 +277,7 @@ std::string Server::terminateJob(const remus::common::JobMessage& msg)
     if(removed && worker.size() > 0)
       {
       remus::Job terminateJob(job.id(),
-                              remus::INVALID_MESH,
+                              remus::MESH_TYPE(),
                               remus::to_string(remus::SHUTDOWN));
       remus::common::JobResponse response(worker);
       response.setServiceType(remus::SHUTDOWN);

@@ -10,4 +10,4 @@ set(SRCS_Workers
 
 add_executable(BasicWorker ${SRCS_Workers} ${COMMON_SRCS})
 target_link_libraries(BasicWorker ${ZeroMQ_LIBRARIES} RemusWorker)
-Register_Mesh_Worker(BasicWorker 2D)
+Register_Mesh_Worker(BasicWorker "RAW TRIANGLE" "2D")

@@ -37,7 +37,7 @@ public:
   //construct an invalid job object
   Job():
     Id(),
-    Type(remus::INVALID_MESH),
+    Type(),
     JobDetails()
   {
   }
@@ -63,7 +63,7 @@ public:
   }
 
   //get if the current job is a valid job
-  bool valid() const { return remus::INVALID_MESH != Type; }
+  bool valid() const { return Type.valid(); }
 
   //get the id of the job
   const boost::uuids::uuid& id() const { return Id; }
@@ -102,15 +102,14 @@ inline remus::Job to_Job(const std::string& msg)
   std::stringstream buffer(msg);
 
   boost::uuids::uuid id;
-  int t, dataLen;
+  remus::MESH_TYPE type;
+  int dataLen;
   std::string data;
 
-  buffer >> t;
+  buffer >> type;
   buffer >> id;
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
-
-  const remus::MESH_TYPE type = static_cast<remus::MESH_TYPE>(t);
   return remus::Job(id,type,data);
 }
 
