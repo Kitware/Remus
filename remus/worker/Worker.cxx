@@ -17,7 +17,7 @@
 #include <string>
 
 #include <remus/common/Message.h>
-#include <remus/common/JobResponse.h>
+#include <remus/common/Response.h>
 #include <remus/common/zmqHelper.h>
 
 namespace remus{
@@ -74,7 +74,7 @@ public:
 
         //we can have two  response types, one which is for the Service MakeMesh
         //and the other for the Service shutdown which kills the worker process
-        remus::common::JobResponse response(Server);
+        remus::common::Response response(Server);
         if(response.serviceType() != remus::SHUTDOWN)
           {
           response.send(Worker);
@@ -172,7 +172,7 @@ remus::Job Worker::getJob()
   askForMesh.send(this->ServerComm);
 
   //we have our message back
-  remus::common::JobResponse response(this->ServerComm);
+  remus::common::Response response(this->ServerComm);
   //std::cout << "have our job from the server com in the real worker" <<std::endl;
 
   //we need a better serialization technique

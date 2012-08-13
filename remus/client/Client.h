@@ -23,7 +23,7 @@
 #include <remus/JobStatus.h>
 
 #include <remus/common/Message.h>
-#include <remus/common/JobResponse.h>
+#include <remus/common/Response.h>
 #include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
 #include <remus/client/ServerConnection.h>
@@ -82,7 +82,7 @@ bool Client::canMesh(const remus::JobRequest& request)
                               stringRequest.size());
   j.send(this->Server);
 
-  remus::common::JobResponse response(this->Server);
+  remus::common::Response response(this->Server);
   return response.dataAs<remus::STATUS_TYPE>() != remus::INVALID_STATUS;
 }
 
@@ -97,7 +97,7 @@ remus::Job Client::submitJob(const remus::JobRequest& request)
                               stringRequest.size());
   j.send(this->Server);
 
-  remus::common::JobResponse response(this->Server);
+  remus::common::Response response(this->Server);
   const std::string job = response.dataAs<std::string>();
   return remus::to_Job(job);
 }
@@ -110,7 +110,7 @@ remus::JobStatus Client::jobStatus(const remus::Job& job)
                               remus::to_string(job));
   j.send(this->Server);
 
-  remus::common::JobResponse response(this->Server);
+  remus::common::Response response(this->Server);
   const std::string status = response.dataAs<std::string>();
   return remus::to_JobStatus(status);
 }
@@ -123,7 +123,7 @@ remus::JobResult Client::retrieveResults(const remus::Job& job)
                               remus::to_string(job));
   j.send(this->Server);
 
-  remus::common::JobResponse response(this->Server);
+  remus::common::Response response(this->Server);
   const std::string result = response.dataAs<std::string>();
   return remus::to_JobResult(result);
 }
@@ -136,7 +136,7 @@ remus::JobStatus Client::terminate(const remus::Job& job)
                               remus::to_string(job));
   j.send(this->Server);
 
-  remus::common::JobResponse response(this->Server);
+  remus::common::Response response(this->Server);
   const std::string status = response.dataAs<std::string>();
   return remus::to_JobStatus(status);
 }

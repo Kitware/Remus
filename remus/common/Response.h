@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_JobResponse_h
-#define __remus_common_JobResponse_h
+#ifndef __remus_common_Response_h
+#define __remus_common_Response_h
 
 #include <cstddef>
 #include <zmq.hpp>
@@ -20,12 +20,12 @@
 
 namespace remus{
 namespace common{
-class JobResponse
+class Response
 {
 public:
-  explicit JobResponse(const zmq::socketIdentity& client);
-  explicit JobResponse(zmq::socket_t& socket);
-  ~JobResponse();
+  explicit Response(const zmq::socketIdentity& client);
+  explicit Response(zmq::socket_t& socket);
+  ~Response();
 
   //Clears any existing data message, and reconstructs
   //the new message we will use when we call send
@@ -52,19 +52,19 @@ private:
   zmq::message_t* Data;
 
   //make copying not possible
-  JobResponse (const JobResponse&);
-  void operator = (const JobResponse&);
+  Response (const Response&);
+  void operator = (const Response&);
 };
 
 //------------------------------------------------------------------------------
-JobResponse::JobResponse(const zmq::socketIdentity& client):
+Response::Response(const zmq::socketIdentity& client):
   ClientAddress(client),
   SType(remus::INVALID_SERVICE),
   Data(NULL)
   {
   }
 
-JobResponse::JobResponse(zmq::socket_t& socket):
+Response::Response(zmq::socket_t& socket):
   ClientAddress(),
   SType(remus::INVALID_SERVICE),
   Data(NULL)
@@ -86,13 +86,13 @@ JobResponse::JobResponse(zmq::socket_t& socket):
 }
 
 //------------------------------------------------------------------------------
-JobResponse::~JobResponse()
+Response::~Response()
   {
   this->clearData();
   }
 
 //------------------------------------------------------------------------------
-void JobResponse::clearData()
+void Response::clearData()
   {
   //if the response has been sent than the DataMessage is valid to be
   //deleted because we have moved the contents into a different message
@@ -105,7 +105,7 @@ void JobResponse::clearData()
 
 //------------------------------------------------------------------------------
 template<typename T>
-T JobResponse::dataAs()
+T Response::dataAs()
   {
   //default implementation works for primitive types
   return *reinterpret_cast<T*>(this->Data->data());
@@ -113,14 +113,14 @@ T JobResponse::dataAs()
 
 //------------------------------------------------------------------------------
 template<>
-std::string JobResponse::dataAs<std::string>()
+std::string Response::dataAs<std::string>()
   {
   return std::string(static_cast<char*>(this->Data->data()),this->Data->size());
   }
 
 //------------------------------------------------------------------------------
 template<typename T>
-void JobResponse::setData(const T& t)
+void Response::setData(const T& t)
   {
   this->clearData();
 
@@ -132,7 +132,7 @@ void JobResponse::setData(const T& t)
 
 //------------------------------------------------------------------------------
 template<>
-void JobResponse::setData<std::string>(const std::string& t)
+void Response::setData<std::string>(const std::string& t)
   {
   this->clearData();
   this->Data = new zmq::message_t(t.size());
@@ -141,7 +141,7 @@ void JobResponse::setData<std::string>(const std::string& t)
   }
 
 //------------------------------------------------------------------------------
-bool JobResponse::send(zmq::socket_t& socket) const
+bool Response::send(zmq::socket_t& socket) const
   {
   //if we have no data we will return false, since we couldn't send anything
   if(this->Data == NULL)
@@ -175,4 +175,4 @@ bool JobResponse::send(zmq::socket_t& socket) const
 }
 }
 
-#endif // __remus_common_JobResponse_h
+#endif // __remus_common_Response_h

@@ -20,7 +20,7 @@
 #include <remus/JobStatus.h>
 
 #include <remus/common/Message.h>
-#include <remus/common/JobResponse.h>
+#include <remus/common/Response.h>
 
 #include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
@@ -161,7 +161,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
   //msg.dump(std::cout);
   //server response is the general response message type
   //the client can than convert it to the expected type
-  remus::common::JobResponse response(clientIdentity);
+  remus::common::Response response(clientIdentity);
   if(!msg.isValid())
     {
     response.setServiceType(remus::INVALID_SERVICE);
@@ -279,7 +279,7 @@ std::string Server::terminateJob(const remus::common::Message& msg)
       remus::Job terminateJob(job.id(),
                               remus::MESH_TYPE(),
                               remus::to_string(remus::SHUTDOWN));
-      remus::common::JobResponse response(worker);
+      remus::common::Response response(worker);
       response.setServiceType(remus::SHUTDOWN);
       response.setData(remus::to_string(terminateJob));
       response.send(this->WorkerQueries);
@@ -343,7 +343,7 @@ void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
 {
   this->ActiveJobs->add( workerIdentity, job.id() );
 
-  remus::common::JobResponse response(workerIdentity);
+  remus::common::Response response(workerIdentity);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::to_string(job));
   response.send(this->WorkerQueries);
