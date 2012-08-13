@@ -21,7 +21,7 @@
 
 #include <remus/Job.h>
 #include <remus/JobRequest.h>
-#include <remus/common/JobMessage.h>
+#include <remus/common/Message.h>
 #include <remus/server/internal/uuidHelper.h>
 
 namespace remus{
@@ -36,9 +36,9 @@ class JobQueue
 public:
   JobQueue():Queue(){}
 
-  //Convert a JobMessage and UUID into a WorkerMessage.
+  //Convert a Message and UUID into a WorkerMessage.
   bool addJob( const boost::uuids::uuid& id,
-             const remus::common::JobMessage& message);
+             const remus::common::Message& message);
 
   //Removes a job from the queue of the given mesh type.
   //Return it as a Job
@@ -64,7 +64,7 @@ private:
   struct QueuedJob
   {
     QueuedJob(const boost::uuids::uuid& id,
-              const remus::common::JobMessage& message):
+              const remus::common::Message& message):
               Id(id),
               Message(message),
               WaitingForWorker(false),
@@ -72,7 +72,7 @@ private:
               {}
 
     boost::uuids::uuid Id;
-    remus::common::JobMessage Message;
+    remus::common::Message Message;
 
     //information on when the job was marked as scheduled
     bool WaitingForWorker;
@@ -94,7 +94,7 @@ private:
 
 //------------------------------------------------------------------------------
 bool JobQueue::addJob(const boost::uuids::uuid &id,
-                    const remus::common::JobMessage& message)
+                    const remus::common::Message& message)
 {
   this->Queue.push_back(QueuedJob(id,message));
   this->QueuedIds.insert(id);

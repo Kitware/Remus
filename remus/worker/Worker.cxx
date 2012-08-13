@@ -16,7 +16,7 @@
 #include <boost/thread.hpp>
 #include <string>
 
-#include <remus/common/JobMessage.h>
+#include <remus/common/Message.h>
 #include <remus/common/JobResponse.h>
 #include <remus/common/zmqHelper.h>
 
@@ -56,7 +56,7 @@ public:
       if(items[0].revents & ZMQ_POLLIN)
         {
         sentToServer = true;
-        remus::common::JobMessage message(Worker);
+        remus::common::Message message(Worker);
 
         //just pass the message on to the server
         message.send(Server);
@@ -90,7 +90,7 @@ public:
         {
         //std::cout << "send heartbeat to server" << std::endl;
         //send a heartbeat to the server
-        remus::common::JobMessage message(remus::MESH_TYPE(),remus::HEARTBEAT);
+        remus::common::Message message(remus::MESH_TYPE(),remus::HEARTBEAT);
         message.send(Server);
         }
       }
@@ -138,7 +138,7 @@ bool Worker::startCommunicationThread(const std::string &serverEndpoint,
                                              this->BComm,&this->Context);
 
     //register with the server that we can mesh a certain type
-    remus::common::JobMessage canMesh(this->MeshType,remus::CAN_MESH);
+    remus::common::Message canMesh(this->MeshType,remus::CAN_MESH);
     canMesh.send(this->ServerComm);
     return true;
     }
@@ -151,7 +151,7 @@ bool Worker::stopCommunicationThread()
   if(this->ServerCommThread && this->BComm)
     {
     //send message that we are shuting down communication
-    remus::common::JobMessage shutdown(this->MeshType,remus::SHUTDOWN);
+    remus::common::Message shutdown(this->MeshType,remus::SHUTDOWN);
     shutdown.send(this->ServerComm);
 
     this->ServerCommThread->join();
@@ -168,7 +168,7 @@ bool Worker::stopCommunicationThread()
 //-----------------------------------------------------------------------------
 remus::Job Worker::getJob()
 {
-  remus::common::JobMessage askForMesh(this->MeshType,remus::MAKE_MESH);
+  remus::common::Message askForMesh(this->MeshType,remus::MAKE_MESH);
   askForMesh.send(this->ServerComm);
 
   //we have our message back
@@ -187,7 +187,7 @@ void Worker::updateStatus(const remus::JobStatus& info)
 {
   //send a message that contains, the status
   std::string msg = remus::to_string(info);
-  remus::common::JobMessage message(this->MeshType,
+  remus::common::Message message(this->MeshType,
                                     remus::MESH_STATUS,
                                     msg.data(),msg.size());
   message.send(this->ServerComm);
@@ -198,7 +198,7 @@ void Worker::returnMeshResults(const remus::JobResult& result)
 {
   //send a message that contains, the path to the resulting file
   std::string msg = remus::to_string(result);
-  remus::common::JobMessage message(this->MeshType,
+  remus::common::Message message(this->MeshType,
                                     remus::RETRIEVE_MESH,
                                     msg.data(),msg.size());
   message.send(this->ServerComm);

@@ -19,7 +19,7 @@
 #include <remus/JobResult.h>
 #include <remus/JobStatus.h>
 
-#include <remus/common/JobMessage.h>
+#include <remus/common/Message.h>
 #include <remus/common/JobResponse.h>
 
 #include <remus/common/remusGlobals.h>
@@ -119,7 +119,7 @@ bool Server::startBrokering()
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
-      remus::common::JobMessage message(this->ClientQueries);
+      remus::common::Message message(this->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
       }
     if (items[1].revents & ZMQ_POLLIN)
@@ -130,7 +130,7 @@ bool Server::startBrokering()
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
-      remus::common::JobMessage message(this->WorkerQueries);
+      remus::common::Message message(this->WorkerQueries);
       this->DetermineWorkerResponse(workerIdentity,message);
 
       //refresh all jobs for a given worker with a new expiry time
@@ -156,7 +156,7 @@ bool Server::startBrokering()
 
 //------------------------------------------------------------------------------
 void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity,
-                                  const remus::common::JobMessage& msg)
+                                  const remus::common::Message& msg)
 {
   //msg.dump(std::cout);
   //server response is the general response message type
@@ -197,7 +197,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
 }
 
 //------------------------------------------------------------------------------
-bool Server::canMesh(const remus::common::JobMessage& msg)
+bool Server::canMesh(const remus::common::Message& msg)
 {
   //ToDo: add registration of mesh type
   //how is a generic worker going to register its type? static method?
@@ -207,7 +207,7 @@ bool Server::canMesh(const remus::common::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::meshStatus(const remus::common::JobMessage& msg)
+std::string Server::meshStatus(const remus::common::Message& msg)
 {
   remus::Job job = remus::to_Job(msg.data());
   remus::JobStatus js(job.id(),INVALID_STATUS);
@@ -223,7 +223,7 @@ std::string Server::meshStatus(const remus::common::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::queueJob(const remus::common::JobMessage& msg)
+std::string Server::queueJob(const remus::common::Message& msg)
 {
   if(this->canMesh(msg))
   {
@@ -242,7 +242,7 @@ std::string Server::queueJob(const remus::common::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::retrieveMesh(const remus::common::JobMessage& msg)
+std::string Server::retrieveMesh(const remus::common::Message& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
   remus::Job job = remus::to_Job(msg.data());
@@ -260,7 +260,7 @@ std::string Server::retrieveMesh(const remus::common::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::terminateJob(const remus::common::JobMessage& msg)
+std::string Server::terminateJob(const remus::common::Message& msg)
 {
 
   remus::Job job = remus::to_Job(msg.data());
@@ -293,7 +293,7 @@ std::string Server::terminateJob(const remus::common::JobMessage& msg)
 
 //------------------------------------------------------------------------------
 void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
-                                     const remus::common::JobMessage& msg)
+                                     const remus::common::Message& msg)
 {
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
@@ -323,7 +323,7 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
 }
 
 //------------------------------------------------------------------------------
-void Server::storeMeshStatus(const remus::common::JobMessage& msg)
+void Server::storeMeshStatus(const remus::common::Message& msg)
 {
   //the string in the data is actually a job status object
   remus::JobStatus js = remus::to_JobStatus(msg.data(),msg.dataSize());
@@ -331,7 +331,7 @@ void Server::storeMeshStatus(const remus::common::JobMessage& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::storeMesh(const remus::common::JobMessage& msg)
+void Server::storeMesh(const remus::common::Message& msg)
 {
   remus::JobResult jr = remus::to_JobResult(msg.data(),msg.dataSize());
   this->ActiveJobs->updateResult(jr);

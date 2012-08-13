@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_JobMessage_h
-#define __remus_common_JobMessage_h
+#ifndef __remus_common_Message_h
+#define __remus_common_Message_h
 
 #include <boost/shared_ptr.hpp>
 #include <zmq.hpp>
@@ -22,21 +22,21 @@
 
 namespace remus{
 namespace common{
-class JobMessage
+class Message
 {
 public:
   //pass in a data string the job message will copy and send
-  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data);
+  Message(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data);
 
   //pass in a data pointer that the message will use when sending
   //the pointer data can't become invalid before you call send.
-  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
+  Message(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size);
 
   //creates a job message with no data
-  JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype);
+  Message(MESH_TYPE mtype, SERVICE_TYPE stype);
 
   //creates a job message from reading in the socket
-  explicit JobMessage(zmq::socket_t& socket);
+  explicit Message(zmq::socket_t& socket);
 
   bool send(zmq::socket_t& socket) const;
   void releaseData() { this->Data = NULL; this->Size = 0;}
@@ -76,7 +76,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
+Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& data):
   MType(mtype),
   SType(stype),
   Data(NULL),
@@ -92,7 +92,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const std::string& d
 
 
 //------------------------------------------------------------------------------
-JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
+Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, int size):
   MType(mtype),
   SType(stype),
   Data(data),
@@ -103,7 +103,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype, const char* data, in
   }
 
 //------------------------------------------------------------------------------
-JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
+Message::Message(MESH_TYPE mtype, SERVICE_TYPE stype):
   MType(mtype),
   SType(stype),
   Data(NULL),
@@ -114,7 +114,7 @@ JobMessage::JobMessage(MESH_TYPE mtype, SERVICE_TYPE stype):
   }
 
 //------------------------------------------------------------------------------
-JobMessage::JobMessage(zmq::socket_t &socket)
+Message::Message(zmq::socket_t &socket)
 {
   //construct a job message from the socket
   zmq::removeReqHeader(socket);
@@ -158,7 +158,7 @@ JobMessage::JobMessage(zmq::socket_t &socket)
 }
 
 //------------------------------------------------------------------------------
-bool JobMessage::send(zmq::socket_t &socket) const
+bool Message::send(zmq::socket_t &socket) const
   {
   //we are sending our selves as a multi part message
   //frame 0: REQ header / attachReqHeader does this
@@ -197,7 +197,7 @@ bool JobMessage::send(zmq::socket_t &socket) const
 
 //------------------------------------------------------------------------------
 template<typename T>
-void JobMessage::dump(T& t) const
+void Message::dump(T& t) const
   {
   //dump the info to the t stream
   t << "Valid: " << this->isValid() << std::endl;
@@ -211,4 +211,4 @@ void JobMessage::dump(T& t) const
   }
 }
 }
-#endif //__remus_JobMessage_h
+#endif //__remus_Message_h

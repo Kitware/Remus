@@ -22,7 +22,7 @@
 #include <remus/JobRequest.h>
 #include <remus/JobStatus.h>
 
-#include <remus/common/JobMessage.h>
+#include <remus/common/Message.h>
 #include <remus/common/JobResponse.h>
 #include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
@@ -76,7 +76,7 @@ bool Client::canMesh(const remus::JobRequest& request)
 {
   //hold as a string so message doesn't have to copy a second time
   const std::string stringRequest(remus::to_string(request));
-  remus::common::JobMessage j(request.type(),
+  remus::common::Message j(request.type(),
                               remus::CAN_MESH,
                               stringRequest.data(),
                               stringRequest.size());
@@ -91,7 +91,7 @@ remus::Job Client::submitJob(const remus::JobRequest& request)
 {
   //hold as a string so message doesn't have to copy a second time
   const std::string stringRequest(remus::to_string(request));
-  remus::common::JobMessage j(request.type(),
+  remus::common::Message j(request.type(),
                               remus::MAKE_MESH,
                               stringRequest.data(),
                               stringRequest.size());
@@ -105,7 +105,7 @@ remus::Job Client::submitJob(const remus::JobRequest& request)
 //------------------------------------------------------------------------------
 remus::JobStatus Client::jobStatus(const remus::Job& job)
 {
-  remus::common::JobMessage j(job.type(),
+  remus::common::Message j(job.type(),
                               remus::MESH_STATUS,
                               remus::to_string(job));
   j.send(this->Server);
@@ -118,7 +118,7 @@ remus::JobStatus Client::jobStatus(const remus::Job& job)
 //------------------------------------------------------------------------------
 remus::JobResult Client::retrieveResults(const remus::Job& job)
 {
-  remus::common::JobMessage j(job.type(),
+  remus::common::Message j(job.type(),
                               remus::RETRIEVE_MESH,
                               remus::to_string(job));
   j.send(this->Server);
@@ -131,7 +131,7 @@ remus::JobResult Client::retrieveResults(const remus::Job& job)
 //------------------------------------------------------------------------------
 remus::JobStatus Client::terminate(const remus::Job& job)
 {
-  remus::common::JobMessage j(job.type(),
+  remus::common::Message j(job.type(),
                               remus::SHUTDOWN,
                               remus::to_string(job));
   j.send(this->Server);

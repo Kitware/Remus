@@ -8,7 +8,7 @@ set(Remus_Common_INCLUDE_DIRS
 
 set(headers
   ExecuteProcess.h
-  JobMessage.h
+  Message.h
   JobResponse.h
   remusGlobals.h
   zmqHelper.h

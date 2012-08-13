@@ -29,7 +29,7 @@
 namespace remus{
 //forward declaration of classes only the implementation needs
   namespace common{
-  class JobMessage;
+  class Message;
   }
   class Job;
 }
@@ -78,20 +78,20 @@ public:
 protected:
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
-                                 const remus::common::JobMessage& msg);
+                                 const remus::common::Message& msg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(const remus::common::JobMessage& msg);
-  std::string meshStatus(const remus::common::JobMessage& msg);
-  std::string queueJob(const remus::common::JobMessage& msg);
-  std::string retrieveMesh(const remus::common::JobMessage& msg);
-  std::string terminateJob(const remus::common::JobMessage& msg);
+  bool canMesh(const remus::common::Message& msg);
+  std::string meshStatus(const remus::common::Message& msg);
+  std::string queueJob(const remus::common::Message& msg);
+  std::string retrieveMesh(const remus::common::Message& msg);
+  std::string terminateJob(const remus::common::Message& msg);
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
-                              const remus::common::JobMessage& msg);
-  void storeMeshStatus(const remus::common::JobMessage& msg);
-  void storeMesh(const remus::common::JobMessage& msg);
+                              const remus::common::Message& msg);
+  void storeMeshStatus(const remus::common::Message& msg);
+  void storeMesh(const remus::common::Message& msg);
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
                          const remus::Job& job);
 
