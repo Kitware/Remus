@@ -20,7 +20,7 @@ int main (int argc, char* argv[])
     connection = remus::worker::ServerConnection(std::string(argv[1]));
     }
 
-  remus::common::MeshIOType requirements(remus::RAWTRIANGLES,remus::MESH2D);
+  remus::common::MeshIOType requirements(remus::RAW_EDGES,remus::MESH2D);
   remus::Worker w(requirements,connection);
 
   remus::Job jd = w.getJob();

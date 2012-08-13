@@ -30,8 +30,8 @@ public:
 
   //Construct a job request with only a mesher type given. This is used to
   //when asking a server if it supports a type of mesh
-  JobRequest(remus::MESH_OUTPUT_TYPE outputMeshIOType,
-             remus::MESH_INPUT_TYPE inputFileType):
+  JobRequest(remus::MESH_INPUT_TYPE inputFileType,
+             remus::MESH_OUTPUT_TYPE outputMeshIOType):
     CombinedType(inputFileType,outputMeshIOType),
     JobInfo()
     {
@@ -39,8 +39,8 @@ public:
 
   //Construct a job request with a mesh type and the info required by the worker
   //to run the job. This is used when submitting a job from the client to the server.
-  JobRequest(remus::MESH_OUTPUT_TYPE outputMeshIOType,
-             remus::MESH_INPUT_TYPE inputFileType,
+  JobRequest(remus::MESH_INPUT_TYPE inputFileType,
+             remus::MESH_OUTPUT_TYPE outputMeshIOType,
              const std::string& info):
     CombinedType(inputFileType,outputMeshIOType),
     JobInfo(info)

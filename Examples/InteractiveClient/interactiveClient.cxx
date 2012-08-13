@@ -29,7 +29,7 @@ void populateJobTypes()
     for(int j=1; j < remus::NUM_MESH_INPUT_TYPES; j++)
       {
       remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(i);
-      AllJobTypeCombinations[outType].push_back(remus::JobRequest(outType,inType));
+      AllJobTypeCombinations[outType].push_back(remus::JobRequest(inType,outType));
       }
     }
 }
@@ -108,8 +108,8 @@ void submitJob(remus::Client& client)
   std::cout<<"Enter Job Data (string) : " << std::endl;
   std::cin >> data;
 
-  remus::JobRequest request(static_cast<remus::MESH_OUTPUT_TYPE>(outType),
-                            static_cast<remus::MESH_INPUT_TYPE>(inType),
+  remus::JobRequest request(static_cast<remus::MESH_INPUT_TYPE>(inType),
+                            static_cast<remus::MESH_OUTPUT_TYPE>(outType),
                             data);
   remus::Job job = client.submitJob(request);
 
