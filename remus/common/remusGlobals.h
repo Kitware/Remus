@@ -84,7 +84,7 @@ struct MESH_TYPE
     combined_type(0)
     {}
 
-  MESH_TYPE(boost::int16_t in, boost::int16_t out)
+  MESH_TYPE(remus::MESH_INPUT_TYPE in, remus::MESH_OUTPUT_TYPE out)
     {
     Both.input = in;
     Both.output = out;

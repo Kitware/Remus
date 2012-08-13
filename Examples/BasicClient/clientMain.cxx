@@ -76,5 +76,9 @@ int main ()
         }
       }
     }
+  else
+    {
+    std::cout << "server doesn't support 2d meshes of raw triangles" << std::endl;
+    }
   return 1;
 }

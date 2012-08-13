@@ -48,13 +48,17 @@ public:
     }
 
   //Construct a job request with the given types held inside the MESH_TYPE object
-  explicit JobRequest(remus::MESH_TYPE combinedType)
+  explicit JobRequest(remus::MESH_TYPE combinedType):
+    CombinedType(combinedType),
+    JobInfo()
     {
 
     }
 
   //Construct a job request with the given types held inside the MESH_TYPE object
-  JobRequest(remus::MESH_TYPE combinedType, const std::string& info)
+  JobRequest(remus::MESH_TYPE combinedType, const std::string& info):
+    CombinedType(combinedType),
+    JobInfo(info)
     {
 
     }
@@ -92,17 +96,15 @@ inline remus::JobRequest to_JobRequest(const std::string& msg)
   std::stringstream buffer(msg);
 
 
-  int out, in, dataLen;
+  int dataLen;
+  remus::MESH_TYPE jobRequirements;
   std::string data;
-  buffer >> out; //out type first
-  buffer >> in; //in type second
+  buffer >> jobRequirements;
 
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
 
-  const remus::MESH_OUTPUT_TYPE outType = static_cast<remus::MESH_OUTPUT_TYPE>(out);
-  const remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(in);
-  return remus::JobRequest(outType,inType,data);
+  return remus::JobRequest(jobRequirements,data);
 }
 
 //------------------------------------------------------------------------------
