@@ -31,7 +31,7 @@ static const std::string INVALID_MSG = "INVALID_MSG";
 enum MESH_INPUT_TYPE
 {
   INVALID_MESH_IN = 0,
-  SCENEFILE = 1,
+  SCENE_FILE = 1,
   MODEL = 2,
   RAW_EDGES = 3,
   NUM_MESH_INPUT_TYPES=4
@@ -110,7 +110,7 @@ inline std::string to_string(remus::STATUS_TYPE t)
 //------------------------------------------------------------------------------
 inline remus::MESH_INPUT_TYPE to_meshInType(const std::string& t)
 {
-  for(int i=1; i <=3; i++)
+  for(int i=0; i < remus::NUM_MESH_INPUT_TYPES; i++)
     {
     remus::MESH_INPUT_TYPE mt=static_cast<remus::MESH_INPUT_TYPE>(i);
     if (remus::to_string(mt) == t)
@@ -124,7 +124,7 @@ inline remus::MESH_INPUT_TYPE to_meshInType(const std::string& t)
 //------------------------------------------------------------------------------
 inline remus::MESH_OUTPUT_TYPE to_meshOutType(const std::string& t)
 {
-  for(int i=1; i <=4; i++)
+  for(int i=0; i < remus::NUM_MESH_OUTPUT_TYPES; i++)
     {
     remus::MESH_OUTPUT_TYPE mt=static_cast<remus::MESH_OUTPUT_TYPE>(i);
     if (remus::to_string(mt) == t)
