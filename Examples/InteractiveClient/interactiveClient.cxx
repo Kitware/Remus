@@ -28,7 +28,7 @@ void populateJobTypes()
     remus::MESH_OUTPUT_TYPE outType = static_cast<remus::MESH_OUTPUT_TYPE>(i);
     for(int j=1; j < remus::NUM_MESH_INPUT_TYPES; j++)
       {
-      remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(i);
+      remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(j);
       AllJobTypeCombinations[outType].push_back(remus::JobRequest(inType,outType));
       }
     }
@@ -36,10 +36,11 @@ void populateJobTypes()
 
 void dumpMeshInputInfo(remus::Client &client, remus::MESH_OUTPUT_TYPE outType)
 {
-  RequestVector& requests = AllJobTypeCombinations[outType];
+  RequestVector requests = AllJobTypeCombinations[outType];
   for(RequestIt i=requests.begin(); i != requests.end(); ++i)
     {
-    std::cout << "\t " << client.canMesh(*i) << std::endl;
+    std::cout << "\t " << remus::to_string( (*i).inputType() ) << ": "
+              << client.canMesh(*i) << std::endl;
     }
   std::cout << std::endl;
   return;
@@ -51,7 +52,7 @@ void dumpCanMeshInfo(remus::Client& client)
   std::cout << "2DMesh: " << std::endl;
   dumpMeshInputInfo(client,remus::MESH2D);
 
-  std::cout << "2DMesh: " << std::endl;
+  std::cout << "3DMesh: " << std::endl;
   dumpMeshInputInfo(client,remus::MESH3D);
 
   std::cout << "3D Surface: " << std::endl;
