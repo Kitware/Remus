@@ -11,7 +11,7 @@
 
 add_revision(remus
   GIT_REPOSITORY "git://public.kitware.com/Remus.git"
-  GIT_TAG b41da0ab37eb1e)
+  GIT_TAG 3f26d30f870)
 
 if( NOT WIN32)
   add_revision(zeroMQ
@@ -20,7 +20,7 @@ if( NOT WIN32)
 
   add_revision(boost
     URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download"
-    URL_MD5 e0defc8c818e4f1c5bbb29d0292b76ca 
+    URL_MD5 e0defc8c818e4f1c5bbb29d0292b76ca
     )
 
 elseif(WIN32)
@@ -31,5 +31,5 @@ elseif(WIN32)
   add_revision(boost
     URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.zip/download"
     URL_MD5 854dcbbff31b896c85c38247060b7713
-    )    
+    )
 endif()
