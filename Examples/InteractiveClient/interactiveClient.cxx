@@ -77,7 +77,7 @@ void dumpJobInfo(remus::Client& client)
       remus::Job job(rawId,j->type());
       remus::JobStatus status = client.jobStatus(job);
       std::cout << " status of job is: " << status.Status << " " << remus::to_string(status.Status)  << std::endl;
-      if(status.Status == remus::IN_PROGRESS)
+      if(status.inProgress())
         {
         std::cout << " progress is " << status.Progress << std::endl;
         }
