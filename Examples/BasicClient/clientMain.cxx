@@ -67,8 +67,7 @@ int main ()
 
         //when the job has entered any of the finished states we remove it
         //from the jobs we are checking
-        if(newStatus.Status == remus::FINISHED ||
-           newStatus.Status == remus::FAILED)
+        if( !newStatus.good() )
           {
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);

@@ -151,6 +151,38 @@ struct JobStatus
 
     }
 
+  //returns true if the job is waiting for a worker
+  bool queued() const
+  {
+    return this->Status == remus::QUEUED;
+  }
+
+  //returns true if the job is still running on the worker
+  bool inProgress() const
+  {
+    return this->Status == remus::IN_PROGRESS;
+  }
+
+  //returns true if the job is in progress or queued
+  bool good() const
+  {
+    return queued() || inProgress();
+  }
+
+  //returns true if the job failed to launch in any way.
+  bool failed() const
+  {
+    return (this->Status == remus::INVALID_STATUS) ||
+           (this->Status == remus::FAILED) ||
+           (this->Status == remus::EXPIRED);
+  }
+
+  //returns true if the job is finished and you can get the results from the server.
+  bool finished() const
+  {
+    return this->Status == remus::FINISHED;
+  }
+
 };
 
 //------------------------------------------------------------------------------
