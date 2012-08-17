@@ -173,7 +173,13 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
   if(item != this->Info.end() &&
      item->second.canUpdateStatus())
     {
-    item->second.jstatus = s;
+    //we don't want the worker to ever explicitly state it has finished the
+    //job. We want that state to only be applied when the results have finished
+    //transferring to the server
+    if(!s.finished())
+      {
+      item->second.jstatus = s;
+      }
     item->second.refresh();
     }
 }
@@ -184,6 +190,12 @@ void ActiveJobs::updateResult(const remus::JobResult& r)
   InfoIt item = this->Info.find(r.JobId);
   if(item != this->Info.end())
     {
+    //once we get a result we can state our status is now finished,
+    //since the uploading of data has finished.
+    if(item->second.canUpdateStatus())
+      {
+      item->second.jstatus = remus::JobStatus(r.JobId,remus::FINISHED);
+      }
     item->second.jresult = r;
     item->second.haveResult = true;
     item->second.refresh();

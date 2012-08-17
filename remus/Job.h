@@ -89,7 +89,8 @@ inline std::string to_string(const remus::Job& job)
   std::stringstream buffer;
   buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
-  buffer << job.details().size() << job.details() << std::endl;
+  buffer << job.details().size() << std::endl;
+  buffer << job.details() << std::endl;
   return buffer.str();
 }
 

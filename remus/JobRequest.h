@@ -84,7 +84,8 @@ inline std::string to_string(const remus::JobRequest& request)
   //encoding is simple, contents newline separated
   std::stringstream buffer;
   buffer << request.type() << std::endl;
-  buffer << request.jobInfo().length() << request.jobInfo() << std::endl;
+  buffer << request.jobInfo().length() << std::endl;
+  buffer << request.jobInfo() << std::endl;
   return buffer.str();
 }
 
@@ -97,8 +98,9 @@ inline remus::JobRequest to_JobRequest(const std::string& msg)
 
 
   int dataLen;
-  remus::common::MeshIOType jobRequirements;
   std::string data;
+  remus::common::MeshIOType jobRequirements;
+
   buffer >> jobRequirements;
 
   buffer >> dataLen;

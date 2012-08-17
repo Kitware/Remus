@@ -251,11 +251,10 @@ std::string Server::retrieveMesh(const remus::common::Message& msg)
   if(this->ActiveJobs->haveUUID(job.id()) && this->ActiveJobs->haveResult(job.id()))
     {
     result = this->ActiveJobs->result(job.id());
+    //for now we remove all references from this job being active
+    this->ActiveJobs->remove(job.id());
     }
-
-  //for now we remove all references from this job being active
-  this->ActiveJobs->remove(job.id());
-
+  //return an empty result
   return remus::to_string(result);
 }
 
