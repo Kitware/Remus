@@ -43,6 +43,8 @@ struct JobResult
     JobId(id),
     Data(d)
     {}
+
+  bool valid() const { return Data.size() > 0; }
 };
 
 //------------------------------------------------------------------------------

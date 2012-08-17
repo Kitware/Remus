@@ -41,10 +41,6 @@ int main (int argc, char* argv[])
       }
     }
 
-  //mark the status as finished now, and resend.
-  status.Status = remus::FINISHED;
-  w.updateStatus(status);
-
   remus::JobResult results(jd.id(),"FAKE RESULTS");
   w.returnMeshResults(results);
 
