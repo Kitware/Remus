@@ -16,6 +16,8 @@
 #include <string>
 #include <sstream>
 
+#include <remus/common/remusGlobals.h>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
@@ -50,6 +52,7 @@ inline std::string to_string(const remus::JobResult& status)
   //encoding is simple, contents newline separated
   std::stringstream buffer;
   buffer << status.JobId << std::endl;
+  buffer << status.Data.length() << std::endl;
   buffer << status.Data << std::endl;
   return buffer.str();
 }
@@ -63,9 +66,13 @@ inline remus::JobResult to_JobResult(const std::string& status)
   std::stringstream buffer(status);
 
   boost::uuids::uuid id;
+  int dataLen;
   std::string data;
+
   buffer >> id;
-  buffer >> data;
+  buffer >> dataLen;
+  data = remus::internal::extractString(buffer,dataLen);
+
   return remus::JobResult(id,data);
 }
 
