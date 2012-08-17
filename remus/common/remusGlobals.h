@@ -154,6 +154,11 @@ namespace internal
 //------------------------------------------------------------------------------
 inline std::string extractString(std::stringstream& buffer, int size)
 {
+  while(buffer.peek()=='\n' || buffer.peek()=='\r')
+    {
+    buffer.get();
+    }
+
   char* rawData = new char[size+1];
   buffer.rdbuf()->sgetn(rawData,size);
   rawData[size]='\0';
