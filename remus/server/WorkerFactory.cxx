@@ -107,7 +107,7 @@ public:
       remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshIOType);
       boost::filesystem::path p(file.parent_path());
       p /= mesherName;
-#ifdef WIN32
+#ifdef _WIN32
       p.replace_extension(".exe");
 #endif
       if(boost::filesystem::is_regular_file(p))
