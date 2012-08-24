@@ -55,7 +55,7 @@ inline std::string to_string(const remus::JobResult& status)
   std::stringstream buffer;
   buffer << status.JobId << std::endl;
   buffer << status.Data.length() << std::endl;
-  buffer << status.Data << std::endl;
+  remus::internal::writeString(buffer, status.Data);
   return buffer.str();
 }
 

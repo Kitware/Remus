@@ -198,7 +198,8 @@ inline std::string to_string(const remus::JobStatus& status)
   if(status.Status == remus::IN_PROGRESS)
     {
     buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message().size() << status.Progress.message() << std::endl;
+    buffer << status.Progress.message().size() << std::endl;
+    remus::internal::writeString(buffer,status.Progress.message());
     }
   return buffer.str();
 }

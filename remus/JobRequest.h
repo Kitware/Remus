@@ -85,7 +85,7 @@ inline std::string to_string(const remus::JobRequest& request)
   std::stringstream buffer;
   buffer << request.type() << std::endl;
   buffer << request.jobInfo().length() << std::endl;
-  buffer << request.jobInfo() << std::endl;
+  remus::internal::writeString(buffer, request.jobInfo());
   return buffer.str();
 }
 

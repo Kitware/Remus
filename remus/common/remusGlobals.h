@@ -166,6 +166,13 @@ inline std::string extractString(std::stringstream& buffer, int size)
   delete[] rawData;
   return msg;
 }
+
+//------------------------------------------------------------------------------
+inline void writeString(std::stringstream& buffer, const std::string str)
+{
+  buffer.write(str.c_str(),str.length());
+  buffer << std::endl;
+}
 }
 
 }
