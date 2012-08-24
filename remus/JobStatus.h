@@ -22,7 +22,7 @@
 
 namespace remus {
 
-class JobStatus;
+struct JobStatus;
 
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.
@@ -198,7 +198,8 @@ inline std::string to_string(const remus::JobStatus& status)
   if(status.Status == remus::IN_PROGRESS)
     {
     buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message().size() << status.Progress.message() << std::endl;
+    buffer << status.Progress.message().size() << std::endl;
+    remus::internal::writeString(buffer,status.Progress.message());
     }
   return buffer.str();
 }
@@ -243,12 +244,17 @@ inline remus::JobStatus to_JobStatus(const std::string& status)
     }
 }
 
+
 //------------------------------------------------------------------------------
 inline remus::JobStatus to_JobStatus(const char* data, int size)
 {
-  //convert a job status from a string, used as a hack to serialize
-  return to_JobStatus( std::string(data,size) );
+  //the data might contain null terminators which on windows
+  //makes the data,size construct fail, so instead we memcpy
+  std::string temp(size,char());
+  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  return to_JobStatus( temp );
 }
+
 
 }
 #endif

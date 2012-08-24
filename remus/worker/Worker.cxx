@@ -177,8 +177,6 @@ remus::Job Worker::getJob()
 
   //we need a better serialization technique
   std::string msg = response.dataAs<std::string>();
-  //std::cout << "Raw job details " << msg << std::endl;
-
   return remus::to_Job(msg);
 }
 
