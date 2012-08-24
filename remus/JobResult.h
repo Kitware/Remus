@@ -15,6 +15,7 @@
 
 #include <string>
 #include <sstream>
+#include <string.h>
 
 #include <remus/common/remusGlobals.h>
 
