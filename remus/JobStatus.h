@@ -244,12 +244,17 @@ inline remus::JobStatus to_JobStatus(const std::string& status)
     }
 }
 
+
 //------------------------------------------------------------------------------
 inline remus::JobStatus to_JobStatus(const char* data, int size)
 {
-  //convert a job status from a string, used as a hack to serialize
-  return to_JobStatus( std::string(data,size) );
+  //the data might contain null terminators which on windows
+  //makes the data,size construct fail, so instead we memcpy
+  std::string temp(size,char());
+  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  return to_JobStatus( temp );
 }
+
 
 }
 #endif

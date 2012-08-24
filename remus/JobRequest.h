@@ -105,16 +105,19 @@ inline remus::JobRequest to_JobRequest(const std::string& msg)
 
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
-
   return remus::JobRequest(jobRequirements,data);
 }
+
 
 //------------------------------------------------------------------------------
 inline remus::JobRequest to_JobRequest(const char* data, int size)
 {
-  //convert a job status from a string, used as a hack to serialize
-  return to_JobRequest( std::string(data,size) );
+  //convert a job request from a string, used as a hack to serialize
+  std::string temp(size,char());
+  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  return to_JobRequest( temp );
 }
+
 
 }
 #endif

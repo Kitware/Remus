@@ -344,7 +344,9 @@ void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
 
   remus::common::Response response(workerIdentity);
   response.setServiceType(remus::MAKE_MESH);
-  response.setData(remus::to_string(job));
+
+  std::string tmp = remus::to_string(job);
+  response.setData(tmp);
   response.send(this->WorkerQueries);
 }
 

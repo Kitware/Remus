@@ -159,18 +159,16 @@ inline std::string extractString(std::stringstream& buffer, int size)
     buffer.get();
     }
 
-  char* rawData = new char[size+1];
-  buffer.rdbuf()->sgetn(rawData,size);
-  rawData[size]='\0';
-  std::string msg = std::string(rawData);
-  delete[] rawData;
+  std::string msg(size,char());
+  char* raw = const_cast<char*>(msg.c_str());
+  buffer.rdbuf()->sgetn(raw,size);
   return msg;
 }
 
 //------------------------------------------------------------------------------
 inline void writeString(std::stringstream& buffer, const std::string str)
 {
-  buffer.write(str.c_str(),str.length());
+  buffer.rdbuf()->sputn(str.c_str(),str.length());
   buffer << std::endl;
 }
 }

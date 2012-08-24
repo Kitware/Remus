@@ -78,12 +78,16 @@ inline remus::JobResult to_JobResult(const std::string& status)
   return remus::JobResult(id,data);
 }
 
+
 //------------------------------------------------------------------------------
 inline remus::JobResult to_JobResult(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
-  return to_JobResult( std::string(data,size) );
+  std::string temp(size,char());
+  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  return to_JobResult( temp );
 }
+
 
 }
 #endif
