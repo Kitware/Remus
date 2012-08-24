@@ -22,7 +22,7 @@
 
 namespace remus {
 
-class JobStatus;
+struct JobStatus;
 
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.
