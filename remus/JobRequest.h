@@ -13,6 +13,10 @@
 #ifndef __remus_JobRequest_h
 #define __remus_JobRequest_h
 
+#include <string>
+#include <sstream>
+#include <string.h>
+
 #include <remus/common/MeshIOType.h>
 
 //A job request has two purposes. First it is sent to the server to determine
