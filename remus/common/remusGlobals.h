@@ -154,7 +154,7 @@ namespace internal
 //------------------------------------------------------------------------------
 inline std::string extractString(std::stringstream& buffer, int size)
 {
-  while(buffer.peek()=='\n' || buffer.peek()=='\r')
+  if(buffer.peek()=='\n')
     {
     buffer.get();
     }
