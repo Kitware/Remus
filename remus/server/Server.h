@@ -73,17 +73,8 @@ public:
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
-  //to report which port it bound it self too. This call gets the exact port
-  //the the server is listening to client requests on
-  const std::string& clientEndpoint() const
-    {return ClientEndpoint;}
-
-  //get back the port information that this server bound too. Since multiple
-  //remus servers can be running at a single time this is a way for the server
-  //to report which port it bound it self too. This call gets the exact port
-  //the the server is listening to worker requests on
-  const std::string& workerEndpoint() const
-    {return WorkerEndpoint;}
+  //to report which port it bound it self too.
+  const remus::server::ServerPorts& ServerPortInfo() const {return PortInfo;}
 
 protected:
   //processes all job queries
@@ -120,8 +111,7 @@ protected:
   boost::scoped_ptr<remus::server::internal::ActiveJobs> ActiveJobs;
 
   remus::server::WorkerFactory WorkerFactory;
-  std::string ClientEndpoint;
-  std::string WorkerEndpoint;
+  remus::server::ServerPorts PortInfo;
 };
 
 }

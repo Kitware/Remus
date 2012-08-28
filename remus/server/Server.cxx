@@ -43,14 +43,14 @@ Server::Server():
   QueuedJobs(new remus::server::internal::JobQueue() ),
   WorkerPool(new remus::server::internal::WorkerPool() ),
   ActiveJobs(new remus::server::internal::ActiveJobs () ),
-  WorkerFactory()
+  WorkerFactory(),
+  PortInfo() //use default loopback ports
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  remus::server::ServerPorts ports;
-  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
-  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  this->PortInfo.bindClient(this->ClientQueries);
+  this->PortInfo.bindWorker(this->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
@@ -62,14 +62,14 @@ Server::Server(const remus::server::WorkerFactory& factory):
   QueuedJobs(new remus::server::internal::JobQueue() ),
   WorkerPool(new remus::server::internal::WorkerPool() ),
   ActiveJobs(new remus::server::internal::ActiveJobs () ),
-  WorkerFactory(factory)
+  WorkerFactory(factory),
+  PortInfo()
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  remus::server::ServerPorts ports;
-  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
-  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  this->PortInfo.bindClient(this->ClientQueries);
+  this->PortInfo.bindWorker(this->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
@@ -81,13 +81,14 @@ Server::Server(remus::server::ServerPorts ports):
   QueuedJobs(new remus::server::internal::JobQueue() ),
   WorkerPool(new remus::server::internal::WorkerPool() ),
   ActiveJobs(new remus::server::internal::ActiveJobs () ),
-  WorkerFactory()
+  WorkerFactory(),
+  PortInfo(ports)
   {
-  //attempts to bind to the passed in custom server ports
-  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
-  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //attempts to bind to a tcp socket, with a prefered port number
+  this->PortInfo.bindClient(this->ClientQueries);
+  this->PortInfo.bindWorker(this->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
@@ -100,13 +101,14 @@ Server::Server(remus::server::ServerPorts ports,
   QueuedJobs(new remus::server::internal::JobQueue() ),
   WorkerPool(new remus::server::internal::WorkerPool() ),
   ActiveJobs(new remus::server::internal::ActiveJobs () ),
-  WorkerFactory(factory)
+  WorkerFactory(factory),
+  PortInfo(ports)
   {
-  //attempts to bind to the passed in custom server ports
-  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
-  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //attempts to bind to a tcp socket, with a prefered port number
+  this->PortInfo.bindClient(this->ClientQueries);
+  this->PortInfo.bindWorker(this->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------

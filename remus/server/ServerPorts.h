@@ -27,7 +27,7 @@ namespace server{
 //if it can't bind tooo, it will sequentially try to bind to the next larger
 //port number.
 
-//This doesn't support non tcp-ip port connections currently
+//This only supports tcp-ip port connections currently
 //------------------------------------------------------------------------------
 class ServerPorts
 {
@@ -50,26 +50,23 @@ public:
 
   //will attempt to bind the passed in socket to client tcp-ip port we hold
   //if the bind fails, we will continue increasing the port number intill we find
-  //a valid port. We will update our clientEndpoint string with the new valid information
-  //Returns the port information it bound to as a string that zeroMQ likes (tcp://56.39.229.89:89)
-  const std::string& bindClient(zmq::socket_t& socket)
+  //a valid port. We will update our client socket info with the new valid information
+  void bindClient(zmq::socket_t& socket)
   {
     this->Client = zmq::bindToTCPSocket(socket,this->Client);
-    return this->Client.endpoint();
   }
 
   //will attempt to bind the passed in socket to worker tcp-ip port we hold
   //if the bind fails, we will continue increasing the port number intill we find
-  //a valid port. We will update our clientEndpoint string with the new valid information
-  //Returns the port information it bound to as a string that zeroMQ likes (tcp://56.39.229.89:89)
-  const std::string& bindWorker(zmq::socket_t& socket)
+  //a valid port. We will update our worker socket info with the new valid information
+  void bindWorker(zmq::socket_t& socket)
   {
     this->Worker = zmq::bindToTCPSocket(socket,this->Worker);
-    return this->Worker.endpoint();
   }
 
-  const std::string& clientEndpoint() const { return this->Client.endpoint(); }
-  const std::string& workerEndpoint() const { return this->Worker.endpoint(); }
+  const zmq::socketInfo<zmq::proto::tcp>& client() const { return this->Client; }
+  const zmq::socketInfo<zmq::proto::tcp>& worker() const { return this->Worker; }
+
 
 
 protected:
