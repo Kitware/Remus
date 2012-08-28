@@ -109,15 +109,11 @@ inline void connectToAddress(zmq::socket_t &socket,const zmq::socketInfo<T> &sIn
 }
 
 inline zmq::socketInfo<zmq::proto::tcp> bindToTCPSocket(zmq::socket_t &socket,
-                                                        int port)
+                                                        zmq::socketInfo<zmq::proto::tcp> socketInfo)
 {
-  //given a default port try to connect using tcp on that port, continue
-  //till we hit maximum number of ports and if still failing throw execption
-  zmq::socketInfo<zmq::proto::tcp> socketInfo("*",port);
   //go through all ports, I hope the input port is inside the Ephemeral range
   int rc = -1;
-  int i=port;
-  for(;i < 65535 && rc != 0; ++i)
+  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
     {
     socketInfo.setPort(i);
     //using the C syntax to skip having to catch the exception;

@@ -46,22 +46,11 @@ Server::Server():
   WorkerFactory()
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  //For accurate information on what the socket actually bond to,
-  //check the Job Socket Info class
-  this->ClientSocketInfo = zmq::bindToTCPSocket(
-                             this->ClientQueries,
-                             remus::BROKER_CLIENT_PORT);
-  this->WorkerSocketInfo = zmq::bindToTCPSocket(
-                             this->WorkerQueries,
-                             remus::BROKER_WORKER_PORT);
-
-  //give to the worker factory the endpoint information needed to connect
-  //to myself. The WorkerSocketInfo host name is not what we want to
-  //give to the factory as it might not
-  //be the external name we are interested in
-  zmq::socketInfo<zmq::proto::tcp> externalInfo("127.0.0.1",
-                                                this->WorkerSocketInfo.port());
-  this->WorkerFactory.addCommandLineArgument(externalInfo.endpoint());
+  remus::server::ServerPorts ports;
+  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
+  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //give to the worker factory the endpoint information needed to connect to myself
+  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
   }
 
 //------------------------------------------------------------------------------
@@ -76,22 +65,48 @@ Server::Server(const remus::server::WorkerFactory& factory):
   WorkerFactory(factory)
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  //For accurate information on what the socket actually bond to,
-  //check the Job Socket Info class
-  this->ClientSocketInfo = zmq::bindToTCPSocket(
-                             this->ClientQueries,
-                             remus::BROKER_CLIENT_PORT);
-  this->WorkerSocketInfo = zmq::bindToTCPSocket(
-                             this->WorkerQueries,
-                             remus::BROKER_WORKER_PORT);
+  remus::server::ServerPorts ports;
+  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
+  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //give to the worker factory the endpoint information needed to connect to myself
+  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  }
 
-  //give to the worker factory the endpoint information needed to connect
-  //to myself. The WorkerSocketInfo host name is not what we want to
-  //give to the factory as it might not
-  //be the external name we are interested in
-  zmq::socketInfo<zmq::proto::tcp> externalInfo("127.0.0.1",
-                                                this->WorkerSocketInfo.port());
-  this->WorkerFactory.addCommandLineArgument(externalInfo.endpoint());
+//------------------------------------------------------------------------------
+Server::Server(remus::server::ServerPorts ports):
+  Context(1),
+  ClientQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER),
+  UUIDGenerator(), //use default random number generator
+  QueuedJobs(new remus::server::internal::JobQueue() ),
+  WorkerPool(new remus::server::internal::WorkerPool() ),
+  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  WorkerFactory()
+  {
+  //attempts to bind to the passed in custom server ports
+  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
+  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //give to the worker factory the endpoint information needed to connect to myself
+  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
+  }
+
+//------------------------------------------------------------------------------
+Server::Server(remus::server::ServerPorts ports,
+               const remus::server::WorkerFactory& factory):
+  Context(1),
+  ClientQueries(Context,ZMQ_ROUTER),
+  WorkerQueries(Context,ZMQ_ROUTER),
+  UUIDGenerator(), //use default random number generator
+  QueuedJobs(new remus::server::internal::JobQueue() ),
+  WorkerPool(new remus::server::internal::WorkerPool() ),
+  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  WorkerFactory(factory)
+  {
+  //attempts to bind to the passed in custom server ports
+  this->ClientEndpoint = ports.bindClient(this->ClientQueries);
+  this->WorkerEndpoint = ports.bindWorker(this->WorkerQueries);
+  //give to the worker factory the endpoint information needed to connect to myself
+  this->WorkerFactory.addCommandLineArgument(this->ClientEndpoint);
   }
 
 //------------------------------------------------------------------------------

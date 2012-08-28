@@ -8,7 +8,9 @@ add_subdirectory(internal)
 set(headers
     Server.h
     WorkerFactory.h
+	ServerPorts.h
     )
+
 set(server_srcs
    Server.cxx
    WorkerFactory.cxx

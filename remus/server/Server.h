@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __server_h
-#define __server_h
+#ifndef __remus_server_Server_h
+#define __remus_server_Server_h
 
 #include <zmq.hpp>
 #include <remus/common/zmqHelper.h>
@@ -20,7 +20,7 @@
 #include <boost/uuid/random_generator.hpp>
 
 #include <remus/server/WorkerFactory.h>
-
+#include <remus/server/ServerPorts.h>
 
 
 //included for symbol exports
@@ -50,11 +50,21 @@ class REMUSSERVER_EXPORT Server
 {
 public:
   //construct a new server using the default worker factory
+  //and default loopback ports
   Server();
 
   //construct a new server with a custom factory
+  //and the default loopback ports
   explicit Server(const remus::server::WorkerFactory& factory);
 
+  //construct a new server using the given loop back ports
+  //and the default factory
+  explicit Server(remus::server::ServerPorts ports);
+
+  //construct a new server using the given loop back ports
+  //and the default factory
+  explicit Server(remus::server::ServerPorts ports,
+                  const remus::server::WorkerFactory& factory);
   ~Server();
 
   //when you call start brokering the server will actually start accepting
@@ -65,15 +75,15 @@ public:
   //remus servers can be running at a single time this is a way for the server
   //to report which port it bound it self too. This call gets the exact port
   //the the server is listening to client requests on
-  const zmq::socketInfo<zmq::proto::tcp>& clientSocketInfo() const
-    {return ClientSocketInfo;}
+  const std::string& clientEndpoint() const
+    {return ClientEndpoint;}
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
   //to report which port it bound it self too. This call gets the exact port
   //the the server is listening to worker requests on
-  const zmq::socketInfo<zmq::proto::tcp>& workerSocketInfo() const
-    {return WorkerSocketInfo;}
+  const std::string& workerEndpoint() const
+    {return WorkerEndpoint;}
 
 protected:
   //processes all job queries
@@ -110,8 +120,8 @@ protected:
   boost::scoped_ptr<remus::server::internal::ActiveJobs> ActiveJobs;
 
   remus::server::WorkerFactory WorkerFactory;
-  zmq::socketInfo<zmq::proto::tcp> ClientSocketInfo;
-  zmq::socketInfo<zmq::proto::tcp> WorkerSocketInfo;
+  std::string ClientEndpoint;
+  std::string WorkerEndpoint;
 };
 
 }
