@@ -23,6 +23,14 @@ find_package(ZeroMQ REQUIRED)
 # * string algorithms
 # * date time
 set(Boost_USE_STATIC_LIBS ON)
+
+#if boost is installed as a system library on a machine, we will never
+#be able to set the superbuild to use the custom boost version. The solution
+#is that when doing a system
+option(Remus_NO_SYSTEM_BOOST "Allow boost to search for system installed boost" ON)
+set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
+
+
 find_package(Boost 1.45.0 COMPONENTS thread filesystem system date_time REQUIRED)
 
 option(Remus_ENABLE_TESTING "Enable Testing" ON)
@@ -76,6 +84,7 @@ endif()
 add_subdirectory(remus)
 
 #add the examples code
+option(Remus_ENABLE_EXAMPLES "Build Examples" ON)
 if(Remus_ENABLE_EXAMPLES)
   add_subdirectory(Examples)
 endif()
