@@ -9,7 +9,8 @@ message(STATUS "zeroMQ args are: ${zero_args}")
 add_external_project(remus
   DEPENDS boost zeroMQ
   CMAKE_ARGS
-   -DMeshServer_ENABLE_EXAMPLES:BOOL=FALSE
+   -DRemus_ENABLE_EXAMPLES:BOOL=OFF
+   -DRemus_NO_SYSTEM_BOOST:BOOL=ON
     ${boost_args}
     ${zero_args}
   )
