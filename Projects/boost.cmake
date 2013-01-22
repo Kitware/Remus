@@ -14,7 +14,7 @@ set(boost_with_args
 
 #since we don't specify a prefix for the superbuild,
 #we can determine where the buld directory will be. This
-#is needed as we need to wrap the build directory in quotes to 
+#is needed as we need to wrap the build directory in quotes to
 #and escape spaces in the path for boost to properly build.
 string(REPLACE " " "\\ " boost_build_dir ${CMAKE_CURRENT_BINARY_DIR}/boost/src/boost)
 string(REPLACE " " "\\ " boost_install_dir ${install_location})
