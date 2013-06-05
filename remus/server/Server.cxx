@@ -127,7 +127,8 @@ bool Server::startBrokering()
   //  Process messages from both sockets
   while (true)
     {
-    zmq::poll (&items[0], 2, remus::HEARTBEAT_INTERVAL);
+    zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
+    // std::cout << "p" << std::endl;
     boost::posix_time::ptime hbTime = boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
       {
@@ -138,6 +139,8 @@ bool Server::startBrokering()
       //after the DetermineJobQueryResponse call
       remus::common::Message message(this->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
+
+      // std::cout << "c" << std::endl;
       }
     if (items[1].revents & ZMQ_POLLIN)
       {
@@ -155,6 +158,8 @@ bool Server::startBrokering()
 
       //refresh the worker if it is actuall in the pool instead of doing a job
       this->WorkerPool->refreshWorker(workerIdentity);
+
+      // std::cout << "w" << std::endl;
       }
 
     //mark all jobs whose worker haven't sent a heartbeat in time

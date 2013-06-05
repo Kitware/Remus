@@ -14,9 +14,7 @@
 #define __remus_common_Message_h
 
 #include <boost/shared_ptr.hpp>
-#include <zmq.hpp>
 
-#include <cstddef>
 #include <remus/common/zmqHelper.h>
 #include <remus/common/MeshIOType.h>
 

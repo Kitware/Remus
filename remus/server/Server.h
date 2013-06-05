@@ -13,7 +13,6 @@
 #ifndef __remus_server_Server_h
 #define __remus_server_Server_h
 
-#include <zmq.hpp>
 #include <remus/common/zmqHelper.h>
 
 #include <boost/scoped_ptr.hpp>

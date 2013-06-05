@@ -13,10 +13,13 @@
 #ifndef __remus_common_zeroHelper_h
 #define __remus_common_zeroHelper_h
 
-#include <zmq.hpp>
+#include <cstddef>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 
+//We now provide our own zmq.hpp since it has been removed from zmq 3, and
+//made its own project
+#include <remus/common/zmq.hpp>
 #include <remus/common/zmqTraits.h>
 
 //inject some basic zero MQ helper functions into the namespace
