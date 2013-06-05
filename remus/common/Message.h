@@ -14,9 +14,7 @@
 #define __remus_common_Message_h
 
 #include <boost/shared_ptr.hpp>
-#include <zmq.hpp>
 
-#include <cstddef>
 #include <remus/common/zmqHelper.h>
 #include <remus/common/MeshIOType.h>
 
@@ -116,6 +114,15 @@ Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype):
 //------------------------------------------------------------------------------
 Message::Message(zmq::socket_t &socket)
 {
+  //we are receiving a multi part message
+  //frame 0: REQ header / attachReqHeader does this
+  //frame 1: Mesh Type
+  //frame 2: Service Type
+  //frame 3: Job Data //optional
+  zmq::more_t more;
+  size_t more_size = sizeof(more);
+  socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+
   //construct a job message from the socket
   zmq::removeReqHeader(socket);
 
@@ -127,13 +134,6 @@ Message::Message(zmq::socket_t &socket)
   zmq::blocking_recv(socket,&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
-#ifdef _WIN32
-  __int64 more;
-#else
-  int64_t more;
-#endif
-
-  size_t more_size = sizeof(more);
   socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
   if(more>0)
     {

@@ -13,7 +13,6 @@
 #ifndef __remus_client_Client_h
 #define __remus_client_Client_h
 
-#include <zmq.hpp>
 #include <string>
 #include <vector>
 

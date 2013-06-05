@@ -13,8 +13,6 @@
 #ifndef __remus_common_Response_h
 #define __remus_common_Response_h
 
-#include <cstddef>
-#include <zmq.hpp>
 #include <remus/common/zmqHelper.h>
 #include <remus/common/MeshIOType.h>
 
