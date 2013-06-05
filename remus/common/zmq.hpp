@@ -88,18 +88,25 @@
 #   define ZMQ_SNDHWM     ZMQ_HWM
 #endif
 #if ZMQ_VERSION_MAJOR == 2
-#   define more_t int64_t
 #   define zmq_ctx_destroy(context) zmq_term(context)
 #   define zmq_msg_send(msg,sock,opt) zmq_send (sock, msg, opt)
 #   define zmq_msg_recv(msg,sock,opt) zmq_recv (sock, msg, opt)
 #   define ZMQ_POLL_MSEC    1000        //  zmq_poll is usec
 #elif ZMQ_VERSION_MAJOR == 3
-#   define more_t int
 #   define ZMQ_POLL_MSEC    1           //  zmq_poll is msec
 #endif
 
 namespace zmq
 {
+#if ZMQ_VERSION_MAJOR == 2
+# ifdef _WIN32
+    typedef __int64 more_t;
+# else
+    typedef int64_t more_t;
+# endif
+#elif ZMQ_VERSION_MAJOR == 3
+    typedef int more_t;
+#endif
 
     typedef zmq_free_fn free_fn;
     typedef zmq_pollitem_t pollitem_t;
