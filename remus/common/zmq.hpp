@@ -142,13 +142,21 @@ namespace zmq
             throw error_t ();
         return rc;
     }
-
+#if ZMQ_VERSION_MAJOR == 2
+    inline void device (int device_, void * insocket_, void* outsocket_)
+    {
+        int rc = zmq_device (device_, insocket_, outsocket_);
+        if (rc != 0)
+            throw error_t ();
+    }
+#elif ZMQ_VERSION_MAJOR == 3
     inline void proxy (void *frontend, void *backend, void *capture)
     {
         int rc = zmq_proxy (frontend, backend, capture);
         if (rc != 0)
             throw error_t ();
     }
+#endif
 
     inline void version (int *major_, int *minor_, int *patch_)
     {
@@ -408,6 +416,7 @@ namespace zmq
             return(ptr != NULL);
         }
 
+#if ZMQ_VERSION_MAJOR == 3
         inline size_t send (const void *buf_, size_t len_, int flags_ = 0)
         {
             int nbytes = zmq_send (ptr, buf_, len_, flags_);
@@ -417,6 +426,7 @@ namespace zmq
                 return 0;
             throw error_t ();
         }
+#endif
 
         inline bool send (message_t &msg_, int flags_ = 0)
         {
@@ -428,6 +438,7 @@ namespace zmq
             throw error_t ();
         }
 
+#if ZMQ_VERSION_MAJOR == 3
         inline size_t recv (void *buf_, size_t len_, int flags_ = 0)
         {
             int nbytes = zmq_recv (ptr, buf_, len_, flags_);
@@ -437,6 +448,7 @@ namespace zmq
                 return 0;
             throw error_t ();
         }
+#endif
 
         inline bool recv (message_t *msg_, int flags_ = 0)
         {
