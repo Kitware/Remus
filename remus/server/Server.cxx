@@ -30,8 +30,12 @@
 #include <remus/server/internal/JobQueue.h>
 #include <remus/server/internal/WorkerPool.h>
 
-#include <algorithm>
 #include <set>
+
+
+//initialize the static instance variable in signal catcher in the class
+//that inherits from it
+remus::common::SignalCatcher* remus::common::SignalCatcher::Instance = NULL;
 
 namespace remus{
 namespace server{
@@ -140,6 +144,11 @@ Server::~Server()
 //------------------------------------------------------------------------------
 bool Server::startBrokering()
   {
+  //start up signal catching before we start polling. We do this in the
+  //startBrokering method since really the server isn't doing anything before
+  //this point.
+  this->StartCatchingSignals();
+
   zmq::pollitem_t items[2] = {
       { this->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
@@ -271,7 +280,7 @@ std::string Server::queueJob(const remus::common::Message& msg)
   if(this->canMesh(msg))
   {
     //generate an UUID
-    boost::uuids::uuid jobUUID = this->UUIDGenerator();
+    const boost::uuids::uuid jobUUID = this->UUIDGenerator();
     //create a new job to place on the queue
     //This call will invalidate the msg as we are going to move the data
     //to another message to await sending to the worker
@@ -447,6 +456,53 @@ void Server::FindWorkerForQueuedJob()
       }
     }
 }
+
+
+//We are crashing we need to terminate all workers
+//------------------------------------------------------------------------------
+void Server::SignalCaught( SignalCatcher::SignalType signal )
+{
+  //first step is to purge any workers that might have died since
+  //the last time we polled. Because just maybe they also died
+  //so no point in sending them a kill message now
+  const boost::posix_time::ptime hbTime =
+                          boost::posix_time::second_clock::local_time();
+  this->ActiveJobs->markExpiredJobs(hbTime);
+  this->WorkerPool->purgeDeadWorkers(hbTime);
+
+  //Remove everything from the job queue so no new jobs start up.
+  this->QueuedJobs->clear();
+
+  //next we take workers from the worker pool and kill them all off
+  std::set<zmq::socketIdentity> pendingWorkers =
+                                              this->WorkerPool->livingWorkers();
+
+  typedef std::set<zmq::socketIdentity>::const_iterator iterator;
+  for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)
+    {
+    //make a fake id and send that with the terminate command
+    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    remus::common::Response response(*i);
+    detail::make_terminateJob(response,jobId);
+    response.send(this->WorkerQueries);
+    }
+
+  //lastly we will kill any still active worker
+  std::set<zmq::socketIdentity> activeWorkers =
+                                        this->ActiveJobs->activeWorkers();
+
+  //only call terminate again on workers that are active
+  for(iterator i=activeWorkers.begin(); i != activeWorkers.end(); ++i)
+    {
+    //make a fake id and send that with the terminate command
+    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    remus::common::Response response(*i);
+    detail::make_terminateJob(response,jobId);
+    response.send(this->WorkerQueries);
+    }
+
+}
+
 
 }
 }

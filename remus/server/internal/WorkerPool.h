@@ -21,6 +21,7 @@
 #include <remus/common/zmqHelper.h>
 
 #include <string>
+#include <set>
 #include <vector>
 
 namespace remus{
@@ -48,9 +49,14 @@ class WorkerPool
     //returns the worker address and removes the worker from the pool
     zmq::socketIdentity takeWorker(const remus::common::MeshIOType& type);
 
+    //remove all workers that haven't responded inside the heartbeat time
     void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
+    //keep all workers alive that responded inside the heartbeat time
     void refreshWorker(const zmq::socketIdentity& address);
+
+    //return the socket identity of all living workers
+    std::set<zmq::socketIdentity> livingWorkers() const;
 
 private:
     struct WorkerInfo
@@ -194,6 +200,16 @@ void WorkerPool::refreshWorker(const zmq::socketIdentity& address)
       i->refresh();
       }
     }
+}
+//------------------------------------------------------------------------------
+std::set<zmq::socketIdentity> WorkerPool::livingWorkers() const
+{
+  std::set<zmq::socketIdentity> workerAddresses;
+  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    workerAddresses.insert(i->Address);
+    }
+  return workerAddresses;
 }
 
 }
