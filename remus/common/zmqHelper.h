@@ -45,6 +45,24 @@ struct socketIdentity
     return 0 == (memcmp(this->data(),b.data(),this->size()));
   }
 
+  bool operator<(const socketIdentity& b) const
+  {
+    //sort first on size
+    if(this->Size != b.size()) { return this->Size < b.size(); }
+    //second sort on contents.
+
+    const char* a_data = this->data();
+    const char* b_data = b.data();
+    std::size_t index=0;
+    while(*a_data == *b_data && index++ < this->Size)
+      { ++a_data; ++b_data; }
+
+    if(index < this->Size)
+    { return *a_data < *b_data; }
+
+    return false; //both objects are equal
+  }
+
   const char* data() const { return &Data[0]; }
   std::size_t size() const { return Size; }
 

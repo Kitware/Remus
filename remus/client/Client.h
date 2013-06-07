@@ -130,7 +130,7 @@ remus::JobResult Client::retrieveResults(const remus::Job& job)
 remus::JobStatus Client::terminate(const remus::Job& job)
 {
   remus::common::Message j(job.type(),
-                              remus::SHUTDOWN,
+                              remus::TERMINATE_JOB_AND_WORKER,
                               remus::to_string(job));
   j.send(this->Server);
 

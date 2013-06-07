@@ -23,6 +23,7 @@
 
 
 #include <map>
+#include <set>
 
 namespace remus{
 namespace server{
@@ -54,6 +55,8 @@ class ActiveJobs
     void markExpiredJobs(const boost::posix_time::ptime& time);
 
     void refreshJobs(const zmq::socketIdentity &workerIdentity);
+
+    std::set<zmq::socketIdentity> activeWorkers() const;
 
 private:
     struct JobState
@@ -229,6 +232,18 @@ void ActiveJobs::refreshJobs(const zmq::socketIdentity& workerIdentity)
       }
     }
 }
+
+//-----------------------------------------------------------------------------
+std::set<zmq::socketIdentity> ActiveJobs::activeWorkers() const
+{
+  std::set<zmq::socketIdentity> workerAddresses;
+  for(InfoConstIt item = this->Info.begin(); item != this->Info.end(); ++item)
+    {
+    workerAddresses.insert(item->second.WorkerAddress);
+    }
+  return workerAddresses;
+}
+
 
 }
 }

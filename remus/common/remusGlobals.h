@@ -57,7 +57,11 @@ enum SERVICE_TYPE
   CAN_MESH = 3,
   RETRIEVE_MESH = 4,
   HEARTBEAT = 5,
-  SHUTDOWN = 6
+  //we should split up the TERMINATE_JOB_AND_WORKER into really two calls
+  //the first would be stop_job which would only stop the current job
+  //it might terminate the worker if needed, but no mandatory. The
+  //second would be to terminate a worker and all jobs it contains
+  TERMINATE_JOB_AND_WORKER = 6
 };
 
 //------------------------------------------------------------------------------
@@ -78,7 +82,7 @@ namespace common
   //a mapping of enum types to char*
   static const char *mesh_in_types[] = { "INVALID","SCENE FILE", "MODEL", "RAW EDGES"};
   static const char *mesh_out_types[] = { "INVALID","1D", "2D", "3D", "3D Surface" };
-  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "SHUTDOWN" };
+  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "TERMINATE JOB AND WORKER" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
   }
 

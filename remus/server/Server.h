@@ -13,6 +13,7 @@
 #ifndef __remus_server_Server_h
 #define __remus_server_Server_h
 
+#include <remus/common/SignalCatcher.h>
 #include <remus/common/zmqHelper.h>
 
 #include <boost/scoped_ptr.hpp>
@@ -26,7 +27,7 @@
 #include "ServerExports.h"
 
 namespace remus{
-//forward declaration of classes only the implementation needs
+  //forward declaration of classes only the implementation needs
   namespace common{
   class Message;
   }
@@ -45,7 +46,9 @@ namespace server{
 
 //Server is the broker of Remus. It handles accepting client
 //connections, worker connections, and manages the life cycle of submitted jobs.
-class REMUSSERVER_EXPORT Server
+//We inherit from SignalCatcher so that we can properly handle
+//segfaults and other abnormal termination conditions
+class REMUSSERVER_EXPORT Server : private remus::common::SignalCatcher
 {
 public:
   //construct a new server using the default worker factory
@@ -74,6 +77,8 @@ public:
   //remus servers can be running at a single time this is a way for the server
   //to report which port it bound it self too.
   const remus::server::ServerPorts& ServerPortInfo() const {return PortInfo;}
+
+  virtual void SignalCaught( SignalCatcher::SignalType signal );
 
 protected:
   //processes all job queries

@@ -60,6 +60,9 @@ public:
   //Returns true if we can remove a job with a give uuid
   bool remove(const boost::uuids::uuid& id);
 
+  //Removes all queued and waiting for worker jobs.
+  void clear();
+
 private:
   struct QueuedJob
   {
@@ -217,6 +220,13 @@ bool JobQueue::remove(const boost::uuids::uuid& id)
     this->Queue.erase(this->Queue.begin()+index);
     }
   return found;
+}
+
+//------------------------------------------------------------------------------
+void JobQueue::clear()
+{
+  this->QueuedIds.clear();
+  this->Queue.clear();
 }
 
 }

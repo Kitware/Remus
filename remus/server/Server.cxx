@@ -30,6 +30,30 @@
 #include <remus/server/internal/JobQueue.h>
 #include <remus/server/internal/WorkerPool.h>
 
+#include <set>
+
+
+//initialize the static instance variable in signal catcher in the class
+//that inherits from it
+remus::common::SignalCatcher* remus::common::SignalCatcher::Instance = NULL;
+
+namespace remus{
+namespace server{
+namespace detail{
+
+void make_terminateJob(remus::common::Response& response,
+                       boost::uuids::uuid jobId)
+{
+  remus::Job terminateJob(jobId,
+                          remus::common::MeshIOType(),
+                          remus::to_string(remus::TERMINATE_JOB_AND_WORKER));
+  response.setServiceType(remus::TERMINATE_JOB_AND_WORKER);
+  response.setData(remus::to_string(terminateJob));
+}
+
+}
+}
+}
 
 namespace remus{
 namespace server{
@@ -120,6 +144,11 @@ Server::~Server()
 //------------------------------------------------------------------------------
 bool Server::startBrokering()
   {
+  //start up signal catching before we start polling. We do this in the
+  //startBrokering method since really the server isn't doing anything before
+  //this point.
+  this->StartCatchingSignals();
+
   zmq::pollitem_t items[2] = {
       { this->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
@@ -129,7 +158,8 @@ bool Server::startBrokering()
     {
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
     // std::cout << "p" << std::endl;
-    boost::posix_time::ptime hbTime = boost::posix_time::second_clock::local_time();
+    const boost::posix_time::ptime hbTime =
+                          boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
@@ -208,7 +238,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     case remus::RETRIEVE_MESH:
       response.setData(this->retrieveMesh(msg));
       break;
-    case remus::SHUTDOWN:
+    case remus::TERMINATE_JOB_AND_WORKER:
       response.setData(this->terminateJob(msg));
       break;
     default:
@@ -250,7 +280,7 @@ std::string Server::queueJob(const remus::common::Message& msg)
   if(this->canMesh(msg))
   {
     //generate an UUID
-    boost::uuids::uuid jobUUID = this->UUIDGenerator();
+    const boost::uuids::uuid jobUUID = this->UUIDGenerator();
     //create a new job to place on the queue
     //This call will invalidate the msg as we are going to move the data
     //to another message to await sending to the worker
@@ -297,19 +327,14 @@ std::string Server::terminateJob(const remus::common::Message& msg)
     //to mean that it should die.
     if(removed && worker.size() > 0)
       {
-      remus::Job terminateJob(job.id(),
-                              remus::common::MeshIOType(),
-                              remus::to_string(remus::SHUTDOWN));
       remus::common::Response response(worker);
-      response.setServiceType(remus::SHUTDOWN);
-      response.setData(remus::to_string(terminateJob));
+      detail::make_terminateJob(response,job.id());
       response.send(this->WorkerQueries);
       }
     }
 
   remus::STATUS_TYPE status = (removed) ? remus::FAILED : remus::INVALID_STATUS;
-  //std::cout << "terminate status is " << status << " " << remus::to_string(status) << std::endl;
-   return remus::to_string(remus::JobStatus(job.id(),status));
+  return remus::to_string(remus::JobStatus(job.id(),status));
 }
 
 //------------------------------------------------------------------------------
@@ -431,6 +456,53 @@ void Server::FindWorkerForQueuedJob()
       }
     }
 }
+
+
+//We are crashing we need to terminate all workers
+//------------------------------------------------------------------------------
+void Server::SignalCaught( SignalCatcher::SignalType signal )
+{
+  //first step is to purge any workers that might have died since
+  //the last time we polled. Because just maybe they also died
+  //so no point in sending them a kill message now
+  const boost::posix_time::ptime hbTime =
+                          boost::posix_time::second_clock::local_time();
+  this->ActiveJobs->markExpiredJobs(hbTime);
+  this->WorkerPool->purgeDeadWorkers(hbTime);
+
+  //Remove everything from the job queue so no new jobs start up.
+  this->QueuedJobs->clear();
+
+  //next we take workers from the worker pool and kill them all off
+  std::set<zmq::socketIdentity> pendingWorkers =
+                                              this->WorkerPool->livingWorkers();
+
+  typedef std::set<zmq::socketIdentity>::const_iterator iterator;
+  for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)
+    {
+    //make a fake id and send that with the terminate command
+    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    remus::common::Response response(*i);
+    detail::make_terminateJob(response,jobId);
+    response.send(this->WorkerQueries);
+    }
+
+  //lastly we will kill any still active worker
+  std::set<zmq::socketIdentity> activeWorkers =
+                                        this->ActiveJobs->activeWorkers();
+
+  //only call terminate again on workers that are active
+  for(iterator i=activeWorkers.begin(); i != activeWorkers.end(); ++i)
+    {
+    //make a fake id and send that with the terminate command
+    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    remus::common::Response response(*i);
+    detail::make_terminateJob(response,jobId);
+    response.send(this->WorkerQueries);
+    }
+
+}
+
 
 }
 }
