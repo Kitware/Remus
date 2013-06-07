@@ -61,8 +61,8 @@ public:
         //just pass the message on to the server
         message.send(Server);
 
-        //special case is that shutdown means we stop looping
-        if(message.serviceType()==remus::SHUTDOWN)
+        //special case is that TERMINATE_JOB_AND_WORKER means we stop looping
+        if(message.serviceType()==remus::TERMINATE_JOB_AND_WORKER)
           {
           this->ContinueTalking = false;
           }
@@ -73,16 +73,23 @@ public:
         //is still listening and not in destructor
 
         //we can have two  response types, one which is for the Service MakeMesh
-        //and the other for the Service shutdown which kills the worker process
+        //and the other for the Service TERMINATE_JOB_AND_WORKER which kills
+        //the worker process
         remus::common::Response response(Server);
-        if(response.serviceType() != remus::SHUTDOWN)
+        if(response.serviceType() != remus::TERMINATE_JOB_AND_WORKER)
           {
           response.send(Worker);
           }
         else
           {
-          //Todo: we should allow the worker to add in a hook to only terminate
-          //a single job or handle doing a clean shutdown
+          //we should split up the TERMINATE_JOB_AND_WORKER into really two calls
+          //the first would be stop_job which would only stop the current job
+          //it might terminate the worker if needed, but no mandatory. The
+          //second would be to terminate a worker and all jobs it contains
+
+          //todo should we allow the worker a better way to cleanup?
+          //currently the worker will need to inherit from
+          //remus::common::SignalCatcher to find out it is closing
           exit(1);
           }
         }
@@ -150,8 +157,10 @@ bool Worker::stopCommunicationThread()
 {
   if(this->ServerCommThread && this->BComm)
     {
-    //send message that we are shuting down communication
-    remus::common::Message shutdown(this->MeshIOType,remus::SHUTDOWN);
+    //send message that we are shutting down communication, and we can stop
+    //polling the server
+    remus::common::Message shutdown(this->MeshIOType,
+                                    remus::TERMINATE_JOB_AND_WORKER);
     shutdown.send(this->ServerComm);
 
     this->ServerCommThread->join();

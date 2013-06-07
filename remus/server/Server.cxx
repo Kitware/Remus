@@ -30,6 +30,26 @@
 #include <remus/server/internal/JobQueue.h>
 #include <remus/server/internal/WorkerPool.h>
 
+#include <algorithm>
+#include <set>
+
+namespace remus{
+namespace server{
+namespace detail{
+
+void make_terminateJob(remus::common::Response& response,
+                       boost::uuids::uuid jobId)
+{
+  remus::Job terminateJob(jobId,
+                          remus::common::MeshIOType(),
+                          remus::to_string(remus::TERMINATE_JOB_AND_WORKER));
+  response.setServiceType(remus::TERMINATE_JOB_AND_WORKER);
+  response.setData(remus::to_string(terminateJob));
+}
+
+}
+}
+}
 
 namespace remus{
 namespace server{
@@ -129,7 +149,8 @@ bool Server::startBrokering()
     {
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
     // std::cout << "p" << std::endl;
-    boost::posix_time::ptime hbTime = boost::posix_time::second_clock::local_time();
+    const boost::posix_time::ptime hbTime =
+                          boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
@@ -208,7 +229,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     case remus::RETRIEVE_MESH:
       response.setData(this->retrieveMesh(msg));
       break;
-    case remus::SHUTDOWN:
+    case remus::TERMINATE_JOB_AND_WORKER:
       response.setData(this->terminateJob(msg));
       break;
     default:
@@ -297,19 +318,14 @@ std::string Server::terminateJob(const remus::common::Message& msg)
     //to mean that it should die.
     if(removed && worker.size() > 0)
       {
-      remus::Job terminateJob(job.id(),
-                              remus::common::MeshIOType(),
-                              remus::to_string(remus::SHUTDOWN));
       remus::common::Response response(worker);
-      response.setServiceType(remus::SHUTDOWN);
-      response.setData(remus::to_string(terminateJob));
+      detail::make_terminateJob(response,job.id());
       response.send(this->WorkerQueries);
       }
     }
 
   remus::STATUS_TYPE status = (removed) ? remus::FAILED : remus::INVALID_STATUS;
-  //std::cout << "terminate status is " << status << " " << remus::to_string(status) << std::endl;
-   return remus::to_string(remus::JobStatus(job.id(),status));
+  return remus::to_string(remus::JobStatus(job.id(),status));
 }
 
 //------------------------------------------------------------------------------
