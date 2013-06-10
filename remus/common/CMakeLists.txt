@@ -11,7 +11,9 @@ set(headers
   Message.h
   MeshIOType.h
   Response.h
+  SignalCatcher.h
   remusGlobals.h
+  zmq.hpp
   zmqHelper.h
   zmqTraits.h
   )
