@@ -64,7 +64,7 @@ private:
 //------------------------------------------------------------------------------
 Client::Client(const remus::client::ServerConnection &conn):
   Context(1),
-  Server(this->Context, ZMQ_REQ)
+  Server(Context, ZMQ_REQ)
 {
   zmq::connectToAddress(this->Server,conn.endpoint());
 }
