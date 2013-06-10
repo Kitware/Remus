@@ -14,7 +14,6 @@
 
 #include <sysTools/Process.h>
 
-
 namespace{
 
 remus::common::ProcessPipe::PipeType typeToType(int type)
@@ -170,6 +169,8 @@ bool ExecuteProcess::exitedNormally()
 //-----------------------------------------------------------------------------
 remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
 {
+  //The timeout's unit of time is SECONDS.
+
   typedef remus::common::ProcessPipe ProcessPipe;
 
   if(!this->ExternalProcess->Created)
@@ -185,7 +186,6 @@ remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
   //systools currently doesn't have a block for inifinte time that acutally works
   const double fakeInfiniteWait = 100000000;
   double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? fakeInfiniteWait : timeout;
-
 
   //poll sys tool for data
   int length;

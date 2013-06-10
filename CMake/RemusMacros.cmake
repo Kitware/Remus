@@ -91,3 +91,62 @@ function(remus_export_header target file)
   generate_export_header(${target} EXPORT_FILE_NAME ${file})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${file}  DESTINATION include/${dir_prefix})
 endfunction(remus_export_header)
+
+
+# Declare unit tests Usage:
+#
+# remus_unit_tests(
+#   SOURCES <source_list>
+#   LIBRARIES <dependent_library_list>
+#   )
+function(remus_unit_tests)
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs SOURCES LIBRARIES)
+  cmake_parse_arguments(Remus_ut
+    "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    ${ARGN}
+    )
+
+  if (Remus_ENABLE_TESTING)
+    ms_get_kit_name(kit)
+    #we use UnitTests_ so that it is an unique key to exclude from coverage
+    set(test_prog UnitTests_${kit})
+    create_test_sourcelist(TestSources ${test_prog}.cxx ${Remus_ut_SOURCES})
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    add_executable(${test_prog} ${TestSources})
+    target_link_libraries(${test_prog} ${Remus_ut_LIBRARIES})
+    foreach (test ${Remus_ut_SOURCES})
+      get_filename_component(tname ${test} NAME_WE)
+      add_test(NAME ${tname}
+        COMMAND ${test_prog} ${tname}
+        )
+    endforeach(test)
+  endif (Remus_ENABLE_TESTING)
+endfunction(remus_unit_tests)
+
+# Declare unit test executables that are needed by other unit_tests
+# Usage:
+#
+# remus_unit_test_executable(
+#   EXEC_NAME <name>
+#   SOURCES <source_list>
+#   LIBRARIES <dependent_library_list>
+#   )
+function(remus_unit_test_executable)
+  set(options)
+  set(oneValueArgs EXEC_NAME)
+  set(multiValueArgs SOURCES LIBRARIES)
+  cmake_parse_arguments(Remus_ut
+    "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    ${ARGN}
+    )
+
+  if (Remus_ENABLE_TESTING)
+    set(test_prog ${Remus_ut_EXEC_NAME})
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    add_executable(${test_prog} ${Remus_ut_SOURCES})
+    target_link_libraries(${test_prog} ${Remus_ut_LIBRARIES})
+
+  endif (Remus_ENABLE_TESTING)
+endfunction(remus_unit_test_executable)

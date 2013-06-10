@@ -72,8 +72,9 @@ public:
   //this will return false
   bool exitedNormally();
 
-  //Will poll for a given timout value looking any output on the STDIN,STDOUT,and
+  //Will poll for a given timeout value looking any output on the STDIN,STDOUT,and
   //STDERR streams.
+  //The timeout's unit of time is SECONDS.
   //If the value of timeout is zero or greater we will wait that duration.
   //If the value of timeout is negative we will  block indefinitely until a
   //output on one of the pipes happens
