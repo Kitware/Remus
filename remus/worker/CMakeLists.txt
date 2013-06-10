@@ -13,7 +13,13 @@ set(worker_srcs
    )
 
 add_library(RemusWorker ${worker_srcs} ${headers})
-target_link_libraries(RemusWorker ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES})
+set(RemusWorker_Libraries ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES})
+if(UNIX)
+  #we must link against pthreads so that we compile, and properly
+  #export the pthread link line
+  list(APPEND RemusWorker_Libraries ${CMAKE_THREAD_LIBS_INIT} )
+endif()
+target_link_libraries(RemusWorker ${RemusWorker_Libraries})
 
 remus_set_includes(RemusWorker ${CommonIncludes})
 

@@ -33,6 +33,11 @@ set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
 
 find_package(Boost 1.45.0 COMPONENTS thread filesystem system date_time REQUIRED)
 
+#on unix boost uses pthreads which we need to require so that we properly build.
+if(UNIX)
+  find_package(Threads REQUIRED)
+endif()
+
 option(Remus_ENABLE_TESTING "Enable Testing" ON)
 option(Remus_ENABLE_EXAMPLES "Enable Examples" ON)
 
