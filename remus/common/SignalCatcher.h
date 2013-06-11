@@ -13,7 +13,9 @@
 #ifndef __remus_common_SignalCatcher_h
 #define __remus_common_SignalCatcher_h
 
- #include <csignal>
+#include <csignal>
+
+#include "CommonExports.h"
 
 namespace remus{
 namespace common{
@@ -29,7 +31,7 @@ namespace common{
 // Since this class is hoisting C Signals you can only have a signal instance
 // of this class in existence per process ever.
 //
-class SignalCatcher
+class REMUSCOMMON_EXPORT SignalCatcher
 {
   static SignalCatcher* Instance;
 public:
