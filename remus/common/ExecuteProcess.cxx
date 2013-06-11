@@ -128,6 +128,7 @@ bool ExecuteProcess::kill()
     {
     sysToolsProcess_Kill( this->ExternalProcess->Proc );
     sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, 0);
+    return true;
     }
   return false;
 }
