@@ -11,6 +11,9 @@
 //=============================================================================
 
 #include <iostream>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 int main(int argc, char** argv)
 {
