@@ -13,6 +13,8 @@
 #include <iostream>
 #ifndef _WIN32
 #include <unistd.h>
+#else
+#include <windows.h>
 #endif
 
 int main(int argc, char** argv)
@@ -24,11 +26,11 @@ int main(int argc, char** argv)
   if(argc == 2)
     {
     std::string prog_type(argv[1]);
-    if(prog_type == "NO_POLL")
+    if(prog_type.find("NO_POLL") == 0)
       pollingType = 1;
-    else if(prog_type == "POLL")
+    else if( prog_type.find("POLL") == 0)
       pollingType = 2;
-    else if(prog_type == "EXIT_NORMALLY")
+    else if( prog_type.find("EXIT_NORMALLY") == 0)
       exitNormally = 1;
     }
 
