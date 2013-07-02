@@ -138,7 +138,9 @@ Server::Server(remus::server::ServerPorts ports,
 //------------------------------------------------------------------------------
 Server::~Server()
 {
-
+  //the server is shutting down we need to terminate any workers that
+  //are still running.
+  this->TerminateAllWorkers();
 }
 
 //------------------------------------------------------------------------------
@@ -203,6 +205,11 @@ bool Server::startBrokering()
     //otherwise as the factory to generat a new worker to handle that job
     this->FindWorkerForQueuedJob();
     }
+
+  //this should never be hit, but just incase lets make sure we close
+  //down all workers.
+  this->TerminateAllWorkers();
+
   return true;
   }
 
@@ -460,7 +467,7 @@ void Server::FindWorkerForQueuedJob()
 
 //We are crashing we need to terminate all workers
 //------------------------------------------------------------------------------
-void Server::SignalCaught( SignalCatcher::SignalType signal )
+void Server::SignalCaught( SignalCatcher::SignalType )
 {
   //first step is to purge any workers that might have died since
   //the last time we polled. Because just maybe they also died
@@ -472,6 +479,15 @@ void Server::SignalCaught( SignalCatcher::SignalType signal )
 
   //Remove everything from the job queue so no new jobs start up.
   this->QueuedJobs->clear();
+
+  this->TerminateAllWorkers();
+}
+
+//------------------------------------------------------------------------------
+//terminate all workers that are doing jobs or waiting for jobs
+
+void Server::TerminateAllWorkers( )
+{
 
   //next we take workers from the worker pool and kill them all off
   std::set<zmq::socketIdentity> pendingWorkers =
