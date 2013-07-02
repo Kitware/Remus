@@ -78,6 +78,7 @@ public:
   //to report which port it bound it self too.
   const remus::server::ServerPorts& ServerPortInfo() const {return PortInfo;}
 
+  //control how we handle abnormal signals that we catch
   virtual void SignalCaught( SignalCatcher::SignalType signal );
 
 protected:
@@ -101,6 +102,9 @@ protected:
                          const remus::Job& job);
 
   void FindWorkerForQueuedJob();
+
+  //terminate all workers that are doing jobs or waiting for jobs
+  void TerminateAllWorkers();
 
 private:
   zmq::context_t Context;
