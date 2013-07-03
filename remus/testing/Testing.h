@@ -16,6 +16,7 @@
 #ifndef __remus_testing_Testing_h
 #define __remus_testing_Testing_h
 
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
