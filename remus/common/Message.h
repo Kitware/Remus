@@ -56,7 +56,7 @@ private:
     {
     DataStorage(): Size(0), Space(NULL){}
     DataStorage(unsigned int size): Size(size){this->Space = new char[this->Size];}
-    ~DataStorage(){if(Size>0){delete this->Space;}}
+    ~DataStorage(){if(Size>0){delete[] this->Space;}}
     int Size;
     char* Space;
     };
