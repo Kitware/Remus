@@ -11,7 +11,7 @@
 
 add_revision(remus
   GIT_REPOSITORY "git://public.kitware.com/Remus.git"
-  GIT_TAG 10983284a5afffdea)
+  GIT_TAG b9665166022)
 
 if( NOT WIN32)
   add_revision(zeroMQ
