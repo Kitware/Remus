@@ -188,34 +188,40 @@ static void empty_recv(zmq::socket_t& socket)
 
 //A wrapper around zeroMQ send. When we call the standard send call
 //from a Qt class we experience high number of system level interrupts which
-//cause zero to throw an exception. This eats all the exceptions and continues
-//to try and send the message. In the future we need to change the client server
+//cause zero to throw an exception when we are sending a blocking message.
+//When sending a blocking message we will try a couple of times before
+//giving up
+//In the future we need to change the client server
 //communication in Remus to be async instead of req/reply based.
-static void blocking_send(zmq::socket_t& socket, zmq::message_t& message, int flags=0)
+static bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flags=0)
 {
   bool sent = false;
-  while(!sent)
+  short tries = 0;
+  while(!sent && tries < 5)
     {
-    try{sent = socket.send(message,flags);}
-    catch(error_t){}
+    try{sent = socket.send(message,flags); std::cout << "send_harder: " << tries << std::endl;}
+    catch(error_t){ ++tries; }
     }
-  return;
+  return sent;
 }
 
 //A wrapper around zeroMQ recv. When we call the standard recv call
 //from a Qt class we experience high number of system level interrupts which
-//cause zero to throw an exception. This eats all the exceptions and continues
-//to try and recv the message. In the future we need to change the client server
+//cause zero to throw an exception when we are recv a blocking message.
+//When recving a blocking message we will try a couple of times before
+//giving up
+//In the future we need to change the client server
 //communication in Remus to be async instead of req/reply based.
-static void blocking_recv(zmq::socket_t& socket, zmq::message_t* message, int flags=0)
+static bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flags=0)
 {
   bool recieved = false;
-  while(!recieved)
+  short tries = 0;
+  while(!recieved && tries < 5)
     {
     try{recieved = socket.recv(message,flags);}
-    catch(error_t){}
+    catch(error_t){ ++tries; }
     }
-  return;
+  return recieved;
 }
 
 //we presume that every message needs to be stripped
