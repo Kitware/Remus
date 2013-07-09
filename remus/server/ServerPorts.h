@@ -35,8 +35,8 @@ class ServerPorts
 public:
   //default to loopback
   ServerPorts():
-    Client("127.0.0.1",remus::BROKER_CLIENT_PORT),
-    Worker("127.0.0.1",remus::BROKER_WORKER_PORT)
+    Client("127.0.0.1",remus::SERVER_CLIENT_PORT),
+    Worker("127.0.0.1",remus::SERVER_WORKER_PORT),
   {
 
   }
