@@ -70,11 +70,11 @@ Response::Response(zmq::socket_t& socket):
   zmq::removeReqHeader(socket);
 
   zmq::message_t servType;
-  zmq::blocking_recv(socket,&servType);
+  zmq::recv_harder(socket,&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
   zmq::message_t data(0);
-  zmq::blocking_recv(socket,&data);
+  zmq::recv_harder(socket,&data);
   const std::size_t size = data.size();
   if(size>0)
     {
@@ -156,18 +156,18 @@ bool Response::send(zmq::socket_t& socket) const
     {
     zmq::message_t cAddress(this->ClientAddress.size());
     memcpy(cAddress.data(),this->ClientAddress.data(),this->ClientAddress.size());
-    zmq::blocking_send(socket,cAddress,ZMQ_SNDMORE);
+    zmq::send_harder(socket,cAddress,ZMQ_SNDMORE);
     }
 
   zmq::attachReqHeader(socket);
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
-  zmq::blocking_send(socket,service,ZMQ_SNDMORE);
+  zmq::send_harder(socket,service,ZMQ_SNDMORE);
 
   zmq::message_t realData;
   realData.move(this->Data);
-  zmq::blocking_send(socket,realData);
+  zmq::send_harder(socket,realData);
   return true;
   }
 }

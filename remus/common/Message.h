@@ -36,7 +36,13 @@ public:
   //creates a job message from reading in the socket
   explicit Message(zmq::socket_t& socket);
 
+  //send a blocking message
   bool send(zmq::socket_t& socket) const;
+
+  //send the message as non blocking so that we can do
+  //async sending
+  bool sendNonBlocking(zmq::socket_t& socket) const;
+
   void releaseData() { this->Data = NULL; this->Size = 0;}
 
   const remus::common::MeshIOType& MeshIOType() const { return MType; }
@@ -51,6 +57,8 @@ public:
   void dump(T& t) const;
 
 private:
+  bool send_impl(zmq::socket_t& socket, int flags = 0) const;
+
   //a special struct that holds any space we need malloced
   struct DataStorage
     {
@@ -127,18 +135,18 @@ Message::Message(zmq::socket_t &socket)
   zmq::removeReqHeader(socket);
 
   zmq::message_t MeshIOType;
-  zmq::blocking_recv(socket,&MeshIOType);
+  zmq::recv_harder(socket,&MeshIOType);
   this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(MeshIOType.data()));
 
   zmq::message_t servType;
-  zmq::blocking_recv(socket,&servType);
+  zmq::recv_harder(socket,&servType);
   this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
 
   socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
   if(more>0)
     {
     zmq::message_t data;
-    zmq::blocking_recv(socket,&data);
+    zmq::recv_harder(socket,&data);
     this->Size = data.size();
     this->Storage.reset(new DataStorage(this->Size));
 
@@ -159,7 +167,17 @@ Message::Message(zmq::socket_t &socket)
 
 //------------------------------------------------------------------------------
 bool Message::send(zmq::socket_t &socket) const
-  {
+{
+  return this->send_impl(socket);
+}
+
+bool Message::sendNonBlocking(zmq::socket_t &socket) const
+{
+  return this->send_impl(socket,ZMQ_DONTWAIT);
+}
+
+bool Message::send_impl(zmq::socket_t &socket, int flags) const
+{
   //we are sending our selves as a multi part message
   //frame 0: REQ header / attachReqHeader does this
   //frame 1: Mesh Type
@@ -172,28 +190,29 @@ bool Message::send(zmq::socket_t &socket) const
     }
   zmq::attachReqHeader(socket);
 
+  bool valid = true;
   zmq::message_t MeshIOType(sizeof(this->MType));
   memcpy(MeshIOType.data(),&this->MType,sizeof(this->MType));
-  zmq::blocking_send(socket,MeshIOType,ZMQ_SNDMORE);
+  valid = valid && zmq::send_harder(socket,MeshIOType,flags|ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
-  if(this->Size> 0)
+  if(this->Size> 0 && valid)
     {
     //send the service line not as the last line
-    zmq::blocking_send(socket,service,ZMQ_SNDMORE);
+    valid = zmq::send_harder(socket,service,flags|ZMQ_SNDMORE);
 
     zmq::message_t data(this->Size);
     memcpy(data.data(),this->Data,this->Size);
 
-    zmq::blocking_send(socket,data);
+    valid = valid && zmq::send_harder(socket,data,flags);
     }
-  else //we are done
+  else if(valid) //we are done
     {
-    zmq::blocking_send(socket,service);
+    valid = zmq::send_harder(socket,service,flags);
     }
-  return true;
-  }
+  return valid;
+}
 
 //------------------------------------------------------------------------------
 template<typename T>

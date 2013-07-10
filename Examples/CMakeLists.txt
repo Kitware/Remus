@@ -2,4 +2,6 @@
 add_subdirectory(BasicClient)
 add_subdirectory(BasicWorker)
 add_subdirectory(BasicServer)
+add_subdirectory(InfiniteWorker)
 add_subdirectory(InteractiveClient)
+add_subdirectory(NoWorkerServer)

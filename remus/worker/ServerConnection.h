@@ -26,7 +26,7 @@ public:
   //create a connection object that represents connecting to
   //the default remus server.
   ServerConnection():
-    Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",remus::BROKER_WORKER_PORT).endpoint())
+    Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint())
     {
     assert(Endpoint.size() > 0);
     }
