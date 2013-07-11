@@ -199,7 +199,7 @@ static bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flag
   short tries = 0;
   while(!sent && tries < 5)
     {
-    try{sent = socket.send(message,flags); std::cout << "send_harder: " << tries << std::endl;}
+    try{sent = socket.send(message,flags);}
     catch(error_t){ ++tries; }
     }
   return sent;
