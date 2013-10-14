@@ -89,7 +89,6 @@ endif()
 add_subdirectory(remus)
 
 #add the examples code
-option(Remus_ENABLE_EXAMPLES "Build Examples" ON)
 if(Remus_ENABLE_EXAMPLES)
-  add_subdirectory(Examples)
+  add_subdirectory(examples)
 endif()
