@@ -52,7 +52,7 @@ public:
   WorkerFactory();
 
   //Create a worker factory with a different file extension to
-  //search for. The extension must start with a peroid.
+  //search for. The extension must start with a period.
   WorkerFactory(const std::string& ext);
 
   virtual ~WorkerFactory();
