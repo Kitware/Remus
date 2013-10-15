@@ -43,6 +43,11 @@ struct SignalCatcherVerifier : private remus::common::SignalCatcher
     this->StartCatchingSignals();
   }
 
+  void stop()
+  {
+    this->StopCatchingSignals();
+  }
+
   void ExpectedSignalToCatch( SignalCatcher::SignalType signal )
   {
     this->ExpectedSignal = signal;
@@ -87,6 +92,30 @@ int UnitTestSignalCatcher(int, char *[])
 
   verifier.ExpectedSignalToCatch( remus::common::SignalCatcher::TERMINATE );
   raise(SIGTERM);
+
+  //verify that all signals have been released by the signal catcher
+  //by checking that they now match SIG_DFL
+  verifier.stop();
+  std::cout << "testing signal catching stopped" << std::endl;
+
+  void (*prev_sig_func)(int);
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
   //if we have reached this line we have caught all signal properly
   return 0;
