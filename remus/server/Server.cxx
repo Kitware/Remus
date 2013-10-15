@@ -141,6 +141,8 @@ Server::~Server()
   //the server is shutting down we need to terminate any workers that
   //are still running.
   this->TerminateAllWorkers();
+
+  this->StopCatchingSignals();
 }
 
 //------------------------------------------------------------------------------
@@ -209,6 +211,8 @@ bool Server::startBrokering()
   //this should never be hit, but just incase lets make sure we close
   //down all workers.
   this->TerminateAllWorkers();
+
+  this->StopCatchingSignals();
 
   return true;
   }
