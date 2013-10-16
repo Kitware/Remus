@@ -252,7 +252,11 @@ bool WorkerFactory::addWorker(const std::string& executable)
 {
   //add this workers
   ExecuteProcessPtr ep(new ExecuteProcess(executable,this->GlobalArguments) );
-  ep->execute(true); //detach worker
+
+  //explicitly detach workers. We don't poll workers at all.
+  //we also detach them so that it makes have a factory that
+  //can create workers, but not destroy them possible
+  ep->execute(true);
   this->CurrentProcesses.push_back(ep);
   return true;
 }

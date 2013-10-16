@@ -1,0 +1,20 @@
+
+#ifndef UnitTestWorkerFactoryPaths_h
+#define UnitTestWorkerFactoryPaths_h
+
+namespace remus {
+namespace server {
+namespace testing {
+namespace worker_factory {
+
+inline std::string locationToSearch()
+{
+  return std::string("@CMAKE_CURRENT_BINARY_DIR@");
+}
+
+}
+}
+}
+}
+
+#endif

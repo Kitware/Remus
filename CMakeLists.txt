@@ -92,3 +92,9 @@ add_subdirectory(remus)
 if(Remus_ENABLE_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+
+#add the high level usage testing
+if(Remus_ENABLE_TESTING)
+  add_subdirectory(testing)
+endif()

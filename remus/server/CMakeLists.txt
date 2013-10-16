@@ -34,3 +34,7 @@ remus_public_headers(${headers})
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusServer)
 export(TARGETS RemusServer RemusCommon sysTools FILE Remus-exports.cmake)
+
+if(Remus_ENABLE_TESTING)
+  add_subdirectory(testing)
+endif()
