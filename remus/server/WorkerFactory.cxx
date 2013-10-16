@@ -59,7 +59,7 @@ public:
 
 
   WorkerFinder(const std::string& ext):
-    FileExt(ext)
+    FileExt( boost::algorithm::to_upper_copy(ext) )
     {
     boost::filesystem::path cwd = boost::filesystem::current_path();
     this->parseDirectory(cwd);
@@ -67,7 +67,7 @@ public:
 
   WorkerFinder(const boost::filesystem::path& path,
                const std::string& ext):
-    FileExt(ext)
+    FileExt( boost::algorithm::to_upper_copy(ext) )
     {
     this->parseDirectory(path);
     }
@@ -105,17 +105,28 @@ public:
       //convert from string to the proper types
       remus::MESH_INPUT_TYPE itype = remus::to_meshInType(inputFileType);
       remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshIOType);
-      boost::filesystem::path p(file.parent_path());
-      p /= mesherName;
+
+      boost::filesystem::path mesher_path(mesherName);
+
+      //try the mesherName as an absolute path, if that isn't
+      //a file than fall back to looking based on the file we are parsing
+      //path
+      if(!boost::filesystem::is_regular_file(mesher_path))
+        {
+        mesher_path = boost::filesystem::path(file.parent_path());
+        mesher_path /= mesherName;
 #ifdef _WIN32
-      p.replace_extension(".exe");
+        mesher_path.replace_extension(".exe");
 #endif
-      if(boost::filesystem::is_regular_file(p))
+        }
+
+      if(boost::filesystem::is_regular_file(mesher_path))
         {
         remus::common::MeshIOType combinedType(itype,otype);
-        this->Info.push_back(MeshWorkerInfo(combinedType, p.string()));
+        this->Info.push_back(MeshWorkerInfo(combinedType,
+                                            mesher_path.string()));
         }
-     }
+      }
     f.close();
 
   }
