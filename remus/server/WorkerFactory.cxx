@@ -174,6 +174,12 @@ void WorkerFactory::addCommandLineArgument(const std::string& argument)
 }
 
 //----------------------------------------------------------------------------
+void WorkerFactory::clearCommandLineArguments()
+{
+  this->GlobalArguments.clear();
+}
+
+//----------------------------------------------------------------------------
 void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 {
   boost::filesystem::path dir(directory);

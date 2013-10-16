@@ -61,6 +61,10 @@ public:
   //are created
   void addCommandLineArgument(const std::string& argument);
 
+  //remove all command line arguments to be passed to all workers
+  //that the factory creates
+  void clearCommandLineArguments();
+
   //add a path to search for workers.
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
@@ -76,6 +80,9 @@ public:
   void setMaxWorkerCount(unsigned int count){MaxWorkers = count;}
   unsigned int maxWorkerCount(){return MaxWorkers;}
   unsigned int currentWorkerCount() const { return this->CurrentProcesses.size(); }
+
+  //return the worker file extension we have
+  std::string workerExtension() const { return this->WorkerExtension;  }
 
 
 protected:
