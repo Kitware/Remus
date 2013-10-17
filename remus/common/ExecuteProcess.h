@@ -56,7 +56,7 @@ public:
   //and wasn't set to run in detached mode
   virtual ~ExecuteProcess();
 
-  //execute the process. set detach to true if you don't want to recieve
+  //execute the process. set detach to true if you don't want to receive
   //any output from the child process. Be sure not to poll on a detached
   //process as it won't work
   virtual void execute(bool detachProcess);
