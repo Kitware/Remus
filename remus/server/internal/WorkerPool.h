@@ -42,7 +42,7 @@ class WorkerPool
     //do we have a worker with this address?
     bool haveWorker(const zmq::socketIdentity& address) const;
 
-    //mark a worker with the given adress ready to take a job.
+    //mark a worker with the given address ready to take a job.
     //returns false if a worker with that address wasn't found
     bool readyForWork(const zmq::socketIdentity& address);
 
@@ -90,10 +90,47 @@ private:
      boost::posix_time::ptime heartbeat;
      expireFunctor(const boost::posix_time::ptime & t):
        heartbeat(t){}
-     bool operator()(const WorkerInfo& worker)
+     inline bool operator()(const WorkerInfo& worker) const
      {
        return worker.expiry < heartbeat;
      }
+    };
+
+    struct readyForWorkFunctor
+    {
+    readyForWorkFunctor(zmq::socketIdentity addr):
+      Address(addr),
+      Count(0)
+      {
+      }
+
+    inline void operator()(WorkerInfo& worker)
+      {
+      if(worker.Address == this->Address)
+        {
+        worker.WaitingForWork = true;
+        ++this->Count;
+        }
+      }
+    zmq::socketIdentity Address;
+    unsigned int Count; //number of elements we set to be ready for work
+    };
+
+    struct refreshWorkerFunctor
+    {
+    refreshWorkerFunctor(zmq::socketIdentity addr):
+      Address(addr)
+      {
+      }
+
+    inline void operator()(WorkerInfo& worker)
+      {
+      if(worker.Address == this->Address)
+        {
+        worker.refresh();
+        }
+      }
+    zmq::socketIdentity Address;
     };
 
     typedef std::vector<WorkerInfo>::const_iterator ConstIt;
@@ -134,16 +171,13 @@ bool WorkerPool::haveWorker(const zmq::socketIdentity& address) const
 //------------------------------------------------------------------------------
 bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
 {
-  bool found = false;
-  for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
-    {
-    if(i->Address == address)
-      {
-      found = true;
-      i->WaitingForWork = true;
-      }
-    }
-  return found;
+  //a worker can be registered multiple times, we need to iterate
+  //over the entire vector and find all occurrences of the of the address
+  WorkerPool::readyForWorkFunctor pred(address);
+
+  //transform every element that matches the address to be waiting for work
+  std::for_each(this->Pool.begin(),this->Pool.end(), pred);
+  return pred.Count > 0;
 }
 
 
@@ -181,10 +215,6 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
   //remove if moves all bad items to end of the vector and returns
   //an iterator to the new end
   It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
-  // if(std::distance(newEnd,this->Pool.end()) > 0)
-  //   {
-  //   std::cout << "Purging dead workers, num " << std::distance(newEnd,this->Pool.end()) << std::endl;
-  //   }
 
   //erase all the elements that remove_if moved to the end
   this->Pool.erase(newEnd,this->Pool.end());
@@ -193,13 +223,8 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 //------------------------------------------------------------------------------
 void WorkerPool::refreshWorker(const zmq::socketIdentity& address)
 {
-  for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
-    {
-    if( i->Address == address)
-      {
-      i->refresh();
-      }
-    }
+  std::for_each(this->Pool.begin(), this->Pool.end(),
+              WorkerPool::refreshWorkerFunctor(address));
 }
 //------------------------------------------------------------------------------
 std::set<zmq::socketIdentity> WorkerPool::livingWorkers() const
