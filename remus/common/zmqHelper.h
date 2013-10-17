@@ -29,7 +29,7 @@ namespace zmq
 //easier to copy around
 struct socketIdentity
 {
-  socketIdentity(char* data, std::size_t size):
+  socketIdentity(const char* data, std::size_t size):
     Size(size)
     {
     memcpy(Data,data,size);
