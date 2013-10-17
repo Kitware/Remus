@@ -461,7 +461,8 @@ void Server::FindWorkerForQueuedJob()
     {
     //check if we have a waiting worker, if we don't than try
     //ask the factory to create a worker of that type.
-    if(this->WorkerFactory.createWorker(*type))
+    if(this->WorkerFactory.createWorker(*type,
+                           WorkerFactory::KillOnFactoryDeletion))
       {
       this->QueuedJobs->workerDispatched(*type);
       }

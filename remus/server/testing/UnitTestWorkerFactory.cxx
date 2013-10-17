@@ -91,6 +91,9 @@ void test_factory_worker_finder()
 void test_factory_worker_launching()
 {
   //give our worker factory a unique extension to look for
+  const remus::server::WorkerFactory::FactoryDeletionBehavior kill =
+                remus::server::WorkerFactory::KillOnFactoryDeletion;
+
   remus::server::WorkerFactory f_def(".tst");
   f_def.addCommandLineArgument("EXIT_NORMALLY");
 
@@ -100,6 +103,7 @@ void test_factory_worker_launching()
   //we should only support raw_edges and mesh2d, otherwise the rest
   //should return false
   remus::common::MeshIOType raw_edges(remus::RAW_EDGES,remus::MESH2D);
+
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 
   f_def.setMaxWorkerCount(0);
@@ -107,7 +111,7 @@ void test_factory_worker_launching()
   REMUS_ASSERT( (f_def.currentWorkerCount() == 0) );
 
   //lets try to launch a worker with limit at zero
-  REMUS_ASSERT( (f_def.createWorker(raw_edges) == false) );
+  REMUS_ASSERT( (f_def.createWorker(raw_edges,kill) == false) );
 
   //assert non have been created
   REMUS_ASSERT( (f_def.currentWorkerCount() == 0) );
@@ -116,13 +120,13 @@ void test_factory_worker_launching()
   REMUS_ASSERT( (f_def.maxWorkerCount() == 1) );
 
   //lets try to launch a worker with limit at 1
-  REMUS_ASSERT( (f_def.createWorker(raw_edges) == true) );
+  REMUS_ASSERT( (f_def.createWorker(raw_edges,kill) == true) );
 
   //assert only 1 is created
   REMUS_ASSERT( (f_def.currentWorkerCount() == 1) );
 
   //try to make another, expected to fail
-  REMUS_ASSERT( (f_def.createWorker(raw_edges) == false) );
+  REMUS_ASSERT( (f_def.createWorker(raw_edges,kill) == false) );
 }
 
 
