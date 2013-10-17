@@ -16,6 +16,15 @@
 
 #include "PathToTestExecutable.h"
 
+namespace
+{
+  const remus::common::ExecuteProcess::DetachMode detached =
+      remus::common::ExecuteProcess::Detached;
+
+  const remus::common::ExecuteProcess::DetachMode not_detached =
+      remus::common::ExecuteProcess::NotDetached;
+}
+
 int UnitTestExecuteProcess(int, char *[])
 {
   ExampleApplication eapp;
@@ -36,7 +45,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.kill());
 
   //start the process in non-detached mode
-  example.execute(false);
+  example.execute(not_detached);
 
   //validate the program is running, and than terminate it
   REMUS_ASSERT(example.isAlive());
@@ -48,7 +57,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.kill()); //can't kill twice
 
   //start the process in detached mode
-  example.execute(true);
+  example.execute(detached);
 
   //validate the program is running, and than terminate it
   REMUS_ASSERT(example.isAlive());
@@ -71,7 +80,7 @@ int UnitTestExecuteProcess(int, char *[])
   remus::common::ExecuteProcess example(eapp.name, args );
 
   //start the process in non detached-mode
-  example.execute(false);
+  example.execute(not_detached);
   REMUS_ASSERT(example.isAlive());
 
   //wait for the example program to close itself
@@ -82,7 +91,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.kill());
 
   //start the process in detached-mode
-  example.execute(true);
+  example.execute(detached);
   REMUS_ASSERT(example.isAlive());
 
   //wait for the example program to close itself
@@ -120,7 +129,7 @@ int UnitTestExecuteProcess(int, char *[])
 
 
   //start the process in detached mode, and test polling
-  example.execute(true);
+  example.execute(detached);
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
@@ -143,7 +152,7 @@ int UnitTestExecuteProcess(int, char *[])
 
 
   //start the process in non-detached mode, and test polling
-  example.execute(false);
+  example.execute(not_detached);
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
@@ -180,7 +189,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!noPoll.valid());
 
   //start the process in detached mode
-  example.execute(true);
+  example.execute(detached);
   REMUS_ASSERT(example.isAlive());
 
   //try polling for different lengths of time
@@ -202,7 +211,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(example.kill());
 
   //start the process in non-detached mode
-  example.execute(false);
+  example.execute(not_detached);
   REMUS_ASSERT(example.isAlive());
 
   //try polling for different lengths of time

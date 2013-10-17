@@ -309,7 +309,15 @@ bool WorkerFactory::addWorker(const std::string& executable,
   //longer than us. We also need to store the lifespan flag, so that
   //we can hard terminate workers when we leave that have the
   //KillOnFactoryDeletion otherwise we hang while the continue to run
-  ep->execute(lifespan == WorkerFactory::KillOnFactoryDeletion);
+  if(lifespan == WorkerFactory::KillOnFactoryDeletion)
+    {
+    ep->execute( remus::common::ExecuteProcess::Detached );
+    }
+  else
+    {
+    ep->execute( remus::common::ExecuteProcess::NotDetached );
+    }
+
   remus::server::WorkerFactory::RunningProcessInfo p_info(ep,lifespan);
 
   this->CurrentProcesses.push_back(p_info);

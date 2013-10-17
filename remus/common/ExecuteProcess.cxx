@@ -94,7 +94,7 @@ ExecuteProcess::~ExecuteProcess()
 }
 
 //-----------------------------------------------------------------------------
-void ExecuteProcess::execute(bool detachProcess)
+void ExecuteProcess::execute(DetachMode mode)
 {
   //allocate array large enough for command str, args, and null entry
   const std::size_t size(this->Args.size() + 2);
@@ -110,7 +110,7 @@ void ExecuteProcess::execute(bool detachProcess)
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             sysToolsProcess_Option_HideWindow, true);
   sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                              sysToolsProcess_Option_Detach, detachProcess);
+                              sysToolsProcess_Option_Detach, (mode==Detached) );
   sysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   this->ExternalProcess->Created = true;
