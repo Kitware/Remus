@@ -21,9 +21,37 @@ namespace common{
 class Response
 {
 public:
-  explicit Response(const zmq::socketIdentity& client);
-  explicit Response(zmq::socket_t& socket);
-  ~Response();
+  //----------------------------------------------------------------------------
+  explicit Response(const zmq::socketIdentity& client):
+    ClientAddress(client),
+    SType(remus::INVALID_SERVICE),
+    Data(NULL)
+    {
+    }
+
+  //----------------------------------------------------------------------------
+  explicit Response(zmq::socket_t& socket):
+    ClientAddress(),
+    SType(remus::INVALID_SERVICE),
+    Data(NULL)
+  {
+    zmq::removeReqHeader(socket);
+
+    zmq::message_t servType;
+    zmq::recv_harder(socket,&servType);
+    this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
+
+    zmq::message_t data(0);
+    zmq::recv_harder(socket,&data);
+    const std::size_t size = data.size();
+    if(size>0)
+      {
+      this->Data = new zmq::message_t(size);
+      this->Data->move(&data);
+      }
+  }
+  //----------------------------------------------------------------------------
+  ~Response() { this->clearData(); }
 
   //Clears any existing data message, and reconstructs
   //the new message we will use when we call send
@@ -55,42 +83,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-Response::Response(const zmq::socketIdentity& client):
-  ClientAddress(client),
-  SType(remus::INVALID_SERVICE),
-  Data(NULL)
-  {
-  }
-
-Response::Response(zmq::socket_t& socket):
-  ClientAddress(),
-  SType(remus::INVALID_SERVICE),
-  Data(NULL)
-{
-  zmq::removeReqHeader(socket);
-
-  zmq::message_t servType;
-  zmq::recv_harder(socket,&servType);
-  this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
-
-  zmq::message_t data(0);
-  zmq::recv_harder(socket,&data);
-  const std::size_t size = data.size();
-  if(size>0)
-    {
-    this->Data = new zmq::message_t(size);
-    this->Data->move(&data);
-    }
-}
-
-//------------------------------------------------------------------------------
-Response::~Response()
-  {
-  this->clearData();
-  }
-
-//------------------------------------------------------------------------------
-void Response::clearData()
+inline void Response::clearData()
   {
   //if the response has been sent than the DataMessage is valid to be
   //deleted because we have moved the contents into a different message
@@ -103,7 +96,7 @@ void Response::clearData()
 
 //------------------------------------------------------------------------------
 template<typename T>
-T Response::dataAs()
+inline T Response::dataAs()
   {
   //default implementation works for primitive types
   return *reinterpret_cast<T*>(this->Data->data());
@@ -111,14 +104,14 @@ T Response::dataAs()
 
 //------------------------------------------------------------------------------
 template<>
-std::string Response::dataAs<std::string>()
+inline std::string Response::dataAs<std::string>()
   {
   return std::string(static_cast<char*>(this->Data->data()),this->Data->size());
   }
 
 //------------------------------------------------------------------------------
 template<typename T>
-void Response::setData(const T& t)
+inline void Response::setData(const T& t)
   {
   this->clearData();
 
@@ -130,7 +123,7 @@ void Response::setData(const T& t)
 
 //------------------------------------------------------------------------------
 template<>
-void Response::setData<std::string>(const std::string& t)
+inline void Response::setData<std::string>(const std::string& t)
   {
   this->clearData();
   this->Data = new zmq::message_t(t.size());
@@ -139,7 +132,7 @@ void Response::setData<std::string>(const std::string& t)
   }
 
 //------------------------------------------------------------------------------
-bool Response::send(zmq::socket_t& socket) const
+inline bool Response::send(zmq::socket_t& socket) const
   {
   //if we have no data we will return false, since we couldn't send anything
   if(this->Data == NULL)
