@@ -176,7 +176,8 @@ bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
   WorkerPool::readyForWorkFunctor pred(address);
 
   //transform every element that matches the address to be waiting for work
-  std::for_each(this->Pool.begin(),this->Pool.end(), pred);
+  //need to use the resulting predicate to get the correct result.
+  pred = std::for_each(this->Pool.begin(),this->Pool.end(), pred);
   return pred.Count > 0;
 }
 
