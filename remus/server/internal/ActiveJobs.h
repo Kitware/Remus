@@ -34,7 +34,8 @@ class ActiveJobs
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketIdentity& workerIdentity, const boost::uuids::uuid& id);
+    bool add(const zmq::socketIdentity& workerIdentity,
+             const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
@@ -77,7 +78,7 @@ private:
         haveResult(false)
         {
           //we give it two heartbeat cycles of lifetime to start
-          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
+          expiry += boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
 
         void refresh()
@@ -101,7 +102,8 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,const boost::uuids::uuid& id)
+bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,
+                     const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
@@ -125,7 +127,8 @@ bool ActiveJobs::remove(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
-zmq::socketIdentity ActiveJobs::workerAddress(const boost::uuids::uuid& id) const
+zmq::socketIdentity ActiveJobs::workerAddress(
+                                          const boost::uuids::uuid& id) const
 {
   InfoConstIt item = this->Info.find(id);
   if(item == this->Info.end())
