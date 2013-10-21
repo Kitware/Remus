@@ -49,6 +49,14 @@ class ActiveJobs
 
     const remus::JobResult& result(const boost::uuids::uuid& id);
 
+    //update the job status of a job.
+    //valid values are:
+    // QUEUED
+    // IN_PROGRESS
+    // FAILED
+    // EXPIRED
+    // To update a job to the finished state, you have to call updateResult
+    // not update status
     void updateStatus(const remus::JobStatus& s);
 
     void updateResult(const remus::JobResult& r);
@@ -92,6 +100,19 @@ private:
         bool canUpdateStatus() const
         {
           return jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS;
+        }
+
+        bool canUpdateStatusTo(remus::JobStatus s) const
+        {
+        //we don't want the worker to ever explicitly state it has finished the
+        //job. We want that state to only be applied when the results have finished
+        //transferring to the server
+        //we can only change the status of jobs that are
+        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
+        //If we are in IN_PROGRESS we can't move back to QUEUED
+        return (jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS) &&
+               (!s.finished()) && (jstatus.Status < s.Status);
+
         }
     };
 
@@ -176,18 +197,14 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
-  if(item != this->Info.end() &&
-     item->second.canUpdateStatus())
+  if(item != this->Info.end() && item->second.canUpdateStatusTo(s) )
     {
     //we don't want the worker to ever explicitly state it has finished the
-    //job. We want that state to only be applied when the results have finished
-    //transferring to the server
-    if(!s.finished())
-      {
-      item->second.jstatus = s;
-      }
-    item->second.refresh();
+    //job. That is why we use canUpdateStatusTo, which checks the status
+    //we are moving too
+    item->second.jstatus = s;
     }
+  item->second.refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -198,7 +215,7 @@ void ActiveJobs::updateResult(const remus::JobResult& r)
     {
     //once we get a result we can state our status is now finished,
     //since the uploading of data has finished.
-    if(item->second.canUpdateStatus())
+    if( item->second.canUpdateStatus( ) )
       {
       item->second.jstatus = remus::JobStatus(r.JobId,remus::FINISHED);
       }
