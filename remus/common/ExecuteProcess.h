@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "CommonExports.h"
+#include <remus/common/CommonExports.h>
 
 //forward declare the systools
 

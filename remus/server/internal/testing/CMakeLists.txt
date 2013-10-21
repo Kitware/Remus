@@ -10,9 +10,6 @@
 #
 #=============================================================================
 
-#include the include directories from the common library
-remus_get_includes(RemusCommon CommonIncludes)
-
 set(unit_tests
   UnitTestActiveJobs.cxx
   UnitTestJobQueue.cxx

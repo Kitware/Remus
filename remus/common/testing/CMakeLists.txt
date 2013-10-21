@@ -10,10 +10,6 @@
 #
 #=============================================================================
 
-#include the include directories from the common library
-remus_get_includes(RemusCommon CommonIncludes)
-
-
 #to properly test execute process we need an executable to run.
 #This way we can properly poll,kill,etc on the executable
 set(testing_execute_process_executable

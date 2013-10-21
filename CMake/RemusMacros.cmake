@@ -31,11 +31,17 @@ function(ms_add_header_test name dir_prefix)
     configure_file(${Remus_SOURCE_DIR}/CMake/TestBuild.cxx.in ${src} @ONLY)
     set(cxxfiles ${cxxfiles} ${src})
   endforeach (header)
-  include_directories(${sysTools_BINARY_DIR})
+
   #include the build directory for the export header
-  include_directories(${CMAKE_CURRENT_BINARY_DIR})
+  #include ZeroMQ and boost for the testing framework
   add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
-  target_link_libraries(TestBuild_${name} sysTools)
+  target_include_directories(TestBuild_${name}
+        PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
+        PRIVATE ${sysTools_BINARY_DIR}
+                ${ZeroMQ_INCLUDE_DIR}
+                ${Boost_INCLUDE_DIRS}
+                )
+  target_link_libraries(TestBuild_${name} LINK_PRIVATE sysTools )
   set_source_files_properties(${hfiles}
     PROPERTIES HEADER_FILE_ONLY TRUE
     )
@@ -61,29 +67,6 @@ endfunction(remus_private_headers)
 function(remus_install_library target)
   install(TARGETS ${target} DESTINATION lib EXPORT Remus-targets)
 endfunction(remus_install_library)
-
-
-#setup include directories as target properties
-function(remus_set_includes target)
-  #attach the current build and source directory
-  set(full_includes ${CMAKE_CURRENT_BINARY_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${ARGN}
-                    )
-  #include everything
-  include_directories(${full_includes})
-
-  #set up a property on the passed in target
-  set_property(TARGET ${target} PROPERTY SAVED_INCLUDE_DIRS ${full_includes})
-endfunction(remus_set_includes)
-
-#read the include directory proptery for a target and create a variable
-#in the callers scope with the name past names as the variable includes_var_name
-function(remus_get_includes target includes_var_name)
-  get_property(saved_includes TARGET ${target} PROPERTY SAVED_INCLUDE_DIRS)
-  set(${includes_var_name} ${saved_includes} PARENT_SCOPE)
-endfunction(remus_get_includes)
-
 
 #generate an export header and create an install target for it
 function(remus_export_header target file)
@@ -113,9 +96,10 @@ function(remus_unit_tests)
     #we use UnitTests_ so that it is an unique key to exclude from coverage
     set(test_prog UnitTests_${kit})
     create_test_sourcelist(TestSources ${test_prog}.cxx ${Remus_ut_SOURCES})
-    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
     add_executable(${test_prog} ${TestSources})
-    target_link_libraries(${test_prog} ${Remus_ut_LIBRARIES})
+    target_link_libraries(${test_prog} LINK_PRIVATE ${Remus_ut_LIBRARIES})
+    target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     foreach (test ${Remus_ut_SOURCES})
       get_filename_component(tname ${test} NAME_WE)
       add_test(NAME ${tname}
@@ -144,9 +128,9 @@ function(remus_unit_test_executable)
 
   if (Remus_ENABLE_TESTING)
     set(test_prog ${Remus_ut_EXEC_NAME})
-    include_directories(${CMAKE_CURRENT_BINARY_DIR})
     add_executable(${test_prog} ${Remus_ut_SOURCES})
-    target_link_libraries(${test_prog} ${Remus_ut_LIBRARIES})
+    target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_link_libraries(${test_prog} LINK_PRIVATE ${Remus_ut_LIBRARIES})
 
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_unit_test_executable)

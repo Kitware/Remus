@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.12)
 project(Remus)
 
 # include some cmake code that builds automatic header tests
@@ -91,10 +91,4 @@ add_subdirectory(remus)
 #add the examples code
 if(Remus_ENABLE_EXAMPLES)
   add_subdirectory(examples)
-endif()
-
-
-#add the high level usage testing
-if(Remus_ENABLE_TESTING)
-  add_subdirectory(testing)
 endif()
