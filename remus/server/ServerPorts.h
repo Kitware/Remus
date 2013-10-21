@@ -41,11 +41,18 @@ public:
 
   }
 
-  ServerPorts(std::string const& clientHostName, int clientPort, std::string const& workerHostName, int workerPort):
+  ServerPorts(std::string const& clientHostName, unsigned int clientPort,
+              std::string const& workerHostName, unsigned int workerPort):
     Client(clientHostName,clientPort),
     Worker(workerHostName,workerPort)
   {
+    assert(clientHostName.size() > 0);
+    assert(clientPort > 0 && clientPort < 65536);
 
+    assert(workerHostName.size() > 0);
+    assert(workerPort > 0 && workerPort < 65536);
+
+    assert(workerHostName == clientHostName && workerPort == clientPort);
   }
 
   //will attempt to bind the passed in socket to client tcp-ip port we hold
