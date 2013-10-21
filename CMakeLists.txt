@@ -9,7 +9,7 @@ include(CMake/RemusMacros.cmake)
 # in dynamic libraries
 include(GenerateExportHeader)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${Remus_SOURCE_DIR}/CMake)
+list(APPEND CMAKE_MODULE_PATH "${Remus_SOURCE_DIR}/CMake")
 
 #ZeroMQ is used for all message passing between components.
 find_package(ZeroMQ REQUIRED)
@@ -82,14 +82,13 @@ add_subdirectory(kwsys)
 #setup windows exception handling so we can compile properly
 #with boost enabled
 if(WIN32 AND MSVC)
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+  list(APPEND CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif()
 
 #add the actual code
 add_subdirectory(remus)
 
 #add the examples code
-option(Remus_ENABLE_EXAMPLES "Build Examples" ON)
 if(Remus_ENABLE_EXAMPLES)
-  add_subdirectory(Examples)
+  add_subdirectory(examples)
 endif()

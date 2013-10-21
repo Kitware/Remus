@@ -40,6 +40,6 @@ remus_public_headers(${headers})
 export(PACKAGE RemusCommon)
 export(TARGETS RemusCommon sysTools FILE RemusCommon-exports.cmake)
 
-
-#add tests
-add_subdirectory(testing)
+if(Remus_ENABLE_TESTING)
+  add_subdirectory(testing)
+endif()

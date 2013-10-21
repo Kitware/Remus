@@ -49,6 +49,13 @@ struct REMUSCOMMON_EXPORT ProcessPipe
 class REMUSCOMMON_EXPORT ExecuteProcess
 {
 public:
+
+  enum DetachMode
+  {
+    Detached,
+    NotDetached
+  };
+
   ExecuteProcess(const std::string& command, const std::vector<std::string>& args);
   explicit ExecuteProcess(const std::string& command);
 
@@ -56,10 +63,10 @@ public:
   //and wasn't set to run in detached mode
   virtual ~ExecuteProcess();
 
-  //execute the process. set detach to true if you don't want to recieve
+  //execute the process. set detach to Detached if you don't want to receive
   //any output from the child process. Be sure not to poll on a detached
   //process as it won't work
-  virtual void execute(bool detachProcess);
+  virtual void execute(DetachMode mode);
 
   //kills the process if running
   virtual bool kill();

@@ -22,8 +22,10 @@
 namespace
 {
   typedef std::vector<remus::server::MeshWorkerInfo>::const_iterator WorkerIterator;
-  typedef std::vector< boost::shared_ptr<remus::common::ExecuteProcess> >::iterator ProcessIterator;
+  typedef std::vector< remus::server::WorkerFactory::RunningProcessInfo >::iterator ProcessIterator;
 
+
+  //----------------------------------------------------------------------------
   struct support_MeshIOType
   {
     remus::common::MeshIOType Type;
@@ -34,13 +36,66 @@ namespace
       }
   };
 
+  //----------------------------------------------------------------------------
   struct is_dead
   {
-    bool operator()(boost::shared_ptr<remus::common::ExecuteProcess> ep)
+    bool operator()(remus::server::WorkerFactory::RunningProcessInfo process)
       {
-      return !ep->isAlive();
+      return !process.first->isAlive();
       }
   };
+
+  //----------------------------------------------------------------------------
+  struct kill_on_deletion
+  {
+    void operator()(remus::server::WorkerFactory::RunningProcessInfo process)
+      {
+      const bool can_be_killed =
+        (process.second == remus::server::WorkerFactory::KillOnFactoryDeletion);
+      const bool is_alive = !is_dead()(process);
+      if(can_be_killed && is_alive)
+        {
+        process.first->kill();
+        }
+      }
+  };
+
+  //----------------------------------------------------------------------------
+  struct ValidWorker
+  {
+    ValidWorker(std::string p):
+      valid(true),
+      path(p)
+      {
+      }
+
+    ValidWorker():
+      valid(false),
+      path()
+      {
+      }
+
+    bool valid;
+    std::string path;
+  };
+
+  //----------------------------------------------------------------------------
+  template<typename Container >
+  ValidWorker find_worker_path(remus::common::MeshIOType type,
+                               Container const& container)
+  {
+    support_MeshIOType pred(type);
+    WorkerIterator result = std::find_if(container.begin(),container.end(),pred);
+
+    if(result != container.end())
+      {
+      //return a valid work
+      return ValidWorker((*result).ExecutionPath);
+      }
+    //return an invalid worker
+    return ValidWorker();
+  }
+
 }
 
 
@@ -58,20 +113,23 @@ public:
   const std::string FileExt;
 
 
+  //----------------------------------------------------------------------------
   WorkerFinder(const std::string& ext):
-    FileExt(ext)
+    FileExt( boost::algorithm::to_upper_copy(ext) )
     {
     boost::filesystem::path cwd = boost::filesystem::current_path();
     this->parseDirectory(cwd);
     }
 
+  //----------------------------------------------------------------------------
   WorkerFinder(const boost::filesystem::path& path,
                const std::string& ext):
-    FileExt(ext)
+    FileExt( boost::algorithm::to_upper_copy(ext) )
     {
     this->parseDirectory(path);
     }
 
+  //----------------------------------------------------------------------------
   void parseDirectory(const boost::filesystem::path& dir)
     {
     boost::filesystem::directory_iterator end_itr;
@@ -90,6 +148,7 @@ public:
       }
     }
 
+  //----------------------------------------------------------------------------
   void parseFile(const boost::filesystem::path& file)
   {
     //open the file, parse two lines and close file
@@ -105,17 +164,28 @@ public:
       //convert from string to the proper types
       remus::MESH_INPUT_TYPE itype = remus::to_meshInType(inputFileType);
       remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshIOType);
-      boost::filesystem::path p(file.parent_path());
-      p /= mesherName;
+
+      boost::filesystem::path mesher_path(mesherName);
+
+      //try the mesherName as an absolute path, if that isn't
+      //a file than fall back to looking based on the file we are parsing
+      //path
+      if(!boost::filesystem::is_regular_file(mesher_path))
+        {
+        mesher_path = boost::filesystem::path(file.parent_path());
+        mesher_path /= mesherName;
 #ifdef _WIN32
-      p.replace_extension(".exe");
+        mesher_path.replace_extension(".exe");
 #endif
-      if(boost::filesystem::is_regular_file(p))
+        }
+
+      if(boost::filesystem::is_regular_file(mesher_path))
         {
         remus::common::MeshIOType combinedType(itype,otype);
-        this->Info.push_back(MeshWorkerInfo(combinedType, p.string()));
+        this->Info.push_back(MeshWorkerInfo(combinedType,
+                                            mesher_path.string()));
         }
-     }
+      }
     f.close();
 
   }
@@ -165,12 +235,23 @@ WorkerFactory::WorkerFactory(const std::string& ext):
 //----------------------------------------------------------------------------
 WorkerFactory::~WorkerFactory()
 {
+  //kill any worker whose FactoryDeletionBehavior is KillOnFactoryDeletion
+  //the kill_on_deletion functor will call terminate
+  std::for_each(this->CurrentProcesses.begin(),
+                this->CurrentProcesses.end(),
+                kill_on_deletion());
 }
 
 //----------------------------------------------------------------------------
 void WorkerFactory::addCommandLineArgument(const std::string& argument)
 {
   this->GlobalArguments.push_back(argument);
+}
+
+//----------------------------------------------------------------------------
+void WorkerFactory::clearCommandLineArguments()
+{
+  this->GlobalArguments.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -186,32 +267,23 @@ void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 //----------------------------------------------------------------------------
 bool WorkerFactory::haveSupport(remus::common::MeshIOType type ) const
 {
-  support_MeshIOType pred(type);
-  WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
-                      this->PossibleWorkers.end(),
-                      pred);
-  return result != this->PossibleWorkers.end();
+  return find_worker_path(type,this->PossibleWorkers).valid;
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::createWorker(remus::common::MeshIOType type)
+bool WorkerFactory::createWorker(remus::common::MeshIOType type,
+                               WorkerFactory::FactoryDeletionBehavior lifespan)
 {
-  this->updateWorkerCount();
-  if(this->currentWorkerCount() >= this->maxWorkerCount())
+  this->updateWorkerCount(); //remove dead workers
+  if(this->currentWorkerCount() < this->maxWorkerCount())
     {
-    return false;
+    const ValidWorker w = find_worker_path(type, this->PossibleWorkers);
+    if(w.valid)
+      {
+      return this->addWorker(w.path,lifespan);
+      }
     }
-
-  support_MeshIOType pred(type);
-  WorkerIterator result = std::find_if(this->PossibleWorkers.begin(),
-                      this->PossibleWorkers.end(),
-                      pred);
-
-  if(result == this->PossibleWorkers.end())
-    {
-    return false;
-    }
-  return this->addWorker( (*result).ExecutionPath );
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -222,21 +294,33 @@ void WorkerFactory::updateWorkerCount()
                                           this->CurrentProcesses.end(),
                                           is_dead());
   std::size_t numDead = std::distance(result,this->CurrentProcesses.end());
-  // if( numDead > 0)
-  //   {
-  //   std::cout << "Removing dead workers processes, num " << numDead << std::endl;
-  //   }
   this->CurrentProcesses.resize(this->CurrentProcesses.size()-numDead);
 }
 
-
 //----------------------------------------------------------------------------
-bool WorkerFactory::addWorker(const std::string& executable)
+bool WorkerFactory::addWorker(const std::string& executable,
+                              WorkerFactory::FactoryDeletionBehavior lifespan)
 {
   //add this workers
-  ExecuteProcessPtr ep(new ExecuteProcess(executable,this->GlobalArguments) );
-  ep->execute(true); //detach worker
-  this->CurrentProcesses.push_back(ep);
+  WorkerFactory::ExecuteProcessPtr ep(
+                        new ExecuteProcess(executable,this->GlobalArguments) );
+
+  //we set the detached behavior based on if we want the worker to last
+  //longer than us. We also need to store the lifespan flag, so that
+  //we can hard terminate workers when we leave that have the
+  //KillOnFactoryDeletion otherwise we hang while the continue to run
+  if(lifespan == WorkerFactory::KillOnFactoryDeletion)
+    {
+    ep->execute( remus::common::ExecuteProcess::Detached );
+    }
+  else
+    {
+    ep->execute( remus::common::ExecuteProcess::NotDetached );
+    }
+
+  remus::server::WorkerFactory::RunningProcessInfo p_info(ep,lifespan);
+
+  this->CurrentProcesses.push_back(p_info);
   return true;
 }
 

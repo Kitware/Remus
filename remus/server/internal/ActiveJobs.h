@@ -34,7 +34,8 @@ class ActiveJobs
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketIdentity& workerIdentity, const boost::uuids::uuid& id);
+    bool add(const zmq::socketIdentity& workerIdentity,
+             const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
@@ -48,6 +49,14 @@ class ActiveJobs
 
     const remus::JobResult& result(const boost::uuids::uuid& id);
 
+    //update the job status of a job.
+    //valid values are:
+    // QUEUED
+    // IN_PROGRESS
+    // FAILED
+    // EXPIRED
+    // To update a job to the finished state, you have to call updateResult
+    // not update status
     void updateStatus(const remus::JobStatus& s);
 
     void updateResult(const remus::JobResult& r);
@@ -77,7 +86,7 @@ private:
         haveResult(false)
         {
           //we give it two heartbeat cycles of lifetime to start
-          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
+          expiry += boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
 
         void refresh()
@@ -92,6 +101,19 @@ private:
         {
           return jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS;
         }
+
+        bool canUpdateStatusTo(remus::JobStatus s) const
+        {
+        //we don't want the worker to ever explicitly state it has finished the
+        //job. We want that state to only be applied when the results have finished
+        //transferring to the server
+        //we can only change the status of jobs that are
+        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
+        //If we are in IN_PROGRESS we can't move back to QUEUED
+        return (jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS) &&
+               (!s.finished()) && (jstatus.Status < s.Status);
+
+        }
     };
 
     typedef std::pair<boost::uuids::uuid, JobState> InfoPair;
@@ -101,7 +123,8 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,const boost::uuids::uuid& id)
+bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,
+                     const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
     {
@@ -125,7 +148,8 @@ bool ActiveJobs::remove(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
-zmq::socketIdentity ActiveJobs::workerAddress(const boost::uuids::uuid& id) const
+zmq::socketIdentity ActiveJobs::workerAddress(
+                                          const boost::uuids::uuid& id) const
 {
   InfoConstIt item = this->Info.find(id);
   if(item == this->Info.end())
@@ -173,18 +197,14 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
-  if(item != this->Info.end() &&
-     item->second.canUpdateStatus())
+  if(item != this->Info.end() && item->second.canUpdateStatusTo(s) )
     {
     //we don't want the worker to ever explicitly state it has finished the
-    //job. We want that state to only be applied when the results have finished
-    //transferring to the server
-    if(!s.finished())
-      {
-      item->second.jstatus = s;
-      }
-    item->second.refresh();
+    //job. That is why we use canUpdateStatusTo, which checks the status
+    //we are moving too
+    item->second.jstatus = s;
     }
+  item->second.refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +215,7 @@ void ActiveJobs::updateResult(const remus::JobResult& r)
     {
     //once we get a result we can state our status is now finished,
     //since the uploading of data has finished.
-    if(item->second.canUpdateStatus())
+    if( item->second.canUpdateStatus( ) )
       {
       item->second.jstatus = remus::JobStatus(r.JobId,remus::FINISHED);
       }

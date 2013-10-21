@@ -63,6 +63,20 @@ protected:
 
   }
 
+  void StopCatchingSignals()
+  {
+    remus::common::SignalCatcher::Instance = this;
+
+    //stop watching all signals that could cause the program to
+    //abnormally terminate
+    signal( SIGABRT, SIG_DFL );
+    signal( SIGFPE,  SIG_DFL );
+    signal( SIGILL,  SIG_DFL );
+    signal( SIGINT,  SIG_DFL );
+    signal( SIGSEGV, SIG_DFL );
+    signal( SIGTERM, SIG_DFL );
+  }
+
   //method to override to pickup what signal was thrown
   //
   virtual void SignalCaught( SignalCatcher::SignalType signal )

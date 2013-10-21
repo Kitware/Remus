@@ -13,5 +13,3 @@ configure_file(${Remus_SOURCE_DIR}/CMake/RemusWorker.rw.in
          ${EXECUTABLE_OUTPUT_PATH}/${workerExecutableName}.rw
 			   @ONLY)
 endfunction()
-
-

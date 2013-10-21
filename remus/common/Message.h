@@ -23,18 +23,93 @@ namespace common{
 class Message
 {
 public:
+  //----------------------------------------------------------------------------
   //pass in a data string the job message will copy and send
-  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const std::string& data);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const std::string& data):
+    MType(mtype),
+    SType(stype),
+    Data(NULL),
+    Size(data.size()),
+    ValidMsg(true),
+    Storage(new DataStorage(data.size()))
+    {
+    //copy the string into local held storage, the string passed in can
+    //be temporary, so we want to copy it.
+    memcpy(this->Storage->Space,data.data(),this->Size);
+    this->Data = this->Storage->Space;
+    }
 
+  //----------------------------------------------------------------------------
   //pass in a data pointer that the message will use when sending
   //the pointer data can't become invalid before you call send.
-  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const char* data, int size);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const char* data, int size):
+    MType(mtype),
+    SType(stype),
+    Data(data),
+    Size(size),
+    ValidMsg(true),
+    Storage(new DataStorage())
+    {
+    }
 
+  //----------------------------------------------------------------------------
   //creates a job message with no data
-  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype);
+  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype):
+    MType(mtype),
+    SType(stype),
+    Data(NULL),
+    Size(0),
+    ValidMsg(true),
+    Storage(new DataStorage())
+    {
+    }
 
+  //----------------------------------------------------------------------------
   //creates a job message from reading in the socket
-  explicit Message(zmq::socket_t& socket);
+  Message(zmq::socket_t &socket)
+    {
+    //we are receiving a multi part message
+    //frame 0: REQ header / attachReqHeader does this
+    //frame 1: Mesh Type
+    //frame 2: Service Type
+    //frame 3: Job Data //optional
+    zmq::more_t more;
+    size_t more_size = sizeof(more);
+    socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+
+    //construct a job message from the socket
+    zmq::removeReqHeader(socket);
+
+    zmq::message_t MeshIOType;
+    zmq::recv_harder(socket,&MeshIOType);
+    this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(MeshIOType.data()));
+
+    zmq::message_t servType;
+    zmq::recv_harder(socket,&servType);
+    this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
+
+    socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+    if(more>0)
+      {
+      zmq::message_t data;
+      zmq::recv_harder(socket,&data);
+      this->Size = data.size();
+      this->Storage.reset(new DataStorage(this->Size));
+
+      memcpy(this->Storage->Space,data.data(),this->Size);
+      this->Data = this->Storage->Space;
+      }
+    else
+      {
+      this->Size = 0;
+      this->Data = NULL;
+      }
+
+    //see if we have more data. If so we need to say we are invalid
+    //as we parsed the wrong type of message
+    socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
+    ValidMsg=(more==0)?true:false;
+    }
 
   //send a blocking message
   bool send(zmq::socket_t& socket) const;
@@ -81,102 +156,19 @@ private:
   boost::shared_ptr<DataStorage> Storage;
 };
 
-//------------------------------------------------------------------------------
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const std::string& data):
-  MType(mtype),
-  SType(stype),
-  Data(NULL),
-  Size(data.size()),
-  ValidMsg(true),
-  Storage(new DataStorage(data.size()))
-  {
-  //copy the string into local held storage, the string passed in can
-  //be temporary, so we want to copy it.
-  memcpy(this->Storage->Space,data.data(),this->Size);
-  this->Data = this->Storage->Space;
-  }
-
 
 //------------------------------------------------------------------------------
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype, const char* data, int size):
-  MType(mtype),
-  SType(stype),
-  Data(data),
-  Size(size),
-  ValidMsg(true),
-  Storage(new DataStorage())
-  {
-  }
-
-//------------------------------------------------------------------------------
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype):
-  MType(mtype),
-  SType(stype),
-  Data(NULL),
-  Size(0),
-  ValidMsg(true),
-  Storage(new DataStorage())
-  {
-  }
-
-//------------------------------------------------------------------------------
-Message::Message(zmq::socket_t &socket)
-{
-  //we are receiving a multi part message
-  //frame 0: REQ header / attachReqHeader does this
-  //frame 1: Mesh Type
-  //frame 2: Service Type
-  //frame 3: Job Data //optional
-  zmq::more_t more;
-  size_t more_size = sizeof(more);
-  socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-
-  //construct a job message from the socket
-  zmq::removeReqHeader(socket);
-
-  zmq::message_t MeshIOType;
-  zmq::recv_harder(socket,&MeshIOType);
-  this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(MeshIOType.data()));
-
-  zmq::message_t servType;
-  zmq::recv_harder(socket,&servType);
-  this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
-
-  socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-  if(more>0)
-    {
-    zmq::message_t data;
-    zmq::recv_harder(socket,&data);
-    this->Size = data.size();
-    this->Storage.reset(new DataStorage(this->Size));
-
-    memcpy(this->Storage->Space,data.data(),this->Size);
-    this->Data = this->Storage->Space;
-    }
-  else
-    {
-    this->Size = 0;
-    this->Data = NULL;
-    }
-
-  //see if we have more data. If so we need to say we are invalid
-  //as we parsed the wrong type of message
-  socket.getsockopt(ZMQ_RCVMORE, &more, &more_size);
-  ValidMsg=(more==0)?true:false;
-}
-
-//------------------------------------------------------------------------------
-bool Message::send(zmq::socket_t &socket) const
+inline bool Message::send(zmq::socket_t &socket) const
 {
   return this->send_impl(socket);
 }
 
-bool Message::sendNonBlocking(zmq::socket_t &socket) const
+inline bool Message::sendNonBlocking(zmq::socket_t &socket) const
 {
   return this->send_impl(socket,ZMQ_DONTWAIT);
 }
 
-bool Message::send_impl(zmq::socket_t &socket, int flags) const
+inline bool Message::send_impl(zmq::socket_t &socket, int flags) const
 {
   //we are sending our selves as a multi part message
   //frame 0: REQ header / attachReqHeader does this

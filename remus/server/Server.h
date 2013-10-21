@@ -48,6 +48,7 @@ namespace server{
 //connections, worker connections, and manages the life cycle of submitted jobs.
 //We inherit from SignalCatcher so that we can properly handle
 //segfaults and other abnormal termination conditions
+//The Server class doesn't support copy or move semantics
 class REMUSSERVER_EXPORT Server : private remus::common::SignalCatcher
 {
 public:
@@ -65,9 +66,11 @@ public:
 
   //construct a new server using the given loop back ports
   //and the default factory
-  explicit Server(remus::server::ServerPorts ports,
+  Server(remus::server::ServerPorts ports,
                   const remus::server::WorkerFactory& factory);
-  ~Server();
+
+  //cleanup the server
+  virtual ~Server();
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
