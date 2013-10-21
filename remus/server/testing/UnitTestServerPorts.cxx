@@ -105,12 +105,12 @@ int UnitTestServerPorts(int, char *[])
 
   //verify the explicit constructor
   //don't try to bind to this server
-  remus::server::ServerPorts bad_server( "66.38.239.255", 0,
-                                         "90.78.56.34", 1);
+  remus::server::ServerPorts bad_server( "66.38.239.255", 1,
+                                         "90.78.56.34", 2);
   REMUS_ASSERT( verify_ports(
                 bad_server,
-                "66.38.239.255", 0,
-                "90.78.56.34", 1)
+                "66.38.239.255", 1,
+                "90.78.56.34", 2)
                 );
 
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts()) );
