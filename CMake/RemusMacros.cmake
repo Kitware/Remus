@@ -150,3 +150,34 @@ function(remus_unit_test_executable)
 
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_unit_test_executable)
+
+# Declare unit test remus worker that is needed by other unit_tests
+# Usage:
+#
+# remus_register_unit_test_worker(
+#   EXEC_NAME <name>
+#   INPUT_TYPE <MeshInputType>
+#   OUTPUT_TYPE <MeshOuputType>
+#   CONFIG_DIR <LocationToConfigureAt>
+#   FILE_EXT  <FileExtOfWorker>
+#   )
+
+function(remus_register_unit_test_worker)
+  set(options)
+  set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT)
+  set(multiValueArgs)
+  cmake_parse_arguments(Remus_ut
+    "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    ${ARGN}
+    )
+
+  #set up variables that the config file is looking for
+  set(InputMeshFileType ${Remus_ut_INPUT_TYPE})
+  set(OutputMeshType ${Remus_ut_OUTPUT_TYPE})
+  set(workerExecutableName "${EXECUTABLE_OUTPUT_PATH}/${Remus_ut_EXEC_NAME}")
+
+  configure_file(
+          ${Remus_SOURCE_DIR}/CMake/RemusWorker.rw.in
+          ${Remus_ut_CONFIG_DIR}/${Remus_ut_EXEC_NAME}.${Remus_ut_FILE_EXT}
+          @ONLY)
+endfunction()
