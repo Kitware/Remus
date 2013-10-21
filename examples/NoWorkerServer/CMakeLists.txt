@@ -1,7 +1,4 @@
 
-remus_get_includes(RemusServer WorkIncludes)
-include_directories(${WorkIncludes})
-
 set(SRCS_Server
    serverMain.cxx
    )

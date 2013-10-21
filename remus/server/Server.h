@@ -22,9 +22,8 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/server/ServerPorts.h>
 
-
 //included for symbol exports
-#include "ServerExports.h"
+#include <remus/server/ServerExports.h>
 
 namespace remus{
   //forward declaration of classes only the implementation needs

@@ -24,7 +24,7 @@
 #include <remus/worker/ServerConnection.h>
 
 //included for symbol exports
-#include "WorkerExports.h"
+#include <remus/worker/WorkerExports.h>
 
 //forward declare boost::thread
 namespace boost { class thread; }

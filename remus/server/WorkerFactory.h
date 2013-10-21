@@ -18,7 +18,7 @@
 #include <boost/shared_ptr.hpp>
 
 //included for symbol exports
-#include "ServerExports.h"
+#include <remus/server/ServerExports.h>
 
 //forward declare the execute process
 namespace remus{

@@ -15,7 +15,7 @@
 
 #include <csignal>
 
-#include "CommonExports.h"
+#include <remus/common/CommonExports.h>
 
 namespace remus{
 namespace common{

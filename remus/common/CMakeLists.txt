@@ -1,11 +1,5 @@
 project(Remus_Common)
 
-#include the build directory for the export header
-set(Remus_Common_INCLUDE_DIRS
-  ${ZeroMQ_INCLUDE_DIR}
-  ${Boost_INCLUDE_DIRS}
-  )
-
 set(headers
   ExecuteProcess.h
   Message.h
@@ -23,9 +17,14 @@ set(common_srcs
   )
 
 add_library(RemusCommon ${common_srcs} ${headers})
-target_link_libraries(RemusCommon ${ZeroMQ_LIBRARIES} sysTools)
+target_link_libraries(RemusCommon
+                      LINK_PUBLIC ${ZeroMQ_LIBRARIES}
+                      LINK_PRIVATE sysTools
+                      )
 
-remus_set_includes(RemusCommon ${Remus_Common_INCLUDE_DIRS})
+target_include_directories(RemusCommon
+                           PUBLIC  ${ZeroMQ_INCLUDE_DIR} ${Boost_INCLUDE_DIRS}
+                           PRIVATE ${sysTools_BINARY_DIR} )
 
 #create the export header symbol exporting
 remus_export_header(RemusCommon CommonExports.h)

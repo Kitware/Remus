@@ -1,14 +1,11 @@
 project(Remus_Server)
 
-#include the include directories from the common library
-remus_get_includes(RemusCommon CommonIncludes)
-
 add_subdirectory(internal)
 
 set(headers
     Server.h
     WorkerFactory.h
-	ServerPorts.h
+	  ServerPorts.h
     )
 
 set(server_srcs
@@ -18,9 +15,8 @@ set(server_srcs
 
 
 add_library(RemusServer ${server_srcs} ${headers})
-target_link_libraries(RemusServer ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} RemusCommon)
-
-remus_set_includes(RemusServer ${CommonIncludes})
+target_link_libraries(RemusServer
+                      LINK_PUBLIC RemusCommon ${Boost_LIBRARIES})
 
 #create the export header symbol exporting
 remus_export_header(RemusServer ServerExports.h)

@@ -10,9 +10,6 @@
 #
 #=============================================================================
 
-
-remus_get_includes(RemusServer ServerIncludes)
-
 set(unit_tests
   UnitTestServer.cxx
   UnitTestWorkerFactory.cxx
