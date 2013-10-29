@@ -52,7 +52,7 @@ public:
     assert(workerHostName.size() > 0);
     assert(workerPort > 0 && workerPort < 65536);
 
-    assert(workerHostName == clientHostName && workerPort == clientPort);
+    assert(workerHostName != clientHostName && workerPort != clientPort);
   }
 
   //will attempt to bind the passed in socket to client tcp-ip port we hold
