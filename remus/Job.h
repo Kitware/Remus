@@ -15,7 +15,6 @@
 
 #include <string>
 #include <sstream>
-#include <string.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
