@@ -92,7 +92,7 @@
 #   define zmq_msg_send(msg,sock,opt) zmq_send (sock, msg, opt)
 #   define zmq_msg_recv(msg,sock,opt) zmq_recv (sock, msg, opt)
 #   define ZMQ_POLL_MSEC    1000        //  zmq_poll is usec
-#elif ZMQ_VERSION_MAJOR == 3
+#elif ZMQ_VERSION_MAJOR >= 3
 #   define ZMQ_POLL_MSEC    1           //  zmq_poll is msec
 #endif
 
@@ -104,7 +104,7 @@ namespace zmq
 # else
     typedef int64_t more_t;
 # endif
-#elif ZMQ_VERSION_MAJOR == 3
+#elif ZMQ_VERSION_MAJOR >= 3
     typedef int more_t;
 #endif
 
@@ -149,7 +149,7 @@ namespace zmq
         if (rc != 0)
             throw error_t ();
     }
-#elif ZMQ_VERSION_MAJOR == 3
+#elif ZMQ_VERSION_MAJOR >= 3
     inline void proxy (void *frontend, void *backend, void *capture)
     {
         int rc = zmq_proxy (frontend, backend, capture);
@@ -416,7 +416,7 @@ namespace zmq
             return(ptr != NULL);
         }
 
-#if ZMQ_VERSION_MAJOR == 3
+#if ZMQ_VERSION_MAJOR >= 3
         inline size_t send (const void *buf_, size_t len_, int flags_ = 0)
         {
             int nbytes = zmq_send (ptr, buf_, len_, flags_);
@@ -438,7 +438,7 @@ namespace zmq
             throw error_t ();
         }
 
-#if ZMQ_VERSION_MAJOR == 3
+#if ZMQ_VERSION_MAJOR >= 3
         inline size_t recv (void *buf_, size_t len_, int flags_ = 0)
         {
             int nbytes = zmq_recv (ptr, buf_, len_, flags_);
