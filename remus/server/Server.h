@@ -25,12 +25,15 @@
 //included for symbol exports
 #include <remus/server/ServerExports.h>
 
-namespace remus{
+namespace remus {
   //forward declaration of classes only the implementation needs
-  namespace common{
+  namespace common {
   class Message;
   }
+
+  namespace worker {
   class Job;
+  }
 }
 
 namespace remus{
@@ -101,7 +104,7 @@ protected:
   void storeMeshStatus(const remus::common::Message& msg);
   void storeMesh(const remus::common::Message& msg);
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
-                         const remus::Job& job);
+                         const remus::worker::Job& job);
 
   void FindWorkerForQueuedJob();
 

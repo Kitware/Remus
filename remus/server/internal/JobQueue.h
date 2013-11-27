@@ -13,17 +13,17 @@
 #ifndef __remus_server_internal_JobQueue_h
 #define __remus_server_internal_JobQueue_h
 
+#include <remus/client/JobRequest.h>
+#include <remus/common/Message.h>
+#include <remus/server/internal/uuidHelper.h>
+#include <remus/worker/Job.h>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <algorithm>
 #include <set>
 #include <vector>
-
-#include <remus/Job.h>
-#include <remus/JobRequest.h>
-#include <remus/common/Message.h>
-#include <remus/server/internal/uuidHelper.h>
 
 namespace remus{
 namespace server{
@@ -45,12 +45,12 @@ public:
   //Convert a Message and UUID into a WorkerMessage.
   //will return false if the uuid is already queued
   bool addJob( const boost::uuids::uuid& id,
-             const remus::common::Message& message);
+               const remus::common::Message& message);
 
   //Removes a job from the queue of the given mesh type.
-  //Return it as a Job. We prioritize jobs waiting for
+  //Return it as a worker Job. We prioritize jobs waiting for
   //workers, and than take jobs that are just queued.
-  remus::Job takeJob(remus::common::MeshIOType type);
+  remus::worker::Job takeJob(remus::common::MeshIOType type);
 
   //returns the types of jobs that are waiting for a worker
   std::set<remus::common::MeshIOType> waitingForWorkerTypes() const;
@@ -139,7 +139,7 @@ private:
 
 //------------------------------------------------------------------------------
 bool JobQueue::addJob(const boost::uuids::uuid &id,
-                    const remus::common::Message& message)
+                      const remus::common::Message& message)
 {
   //only add the message as a job if the uuid hasn't been used already
   const bool can_add = QueuedIds.count(id) == 0;
@@ -152,7 +152,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 }
 
 //------------------------------------------------------------------------------
-remus::Job JobQueue::takeJob(remus::common::MeshIOType type)
+remus::worker::Job JobQueue::takeJob(remus::common::MeshIOType type)
 {
   std::vector<QueuedJob>* searched_vector = &this->QueuedJobsForWorkers;
   typedef std::vector<QueuedJob>::iterator iter;
@@ -161,23 +161,23 @@ remus::Job JobQueue::takeJob(remus::common::MeshIOType type)
   iter item = std::find_if(searched_vector->begin(), searched_vector->end(),
                            pred);
   if(item == searched_vector->end())
-  {
+    {
     searched_vector = &this->QueuedJobs;
     item = std::find_if(searched_vector->begin(), searched_vector->end(),
-                             pred);
+                        pred);
     if(item == searched_vector->end())
       {
-        //return an invalid job
-        return remus::Job();
+      //return an invalid job
+      return remus::worker::Job();
       }
-  }
+    }
 
   //todo this needs to be easier to convert an encoded job request
   //into the job that is being sent to the worker, without having to copy
   // the data so many times.
-  const remus::JobRequest request(remus::to_JobRequest(item->Message.data(),
-                                                       item->Message.dataSize()));
-  remus::Job job(item->Id,type,request.jobInfo());
+  const remus::client::JobRequest request(remus::client::to_JobRequest(item->Message.data(),
+                                          item->Message.dataSize()));
+  remus::worker::Job job(item->Id,type,request.jobInfo());
 
   JobIdMatches id_pred(item->Id);
 

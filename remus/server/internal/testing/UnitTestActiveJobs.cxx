@@ -109,23 +109,23 @@ void verify_updating_status()
       {
       //to set the finished state you need to actually call updateResult,
       //not updateStatus
-      remus::JobStatus status(uuids_used[0], status_type);
+      remus::worker::JobStatus status(uuids_used[0], status_type);
       jobs.updateStatus(status);
       REMUS_ASSERT( (jobs.status(uuids_used[0]).Status != status_type) );
 
-      remus::JobResult result(uuids_used[0]);
+      remus::worker::JobResult result(uuids_used[0]);
       jobs.updateResult(result);
       REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == false) );
 
-      remus::JobResult result_with_data(uuids_used[0],"data");
+      remus::worker::JobResult result_with_data(uuids_used[0],"data");
       jobs.updateResult(result_with_data);
       REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == true) );
       }
     else
       {
-      remus::JobStatus status(uuids_used[0], status_type);
+      remus::worker::JobStatus status(uuids_used[0], status_type);
       jobs.updateStatus(status);
       }
 
@@ -134,7 +134,7 @@ void verify_updating_status()
         other_status != status_type;
         other_status = remus::STATUS_TYPE((int)other_status+1))
       {
-      remus::JobStatus status_attempt(uuids_used[0], other_status);
+      remus::worker::JobStatus status_attempt(uuids_used[0], other_status);
       jobs.updateStatus(status_attempt);
       REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
       }
@@ -142,16 +142,16 @@ void verify_updating_status()
     }
 
   //verify that finished is greater than expired or failed
-  remus::JobStatus status_failed(uuids_used[0], remus::FAILED);
+  remus::worker::JobStatus status_failed(uuids_used[0], remus::FAILED);
   jobs.updateStatus(status_failed);
   REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == remus::FINISHED) );
 
-  remus::JobStatus status_expired(uuids_used[0], remus::EXPIRED);
+  remus::worker::JobStatus status_expired(uuids_used[0], remus::EXPIRED);
   jobs.updateStatus(status_expired);
   REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == remus::FINISHED) );
 
 
-  remus::JobStatus status_mk1(uuids_used[1], remus::FAILED);
+  remus::worker::JobStatus status_mk1(uuids_used[1], remus::FAILED);
   jobs.updateStatus(status_mk1);
   //we know have to do it all over again, with the first stage
   //being finished, and verify it can't move out of that stage
@@ -160,12 +160,12 @@ void verify_updating_status()
       status_type != remus::FAILED;
       status_type = remus::STATUS_TYPE((int)status_type+1))
     {
-    remus::JobStatus status(uuids_used[1], status_type);
+    remus::worker::JobStatus status(uuids_used[1], status_type);
     jobs.updateStatus(status);
     REMUS_ASSERT( (jobs.status(uuids_used[1]).Status == remus::FAILED) );
     }
 
-  remus::JobStatus status_mk2(uuids_used[2], remus::EXPIRED);
+  remus::worker::JobStatus status_mk2(uuids_used[2], remus::EXPIRED);
   jobs.updateStatus(status_mk2);
   //we know have to do it all over again, with the first stage
   //being failed, and verify it can't move out of that stage
@@ -173,7 +173,7 @@ void verify_updating_status()
       status_type != remus::EXPIRED;
       status_type = remus::STATUS_TYPE((int)status_type+1))
     {
-    remus::JobStatus status(uuids_used[2], status_type);
+    remus::worker::JobStatus status(uuids_used[2], status_type);
     jobs.updateStatus(status);
     REMUS_ASSERT( (jobs.status(uuids_used[2]).Status == remus::EXPIRED) );
     }
@@ -237,7 +237,7 @@ void verify_refresh_jobs()
 
   //verify that jobs marked as finished can't be marked as expired
   boost::uuids::uuid finished_job_uuid = make_id();
-  remus::JobResult result_with_data(finished_job_uuid,"data");
+  remus::worker::JobResult result_with_data(finished_job_uuid,"data");
   jobs.add(make_socketId(), finished_job_uuid);
   jobs.updateResult(result_with_data);
   jobs.markExpiredJobs( future);

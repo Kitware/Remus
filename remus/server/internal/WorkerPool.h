@@ -15,8 +15,6 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <remus/JobResult.h>
-#include <remus/JobStatus.h>
 #include <remus/server/internal/uuidHelper.h>
 #include <remus/common/zmqHelper.h>
 
