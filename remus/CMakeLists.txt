@@ -14,5 +14,7 @@ set(headers
   version.h
   )
 
+remus_public_headers(${headers})
+
 #setup the exports for the library when used from an installed location
 install(EXPORT Remus-targets DESTINATION lib)
