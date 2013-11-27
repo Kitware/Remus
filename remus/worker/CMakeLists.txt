@@ -1,8 +1,11 @@
 project(Remus_Worker)
 
 set(headers
-    Worker.h
+    Job.h
+    JobResult.h
+    JobStatus.h
     ServerConnection.h
+    Worker.h
     )
 
 set(worker_srcs

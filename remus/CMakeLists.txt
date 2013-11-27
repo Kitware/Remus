@@ -7,10 +7,6 @@ add_subdirectory(server)
 add_subdirectory(worker)
 
 set(headers
-  Job.h
-  JobResult.h
-  JobRequest.h
-  JobStatus.h
   version.h
   )
 

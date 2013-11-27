@@ -10,14 +10,14 @@
 //
 //=============================================================================
 
-#ifndef __remus_worker_h
-#define __remus_worker_h
+#ifndef remus_worker_h
+#define remus_worker_h
 
 #include <remus/common/zmqHelper.h>
 
-#include <remus/Job.h>
-#include <remus/JobResult.h>
-#include <remus/JobStatus.h>
+#include <remus/worker/Job.h>
+#include <remus/worker/JobResult.h>
+#include <remus/worker/JobStatus.h>
 
 #include <remus/common/MeshIOType.h>
 
@@ -49,13 +49,13 @@ public:
 
   //gets back a job from the server
   //this will lock the worker as it will wait on a job message
-  virtual remus::Job getJob();
+  virtual remus::worker::Job getJob();
 
   //update the status of the worker
-  virtual void updateStatus(const remus::JobStatus& info);
+  virtual void updateStatus(const remus::worker::JobStatus& info);
 
   //send to the server the mesh results.
-  virtual void returnMeshResults(const remus::JobResult& result);
+  virtual void returnMeshResults(const remus::worker::JobResult& result);
 
 protected:
   //start communication. Currently is called by

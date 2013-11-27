@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_JobResult_h
-#define __remus_JobResult_h
+#ifndef remus_client_JobResult_h
+#define remus_client_JobResult_h
 
 #include <string>
 #include <sstream>
@@ -26,19 +26,20 @@
 //serialized data structure.
 
 namespace remus {
+namespace client {
 struct JobResult
 {
   boost::uuids::uuid JobId;
   std::string Data; //data of the result of a job
 
-  //construct a job result with no data. This would be considered to be an
-  //invalid job result
-  explicit JobResult(const boost::uuids::uuid& id):
+  //construct am invalid JobResult
+  JobResult(const boost::uuids::uuid& id):
     JobId(id),
     Data()
     {}
 
-  //construct a result with actual data.
+  //construct a JobResult. The result should be considered invalid if the
+  //data length is zero
   JobResult(const boost::uuids::uuid& id, const std::string& d):
     JobId(id),
     Data(d)
@@ -48,7 +49,7 @@ struct JobResult
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::JobResult& status)
+inline std::string to_string(const remus::client::JobResult& status)
 {
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
@@ -59,9 +60,8 @@ inline std::string to_string(const remus::JobResult& status)
   return buffer.str();
 }
 
-
 //------------------------------------------------------------------------------
-inline remus::JobResult to_JobResult(const std::string& status)
+inline remus::client::JobResult to_JobResult(const std::string& status)
 {
   //convert a job detail from a string, used as a hack to serialize
 
@@ -75,12 +75,12 @@ inline remus::JobResult to_JobResult(const std::string& status)
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
 
-  return remus::JobResult(id,data);
+  return remus::client::JobResult(id,data);
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::JobResult to_JobResult(const char* data, int size)
+inline remus::client::JobResult to_JobResult(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
   std::string temp(size,char());
@@ -90,4 +90,6 @@ inline remus::JobResult to_JobResult(const char* data, int size)
 
 
 }
+}
+
 #endif

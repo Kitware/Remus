@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_JobRequest_h
-#define __remus_JobRequest_h
+#ifndef remus_client_JobRequest_h
+#define remus_client_JobRequest_h
 
 #include <string>
 #include <sstream>
@@ -27,6 +27,7 @@
 //For now we replicate this feature by making <MeshIOType,inputMeshDataType> be
 //unique for each mesher
 namespace remus{
+namespace client{
 class JobRequest
 {
 public:
@@ -55,7 +56,6 @@ public:
     CombinedType(combinedType),
     JobInfo()
     {
-
     }
 
   //Construct a job request with the given types held inside the remus::common::MeshIOType object
@@ -77,11 +77,10 @@ public:
 private:
   remus::common::MeshIOType CombinedType;
   std::string JobInfo;
-
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::JobRequest& request)
+inline std::string to_string(const remus::client::JobRequest& request)
 {
   //convert a request to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
@@ -94,11 +93,10 @@ inline std::string to_string(const remus::JobRequest& request)
 
 
 //------------------------------------------------------------------------------
-inline remus::JobRequest to_JobRequest(const std::string& msg)
+inline remus::client::JobRequest to_JobRequest(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
-
 
   int dataLen;
   std::string data;
@@ -108,12 +106,12 @@ inline remus::JobRequest to_JobRequest(const std::string& msg)
 
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
-  return remus::JobRequest(jobRequirements,data);
+  return remus::client::JobRequest(jobRequirements,data);
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::JobRequest to_JobRequest(const char* data, int size)
+inline remus::client::JobRequest to_JobRequest(const char* data, int size)
 {
   //convert a job request from a string, used as a hack to serialize
   std::string temp(size,char());
@@ -123,4 +121,6 @@ inline remus::JobRequest to_JobRequest(const char* data, int size)
 
 
 }
+}
+
 #endif
