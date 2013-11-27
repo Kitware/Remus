@@ -17,7 +17,7 @@
 #include <sstream>
 #include <vector>
 
-#include <remus/Job.h>
+#include <remus/client/JobResult.h>
 
 #include "TriangleInput.h"
 #include "StreamHelpers.h"
@@ -31,7 +31,7 @@
 class TriangleResult
 {
 public:
-  TriangleResult(const remus::JobResult& result)
+  TriangleResult(const remus::client::JobResult& result)
   {
   std::stringstream buffer(result.Data);
   buffer >> this->NumberOfPoints;

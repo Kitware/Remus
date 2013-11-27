@@ -31,9 +31,9 @@ int main (int argc, char* argv[])
 
   while(true)
   {
-    remus::Job jd = w.getJob();
+    remus::worker::Job jd = w.getJob();
 
-    remus::JobStatus status(jd.id(),remus::IN_PROGRESS);
+    remus::worker::JobStatus status(jd.id(),remus::IN_PROGRESS);
     for(int progress=1; progress <= 100; ++progress)
       {
       if(progress%20==0)
@@ -49,7 +49,7 @@ int main (int argc, char* argv[])
         }
       }
 
-    remus::JobResult results(jd.id(),"FAKE RESULTS");
+    remus::worker::JobResult results(jd.id(),"FAKE RESULTS");
     w.returnMeshResults(results);
   }
 

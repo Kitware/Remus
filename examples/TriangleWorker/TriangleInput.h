@@ -17,7 +17,8 @@
 #include <sstream>
 #include <vector>
 
-#include <remus/Job.h>
+#include <remus/worker/Job.h>
+
 #include "StreamHelpers.h"
 
 // The TriangleInput class has two purposes.
@@ -46,7 +47,7 @@ public:
                 bool perserveSegmentsAndPoints=false);
 
   //convert a remus::job data into a Triangle input
-  TriangleInput(const remus::Job& job);
+  TriangleInput(const remus::worker::Job& job);
 
   bool useMinAngle()const{ return this->MinAngleOn; }
   void setUseMinAngle(bool useMin) {this->MinAngleOn=useMin;}
@@ -221,7 +222,7 @@ inline TriangleInput::TriangleInput(int numPoints, int numSegments, int numHoles
 }
 
 //----------------------------------------------------------------------------
-inline TriangleInput::TriangleInput(const remus::Job& job)
+inline TriangleInput::TriangleInput(const remus::worker::Job& job)
 {
   //convert the from a string back into the class
   std::stringstream buffer(job.details());

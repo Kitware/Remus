@@ -15,10 +15,10 @@
 
 //store a mappin of job output types to every jobrequest of that type.
 //this way we can easily send out a query to the server for a single output type
-std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::JobRequest> > AllJobTypeCombinations;
-typedef std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::JobRequest> >::iterator AllTypeIt;
-typedef std::vector<remus::JobRequest> RequestVector;
-typedef std::vector<remus::JobRequest>::iterator RequestIt;
+std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobRequest> > AllJobTypeCombinations;
+typedef std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobRequest> >::iterator AllTypeIt;
+typedef std::vector<remus::client::JobRequest> RequestVector;
+typedef std::vector<remus::client::JobRequest>::iterator RequestIt;
 
 //populate the global memory mapping of job requests
 void populateJobTypes()
@@ -29,7 +29,7 @@ void populateJobTypes()
     for(int j=1; j < remus::NUM_MESH_INPUT_TYPES; j++)
       {
       remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(j);
-      AllJobTypeCombinations[outType].push_back(remus::JobRequest(inType,outType));
+      AllJobTypeCombinations[outType].push_back(remus::client::JobRequest(inType,outType));
       }
     }
 }
@@ -74,8 +74,8 @@ void dumpJobInfo(remus::Client& client)
     {
     for(RequestIt j = i->second.begin(); j != i->second.end(); ++j)
       {
-      remus::Job job(rawId,j->type());
-      remus::JobStatus status = client.jobStatus(job);
+      remus::client::Job job(rawId,j->type());
+      remus::client::JobStatus status = client.jobStatus(job);
       std::cout << " status of job is: " << status.Status << " " << remus::to_string(status.Status)  << std::endl;
       if(status.inProgress())
         {
@@ -109,10 +109,10 @@ void submitJob(remus::Client& client)
   std::cout<<"Enter Job Data (string) : " << std::endl;
   std::cin >> data;
 
-  remus::JobRequest request(static_cast<remus::MESH_INPUT_TYPE>(inType),
+  remus::client::JobRequest request(static_cast<remus::MESH_INPUT_TYPE>(inType),
                             static_cast<remus::MESH_OUTPUT_TYPE>(outType),
                             data);
-  remus::Job job = client.submitJob(request);
+  remus::client::Job job = client.submitJob(request);
 
   std::cout << "Job Submitted, info is: " << std::endl;
   std::cout << "Job Valid: " << job.valid() << std::endl;

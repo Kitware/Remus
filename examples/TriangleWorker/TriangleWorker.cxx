@@ -46,7 +46,7 @@ void release_triangle_data(triangulateio* data)
 }
 
 //----------------------------------------------------------------------------
-triangleParameters::triangleParameters(const remus::Job& job):
+triangleParameters::triangleParameters(const remus::worker::Job& job):
   meshing_data(job)
 {
   //first we init the intput and output data structures to be empty
@@ -185,7 +185,7 @@ bool TriangleWorker::buildTriangleArguments(const triangleParameters &params,
 //----------------------------------------------------------------------------
 void TriangleWorker::meshJob()
 {
-  remus::Job j = this->getJob();
+  remus::worker::Job j = this->getJob();
 
   //extract the parameters of the job to launch, including the raw edges
   triangleParameters parms(j);
@@ -223,7 +223,7 @@ void TriangleWorker::meshJob()
   //we are going template the triangle io parameter
   //so we don't need to link to triangle on the client
   //when we transform the string back to the TriangleResult class
-  remus::JobResult results(j.id(),
+  remus::worker::JobResult results(j.id(),
                        TriangleResult::ToString(parms.meshing_data,parms.out));
   this->returnMeshResults(results);
 
@@ -231,9 +231,9 @@ void TriangleWorker::meshJob()
 }
 
 //----------------------------------------------------------------------------
-void TriangleWorker::jobFailed(const remus::Job& job)
+void TriangleWorker::jobFailed(const remus::worker::Job& job)
 {
-  remus::JobStatus status(job.id(),remus::FAILED);
+  remus::worker::JobStatus status(job.id(),remus::FAILED);
   this->updateStatus(status);
 
   return;
