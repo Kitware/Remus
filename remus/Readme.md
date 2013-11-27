@@ -1,4 +1,4 @@
-Remus: A Short guide on how to use it.
+Remus: A Short Users Guide.
 
 
 ## Using the Client API ##
@@ -100,4 +100,3 @@ Todo:
    between threads to keep everything synced. We should look at the heartbeat
    code to make sure it never uses current time to determine what workers and
    jobs to kill.
-

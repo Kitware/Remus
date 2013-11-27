@@ -6,11 +6,6 @@ add_subdirectory(client)
 add_subdirectory(server)
 add_subdirectory(worker)
 
-
-#include Boost
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIR})
-
 set(headers
   Job.h
   JobResult.h
