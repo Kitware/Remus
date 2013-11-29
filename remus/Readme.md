@@ -8,23 +8,8 @@ Remus: A Short Users Guide.
 
 Bugs:
 
-1.
-  Running the BasicServer + BasicClient + InfiniteWorker causes jobs
-  to fail that shouldn't.
-
-  We need to dig into what is causing the incorrect distribution of jobs
-  to workers, and causing them to die instead.
-
-  The number of jobs failing is 1 per number of times we hit max worker
-  count on the factory. So if we say the factory can only handle a max
-  of 10 workers, and we try to send 40 jobs we will get 4 lost jobs
-
-2. We aren't getting all the progess back from workers that we should
+1. We aren't getting all the progress back from workers that we should
    be when using any server,worker, BasicClient combo
-
-3. NoWorkerServer + InfiniteWorker + BasicClient causes all jobs
-   to become invalid
-
 
 Todo:
 

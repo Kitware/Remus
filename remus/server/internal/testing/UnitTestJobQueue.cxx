@@ -168,10 +168,12 @@ void verify_dispatch_jobs()
 
   remus::worker::Job job_2d_1 = queue.takeJob(worker_type2D);
   REMUS_ASSERT( (job_2d_1.valid() == true) );
+  REMUS_ASSERT( (queue.haveUUID(job_2d_1.id()) == false) );
 
   remus::worker::Job job_2d_2 = queue.takeJob(worker_type2D);
   REMUS_ASSERT( (job_2d_2.valid() == true) );
   REMUS_ASSERT( (job_2d_2.id() != job_2d_1.id()) );
+  REMUS_ASSERT( (queue.haveUUID(job_2d_2.id()) == false) );
 
   REMUS_ASSERT( (queue.waitingForWorkerTypes().count(worker_type1D) == 0) );
   REMUS_ASSERT( (queue.waitingForWorkerTypes().count(worker_type2D) == 0) );

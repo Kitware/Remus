@@ -172,6 +172,11 @@ remus::worker::Job JobQueue::takeJob(remus::common::MeshIOType type)
       }
     }
 
+  //we need to copy the id and the contents of item now into a job
+  //request, if we use item after the remove_if it is invalid as
+  //remove_if moves the vector items around making what item
+  //is pointing too change
+
   //todo this needs to be easier to convert an encoded job request
   //into the job that is being sent to the worker, without having to copy
   // the data so many times.
@@ -179,14 +184,17 @@ remus::worker::Job JobQueue::takeJob(remus::common::MeshIOType type)
                                           item->Message.dataSize()));
   remus::worker::Job job(item->Id,type,request.jobInfo());
 
-  JobIdMatches id_pred(item->Id);
+  //again don't use item after the remove_if the iterator is invalid
 
-  //manually remove it to save searching again through both vectors
+  JobIdMatches id_pred(job.id());
+
   iter new_end = std::remove_if(searched_vector->begin(),
                                 searched_vector->end(),
                                 id_pred);
   searched_vector->erase(new_end,searched_vector->end());
-  this->QueuedIds.erase(item->Id);
+  this->QueuedIds.erase(job.id());
+
+  // std::cout << "JobQueue::takeJob " << job.id() << std::endl;
 
   return job;
 }
@@ -240,7 +248,6 @@ bool JobQueue::remove(const boost::uuids::uuid& id)
 {
   typedef std::vector<QueuedJob>::iterator iter;
   JobIdMatches pred(id);
-
 
   iter new_end = std::remove_if(this->QueuedJobs.begin(),
                                 this->QueuedJobs.end(),
