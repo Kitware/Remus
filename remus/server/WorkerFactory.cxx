@@ -39,7 +39,7 @@ namespace
   //----------------------------------------------------------------------------
   struct is_dead
   {
-    bool operator()(remus::server::WorkerFactory::RunningProcessInfo process)
+    bool operator()(const remus::server::WorkerFactory::RunningProcessInfo& process) const
       {
       return !process.first->isAlive();
       }
@@ -48,7 +48,7 @@ namespace
   //----------------------------------------------------------------------------
   struct kill_on_deletion
   {
-    void operator()(remus::server::WorkerFactory::RunningProcessInfo process)
+    void operator()(remus::server::WorkerFactory::RunningProcessInfo& process) const
       {
       const bool can_be_killed =
         (process.second == remus::server::WorkerFactory::KillOnFactoryDeletion);
@@ -181,6 +181,8 @@ public:
 
       if(boost::filesystem::is_regular_file(mesher_path))
         {
+        //convert the mesher_path into an absolute canonical path now
+        mesher_path = boost::filesystem::canonical(mesher_path);
         remus::common::MeshIOType combinedType(itype,otype);
         this->Info.push_back(MeshWorkerInfo(combinedType,
                                             mesher_path.string()));
@@ -290,11 +292,10 @@ bool WorkerFactory::createWorker(remus::common::MeshIOType type,
 void WorkerFactory::updateWorkerCount()
 {
   //foreach current worker remove any that return they are not alive
-  ProcessIterator result = std::remove_if(this->CurrentProcesses.begin(),
+  this->CurrentProcesses.erase(remove_if(this->CurrentProcesses.begin(),
                                           this->CurrentProcesses.end(),
-                                          is_dead());
-  std::size_t numDead = std::distance(result,this->CurrentProcesses.end());
-  this->CurrentProcesses.resize(this->CurrentProcesses.size()-numDead);
+                                          is_dead()),
+                               this->CurrentProcesses.end());
 }
 
 //----------------------------------------------------------------------------
