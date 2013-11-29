@@ -98,24 +98,15 @@ private:
             boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
         }
 
-        //we can only change the status of jobs that are
-        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
-        bool canUpdateStatus() const
-        {
-          return jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS;
-        }
-
         bool canUpdateStatusTo(remus::worker::JobStatus s) const
         {
         //we don't want the worker to ever explicitly state it has finished the
         //job. We want that state to only be applied when the results have finished
         //transferring to the server
-        //we can only change the status of jobs that are
-        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
+        //we can only change the status of jobs that are IN_PROGRESS or QUEUED.
+        //If the job status is finished
         //If we are in IN_PROGRESS we can't move back to QUEUED
-        return (jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS) &&
-               (!(s.Status == FINISHED)) && (jstatus.Status < s.Status);
-
+        return jstatus.good() && !s.finished() && (s.failed() || s.inProgress());
         }
     };
 
@@ -219,10 +210,11 @@ void ActiveJobs::updateResult(const remus::worker::JobResult& r)
     {
     //once we get a result we can state our status is now finished,
     //since the uploading of data has finished.
-    if( item->second.canUpdateStatus( ) )
+    if( item->second.jstatus.good() || item->second.jstatus.finished() )
       {
       item->second.jstatus = remus::client::JobStatus(r.JobId,remus::FINISHED);
       }
+
     //update the client result data to equal the server data
     item->second.jresult.Data = r.Data;
     item->second.haveResult = true;
@@ -237,7 +229,8 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
     //FINISHED is more important than failed
-    if (item->second.canUpdateStatus() && item->second.expiry < time)
+    if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
+           item->second.expiry < time)
       {
       item->second.jstatus.Status = remus::EXPIRED;
       item->second.jstatus.Progress =

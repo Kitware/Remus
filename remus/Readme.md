@@ -6,11 +6,6 @@ Remus: A Short Users Guide.
 
 ## Using the Worker API ##
 
-Bugs:
-
-1. We aren't getting all the progress back from workers that we should
-   be when using any server,worker, BasicClient combo
-
 Todo:
 
 1. Add a server test where we verify the throughput of the server

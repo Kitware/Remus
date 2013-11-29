@@ -68,6 +68,20 @@ struct JobStatus
     return this->Status == remus::IN_PROGRESS;
   }
 
+  //returns true if the job is finished.
+  bool finished() const
+  {
+    return this->Status == remus::FINISHED;
+  }
+
+  //returns true if the job failed to launch in any way.
+  bool failed() const
+  {
+    return (this->Status == remus::INVALID_STATUS) ||
+           (this->Status == remus::FAILED) ||
+           (this->Status == remus::EXPIRED);
+  }
+
   //marks the job as being failing to finish, and will be reported
   //as a failure when sent back to the server
   void hasFailed()
@@ -80,6 +94,8 @@ struct JobStatus
   {
     this->Status = remus::FINISHED;
   }
+
+
 };
 
 //------------------------------------------------------------------------------

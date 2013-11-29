@@ -202,6 +202,43 @@ void verify_updating_status()
 
 }
 
+
+void verify_updating_progress()
+{
+  boost::uuids::uuid uuid_used = make_id();
+  remus::server::internal::ActiveJobs jobs;
+
+  REMUS_ASSERT( (jobs.add(make_socketId(), uuid_used) == true) );
+  REMUS_ASSERT( (jobs.haveUUID(uuid_used) == true) );
+  REMUS_ASSERT( (jobs.haveResult(uuid_used) == false) );
+
+  REMUS_ASSERT( (jobs.status(uuid_used).queued() == true) );
+
+  remus::worker::JobStatus wjs(uuid_used, remus::worker::JobProgress(5) );
+  jobs.updateStatus(wjs);
+  REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 5) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message().size() == 0) );
+
+  wjs.Progress.setValue(20);
+  wjs.Progress.setMessage("random text");
+  jobs.updateStatus(wjs);
+
+  REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 20) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message() == "random text") );
+
+  //lets go backwards in progress, this should work
+  wjs.Progress.setValue(19);
+  wjs.Progress.setMessage(std::string()); //clear the string
+  jobs.updateStatus(wjs);
+
+  REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 19) );
+  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message() == std::string() ) );
+
+}
+
 void verify_refresh_jobs()
 {
   using namespace boost::posix_time;
@@ -240,7 +277,7 @@ void verify_refresh_jobs()
   remus::worker::JobResult result_with_data(finished_job_uuid,"data");
   jobs.add(make_socketId(), finished_job_uuid);
   jobs.updateResult(result_with_data);
-  jobs.markExpiredJobs( future);
+  jobs.markExpiredJobs( future );
   REMUS_ASSERT( (jobs.status(finished_job_uuid).Status == remus::FINISHED) );
 
 }
@@ -252,6 +289,8 @@ int UnitTestActiveJobs(int, char *[])
   verify_add_remove_jobs();
 
   verify_updating_status();
+
+  verify_updating_progress();
 
   verify_refresh_jobs();
 
