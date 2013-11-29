@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <iostream>
 
 #include <remus/client/Client.h>
 #include <remus/client/ServerConnection.h>
