@@ -106,7 +106,13 @@ protected:
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
                          const remus::worker::Job& job);
 
-  void FindWorkerForQueuedJob();
+  //see if we have a worker in the pool for the next job in the queue,
+  //otherwise ask the factory to generate a new worker to handle that job
+  //virtual so that people using custom factories can decide the lifespan
+  //of workers
+  //overriding this will also allow custom servers to change the priority
+  //of queued jobs and workers
+  virtual void FindWorkerForQueuedJob();
 
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers();

@@ -416,7 +416,7 @@ void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
 }
 
 //see if we have a worker in the pool for the next job in the queue,
-//otherwise as the factory to generate a new worker to handle that job
+//otherwise ask the factory to generate a new worker to handle that job
 //------------------------------------------------------------------------------
 void Server::FindWorkerForQueuedJob()
 {
