@@ -35,22 +35,22 @@ class ActiveJobs
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketIdentity& workerIdentity,
-             const boost::uuids::uuid& id);
+    inline bool add(const zmq::socketIdentity& workerIdentity,
+                    const boost::uuids::uuid& id);
 
-    bool remove(const boost::uuids::uuid& id);
+    inline bool remove(const boost::uuids::uuid& id);
 
-    zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
+    inline zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
 
-    bool haveUUID(const boost::uuids::uuid& id) const;
+    inline bool haveUUID(const boost::uuids::uuid& id) const;
 
-    bool haveResult(const boost::uuids::uuid& id) const;
+    inline bool haveResult(const boost::uuids::uuid& id) const;
 
     //returns a worker side job status object for a job
-    const remus::client::JobStatus& status(const boost::uuids::uuid& id);
+    inline const remus::client::JobStatus& status(const boost::uuids::uuid& id);
 
     //returns a worker side job result object for a job
-    const remus::client::JobResult& result(const boost::uuids::uuid& id);
+    inline const remus::client::JobResult& result(const boost::uuids::uuid& id);
 
     //update the job status of a job.
     //valid values are:
@@ -60,15 +60,15 @@ class ActiveJobs
     // EXPIRED
     // To update a job to the finished state, you have to call updateResult
     // not update status
-    void updateStatus(const remus::worker::JobStatus& s);
+    inline void updateStatus(const remus::worker::JobStatus& s);
 
-    void updateResult(const remus::worker::JobResult& r);
+    inline void updateResult(const remus::worker::JobResult& r);
 
-    void markExpiredJobs(const boost::posix_time::ptime& time);
+    inline void markExpiredJobs(const boost::posix_time::ptime& time);
 
-    void refreshJobs(const zmq::socketIdentity &workerIdentity);
+    inline void refreshJobs(const zmq::socketIdentity &workerIdentity);
 
-    std::set<zmq::socketIdentity> activeWorkers() const;
+    inline std::set<zmq::socketIdentity> activeWorkers() const;
 
 private:
     struct JobState

@@ -44,19 +44,19 @@ public:
 
   //Convert a Message and UUID into a WorkerMessage.
   //will return false if the uuid is already queued
-  bool addJob( const boost::uuids::uuid& id,
-               const remus::common::Message& message);
+  inline bool addJob( const boost::uuids::uuid& id,
+                      const remus::common::Message& message);
 
   //Removes a job from the queue of the given mesh type.
   //Return it as a worker Job. We prioritize jobs waiting for
   //workers, and than take jobs that are just queued.
-  remus::worker::Job takeJob(remus::common::MeshIOType type);
+  inline remus::worker::Job takeJob(remus::common::MeshIOType type);
 
   //returns the types of jobs that are waiting for a worker
-  std::set<remus::common::MeshIOType> waitingForWorkerTypes() const;
+  inline std::set<remus::common::MeshIOType> waitingForWorkerTypes() const;
 
   //returns the types of jobs that are queued and aren't waiting for a worker
-  std::set<remus::common::MeshIOType> queuedJobTypes() const;
+  inline std::set<remus::common::MeshIOType> queuedJobTypes() const;
 
   //return the number of jobs waiting for workers
   unsigned int numJobsWaitingForWokers() const
@@ -68,16 +68,16 @@ public:
 
   //marks the first job with the given type as having
   //a worker dispatched for it.
-  bool workerDispatched(remus::common::MeshIOType type);
+  inline bool workerDispatched(remus::common::MeshIOType type);
 
   //Returns true if we contain the UUID
-  bool haveUUID(const boost::uuids::uuid& id) const;
+  inline bool haveUUID(const boost::uuids::uuid& id) const;
 
   //Returns true if we can remove a job with a give uuid
-  bool remove(const boost::uuids::uuid& id);
+  inline bool remove(const boost::uuids::uuid& id);
 
   //Removes all queued and waiting for worker jobs.
-  void clear();
+  inline void clear();
 
 private:
   struct QueuedJob
