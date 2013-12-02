@@ -51,7 +51,7 @@ namespace server{
 //We inherit from SignalCatcher so that we can properly handle
 //segfaults and other abnormal termination conditions
 //The Server class doesn't support copy or move semantics
-class REMUSSERVER_EXPORT Server : private remus::common::SignalCatcher
+class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
   //construct a new server using the default worker factory
@@ -76,7 +76,7 @@ public:
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
-  bool startBrokering();
+  virtual bool startBrokering();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
@@ -117,13 +117,12 @@ protected:
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers();
 
-private:
+protected:
+  //allow subclasses to override these internal containers
   zmq::context_t Context;
   zmq::socket_t ClientQueries;
   zmq::socket_t WorkerQueries;
 
-//allow subclasses to override these internal containers
-protected:
   boost::uuids::random_generator UUIDGenerator;
   boost::scoped_ptr<remus::server::internal::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::internal::WorkerPool> WorkerPool;
