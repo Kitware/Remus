@@ -135,10 +135,6 @@ struct JobProgress
   }
 
 private:
-  friend remus::client::JobStatus remus::client::to_JobStatus(const std::string& status);
-  friend remus::worker::JobStatus remus::worker::to_JobStatus(const std::string& status);
-  void setUncheckedValue(int value){Value=value;}
-
   int Value;
   std::string Message;
 };

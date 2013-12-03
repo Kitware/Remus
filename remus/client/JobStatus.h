@@ -141,11 +141,7 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
     buffer >>progressMessageLen;
     progressMessage = remus::internal::extractString(buffer,progressMessageLen);
 
-    //don't use any of the constructors as we want a -1 or a 0 value
-    //not to be converted to a value of 1.
-    remus::client::JobProgress pr(progressMessage);
-    pr.setUncheckedValue(progressValue);
-
+    remus::client::JobProgress pr(progressValue,progressMessage);
     return remus::client::JobStatus(id,pr);
     }
 }
