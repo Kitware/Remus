@@ -10,12 +10,12 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_ActiveJobState_h
-#define __remus_server_internal_ActiveJobState_h
+#ifndef __remus_server_detail_ActiveJobState_h
+#define __remus_server_detail_ActiveJobState_h
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <remus/server/internal/uuidHelper.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <remus/common/zmqHelper.h>
 
 #include <string>
@@ -24,7 +24,7 @@
 
 namespace remus{
 namespace server{
-namespace internal{
+namespace detail{
 
 class WorkerPool
 {

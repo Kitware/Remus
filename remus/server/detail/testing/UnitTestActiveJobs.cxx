@@ -12,7 +12,7 @@
 
 
 #include <remus/testing/Testing.h>
-#include <remus/server/internal/ActiveJobs.h>
+#include <remus/server/detail/ActiveJobs.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/uuid/random_generator.hpp>
@@ -42,7 +42,7 @@ void verify_add_remove_jobs()
   std::vector< boost::uuids::uuid > uuids_used;
   for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
 
-  remus::server::internal::ActiveJobs jobs;
+  remus::server::detail::ActiveJobs jobs;
 
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.add(make_socketId(), uuids_used[i]) == true) ); }
@@ -93,7 +93,7 @@ void verify_updating_status()
   std::vector< boost::uuids::uuid > uuids_used;
   for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
 
-  remus::server::internal::ActiveJobs jobs;
+  remus::server::detail::ActiveJobs jobs;
 
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.add(make_socketId(), uuids_used[i]) == true) ); }
@@ -206,7 +206,7 @@ void verify_updating_status()
 void verify_updating_progress()
 {
   boost::uuids::uuid uuid_used = make_id();
-  remus::server::internal::ActiveJobs jobs;
+  remus::server::detail::ActiveJobs jobs;
 
   REMUS_ASSERT( (jobs.add(make_socketId(), uuid_used) == true) );
   REMUS_ASSERT( (jobs.haveUUID(uuid_used) == true) );
@@ -251,7 +251,7 @@ void verify_refresh_jobs()
   std::vector< boost::uuids::uuid > uuids_used;
   for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
 
-  remus::server::internal::ActiveJobs jobs;
+  remus::server::detail::ActiveJobs jobs;
 
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.add(make_socketId(), uuids_used[i]) == true) ); }

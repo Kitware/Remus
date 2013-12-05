@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_uuidHelper_h
-#define __remus_server_internal_uuidHelper_h
+#ifndef __remus_server_detail_uuidHelper_h
+#define __remus_server_detail_uuidHelper_h
 
 
 #include <boost/uuid/uuid.hpp>
@@ -46,4 +46,4 @@ inline boost::uuids::uuid to_uuid(const std::string& str)
 }
 }
 
-#endif // __remus_server_internal_uuidHelper_h
+#endif // __remus_server_detail_uuidHelper_h

@@ -1,6 +1,6 @@
 project(Remus_Server)
 
-add_subdirectory(internal)
+add_subdirectory(detail)
 
 set(headers
     Server.h

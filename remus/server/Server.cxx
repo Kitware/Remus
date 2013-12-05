@@ -29,10 +29,10 @@
 #include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
 
-#include <remus/server/internal/uuidHelper.h>
-#include <remus/server/internal/ActiveJobs.h>
-#include <remus/server/internal/JobQueue.h>
-#include <remus/server/internal/WorkerPool.h>
+#include <remus/server/detail/uuidHelper.h>
+#include <remus/server/detail/ActiveJobs.h>
+#include <remus/server/detail/JobQueue.h>
+#include <remus/server/detail/WorkerPool.h>
 
 #include <set>
 
@@ -68,9 +68,9 @@ Server::Server():
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(),
   PortInfo() //use default loopback ports
   {
@@ -87,9 +87,9 @@ Server::Server(const remus::server::WorkerFactory& factory):
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(factory),
   PortInfo()
   {
@@ -106,9 +106,9 @@ Server::Server(remus::server::ServerPorts ports):
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(),
   PortInfo(ports)
   {
@@ -126,9 +126,9 @@ Server::Server(remus::server::ServerPorts ports,
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(factory),
   PortInfo(ports)
   {

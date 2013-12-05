@@ -10,7 +10,7 @@
 //
 //=============================================================================
 
-#include <remus/server/internal/uuidHelper.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
 #include <boost/uuid/random_generator.hpp>

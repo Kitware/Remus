@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_ActiveJobs_h
-#define __remus_server_internal_ActiveJobs_h
+#ifndef __remus_server_detail_ActiveJobs_h
+#define __remus_server_detail_ActiveJobs_h
 
 #include <remus/common/zmqHelper.h>
 
@@ -20,7 +20,7 @@
 #include <remus/worker/JobResult.h>
 #include <remus/worker/JobStatus.h>
 
-#include <remus/server/internal/uuidHelper.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <map>
@@ -28,7 +28,7 @@
 
 namespace remus{
 namespace server{
-namespace internal{
+namespace detail{
 
 class ActiveJobs
 {

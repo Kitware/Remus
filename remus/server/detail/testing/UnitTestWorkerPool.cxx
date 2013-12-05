@@ -12,7 +12,7 @@
 
 
 #include <remus/common/zmqHelper.h>
-#include <remus/server/internal/WorkerPool.h>
+#include <remus/server/detail/WorkerPool.h>
 #include <remus/testing/Testing.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -39,7 +39,7 @@ zmq::socketIdentity make_socketId()
 void verify_has_workers()
 {
   //verify that we start with zero workers
-  remus::server::internal::WorkerPool pool;
+  remus::server::detail::WorkerPool pool;
   REMUS_ASSERT( (pool.livingWorkers().size() == 0) );
 
   //verify that if we add a worker we only have 1 worker,
@@ -73,7 +73,7 @@ void verify_has_worker_type()
 {
   //verify that we only have workers for the given types
   //that we have added, and no false positives
-  remus::server::internal::WorkerPool pool;
+  remus::server::detail::WorkerPool pool;
   zmq::socketIdentity worker1_id = make_socketId();
   pool.addWorker(worker1_id, worker_type2D);
   pool.readyForWork(worker1_id);
@@ -101,7 +101,7 @@ void verify_purge_workers()
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
-  remus::server::internal::WorkerPool pool;
+  remus::server::detail::WorkerPool pool;
   zmq::socketIdentity worker1_id = make_socketId();
 
 
@@ -145,7 +145,7 @@ void verify_purge_workers()
 
 void verify_taking_works()
 {
-  remus::server::internal::WorkerPool pool;
+  remus::server::detail::WorkerPool pool;
   zmq::socketIdentity worker1_id = make_socketId();
 
   //try to take a worker before it has been marked as ready for work

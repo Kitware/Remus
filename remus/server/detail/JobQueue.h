@@ -10,12 +10,12 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_JobQueue_h
-#define __remus_server_internal_JobQueue_h
+#ifndef __remus_server_detail_JobQueue_h
+#define __remus_server_detail_JobQueue_h
 
 #include <remus/client/JobRequest.h>
 #include <remus/common/Message.h>
-#include <remus/server/internal/uuidHelper.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <remus/worker/Job.h>
 
 #include <boost/uuid/uuid.hpp>
@@ -27,7 +27,7 @@
 
 namespace remus{
 namespace server{
-namespace internal{
+namespace detail{
 
 //A FIFO queue. each mesh type has its own queue
 //where we keep jobs. The uuid for each job
@@ -272,6 +272,6 @@ void JobQueue::clear()
 
 }
 }
-} //namespace remus::server::internal
+} //namespace remus::server::detail
 
 #endif // JOBQUEUE_H

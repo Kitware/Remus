@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#include <remus/server/internal/uuidHelper.h>
-#include <remus/server/internal/JobQueue.h>
+#include <remus/server/detail/uuidHelper.h>
+#include <remus/server/detail/JobQueue.h>
 #include <remus/testing/Testing.h>
 
 #include <boost/uuid/random_generator.hpp>
@@ -48,7 +48,7 @@ remus::common::Message make_message(remus::MESH_INPUT_TYPE in,
 
 void verify_add_remove_jobs()
 {
-  remus::server::internal::JobQueue queue;
+  remus::server::detail::JobQueue queue;
 
   std::vector< boost::uuids::uuid > uuids_used;
   for(int i=0; i < 7; ++i) { uuids_used.push_back(make_id()); }
@@ -103,7 +103,7 @@ void verify_add_remove_jobs()
 
 void verify_dispatch_jobs()
 {
-  remus::server::internal::JobQueue queue;
+  remus::server::detail::JobQueue queue;
 
   const boost::uuids::uuid j_id = make_id();
   remus::common::Message msg = make_message(remus::RAW_EDGES,remus::MESH3D);

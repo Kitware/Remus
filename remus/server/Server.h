@@ -38,7 +38,7 @@ namespace remus {
 
 namespace remus{
 namespace server{
-  namespace internal
+  namespace detail
     {
     //forward declaration of classes only the implementation needs
     class ActiveJobs;
@@ -118,15 +118,15 @@ protected:
   void TerminateAllWorkers();
 
 protected:
-  //allow subclasses to override these internal containers
+  //allow subclasses to override these detail containers
   zmq::context_t Context;
   zmq::socket_t ClientQueries;
   zmq::socket_t WorkerQueries;
 
   boost::uuids::random_generator UUIDGenerator;
-  boost::scoped_ptr<remus::server::internal::JobQueue> QueuedJobs;
-  boost::scoped_ptr<remus::server::internal::WorkerPool> WorkerPool;
-  boost::scoped_ptr<remus::server::internal::ActiveJobs> ActiveJobs;
+  boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
+  boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
+  boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;
