@@ -21,7 +21,7 @@ set(client_srcs
     client_main.cxx
     )
 add_executable(TriangleTestClient ${client_srcs})
-target_link_libraries(TriangleTestClient ${ZeroMQ_LIBRARIES})
+target_link_libraries(TriangleTestClient RemusClient)
 
 
 #write out the worker registration file for the default worker factory
