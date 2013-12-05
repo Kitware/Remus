@@ -18,11 +18,6 @@ target_link_libraries(RemusClient
                       LINK_PUBLIC RemusCommon
                       )
 
-target_include_directories(RemusClient
-                           PUBLIC  ${ZeroMQ_INCLUDE_DIR}
-                                   ${Boost_INCLUDE_DIRS}
-                           )
-
 #create the export header symbol exporting
 remus_export_header(RemusClient ClientExports.h)
 
