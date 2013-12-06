@@ -12,7 +12,7 @@ int main (int argc, char* argv[])
   if(argc>=2)
     {
     //let the server connection handle parsing the command arguments
-    connection = remus::client::ServerConnection(std::string(argv[1]));
+    connection = remus::client::make_ServerConnection(std::string(argv[1]));
     }
 
   //create a client object that will connect to the default remus server
