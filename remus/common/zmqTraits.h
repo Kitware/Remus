@@ -25,18 +25,46 @@ struct tcp{};
 struct ipc{};
 struct inproc{};
 }
-inline std::string to_string(const zmq::proto::tcp& t)
+inline std::string scheme_name(zmq::proto::tcp)
+  {
+  return "tcp";
+  }
+inline std::string scheme_name(zmq::proto::ipc)
+  {
+  return "ipc";
+  }
+inline std::string scheme_name(zmq::proto::inproc)
+  {
+  return "inproc";
+  }
+
+inline std::string separator(zmq::proto::tcp)
+  {
+  return "://";
+  }
+inline std::string separator(zmq::proto::ipc)
+  {
+  return "://";
+  }
+inline std::string separator(zmq::proto::inproc)
+  {
+  return "://";
+  }
+
+inline std::string scheme_and_separator(zmq::proto::tcp)
   {
   return "tcp://";
   }
-inline std::string to_string(const zmq::proto::ipc& t)
+inline std::string scheme_and_separator(zmq::proto::ipc)
   {
   return "ipc://";
   }
-inline std::string to_string(const zmq::proto::inproc& t)
+inline std::string scheme_and_separator(zmq::proto::inproc)
   {
   return "inproc://";
   }
+
+
 }
 
 #endif // __remus_common_zeroTraits_h

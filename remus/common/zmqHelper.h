@@ -71,6 +71,26 @@ private:
   char Data[256];
 };
 
+inline std::string to_string(const zmq::socketIdentity& add)
+{
+  return std::string(add.data(),add.size());
+}
+
+
+static bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
+{
+  zmq::message_t message(address.size());
+  memcpy(message.data(), address.data(), address.size());
+  return socket.send(message);
+}
+
+static zmq::socketIdentity address_recv(zmq::socket_t& socket)
+{
+  zmq::message_t message;
+  socket.recv(&message);
+  return zmq::socketIdentity((char*)message.data(),message.size());
+}
+
 //holds the information needed to construct a zmq socket connection
 //from zmq documentation:
 //endpoint argument is a string consisting of two parts as follows:
@@ -80,15 +100,16 @@ private:
 //for the socket info class we are going to separate out the port of the tcp
 
 //templated based on the transport types
-
-
-template<typename Transport>
+template<typename _Proto>
 struct socketInfo
 {
+  typedef _Proto Protocall;
+
   socketInfo():Host(){}
   explicit socketInfo(const std::string& hostName):Host(hostName){}
-  std::string endpoint() const {return  zmq::to_string(Transport()) + Host;}
+  std::string endpoint() const {return  zmq::scheme_and_separator(Protocall()) + Host;}
   const std::string& host() const{ return Host; }
+  std::string protocall() const { return zmq::scheme_name(Protocall());}
 
 private:
   std::string Host;
@@ -96,14 +117,23 @@ private:
 
 template<> struct socketInfo<zmq::proto::tcp>
 {
+  typedef zmq::proto::tcp Protocall;
+
   socketInfo():Host(),Port(-1){}
-  explicit socketInfo(const std::string& hostName, int port):Host(hostName),Port(port){}
+  explicit socketInfo(const std::string& hostName, int port):
+    Host(hostName),
+    Port(port)
+  {
+  }
+
   std::string endpoint() const
     {
-    return  zmq::to_string(zmq::proto::tcp()) + Host + ":" + boost::lexical_cast<std::string>(Port);
+    return  zmq::scheme_and_separator(Protocall()) + Host + ":" + boost::lexical_cast<std::string>(Port);
     }
 
   const std::string& host() const{ return Host; }
+  std::string protocall() const { return zmq::scheme_name(Protocall());}
+
   int port() const { return Port; }
 
   void setPort(int p){ Port=p; }
@@ -113,10 +143,6 @@ private:
   std::string Host;
 };
 
-inline std::string to_string(const zmq::socketIdentity& add)
-{
-  return std::string(add.data(),add.size());
-}
 
 inline void connectToAddress(zmq::socket_t &socket,const std::string &endpoint)
 {
@@ -158,19 +184,25 @@ inline zmq::socketInfo<Proto> bindToAddress(zmq::socket_t &socket, const std::st
   return socketInfo;
 }
 
-static bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
+//returns trues if the socket points to a local server. A tcp-ip connection
+//can be local or remote. We are going to only state that 127.0.0.1 is local
+//host, this is because zmq for connect requires ipv4 numeric address. It
+//is possible that a specific ip address is also local, but really I don't
+//want to do the work to find all the possible ip addresses a machine has
+inline bool isLocalEndpoint(const zmq::socketInfo<zmq::proto::tcp>& info)
 {
-  zmq::message_t message(address.size());
-  memcpy(message.data(), address.data(), address.size());
-  return socket.send(message);
+  return info.host() == "127.0.0.1";
 }
 
-static zmq::socketIdentity address_recv(zmq::socket_t& socket)
-{
-  zmq::message_t message;
-  socket.recv(&message);
-  return zmq::socketIdentity((char*)message.data(),message.size());
-}
+//returns trues if the socket points to a local server. A inter-thread(inproc)
+//connection is only local so this is automatically true
+inline bool isLocalEndpoint(zmq::socketInfo<zmq::proto::inproc> )
+{ return true; }
+
+//returns trues if the socket points to a local server. A inter-process(ipc)
+//connection is only local so this is automatically true
+inline bool isLocalEndpoint(zmq::socketInfo<zmq::proto::ipc> )
+{ return true; }
 
 static void empty_send(zmq::socket_t& socket)
 {
