@@ -24,7 +24,7 @@ namespace proto
 struct tcp{};
 struct ipc{};
 struct inproc{};
-}
+
 inline std::string scheme_name(zmq::proto::tcp)
   {
   return "tcp";
@@ -63,7 +63,7 @@ inline std::string scheme_and_separator(zmq::proto::inproc)
   {
   return "inproc://";
   }
-
+}
 
 }
 
