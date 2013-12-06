@@ -60,6 +60,7 @@ public:
 private:
   zmq::context_t Context;
   zmq::socket_t Server;
+  bool ConnectedToLocalServer;
 };
 
 }

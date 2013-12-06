@@ -18,7 +18,8 @@ namespace client{
 //------------------------------------------------------------------------------
 Client::Client(const remus::client::ServerConnection &conn):
   Context(1),
-  Server(Context, ZMQ_REQ)
+  Server(Context, ZMQ_REQ),
+  ConnectedToLocalServer( conn.isLocalEndpoint() )
 {
   zmq::connectToAddress(this->Server,conn.endpoint());
 }

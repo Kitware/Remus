@@ -116,7 +116,8 @@ Worker::Worker(remus::common::MeshIOType mtype,
   Context(1),
   ServerComm(Context,ZMQ_PAIR),
   BComm(NULL),
-  ServerCommThread(NULL)
+  ServerCommThread(NULL),
+  ConnectedToLocalServer( conn.isLocalEndpoint() )
 {
   //FIRST THREAD HAS TO BIND THE INPROC SOCKET
   zmq::socketInfo<zmq::proto::inproc> internalCommInfo =

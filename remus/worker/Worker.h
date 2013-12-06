@@ -80,6 +80,7 @@ private:
   class ServerCommunicator;
   ServerCommunicator *BComm;
   boost::thread* ServerCommThread;
+  bool ConnectedToLocalServer;
 };
 
 }
