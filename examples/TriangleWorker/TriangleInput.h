@@ -61,6 +61,9 @@ public:
   double maxArea() const { return this->MaxArea; }
   void setMaxArea(double area) {this->MaxArea=area;}
 
+  void setVerbosity(bool verb) { this->Verbose=verb; }
+  bool verbose() const { return this->Verbose; }
+
   bool preserveBoundaries( ) const { return this->PreserveBoundaries; }
   void setPreserveBoundaries(bool preserve) {this->PreserveBoundaries=preserve;}
 
@@ -151,6 +154,7 @@ private:
   int NumberOfRegions;
   int NumberOfNodes; //tracks number of points with a nodeId > -1
 
+  bool Verbose;
   bool PerserveSegmentsAndPoints;
   bool PreserveBoundaries;
   bool MinAngleOn;
@@ -177,6 +181,7 @@ inline TriangleInput::TriangleInput():
   NumberOfHoles(0),
   NumberOfRegions(0),
   NumberOfNodes(0),
+  Verbose(false),
   PerserveSegmentsAndPoints(false),
   PreserveBoundaries(true),
   MinAngleOn(false),
@@ -200,6 +205,7 @@ inline TriangleInput::TriangleInput(int numPoints, int numSegments, int numHoles
   NumberOfHoles(numHoles),
   NumberOfRegions(numRegions),
   NumberOfNodes(0),
+  Verbose(false),
   PerserveSegmentsAndPoints(perserveSegmentsAndPoints),
   PreserveBoundaries(true),
   MinAngleOn(false),
@@ -238,6 +244,7 @@ inline TriangleInput::TriangleInput(const remus::worker::Job& job)
   buffer >> this->NumberOfNodes;
   buffer >> this->MaxArea;
   buffer >> this->MinAngle;
+  buffer >> this->Verbose;
 
   helpers::AllocFromStream(buffer,this->points, this->NumberOfPoints * 2);
   helpers::AllocFromStream(buffer,this->segments, this->NumberOfSegments * 2);
@@ -334,6 +341,7 @@ inline TriangleInput::operator std::string(void) const
   buffer << this->NumberOfNodes << std::endl;
   buffer << this->MaxArea << std::endl;
   buffer << this->MinAngle << std::endl;
+  buffer << this->Verbose << std::endl;
 
   helpers::WriteToStream(buffer,this->points);
   helpers::WriteToStream(buffer,this->segments);

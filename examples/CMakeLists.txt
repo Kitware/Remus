@@ -14,3 +14,9 @@ option(Remus_ENABLE_Triangle_Woker "Enable Building Triangle Worker" ON)
 if(Remus_ENABLE_Triangle_Woker)
   add_subdirectory(TriangleWorker)
 endif()
+
+option(Remus_ENABLE_TetGen_Woker "Enable Building TetGen Worker" OFF)
+
+if(Remus_ENABLE_TetGen_Woker)
+  add_subdirectory(TetGenWorker)
+endif()
