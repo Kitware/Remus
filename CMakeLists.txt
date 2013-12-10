@@ -77,7 +77,7 @@ set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
 set(KWSYS_INSTALL_LIB_DIR "lib")
 set(KWSYS_INSTALL_EXPORT_NAME Remus-targets)
-add_subdirectory(kwsys)
+add_subdirectory(thirdparty/kwsys)
 
 #setup windows exception handling so we can compile properly
 #with boost enabled

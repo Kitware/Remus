@@ -1,3 +1,3 @@
-[submodule "kwsys"]
-	path = kwsys
+[submodule "thirdparty/kwsys"]
+	path = thirdparty/kwsys
 	url = http://public.kitware.com/KWSys.git
