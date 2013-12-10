@@ -37,11 +37,8 @@ function(ms_add_header_test name dir_prefix)
   add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
   target_include_directories(TestBuild_${name}
         PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
-        PRIVATE ${sysTools_BINARY_DIR}
-                ${ZeroMQ_INCLUDE_DIR}
-                ${Boost_INCLUDE_DIRS}
-                )
-  target_link_libraries(TestBuild_${name} LINK_PRIVATE sysTools )
+        )
+
   set_source_files_properties(${hfiles}
     PROPERTIES HEADER_FILE_ONLY TRUE
     )
