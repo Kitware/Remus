@@ -28,8 +28,9 @@
 namespace remus {
 namespace worker {
 
-struct JobResult
+class JobResult
 {
+public:
   boost::uuids::uuid JobId;
   std::string Data; //data of the result of a job
 

@@ -30,8 +30,9 @@ namespace worker {
 //bring JobProgress into the worker namespace
 using remus::common::JobProgress;
 
-struct JobStatus
+class JobStatus
 {
+public:
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
   remus::worker::JobProgress Progress;

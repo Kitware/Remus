@@ -77,14 +77,14 @@ inline std::string to_string(const zmq::socketIdentity& add)
 }
 
 
-static bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
+inline bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
 {
   zmq::message_t message(address.size());
   memcpy(message.data(), address.data(), address.size());
   return socket.send(message);
 }
 
-static zmq::socketIdentity address_recv(zmq::socket_t& socket)
+inline zmq::socketIdentity address_recv(zmq::socket_t& socket)
 {
   zmq::message_t message;
   socket.recv(&message);
@@ -139,8 +139,8 @@ template<> struct socketInfo<zmq::proto::tcp>
   void setPort(int p){ Port=p; }
 
 private:
-  int Port;
   std::string Host;
+  int Port;
 };
 
 
@@ -204,20 +204,6 @@ inline bool isLocalEndpoint(zmq::socketInfo<zmq::proto::inproc> )
 inline bool isLocalEndpoint(zmq::socketInfo<zmq::proto::ipc> )
 { return true; }
 
-static void empty_send(zmq::socket_t& socket)
-{
-  zmq::message_t message;
-  socket.send(message);
-  return;
-}
-
-static void empty_recv(zmq::socket_t& socket)
-{
-  zmq::message_t message;
-  socket.recv(&message);
-  return;
-}
-
 //A wrapper around zeroMQ send. When we call the standard send call
 //from a Qt class we experience high number of system level interrupts which
 //cause zero to throw an exception when we are sending a blocking message.
@@ -225,7 +211,7 @@ static void empty_recv(zmq::socket_t& socket)
 //giving up
 //In the future we need to change the client server
 //communication in Remus to be async instead of req/reply based.
-static bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flags=0)
+inline bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flags=0)
 {
   bool sent = false;
   short tries = 0;
@@ -244,7 +230,7 @@ static bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flag
 //giving up
 //In the future we need to change the client server
 //communication in Remus to be async instead of req/reply based.
-static bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flags=0)
+inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flags=0)
 {
   bool recieved = false;
   short tries = 0;
@@ -259,7 +245,7 @@ static bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
 //we presume that every message needs to be stripped
 //as we make everything act like a req/rep and pad
 //a null message on everything
-static void removeReqHeader(zmq::socket_t& socket)
+inline void removeReqHeader(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
@@ -272,7 +258,7 @@ static void removeReqHeader(zmq::socket_t& socket)
 }
 
 //if we are not a req or rep socket make us look like one
- static void attachReqHeader(zmq::socket_t& socket)
+ inline void attachReqHeader(zmq::socket_t& socket)
 {
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);

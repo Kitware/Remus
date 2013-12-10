@@ -185,7 +185,7 @@ zmq::socketIdentity WorkerPool::takeWorker(const remus::common::MeshIOType &type
 {
 
   bool found = false;
-  int index = 0;
+  std::size_t index = 0;
   WorkerInfo* info;
   for(index=0; index < this->Pool.size(); ++index)
     {

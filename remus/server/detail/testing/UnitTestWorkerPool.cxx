@@ -204,8 +204,10 @@ void verify_taking_works()
 
   REMUS_ASSERT( (bad_2d_id == zmq::socketIdentity()) );
   REMUS_ASSERT( !(bad_2d_id == worker1_id) );
-  REMUS_ASSERT( (bad_2d_id == zmq::socketIdentity()) );
-  REMUS_ASSERT( !(bad_2d_id == worker1_id) );
+  REMUS_ASSERT( (bad_3d_id == zmq::socketIdentity()) );
+  REMUS_ASSERT( !(bad_3d_id == worker1_id) );
+
+
 
   //still have the 3d worker item kicking around
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );

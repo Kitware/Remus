@@ -68,7 +68,7 @@ private:
 //is optional into a server connection class
 //if we fail to parse the string we will return an instance of
 //the default server connection
-static
+inline
 remus::client::ServerConnection make_ServerConnection(const std::string& dest)
 {
   remus::client::ServerConnection connection;

@@ -79,7 +79,7 @@ protected:
 
   //method to override to pickup what signal was thrown
   //
-  virtual void SignalCaught( SignalCatcher::SignalType signal )
+  virtual void SignalCaught( SignalCatcher::SignalType )
   {
 
   }

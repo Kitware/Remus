@@ -28,8 +28,9 @@ namespace client {
 //bring JobProgress into the client namespace
 using remus::common::JobProgress;
 
-struct JobStatus
+class JobStatus
 {
+public:
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
   remus::client::JobProgress Progress;

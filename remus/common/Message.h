@@ -123,7 +123,7 @@ public:
   const remus::common::MeshIOType& MeshIOType() const { return MType; }
   const remus::SERVICE_TYPE& serviceType() const { return SType; }
 
-  const char* const data() const { return Data; }
+  const char* data() const { return Data; }
   int dataSize() const { return Size; }
 
   bool isValid() const { return ValidMsg; }

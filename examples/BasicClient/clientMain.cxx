@@ -80,7 +80,7 @@ int main ()
     //if we can mesh 2D mesh jobs, we are going to submit 8 jobs to the server
     //for meshing
     std::vector<remus::client::Job> jobs;
-    for(int i=0; i < 18; ++i, ++queries)
+    for(std::size_t i=0; i < 18; ++i, ++queries)
       {
       remus::client::Job job = c.submitJob(request);
       jobs.push_back(job);
@@ -88,7 +88,7 @@ int main ()
 
     //get the initial status of all the jobs that we have
     std::vector<remus::client::JobStatus> js;
-    for(int i=0; i < jobs.size(); ++i, ++queries)
+    for(std::size_t i=0; i < jobs.size(); ++i, ++queries)
       {
       js.push_back(c.jobStatus(jobs.at(i)));
       }
@@ -97,7 +97,7 @@ int main ()
     //each time the status of the job changes
     while(jobs.size() > 0)
       {
-      for(int i=0; i < jobs.size(); ++i, ++queries)
+      for(std::size_t i=0; i < jobs.size(); ++i, ++queries)
         {
         //update the status with the latest status and compare it too
         //the previously held status
@@ -128,8 +128,8 @@ int main ()
           js.erase(js.begin()+i);
 
           std::cout << "outstanding jobs are: " << std::endl;
-          for(int i=0; i < jobs.size(); ++i)
-            { std::cout << "  " << jobs.at(i).id() << std::endl; }
+          for(std::size_t j=0; j < jobs.size(); ++j)
+            { std::cout << "  " << jobs.at(j).id() << std::endl; }
           }
         }
       }
