@@ -1,3 +1,6 @@
 [submodule "thirdparty/kwsys"]
 	path = thirdparty/kwsys
 	url = http://public.kitware.com/KWSys.git
+[submodule "thirdparty/kwStat"]
+	path = thirdparty/kwStat
+	url = https://github.com/robertmaynard/kwStat.git
