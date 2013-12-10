@@ -19,7 +19,7 @@ namespace {
 
 std::string make_endPoint(std::string host, int port)
 {
-  const std::string conn_type( zmq::to_string(zmq::proto::tcp()) );
+  const std::string conn_type( zmq::proto::scheme_and_separator(zmq::proto::tcp()) );
   std::string temp( conn_type + host + ":" +
                                   boost::lexical_cast<std::string>(port) );
   return temp;

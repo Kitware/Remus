@@ -39,7 +39,7 @@ struct MeshIOType
     Both.output = out;
     }
 
-  boost::int32_t type() const { return combined_type; }
+  boost::uint32_t type() const { return combined_type; }
   remus::MESH_INPUT_TYPE inputType() const
     { return static_cast<remus::MESH_INPUT_TYPE>(this->Both.input); }
   remus::MESH_OUTPUT_TYPE outputType() const
@@ -71,10 +71,10 @@ struct MeshIOType
 
 protected:
   union {
-    boost::int32_t combined_type;
+    boost::uint32_t combined_type;
     struct {
-      boost::int16_t input;
-      boost::int16_t output;
+      boost::uint16_t input;
+      boost::uint16_t output;
       } Both;
   };
 };

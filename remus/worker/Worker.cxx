@@ -116,7 +116,8 @@ Worker::Worker(remus::common::MeshIOType mtype,
   Context(1),
   ServerComm(Context,ZMQ_PAIR),
   BComm(NULL),
-  ServerCommThread(NULL)
+  ServerCommThread(NULL),
+  ConnectedToLocalServer( conn.isLocalEndpoint() )
 {
   //FIRST THREAD HAS TO BIND THE INPROC SOCKET
   zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
@@ -175,7 +176,7 @@ bool Worker::stopCommunicationThread()
 }
 
 //-----------------------------------------------------------------------------
-remus::Job Worker::getJob()
+remus::worker::Job Worker::getJob()
 {
   remus::common::Message askForMesh(this->MeshIOType,remus::MAKE_MESH);
   askForMesh.send(this->ServerComm);
@@ -186,14 +187,14 @@ remus::Job Worker::getJob()
 
   //we need a better serialization technique
   std::string msg = response.dataAs<std::string>();
-  return remus::to_Job(msg);
+  return remus::worker::to_Job(msg);
 }
 
 //-----------------------------------------------------------------------------
-void Worker::updateStatus(const remus::JobStatus& info)
+void Worker::updateStatus(const remus::worker::JobStatus& info)
 {
   //send a message that contains, the status
-  std::string msg = remus::to_string(info);
+  std::string msg = remus::worker::to_string(info);
   remus::common::Message message(this->MeshIOType,
                                     remus::MESH_STATUS,
                                     msg.data(),msg.size());
@@ -201,10 +202,10 @@ void Worker::updateStatus(const remus::JobStatus& info)
 }
 
 //-----------------------------------------------------------------------------
-void Worker::returnMeshResults(const remus::JobResult& result)
+void Worker::returnMeshResults(const remus::worker::JobResult& result)
 {
   //send a message that contains, the path to the resulting file
-  std::string msg = remus::to_string(result);
+  std::string msg = remus::worker::to_string(result);
   remus::common::Message message(this->MeshIOType,
                                     remus::RETRIEVE_MESH,
                                     msg.data(),msg.size());

@@ -13,9 +13,9 @@
 #ifndef _TriangleWorker_h
 #define _TriangleWorker_h
 
-#include <remus/Job.h>
-#include <remus/worker/Worker.h>
+#include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>
+#include <remus/worker/Worker.h>
 
 #include "TriangleInput.h"
 
@@ -52,7 +52,7 @@ struct triangleParameters
 
   //convert the job details into the parameters needed for triangle meshing
   //we use a TriangleInput class for the actual conversion
-  triangleParameters(const remus::Job& job);
+  triangleParameters(const remus::worker::Job& job);
   ~triangleParameters();
 
   bool valid() const
@@ -76,6 +76,6 @@ protected:
   bool buildTriangleArguments(const triangleParameters& params,
                               std::string& options) const;
 
-  void jobFailed(const remus::Job& job);
+  void jobFailed(const remus::worker::Job& job);
 };
 #endif

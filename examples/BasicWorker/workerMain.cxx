@@ -23,15 +23,15 @@ int main (int argc, char* argv[])
   if(argc>=2)
     {
     //let the server connection handle parsing the command arguments
-    connection = remus::worker::ServerConnection(std::string(argv[1]));
+    connection = remus::worker::make_ServerConnection(std::string(argv[1]));
     }
 
   remus::common::MeshIOType requirements(remus::RAW_EDGES,remus::MESH2D);
   remus::Worker w(requirements,connection);
 
-  remus::Job jd = w.getJob();
+  remus::worker::Job jd = w.getJob();
 
-  remus::JobStatus status(jd.id(),remus::IN_PROGRESS);
+  remus::worker::JobStatus status(jd.id(),remus::IN_PROGRESS);
   for(int progress=1; progress <= 100; ++progress)
     {
     if(progress%20==0)
@@ -47,7 +47,7 @@ int main (int argc, char* argv[])
       }
     }
 
-  remus::JobResult results(jd.id(),"FAKE RESULTS");
+  remus::worker::JobResult results(jd.id(),"FAKE RESULTS");
   w.returnMeshResults(results);
 
   return 1;

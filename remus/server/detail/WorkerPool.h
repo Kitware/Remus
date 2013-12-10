@@ -10,14 +10,12 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_ActiveJobState_h
-#define __remus_server_internal_ActiveJobState_h
+#ifndef __remus_server_detail_ActiveJobState_h
+#define __remus_server_detail_ActiveJobState_h
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <remus/JobResult.h>
-#include <remus/JobStatus.h>
-#include <remus/server/internal/uuidHelper.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <remus/common/zmqHelper.h>
 
 #include <string>
@@ -26,37 +24,37 @@
 
 namespace remus{
 namespace server{
-namespace internal{
+namespace detail{
 
 class WorkerPool
 {
   public:
     WorkerPool():Pool(){}
 
-    bool addWorker(zmq::socketIdentity workerIdentity,
-                   const remus::common::MeshIOType& type);
+    inline bool addWorker(zmq::socketIdentity workerIdentity,
+                          const remus::common::MeshIOType& type);
 
     //do we have any worker waiting to take this type of job
-    bool haveWaitingWorker(const remus::common::MeshIOType& type) const;
+    inline bool haveWaitingWorker(const remus::common::MeshIOType& type) const;
 
     //do we have a worker with this address?
-    bool haveWorker(const zmq::socketIdentity& address) const;
+    inline bool haveWorker(const zmq::socketIdentity& address) const;
 
     //mark a worker with the given address ready to take a job.
     //returns false if a worker with that address wasn't found
-    bool readyForWork(const zmq::socketIdentity& address);
+    inline bool readyForWork(const zmq::socketIdentity& address);
 
     //returns the worker address and removes the worker from the pool
-    zmq::socketIdentity takeWorker(const remus::common::MeshIOType& type);
+    inline zmq::socketIdentity takeWorker(const remus::common::MeshIOType& type);
 
     //remove all workers that haven't responded inside the heartbeat time
-    void purgeDeadWorkers(const boost::posix_time::ptime& time);
+    inline void purgeDeadWorkers(const boost::posix_time::ptime& time);
 
     //keep all workers alive that responded inside the heartbeat time
-    void refreshWorker(const zmq::socketIdentity& address);
+    inline void refreshWorker(const zmq::socketIdentity& address);
 
     //return the socket identity of all living workers
-    std::set<zmq::socketIdentity> livingWorkers() const;
+    inline std::set<zmq::socketIdentity> livingWorkers() const;
 
 private:
     struct WorkerInfo
@@ -187,7 +185,7 @@ zmq::socketIdentity WorkerPool::takeWorker(const remus::common::MeshIOType &type
 {
 
   bool found = false;
-  int index = 0;
+  std::size_t index = 0;
   WorkerInfo* info;
   for(index=0; index < this->Pool.size(); ++index)
     {

@@ -10,44 +10,47 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_internal_ActiveJobs_h
-#define __remus_server_internal_ActiveJobs_h
+#ifndef __remus_server_detail_ActiveJobs_h
+#define __remus_server_detail_ActiveJobs_h
 
-#include <remus/JobResult.h>
-#include <remus/JobStatus.h>
 #include <remus/common/zmqHelper.h>
-#include <remus/server/internal/uuidHelper.h>
 
-#include <boost/uuid/uuid.hpp>
+#include <remus/client/JobResult.h>
+#include <remus/client/JobStatus.h>
+#include <remus/worker/JobResult.h>
+#include <remus/worker/JobStatus.h>
+
+#include <remus/server/detail/uuidHelper.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-
 
 #include <map>
 #include <set>
 
 namespace remus{
 namespace server{
-namespace internal{
+namespace detail{
 
 class ActiveJobs
 {
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketIdentity& workerIdentity,
-             const boost::uuids::uuid& id);
+    inline bool add(const zmq::socketIdentity& workerIdentity,
+                    const boost::uuids::uuid& id);
 
-    bool remove(const boost::uuids::uuid& id);
+    inline bool remove(const boost::uuids::uuid& id);
 
-    zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
+    inline zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
 
-    bool haveUUID(const boost::uuids::uuid& id) const;
+    inline bool haveUUID(const boost::uuids::uuid& id) const;
 
-    bool haveResult(const boost::uuids::uuid& id) const;
+    inline bool haveResult(const boost::uuids::uuid& id) const;
 
-    const remus::JobStatus& status(const boost::uuids::uuid& id);
+    //returns a worker side job status object for a job
+    inline const remus::client::JobStatus& status(const boost::uuids::uuid& id);
 
-    const remus::JobResult& result(const boost::uuids::uuid& id);
+    //returns a worker side job result object for a job
+    inline const remus::client::JobResult& result(const boost::uuids::uuid& id);
 
     //update the job status of a job.
     //valid values are:
@@ -57,22 +60,22 @@ class ActiveJobs
     // EXPIRED
     // To update a job to the finished state, you have to call updateResult
     // not update status
-    void updateStatus(const remus::JobStatus& s);
+    inline void updateStatus(const remus::worker::JobStatus& s);
 
-    void updateResult(const remus::JobResult& r);
+    inline void updateResult(const remus::worker::JobResult& r);
 
-    void markExpiredJobs(const boost::posix_time::ptime& time);
+    inline void markExpiredJobs(const boost::posix_time::ptime& time);
 
-    void refreshJobs(const zmq::socketIdentity &workerIdentity);
+    inline void refreshJobs(const zmq::socketIdentity &workerIdentity);
 
-    std::set<zmq::socketIdentity> activeWorkers() const;
+    inline std::set<zmq::socketIdentity> activeWorkers() const;
 
 private:
     struct JobState
     {
       zmq::socketIdentity WorkerAddress;
-      remus::JobStatus jstatus;
-      remus::JobResult jresult;
+      remus::client::JobStatus jstatus;
+      remus::client::JobResult jresult;
       boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
@@ -95,24 +98,15 @@ private:
             boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
         }
 
-        //we can only change the status of jobs that are
-        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
-        bool canUpdateStatus() const
-        {
-          return jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS;
-        }
-
-        bool canUpdateStatusTo(remus::JobStatus s) const
+        bool canUpdateStatusTo(remus::worker::JobStatus s) const
         {
         //we don't want the worker to ever explicitly state it has finished the
         //job. We want that state to only be applied when the results have finished
         //transferring to the server
-        //we can only change the status of jobs that are
-        //IN_PROGRESS or QUEUED. If they are finished or failed it is pointless
+        //we can only change the status of jobs that are IN_PROGRESS or QUEUED.
+        //If the job status is finished
         //If we are in IN_PROGRESS we can't move back to QUEUED
-        return (jstatus.Status == QUEUED || jstatus.Status == IN_PROGRESS) &&
-               (!s.finished()) && (jstatus.Status < s.Status);
-
+        return jstatus.good() && !s.finished() && (s.failed() || s.inProgress());
         }
     };
 
@@ -177,7 +171,7 @@ bool ActiveJobs::haveResult(const boost::uuids::uuid& id) const
 }
 
 //-----------------------------------------------------------------------------
-const remus::JobStatus& ActiveJobs::status(
+const remus::client::JobStatus& ActiveJobs::status(
      const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -185,7 +179,7 @@ const remus::JobStatus& ActiveJobs::status(
 }
 
 //-----------------------------------------------------------------------------
-const remus::JobResult& ActiveJobs::result(
+const remus::client::JobResult& ActiveJobs::result(
     const boost::uuids::uuid& id)
 {
   InfoConstIt item = this->Info.find(id);
@@ -193,7 +187,7 @@ const remus::JobResult& ActiveJobs::result(
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::updateStatus(const remus::JobStatus& s)
+void ActiveJobs::updateStatus(const remus::worker::JobStatus& s)
 {
   InfoIt item = this->Info.find(s.JobId);
 
@@ -202,24 +196,27 @@ void ActiveJobs::updateStatus(const remus::JobStatus& s)
     //we don't want the worker to ever explicitly state it has finished the
     //job. That is why we use canUpdateStatusTo, which checks the status
     //we are moving too
-    item->second.jstatus = s;
+    item->second.jstatus.Status = s.Status;
+    item->second.jstatus.Progress = s.Progress;
     }
   item->second.refresh();
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::updateResult(const remus::JobResult& r)
+void ActiveJobs::updateResult(const remus::worker::JobResult& r)
 {
   InfoIt item = this->Info.find(r.JobId);
   if(item != this->Info.end())
     {
     //once we get a result we can state our status is now finished,
     //since the uploading of data has finished.
-    if( item->second.canUpdateStatus( ) )
+    if( item->second.jstatus.good() || item->second.jstatus.finished() )
       {
-      item->second.jstatus = remus::JobStatus(r.JobId,remus::FINISHED);
+      item->second.jstatus = remus::client::JobStatus(r.JobId,remus::FINISHED);
       }
-    item->second.jresult = r;
+
+    //update the client result data to equal the server data
+    item->second.jresult.Data = r.Data;
     item->second.haveResult = true;
     item->second.refresh();
     }
@@ -232,11 +229,13 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
     //FINISHED is more important than failed
-    if (item->second.canUpdateStatus() && item->second.expiry < time)
+    if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
+           item->second.expiry < time)
       {
       item->second.jstatus.Status = remus::EXPIRED;
-      item->second.jstatus.Progress = remus::JobProgress(remus::EXPIRED);
-      //std::cout << "Marking job id: " << item->first << " as FAILED" << std::endl;
+      item->second.jstatus.Progress =
+                                remus::client::JobProgress(remus::EXPIRED);
+      //std::cout << "Marking job id: " << item->first << " as EXPIRED" << std::endl;
       }
     }
 }

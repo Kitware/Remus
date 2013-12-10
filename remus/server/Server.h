@@ -25,17 +25,20 @@
 //included for symbol exports
 #include <remus/server/ServerExports.h>
 
-namespace remus{
+namespace remus {
   //forward declaration of classes only the implementation needs
-  namespace common{
+  namespace common {
   class Message;
   }
+
+  namespace worker {
   class Job;
+  }
 }
 
 namespace remus{
 namespace server{
-  namespace internal
+  namespace detail
     {
     //forward declaration of classes only the implementation needs
     class ActiveJobs;
@@ -48,7 +51,7 @@ namespace server{
 //We inherit from SignalCatcher so that we can properly handle
 //segfaults and other abnormal termination conditions
 //The Server class doesn't support copy or move semantics
-class REMUSSERVER_EXPORT Server : private remus::common::SignalCatcher
+class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
   //construct a new server using the default worker factory
@@ -73,7 +76,7 @@ public:
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
-  bool startBrokering();
+  virtual bool startBrokering();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
@@ -101,24 +104,29 @@ protected:
   void storeMeshStatus(const remus::common::Message& msg);
   void storeMesh(const remus::common::Message& msg);
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
-                         const remus::Job& job);
+                         const remus::worker::Job& job);
 
-  void FindWorkerForQueuedJob();
+  //see if we have a worker in the pool for the next job in the queue,
+  //otherwise ask the factory to generate a new worker to handle that job
+  //virtual so that people using custom factories can decide the lifespan
+  //of workers
+  //overriding this will also allow custom servers to change the priority
+  //of queued jobs and workers
+  virtual void FindWorkerForQueuedJob();
 
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers();
 
-private:
+protected:
+  //allow subclasses to override these detail containers
   zmq::context_t Context;
   zmq::socket_t ClientQueries;
   zmq::socket_t WorkerQueries;
 
-//allow subclasses to override these internal containers
-protected:
   boost::uuids::random_generator UUIDGenerator;
-  boost::scoped_ptr<remus::server::internal::JobQueue> QueuedJobs;
-  boost::scoped_ptr<remus::server::internal::WorkerPool> WorkerPool;
-  boost::scoped_ptr<remus::server::internal::ActiveJobs> ActiveJobs;
+  boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
+  boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
+  boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;

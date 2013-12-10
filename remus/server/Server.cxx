@@ -15,9 +15,13 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <remus/Job.h>
-#include <remus/JobResult.h>
-#include <remus/JobStatus.h>
+#include <remus/client/Job.h>
+#include <remus/client/JobResult.h>
+#include <remus/client/JobStatus.h>
+
+#include <remus/worker/Job.h>
+#include <remus/worker/JobResult.h>
+#include <remus/worker/JobStatus.h>
 
 #include <remus/common/Message.h>
 #include <remus/common/Response.h>
@@ -25,10 +29,10 @@
 #include <remus/common/remusGlobals.h>
 #include <remus/common/zmqHelper.h>
 
-#include <remus/server/internal/uuidHelper.h>
-#include <remus/server/internal/ActiveJobs.h>
-#include <remus/server/internal/JobQueue.h>
-#include <remus/server/internal/WorkerPool.h>
+#include <remus/server/detail/uuidHelper.h>
+#include <remus/server/detail/ActiveJobs.h>
+#include <remus/server/detail/JobQueue.h>
+#include <remus/server/detail/WorkerPool.h>
 
 #include <set>
 
@@ -44,11 +48,11 @@ namespace detail{
 void make_terminateJob(remus::common::Response& response,
                        boost::uuids::uuid jobId)
 {
-  remus::Job terminateJob(jobId,
+  remus::worker::Job terminateJob(jobId,
                           remus::common::MeshIOType(),
                           remus::to_string(remus::TERMINATE_JOB_AND_WORKER));
   response.setServiceType(remus::TERMINATE_JOB_AND_WORKER);
-  response.setData(remus::to_string(terminateJob));
+  response.setData(remus::worker::to_string(terminateJob));
 }
 
 }
@@ -64,9 +68,9 @@ Server::Server():
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(),
   PortInfo() //use default loopback ports
   {
@@ -83,9 +87,9 @@ Server::Server(const remus::server::WorkerFactory& factory):
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(factory),
   PortInfo()
   {
@@ -102,9 +106,9 @@ Server::Server(remus::server::ServerPorts ports):
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(),
   PortInfo(ports)
   {
@@ -122,9 +126,9 @@ Server::Server(remus::server::ServerPorts ports,
   ClientQueries(Context,ZMQ_ROUTER),
   WorkerQueries(Context,ZMQ_ROUTER),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::internal::JobQueue() ),
-  WorkerPool(new remus::server::internal::WorkerPool() ),
-  ActiveJobs(new remus::server::internal::ActiveJobs () ),
+  QueuedJobs(new remus::server::detail::JobQueue() ),
+  WorkerPool(new remus::server::detail::WorkerPool() ),
+  ActiveJobs(new remus::server::detail::ActiveJobs () ),
   WorkerFactory(factory),
   PortInfo(ports)
   {
@@ -272,8 +276,8 @@ bool Server::canMesh(const remus::common::Message& msg)
 //------------------------------------------------------------------------------
 std::string Server::meshStatus(const remus::common::Message& msg)
 {
-  remus::Job job = remus::to_Job(msg.data());
-  remus::JobStatus js(job.id(),INVALID_STATUS);
+  remus::client::Job job = remus::client::to_Job(msg.data());
+  remus::client::JobStatus js(job.id(),INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(job.id()))
     {
     js.Status = remus::QUEUED;
@@ -282,7 +286,7 @@ std::string Server::meshStatus(const remus::common::Message& msg)
     {
     js = this->ActiveJobs->status(job.id());
     }
-  return remus::to_string(js);
+  return remus::client::to_string(js);
 }
 
 //------------------------------------------------------------------------------
@@ -292,14 +296,16 @@ std::string Server::queueJob(const remus::common::Message& msg)
   {
     //generate an UUID
     const boost::uuids::uuid jobUUID = this->UUIDGenerator();
+
     //create a new job to place on the queue
-    //This call will invalidate the msg as we are going to move the data
-    //to another message to await sending to the worker
-    this->QueuedJobs->addJob(jobUUID,msg);
+    const remus::client::JobRequest request =
+                    remus::client::to_JobRequest(msg.data(),msg.dataSize());
+
+    this->QueuedJobs->addJob(jobUUID,request);
     //return the UUID
 
-    const remus::Job validJob(jobUUID,msg.MeshIOType());
-    return remus::to_string(validJob);
+    const remus::client::Job validJob(jobUUID,msg.MeshIOType());
+    return remus::client::to_string(validJob);
   }
   return remus::INVALID_MSG;
 }
@@ -308,24 +314,25 @@ std::string Server::queueJob(const remus::common::Message& msg)
 std::string Server::retrieveMesh(const remus::common::Message& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
-  remus::Job job = remus::to_Job(msg.data());
+  remus::client::Job job = remus::client::to_Job(msg.data());
 
-  remus::JobResult result(job.id());
-  if(this->ActiveJobs->haveUUID(job.id()) && this->ActiveJobs->haveResult(job.id()))
+  remus::client::JobResult result(job.id());
+  if( this->ActiveJobs->haveUUID(job.id()) &&
+      this->ActiveJobs->haveResult(job.id()))
     {
     result = this->ActiveJobs->result(job.id());
     //for now we remove all references from this job being active
     this->ActiveJobs->remove(job.id());
     }
   //return an empty result
-  return remus::to_string(result);
+  return remus::client::to_string(result);
 }
 
 //------------------------------------------------------------------------------
 std::string Server::terminateJob(const remus::common::Message& msg)
 {
 
-  remus::Job job = remus::to_Job(msg.data());
+  remus::client::Job job = remus::client::to_Job(msg.data());
 
   bool removed = this->QueuedJobs->remove(job.id());
   if(!removed)
@@ -345,7 +352,7 @@ std::string Server::terminateJob(const remus::common::Message& msg)
     }
 
   remus::STATUS_TYPE status = (removed) ? remus::FAILED : remus::INVALID_STATUS;
-  return remus::to_string(remus::JobStatus(job.id(),status));
+  return remus::client::to_string(remus::client::JobStatus(job.id(),status));
 }
 
 //------------------------------------------------------------------------------
@@ -383,33 +390,35 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
 void Server::storeMeshStatus(const remus::common::Message& msg)
 {
   //the string in the data is actually a job status object
-  remus::JobStatus js = remus::to_JobStatus(msg.data(),msg.dataSize());
+  remus::worker::JobStatus js = remus::worker::to_JobStatus(msg.data(),
+                                                            msg.dataSize());
   this->ActiveJobs->updateStatus(js);
 }
 
 //------------------------------------------------------------------------------
 void Server::storeMesh(const remus::common::Message& msg)
 {
-  remus::JobResult jr = remus::to_JobResult(msg.data(),msg.dataSize());
+  remus::worker::JobResult jr = remus::worker::to_JobResult(msg.data(),
+                                                            msg.dataSize());
   this->ActiveJobs->updateResult(jr);
 }
 
 //------------------------------------------------------------------------------
 void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
-                               const remus::Job& job )
+                               const remus::worker::Job& job )
 {
   this->ActiveJobs->add( workerIdentity, job.id() );
 
   remus::common::Response response(workerIdentity);
   response.setServiceType(remus::MAKE_MESH);
 
-  std::string tmp = remus::to_string(job);
+  std::string tmp = remus::worker::to_string(job);
   response.setData(tmp);
   response.send(this->WorkerQueries);
 }
 
 //see if we have a worker in the pool for the next job in the queue,
-//otherwise as the factory to generate a new worker to handle that job
+//otherwise ask the factory to generate a new worker to handle that job
 //------------------------------------------------------------------------------
 void Server::FindWorkerForQueuedJob()
 {

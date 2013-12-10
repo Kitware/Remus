@@ -1,11 +1,32 @@
 project(Remus_Client)
 
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIR})
-
 set(headers
     Client.h
+    Job.h
+    JobRequest.h
+    JobResult.h
+    JobStatus.h
     ServerConnection.h
     )
 
+set(client_srcs
+    Client.cxx
+    )
+
+add_library(RemusClient ${client_srcs} ${headers})
+target_link_libraries(RemusClient
+                      LINK_PUBLIC RemusCommon
+                      )
+
+#create the export header symbol exporting
+remus_export_header(RemusClient ClientExports.h)
+
+#install the library
+remus_install_library(RemusClient)
+
+#install the headers
 remus_public_headers(${headers})
+
+#setup the exports for the library when used from a build tree
+export(PACKAGE RemusClient)
+export(TARGETS RemusClient RemusCommon FILE RemusClient-exports.cmake)
