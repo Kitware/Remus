@@ -77,6 +77,7 @@ int main ()
                                     "TEST THE APPLICATION BY PASSING SPACES");
   if(c.canMesh(request))
     {
+    time.Reset();
     //if we can mesh 2D mesh jobs, we are going to submit 8 jobs to the server
     //for meshing
     std::vector<remus::client::Job> jobs;
