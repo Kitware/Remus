@@ -13,6 +13,7 @@
 #ifndef remus_client_JobRequest_h
 #define remus_client_JobRequest_h
 
+#include <algorithm>
 #include <string>
 #include <sstream>
 
@@ -115,7 +116,7 @@ inline remus::client::JobRequest to_JobRequest(const char* data, int size)
 {
   //convert a job request from a string, used as a hack to serialize
   std::string temp(size,char());
-  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  std::copy( data, data+size, temp.begin() );
   return to_JobRequest( temp );
 }
 
