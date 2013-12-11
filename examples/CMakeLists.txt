@@ -9,14 +9,13 @@ add_subdirectory(NoWorkerServer)
 #===============================================================================
 # Now optional build full workers for real mesh libraries
 # We currently provide example triangle worker
-option(Remus_ENABLE_Triangle_Woker "Enable Building Triangle Worker" OFF)
 
+option(Remus_ENABLE_Triangle_Woker "Enable Building Triangle Worker" OFF)
 if(Remus_ENABLE_Triangle_Woker)
-  add_subdirectory(TriangleWorker)
+  add_subdirectory(Triangle)
 endif()
 
 option(Remus_ENABLE_TetGen_Woker "Enable Building TetGen Worker" OFF)
-
 if(Remus_ENABLE_TetGen_Woker)
-  add_subdirectory(TetGenWorker)
+  add_subdirectory(TetGen)
 endif()
