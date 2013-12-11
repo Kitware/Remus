@@ -145,7 +145,11 @@ bool TriangleWorker::buildTriangleArguments(const triangleParameters &params,
 
   buffer << "p";//generate a planar straight line graph
   buffer << "z";//use 0 based indexing
-  buffer << "V";//enable quiet mode
+
+  if(input.verbose())
+    {
+    buffer << "V";//enable verbose output
+    }
   if(input.useMaxArea() && input.numberOfRegions() == 0)
     {
     value = input.maxArea();
