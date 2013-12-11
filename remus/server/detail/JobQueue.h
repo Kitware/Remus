@@ -95,6 +95,9 @@ private:
     //information on when the job was marked as scheduled
     boost::posix_time::ptime WorkerDispatchTime;
 
+    bool operator<(const QueuedJob& other) const
+      { return this->Id < other.Id; }
+
   };
 
   struct CountTypes
@@ -126,9 +129,17 @@ private:
     remus::common::MeshIOType type;
   };
 
-  //job queue info
+  //job queue info, sorted by id when items are added so that we can get
+  //a really rough load balancing when we have multiple clients. This
+  //way jobs that come up for new workers are roughly round robin when
+  //the number of jobs per client is similar.
   std::vector<QueuedJob> QueuedJobs;
+
+  //kept in the order that the jobs are added since this is a real queue
+  //we want the priority of queued jobs that have a working incoming to
+  //match the dispatch order
   std::vector<QueuedJob> QueuedJobsForWorkers;
+
   std::set<boost::uuids::uuid> QueuedIds;
 
   //make copying not possible
@@ -145,7 +156,12 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
   const bool can_add = QueuedIds.count(id) == 0;
   if(can_add)
     {
-    this->QueuedJobs.push_back(QueuedJob(id,request));
+    QueuedJob newQueuedJob(id,request);
+    this->QueuedJobs.insert(
+          std::lower_bound( this->QueuedJobs.begin(), this->QueuedJobs.end(),
+                            newQueuedJob ),
+          newQueuedJob);
+    // this->QueuedJobs.push_back(QueuedJob(id,request));
     this->QueuedIds.insert(id);
     }
   return can_add;
