@@ -13,6 +13,7 @@
 #ifndef remus_client_JobStatus_h
 #define remus_client_JobStatus_h
 
+#include <algorithm>
 #include <string>
 #include <sstream>
 
@@ -152,9 +153,9 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
 inline remus::client::JobStatus to_JobStatus(const char* data, int size)
 {
   //the data might contain null terminators which on windows
-  //makes the data,size construct fail, so instead we memcpy
+  //makes the data,size construct fail, so instead we use std::copy
   std::string temp(size,char());
-  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  std::copy( data, data+size, temp.begin() );
   return to_JobStatus( temp );
 }
 

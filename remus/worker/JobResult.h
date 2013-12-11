@@ -13,6 +13,7 @@
 #ifndef remus_worker_JobResult_h
 #define remus_worker_JobResult_h
 
+#include <algorithm>
 #include <string>
 #include <sstream>
 
@@ -86,7 +87,7 @@ inline remus::worker::JobResult to_JobResult(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
   std::string temp(size,char());
-  memcpy(const_cast<char*>(temp.c_str()),data,size);
+  std::copy( data, data+size, temp.begin() );
   return to_JobResult( temp );
 }
 

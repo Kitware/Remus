@@ -13,6 +13,7 @@
 #ifndef __remus_common_zeroHelper_h
 #define __remus_common_zeroHelper_h
 
+#include <algorithm>
 #include <cstddef>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
@@ -32,7 +33,7 @@ struct socketIdentity
   socketIdentity(const char* data, std::size_t size):
     Size(size)
     {
-    memcpy(Data,data,size);
+    std::copy(data,data+size,Data);
     }
 
   socketIdentity():
@@ -80,7 +81,9 @@ inline std::string to_string(const zmq::socketIdentity& add)
 inline bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
 {
   zmq::message_t message(address.size());
-  memcpy(message.data(), address.data(), address.size());
+  std::copy(address.data(),
+            address.data()+address.size(),
+            static_cast<unsigned char*>(message.data()));
   return socket.send(message);
 }
 
