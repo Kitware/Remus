@@ -30,30 +30,40 @@ struct MeshIOType
 
   //construct an invalid mesh type
   MeshIOType():
-    combined_type(0)
+    CombinedType(0)
     {}
 
   MeshIOType(remus::MESH_INPUT_TYPE in, remus::MESH_OUTPUT_TYPE out)
     {
-    Both.input = in;
-    Both.output = out;
+    //set combined to out
+    this->CombinedType = out;
+    this->CombinedType <<= 16; //shift out to the upper 16 bits
+    this->CombinedType += in; //now set the lower 16 bits to the value in
     }
 
-  boost::uint32_t type() const { return combined_type; }
+  boost::uint32_t type() const { return CombinedType; }
+
   remus::MESH_INPUT_TYPE inputType() const
-    { return static_cast<remus::MESH_INPUT_TYPE>(this->Both.input); }
+    {
+    const boost::uint32_t input = this->CombinedType & 0xFFFF;
+    return static_cast<remus::MESH_INPUT_TYPE>(input);
+    }
+
   remus::MESH_OUTPUT_TYPE outputType() const
-    { return static_cast<remus::MESH_OUTPUT_TYPE>(this->Both.output); }
+    {
+    const boost::uint32_t output = (this->CombinedType & (0xFFFF << 16)) >> 16;
+    return static_cast<remus::MESH_OUTPUT_TYPE>(output);
+    }
 
   //since zero for input and out is invalid a combined value of
   //zero for the full int32 is also invalid
-  bool valid() const { return combined_type != 0; }
+  bool valid() const { return CombinedType != 0; }
 
   //needed to see if a client request type and a workers type are equal
-  bool operator ==(const MeshIOType& b) const { return combined_type == b.combined_type; }
+  bool operator ==(const MeshIOType& b) const { return CombinedType == b.CombinedType; }
 
   //needed to properly store mesh types into stl containers
-  bool operator <(const MeshIOType& b) const { return combined_type < b.combined_type; }
+  bool operator <(const MeshIOType& b) const { return CombinedType < b.CombinedType; }
 
   //needed to encode the object on the wire
   friend std::ostream& operator<<(std::ostream &os, const MeshIOType &ctype)
@@ -65,18 +75,12 @@ struct MeshIOType
   //needed to decode the object from the wire
   friend std::istream& operator>>(std::istream &is, MeshIOType &ctype)
     {
-    is >> ctype.combined_type;
+    is >> ctype.CombinedType;
     return is;
     }
 
 protected:
-  union {
-    boost::uint32_t combined_type;
-    struct {
-      boost::uint16_t input;
-      boost::uint16_t output;
-      } Both;
-  };
+  boost::uint32_t CombinedType;
 };
 
 
