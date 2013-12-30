@@ -1,6 +1,8 @@
 ##Remus: A Guide to the Client Code##
 
 
+The client API resolves
+
 How do we formulate the names??
 
 where each JobRequirements holds the worker id that the reqs apply to
