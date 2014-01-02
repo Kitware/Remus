@@ -94,8 +94,8 @@ remus::client::ServerConnection make_ServerConnection(const std::string& dest)
                                               host_end_pos);
 
           const std::string::size_type port_len = dest.size() - host_end_pos;
-          int port = boost::lexical_cast<int>(dest.data()+host_end_pos+1,
-                                              port_len);
+          const std::string temp_port(dest, host_end_pos+1, port_len );
+          int port = boost::lexical_cast<int>(temp_port);
 
           zmq::socketInfo<zmq::proto::tcp> socket(host_name,port);
           connection = remus::client::ServerConnection(socket);
