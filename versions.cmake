@@ -24,9 +24,10 @@ if( NOT WIN32)
     )
 
 elseif(WIN32)
+  #windows uses the custom cmake build of zeroMQ
   add_revision(zeroMQ
-    URL "http://download.zeromq.org/zeromq-2.2.0.zip"
-    URL_MD5 f95b6451b10fdd1416848bb3118c8380)
+    GIT_REPOSITORY https://github.com/robertmaynard/zeromq2-x
+    GIT_TAG master)
 
   add_revision(boost
     URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.zip/download"

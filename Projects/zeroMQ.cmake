@@ -25,6 +25,8 @@ endif()
 
 add_external_project(zeroMQ
   CONFIGURE_COMMAND <SOURCE_DIR>/configure
+    --enable-shared
+    --disable-static
     --prefix=${zero_install_dir}
   BUILD_IN_SOURCE 1
 )
