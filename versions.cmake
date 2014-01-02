@@ -13,15 +13,14 @@ add_revision(remus
   GIT_REPOSITORY "git://public.kitware.com/Remus.git"
   GIT_TAG "master")
 
+add_revision(boost
+  URL "http://www.paraview.org/files/dependencies/boost_1_50_0.tar.gz"
+  URL_MD5 dbc07ab0254df3dda6300fd737b3f264)
+
 if( NOT WIN32)
   add_revision(zeroMQ
     URL "http://download.zeromq.org/zeromq-2.2.0.tar.gz"
     URL_MD5 1b11aae09b19d18276d0717b2ea288f6)
-
-  add_revision(boost
-    URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz/download"
-    URL_MD5 e0defc8c818e4f1c5bbb29d0292b76ca
-    )
 
 elseif(WIN32)
   #windows uses the custom cmake build of zeroMQ
@@ -29,8 +28,4 @@ elseif(WIN32)
     GIT_REPOSITORY https://github.com/robertmaynard/zeromq2-x
     GIT_TAG master)
 
-  add_revision(boost
-    URL "http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.zip/download"
-    URL_MD5 854dcbbff31b896c85c38247060b7713
-    )
 endif()

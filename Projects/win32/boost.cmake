@@ -21,27 +21,34 @@ string(REPLACE " " "\\ " boost_build_dir ${CMAKE_CURRENT_BINARY_DIR}/boost/src/b
 #handle escaping the spaces. I have no clue why boost is
 #such a mess on support for directories with spaces in the name
 
+if(MSVC)
+  if(MSVC11)
+    set(msvc_version "msvc-11.0")
+  elseif(MSVC10)
+    set(msvc_version "msvc-10.0")
+  elseif(MSVC90)
+    set(msvc_version "msvc-9.0")
+  elseif(MSVC80)
+    set(msvc_version "msvc-8.0")
+  endif()
 
-if(MSVC11)
-  set(msvc_version "msvc-11.0")
-elseif(MSVC10)
-  set(msvc_version "msvc-10.0")
-elseif(MSVC90)
-  set(msvc_version "msvc-9.0")
-elseif(MSVC80)
-  set(msvc_version "msvc-8.0")
+  set(boost_cmds
+    CONFIGURE_COMMAND bootstrap.bat
+    BUILD_COMMAND b2 --build-dir=${boost_build_dir} toolset=${msvc_version} address-model=${am} ${boost_with_args}
+    INSTALL_COMMAND b2 toolset=${msvc_version} address-model=${am} ${boost_with_args} --prefix=${install_location} install
+    )
+else()
+  set(boost_cmds
+    CONFIGURE_COMMAND bootstrap.bat
+    BUILD_COMMAND b2 --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args}
+    INSTALL_COMMAND b2 address-model=${am} ${boost_with_args} --prefix=${install_location} install
+    )
 endif()
 
-set(boost_cmds
-  CONFIGURE_COMMAND bootstrap.bat
-  BUILD_COMMAND b2 --build-dir=${boost_build_dir} toolset=${msvc_version} address-model=${am} ${boost_with_args}
-  INSTALL_COMMAND b2 toolset=${msvc_version} address-model=${am} ${boost_with_args} --prefix=${install_location} install
-  )
-
-add_external_project(boost
-  ${boost_cmds}
-  BUILD_IN_SOURCE 1
-  )
+  add_external_project(boost
+    ${boost_cmds}
+    BUILD_IN_SOURCE 1
+    )
 
   #install header files
   ExternalProject_Add_Step(boost fixBoostInstallStage1
