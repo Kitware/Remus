@@ -1,7 +1,6 @@
 
 #Use the CMake'd zermMQ for windows, it isn't ready for linux/osx yet
 add_external_project(zeroMQ
-  DEPENDS boost
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS=ON
   )
