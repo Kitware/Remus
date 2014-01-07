@@ -40,7 +40,7 @@ int UnitTestServerConnection(int, char *[])
 {
 
   remus::worker::ServerConnection sc;
-  REMUS_ASSERT(sc.endpoint().size() > 0);
+  REMUS_ASSERT((sc.endpoint().size() > 0));
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
