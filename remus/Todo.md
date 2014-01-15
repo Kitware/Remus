@@ -1,12 +1,4 @@
-Remus: A Short Users Guide.
-
-
-## Using the Client API ##
-
-
-## Using the Worker API ##
-
-Todo:
+## Todo: ##
 
 1. Add a server test where we verify the throughput of the server
    using very basic client / worker calls, we should verify that we can
