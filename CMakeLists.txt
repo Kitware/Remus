@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required (VERSION 2.8.12.1)
 project(Remus)
 
 # include some cmake code that builds automatic header tests

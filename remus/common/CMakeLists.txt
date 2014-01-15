@@ -21,9 +21,8 @@ target_link_libraries(RemusCommon
                       LINK_PUBLIC ${ZeroMQ_LIBRARIES}
                       LINK_PRIVATE sysTools
                       )
-
 target_include_directories(RemusCommon
-                           PUBLIC  ${ZeroMQ_INCLUDE_DIR} ${Boost_INCLUDE_DIRS}
+                           PUBLIC  ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
                            PRIVATE ${sysTools_BINARY_DIR} )
 
 #create the export header symbol exporting
