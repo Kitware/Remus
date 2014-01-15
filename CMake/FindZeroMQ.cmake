@@ -22,7 +22,7 @@ find_path(ZeroMQ_ROOT_DIR
     NAMES include/zmq.hpp
 )
 
-find_library(ZeroMQ_LIBRARIES
+find_library(ZeroMQ_LIBRARY
     NAMES zmq libzmq
     HINTS ${ZeroMQ_ROOT_DIR}/lib
 )
@@ -38,8 +38,11 @@ find_package_handle_standard_args(ZeroMQ DEFAULT_MSG
     ZeroMQ_INCLUDE_DIR
 )
 
+set(ZeroMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
+set(ZeroMQ_LIBRARIES ${ZeroMQ_LIBRARY})
+
 mark_as_advanced(
     ZeroMQ_ROOT_DIR
-    ZeroMQ_LIBRARIES
+    ZeroMQ_LIBRARY
     ZeroMQ_INCLUDE_DIR
 )
