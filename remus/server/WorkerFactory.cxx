@@ -316,7 +316,7 @@ bool WorkerFactory::addWorker(const std::string& executable,
     }
   else
     {
-    ep->execute( remus::common::ExecuteProcess::NotDetached );
+    ep->execute( remus::common::ExecuteProcess::Attached );
     }
 
   remus::server::WorkerFactory::RunningProcessInfo p_info(ep,lifespan);

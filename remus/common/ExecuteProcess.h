@@ -53,7 +53,7 @@ public:
   enum DetachMode
   {
     Detached,
-    NotDetached
+    Attached
   };
 
   ExecuteProcess(const std::string& command, const std::vector<std::string>& args);
