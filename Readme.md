@@ -10,8 +10,9 @@ meshing to happen on remote machines using a basic client, server, worker design
 ## Using the Client API ##
 
 The client interface for remus revolves around the ```remus::Client``` class.
-The remus client class connects to a single remus server and is uses blocking
-communication patterns. All data passed between the client and server is
+The client uses a request reply strategy with the server, and each call
+on the client will block while it waits for a response from the server.
+All data passed between the client and server is
 wrapped in ```remus::client::Job*``` classes.
 
 ### Server Connection ###
@@ -26,7 +27,7 @@ remus::client::ServerConnection conn;
 remus::Client client(conn);
 ```
 
-You can also explicitly state the machine name and port explicitly
+You can also explicitly state the machine name and port
 ```cpp
 remus::client::ServerConnection conn("meshing_host", 8080);
 ```
@@ -72,6 +73,87 @@ if(client.canMesh(request))
 ```
 
 ## Using the Worker API ##
+
+The worker interface for remus revolves around the ```remus::Worker``` class.
+The worker uses an asynchronous strategy where the worker pushes information to the
+server and doesn't wait for a response. Between these messages the worker
+is sending heartbeat messages to the server, these allow the server to monitor
+workers and be able to inform client when workers crash. The only worker
+message that is blocking is the ```getJob``` method since it waits on the
+server to send back a job to process. All data passed between the worker and server is
+wrapped in ```remus::worker::Job*``` classes.
+
+
+### Server Connection ###
+The first step is to construct a connection to the server. This is done by
+constructing a ```ServerConnection```.
+
+```cpp
+//create a default server connection
+remus::worker::ServerConnection conn;
+
+//create a worker object that will connect to the default remus server
+//with a input model type and an output mesh3d type
+remus::Worker worker(remus::common::MeshIOType(remus::MODEL,remus::MESH3D),
+                     conn);
+```
+
+You can also explicitly state the machine name and port
+```cpp
+remus::worker::ServerConnection conn("meshing_host", 8080);
+```
+
+### Communication with Server ###
+
+The communication flow between the worker and server is very simple.
+The process can be broken into 3 major steps. Those steps are:
+
+- Get a Job
+  ```remus::worker::Job getJob()```
+- Send Job Status
+  ```void updateStatus(const remus::worker::JobStatus& info)```
+- Send Job Results
+  ```void returnMeshResults(const remus::worker::JobResult& result)```
+
+Lets put this all together and show how to get a job from the server,
+send back some status, and than a result
+
+```cpp
+
+remus::worker::Job j = worker.getJob();
+remus::worker::JobStatus status(j.id(),remus::IN_PROGRESS);
+
+for(int progress=0; progress < 100; progress+=10)
+  {
+  status.Progress.setValue(progress+1);
+  status.Progress.setMessage("Example Message With Random Content");
+  worker.updateStatus(status);
+  }
+
+remus::worker::JobResult results(j.id(),"HELLO CLIENT");
+worker.returnMeshResults(results);
+
+```
+
+### Calling an External Program ###
+
+A common occurrence for a worker is the need to call some external
+command line program. Luckily Remus has built in support for executing processes.
+
+```
+using remus::common::ExecuteProcess;
+using remus::common::ProcessPipe;
+
+ExecuteProcess lsProcess("ls");
+lsProcess.execute(ExecuteProcess::Attached);
+
+ProcessPipe data = this->OmicronProcess->poll(-1);
+if(data.type == ProcessPipe::STDOUT)
+  {
+  std::cout << data.text << std::endl;
+  }
+```
+
 
 
 ## Developer Notes ##
