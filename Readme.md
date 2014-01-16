@@ -1,6 +1,4 @@
-Remus: A Short Users Guide.
-
-# Goal #
+# Remus: A Short Users Guide. #
 
 Remus goal is to make meshing 2 and 3 dimensional meshes easy.
 This is done by insulating your program from the instability and licenses of the
