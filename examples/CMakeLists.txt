@@ -5,6 +5,7 @@ add_subdirectory(BasicServer)
 add_subdirectory(InfiniteWorker)
 add_subdirectory(InteractiveClient)
 add_subdirectory(NoWorkerServer)
+add_subdirectory(nuclear)
 
 #===============================================================================
 # Now optional build full workers for real mesh libraries
