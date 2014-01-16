@@ -21,8 +21,8 @@ namespace
   const remus::common::ExecuteProcess::DetachMode detached =
       remus::common::ExecuteProcess::Detached;
 
-  const remus::common::ExecuteProcess::DetachMode not_detached =
-      remus::common::ExecuteProcess::NotDetached;
+  const remus::common::ExecuteProcess::DetachMode attached =
+      remus::common::ExecuteProcess::Attached;
 }
 
 int UnitTestExecuteProcess(int, char *[])
@@ -45,7 +45,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.kill());
 
   //start the process in non-detached mode
-  example.execute(not_detached);
+  example.execute(attached);
 
   //validate the program is running, and than terminate it
   REMUS_ASSERT(example.isAlive());
@@ -80,7 +80,7 @@ int UnitTestExecuteProcess(int, char *[])
   remus::common::ExecuteProcess example(eapp.name, args );
 
   //start the process in non detached-mode
-  example.execute(not_detached);
+  example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
   //wait for the example program to close itself
@@ -152,7 +152,7 @@ int UnitTestExecuteProcess(int, char *[])
 
 
   //start the process in non-detached mode, and test polling
-  example.execute(not_detached);
+  example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
@@ -211,7 +211,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(example.kill());
 
   //start the process in non-detached mode
-  example.execute(not_detached);
+  example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
   //try polling for different lengths of time
