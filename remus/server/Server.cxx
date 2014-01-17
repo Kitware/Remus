@@ -266,11 +266,17 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
 //------------------------------------------------------------------------------
 bool Server::canMesh(const remus::common::Message& msg)
 {
-  //ToDo: add registration of mesh type
-  //how is a generic worker going to register its type? static method?
-  bool haveSupport = this->WorkerFactory.haveSupport(msg.MeshIOType());
-  haveSupport = haveSupport || this->WorkerPool->haveWaitingWorker(msg.MeshIOType());
-  return haveSupport;
+  //we state that the factory can support a mesh type by having a worker
+  //registered to it that supports the mesh type, and the worker factory
+  //also has the ability to create workers
+  bool factorySupportsType =
+                    this->WorkerFactory.haveSupport(msg.MeshIOType()) &&
+                    this->WorkerFactory.maxWorkerCount() > 0;
+
+  //if the current worker pool has a worker connected
+  bool workerPoolSupportsType =
+                    this->WorkerPool->haveWaitingWorker(msg.MeshIOType());
+  return factorySupportsType || workerPoolSupportsType;
 }
 
 //------------------------------------------------------------------------------
