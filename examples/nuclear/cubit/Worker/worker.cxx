@@ -74,18 +74,29 @@ void worker::jobFailed(const remus::worker::Job& job)
 void worker::launchProcess(const CubitInput& job)
 {
   cleanlyExit();
+  //save the current path
+  boost::filesystem::path cwd = boost::filesystem::current_path();
+
+  //Run in the output file incase of relative locations
+  boost::filesystem::path filePath = boost::filesystem::absolute(job.getInputFile());
+  boost::filesystem::current_path(filePath.parent_path());
+
   std::cout << "RUNNING " << job.getExecutablePath() << " " << job.getInputFile() << std::endl;
   //make a cleaned up path with no relative
   boost::filesystem::path executePath =
       boost::filesystem::absolute(job.getExecutablePath());
   std::vector<std::string> args;
   args.push_back(job.getInputFile());
+  args.push_back("-nographics");
+  args.push_back("-batch");
   this->Process =
       new remus::common::ExecuteProcess( executePath.string(), args);
 
   //actually launch the new process
-  this->Process->execute(remus::common::ExecuteProcess::Detached);
+  this->Process->execute(remus::common::ExecuteProcess::Attached);
 
+  //move back to the proper directory
+  boost::filesystem::current_path(cwd);
 }
 
 void worker::cleanlyExit()
