@@ -2,11 +2,13 @@ project(Remus_Common)
 
 set(headers
   ExecuteProcess.h
-  Message.h
   MeshIOType.h
+  MeshRegistrar.h
+  MeshTypes.h
+  Message.h
+  remusGlobals.h
   Response.h
   SignalCatcher.h
-  remusGlobals.h
   zmq.hpp
   zmqHelper.h
   zmqTraits.h
@@ -14,6 +16,7 @@ set(headers
 
 set(common_srcs
   ExecuteProcess.cxx
+  MeshRegistrar.cxx
   )
 
 add_library(RemusCommon ${common_srcs} ${headers})

@@ -71,8 +71,8 @@ public:
   //and output type as a single integer
   remus::common::MeshIOType type() const { return this->CombinedType; }
 
-  remus::MESH_OUTPUT_TYPE outputType() const { return CombinedType.outputType(); }
-  remus::MESH_INPUT_TYPE inputType() const { return CombinedType.inputType(); }
+  boost::uint32_t outputType() const { return CombinedType.outputType(); }
+  boost::uint32_t inputType() const { return CombinedType.inputType(); }
   const std::string& jobInfo() const { return JobInfo; }
 
 private:

@@ -39,7 +39,7 @@ void dumpMeshInputInfo(remus::Client &client, remus::MESH_OUTPUT_TYPE outType)
   RequestVector requests = AllJobTypeCombinations[outType];
   for(RequestIt i=requests.begin(); i != requests.end(); ++i)
     {
-    std::cout << "\t " << remus::to_string( (*i).inputType() ) << ": "
+    std::cout << "\t " << (*i).inputType() << ": "
               << client.canMesh(*i) << std::endl;
     }
   std::cout << std::endl;
@@ -117,8 +117,8 @@ void submitJob(remus::Client& client)
   std::cout << "Job Submitted, info is: " << std::endl;
   std::cout << "Job Valid: " << job.valid() << std::endl;
   std::cout << "Job Id: " << job.id() << std::endl;
-  std::cout << "Job Input Type: " << remus::to_string(job.type().inputType()) << std::endl;
-  std::cout << "Job Output Type: " << remus::to_string(job.type().outputType()) << std::endl;
+  std::cout << "Job Input Type: " << job.type().inputType() << std::endl;
+  std::cout << "Job Output Type: " << job.type().outputType() << std::endl;
   return;
 }
 
