@@ -24,6 +24,9 @@
 
 //included for symbol exports
 #include <remus/server/ServerExports.h>
+#include <boost/thread/mutex.hpp>
+
+namespace boost { class thread; }
 
 namespace remus {
   //forward declaration of classes only the implementation needs
@@ -54,6 +57,7 @@ namespace server{
 class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
+  enum SignalHandling {NONE, CAPTURE};
   //construct a new server using the default worker factory
   //and default loopback ports
   Server();
@@ -76,7 +80,11 @@ public:
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
-  virtual bool startBrokering();
+  virtual bool startBrokering(SignalHandling sh = CAPTURE);
+  //Calls startBrokering in a new thread.  This is a non-blocking function.
+  bool startBrokeringThreaded(SignalHandling sh = CAPTURE);
+
+  void waitForBrokeringToFinish();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
@@ -130,6 +138,10 @@ protected:
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;
+
+  boost::thread* ServerThread;
+  boost::mutex ServerMutex;
+  boost::mutex BrockeringStartMutex;
 };
 
 }
