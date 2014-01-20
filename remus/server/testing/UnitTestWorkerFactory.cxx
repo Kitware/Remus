@@ -19,6 +19,8 @@
 
 namespace {
 
+using namespace remus::meshtypes;
+
 void test_factory_constructors()
 {
   //verify that all the constructors exist, and behave in the
@@ -68,19 +70,21 @@ void test_factory_worker_finder()
 
   //we should only support raw_edges and mesh2d, otherwise the rest
   //should return false
-  remus::common::MeshIOType raw_edges(remus::RAW_EDGES,remus::MESH2D);
+  remus::common::MeshIOType raw_edges((Edges()),(Mesh2D()));
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 
-  //lets test the rest of the types
-  for(remus::MESH_INPUT_TYPE input_type = remus::INVALID_MESH_IN;
-      input_type != remus::NUM_MESH_INPUT_TYPES;
-      input_type = remus::MESH_INPUT_TYPE((int)input_type+1))
+
+  //what really we need are iterators to the mesh registrar
+  const std::size_t num_mesh_types =
+                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+
+  for(int input_type = 1; input_type < num_mesh_types+1; ++input_type)
     {
-    for(remus::MESH_OUTPUT_TYPE output_type = remus::INVALID_MESH_OUT;
-        output_type != remus::NUM_MESH_OUTPUT_TYPES;
-        output_type = remus::MESH_OUTPUT_TYPE((int)output_type+1))
+    for(int output_type = 1; output_type < num_mesh_types+1; ++output_type)
       {
-      remus::common::MeshIOType io_type(input_type,output_type);
+      remus::common::MeshIOType io_type(
+          remus::meshtypes::to_meshType(input_type),
+          remus::meshtypes::to_meshType(output_type));
       bool valid = f_def.haveSupport(io_type);
       //only when io_type equals
       REMUS_ASSERT( (valid == (io_type == raw_edges) ) )
@@ -102,7 +106,7 @@ void test_factory_worker_launching()
 
   //we should only support raw_edges and mesh2d, otherwise the rest
   //should return false
-  remus::common::MeshIOType raw_edges(remus::RAW_EDGES,remus::MESH2D);
+  remus::common::MeshIOType raw_edges((Edges()),(Mesh2D()));
 
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 

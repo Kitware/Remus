@@ -18,14 +18,10 @@
 
 namespace {
 
-const remus::common::MeshIOType worker_type2D(remus::RAW_EDGES,
-                                              remus::MESH2D);
-
-const remus::common::MeshIOType worker_type3D(remus::RAW_EDGES,
-                                               remus::MESH3D);
-
-const remus::common::MeshIOType worker_type1D(remus::RAW_EDGES,
-                                               remus::MESH1D);
+using namespace remus::meshtypes;
+const remus::common::MeshIOType worker_type1D( (Edges()), (Mesh1D()) );
+const remus::common::MeshIOType worker_type2D( (Edges()), (Mesh2D()) );
+const remus::common::MeshIOType worker_type3D( (Edges()), (Mesh3D()) );
 
 boost::uuids::random_generator generator;
 
@@ -37,10 +33,11 @@ boost::uuids::uuid make_id()
 }
 
 //make a random JobRequest
-remus::client::JobRequest make_jobRequest(remus::MESH_INPUT_TYPE in,
-                                          remus::MESH_OUTPUT_TYPE out)
+template<typename T, typename U>
+remus::client::JobRequest make_jobRequest(const T& t,
+                                          const U& u)
 {
-  return remus::client::JobRequest( remus::common::MeshIOType(in,out) );
+  return remus::client::JobRequest( remus::common::MeshIOType(t,u) );
 }
 
 
@@ -52,8 +49,7 @@ void verify_add_remove_jobs()
   std::vector< boost::uuids::uuid > uuids_used;
   for(int i=0; i < 7; ++i) { uuids_used.push_back(make_id()); }
 
-  remus::client::JobRequest jobReq =
-                            make_jobRequest(remus::RAW_EDGES,remus::MESH3D);
+  remus::client::JobRequest jobReq = make_jobRequest(Edges(),Mesh3D());
 
   REMUS_ASSERT( (queue.addJob( uuids_used[0], jobReq ) == true) );
 
@@ -69,9 +65,9 @@ void verify_add_remove_jobs()
   queue.addJob( uuids_used[2], jobReq );
   queue.addJob( uuids_used[3], jobReq );
 
-  queue.addJob( uuids_used[4], make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
-  queue.addJob( uuids_used[5], make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
-  queue.addJob( uuids_used[6], make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
+  queue.addJob( uuids_used[4], make_jobRequest(Edges(),Mesh2D()) );
+  queue.addJob( uuids_used[5], make_jobRequest(Edges(),Mesh2D()) );
+  queue.addJob( uuids_used[6], make_jobRequest(Edges(),Mesh2D()) );
 
   REMUS_ASSERT( (queue.queuedJobTypes().size() == 2) );
   REMUS_ASSERT( (queue.queuedJobTypes().count(worker_type2D) == 1) );
@@ -106,8 +102,7 @@ void verify_dispatch_jobs()
   remus::server::detail::JobQueue queue;
 
   const boost::uuids::uuid j_id = make_id();
-  remus::client::JobRequest jobReq =
-                              make_jobRequest(remus::RAW_EDGES,remus::MESH3D);
+  remus::client::JobRequest jobReq = make_jobRequest(Edges(),Mesh3D());
 
   queue.addJob( j_id, jobReq );
 
@@ -120,9 +115,9 @@ void verify_dispatch_jobs()
   queue.addJob( make_id(), jobReq );
   queue.addJob( make_id(), jobReq );
 
-  queue.addJob( make_id(), make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
-  queue.addJob( make_id(), make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
-  queue.addJob( make_id(), make_jobRequest(remus::RAW_EDGES,remus::MESH2D) );
+  queue.addJob( make_id(), make_jobRequest(Edges(),Mesh2D()) );
+  queue.addJob( make_id(), make_jobRequest(Edges(),Mesh2D()) );
+  queue.addJob( make_id(), make_jobRequest(Edges(),Mesh2D()) );
 
   REMUS_ASSERT( (queue.queuedJobTypes().size() == 2) );
   REMUS_ASSERT( (queue.queuedJobTypes().count(worker_type2D) == 1) );

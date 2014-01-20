@@ -23,8 +23,8 @@ set(testing_workers
     )
 
 remus_register_unit_test_worker(EXEC_NAME TestWorker
-                                INPUT_TYPE  "RAW EDGES"
-                                OUTPUT_TYPE "2D"
+                                INPUT_TYPE  "Edges"
+                                OUTPUT_TYPE "Mesh2D"
                                 CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
                                 FILE_EXT   "tst")
 
