@@ -56,6 +56,10 @@ public:
     MeshRegistrar::registrate(d.name(), d.id(), &D::create);
     }
 
+  static std::size_t numberOfRegisteredTypes() {
+    return NameRegistry().size();
+  }
+
   static ReturnType instantiate(std::string const & name)
     {
     boost::unordered_map<std::string,

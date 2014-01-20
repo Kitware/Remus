@@ -29,6 +29,7 @@ namespace
   void RegisterTextMeshType()
     {
     remus::common::MeshRegistrar a( (TextMeshType()) );
+    REMUS_ASSERT( (remus::common::MeshRegistrar::numberOfRegisteredTypes() > 1) );
     }
 
   template<typename T>
