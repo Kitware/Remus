@@ -24,9 +24,6 @@
 
 //included for symbol exports
 #include <remus/server/ServerExports.h>
-#include <boost/thread/mutex.hpp>
-
-namespace boost { class thread; }
 
 namespace remus {
   //forward declaration of classes only the implementation needs
@@ -48,6 +45,7 @@ namespace server{
     class JobQueue;
     class WorkerPool;
     }
+  struct ThreadImpl;
 
 //Server is the broker of Remus. It handles accepting client
 //connections, worker connections, and manages the life cycle of submitted jobs.
@@ -139,9 +137,7 @@ protected:
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;
 
-  boost::thread* ServerThread;
-  boost::mutex ServerMutex;
-  boost::mutex BrockeringStartMutex;
+  ThreadImpl * Thread;
 };
 
 }
