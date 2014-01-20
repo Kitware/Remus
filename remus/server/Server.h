@@ -44,7 +44,9 @@ namespace server{
     class ActiveJobs;
     class JobQueue;
     class WorkerPool;
+    struct ThreadImpl;
     }
+
 
 //Server is the broker of Remus. It handles accepting client
 //connections, worker connections, and manages the life cycle of submitted jobs.
@@ -54,6 +56,7 @@ namespace server{
 class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
+  enum SignalHandling {NONE, CAPTURE};
   //construct a new server using the default worker factory
   //and default loopback ports
   Server();
@@ -69,14 +72,18 @@ public:
   //construct a new server using the given loop back ports
   //and the default factory
   Server(remus::server::ServerPorts ports,
-                  const remus::server::WorkerFactory& factory);
+         const remus::server::WorkerFactory& factory);
 
   //cleanup the server
   virtual ~Server();
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
-  virtual bool startBrokering();
+  virtual bool startBrokering(SignalHandling sh = CAPTURE);
+  //Calls startBrokering in a new thread.  This is a non-blocking function.
+  bool startBrokeringThreaded(SignalHandling sh = CAPTURE);
+
+  void waitForBrokeringToFinish();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
@@ -127,9 +134,12 @@ protected:
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
+  boost::scoped_ptr<detail::ThreadImpl> Thread;
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;
+
+
 };
 
 }

@@ -1,4 +1,4 @@
-//=============================================================================
+  //=============================================================================
 //
 //  Copyright (c) Kitware, Inc.
 //  All rights reserved.
@@ -12,6 +12,7 @@
 
 #include <remus/server/Server.h>
 
+#include <boost/thread.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -55,6 +56,73 @@ void make_terminateJob(remus::common::Response& response,
   response.setData(remus::worker::to_string(terminateJob));
 }
 
+struct ThreadImpl
+{
+  boost::thread* ServerThread;
+  boost::mutex ServerMutex;
+  boost::mutex BrokeringStartMutex;
+  ThreadImpl():
+    ServerThread(),
+    ServerMutex(),
+    BrokeringStartMutex()
+  {
+  }
+
+  ~ThreadImpl()
+  {
+  if(this->ServerThread != NULL)
+    {
+    this->ServerThread->interrupt(); //Unlocks
+    delete this->ServerThread;
+    this->ServerThread = NULL;
+    }
+  }
+
+  void lockServer()
+  {
+  this->ServerMutex.lock();
+  this->BrokeringStartMutex.unlock();
+  }
+
+  void unlockServer()
+  {
+  this->ServerMutex.unlock();
+  }
+
+
+  bool start(remus::server::Server* server,
+             remus::server::Server::SignalHandling sigHandleState)
+  {
+  this->BrokeringStartMutex.lock();
+  this->ServerThread =
+          new boost::thread(&Server::startBrokering, server, sigHandleState);
+  return this->ServerThread != NULL;
+  }
+
+  void stop()
+  {
+  this->BrokeringStartMutex.lock();
+  if(this->ServerThread != NULL)
+    {
+    this->ServerThread->interrupt(); //Unlocks
+    delete this->ServerThread;
+    this->ServerThread = NULL;
+    }
+  this->BrokeringStartMutex.unlock();
+  }
+
+  void wait()
+  {
+  //Wait until brokering gets a chance to start
+  this->BrokeringStartMutex.lock();
+  this->BrokeringStartMutex.unlock();
+  this->ServerMutex.lock();           //Wait for brokering to finish
+  this->ServerMutex.unlock();         //Allow delete to proceed
+  }
+
+};
+
+
 }
 }
 }
@@ -71,6 +139,7 @@ Server::Server():
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(),
   PortInfo() //use default loopback ports
   {
@@ -90,6 +159,7 @@ Server::Server(const remus::server::WorkerFactory& factory):
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(factory),
   PortInfo()
   {
@@ -109,6 +179,7 @@ Server::Server(remus::server::ServerPorts ports):
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(),
   PortInfo(ports)
   {
@@ -129,6 +200,7 @@ Server::Server(remus::server::ServerPorts ports,
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(factory),
   PortInfo(ports)
   {
@@ -147,79 +219,112 @@ Server::~Server()
   this->TerminateAllWorkers();
 
   this->StopCatchingSignals();
+  this->Thread->stop();
 }
 
 //------------------------------------------------------------------------------
-bool Server::startBrokering()
+bool Server::startBrokering(Server::SignalHandling sh)
   {
+  this->Thread->lockServer();
+
   //start up signal catching before we start polling. We do this in the
   //startBrokering method since really the server isn't doing anything before
   //this point.
-  this->StartCatchingSignals();
+  switch (sh)
+    {
+    case CAPTURE:
+        this->StartCatchingSignals();
+        break;
+    case NONE:
+        //do nothing
+        break;
+    }
 
   zmq::pollitem_t items[2] = {
       { this->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
   //  Process messages from both sockets
-  while (true)
+  try
     {
-    zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
-    // std::cout << "p" << std::endl;
-    const boost::posix_time::ptime hbTime =
-                          boost::posix_time::second_clock::local_time();
-    if (items[0].revents & ZMQ_POLLIN)
+    while (true)
       {
-      //we need to strip the client address from the message
-      zmq::socketIdentity clientIdentity = zmq::address_recv(this->ClientQueries);
+      boost::this_thread::interruption_point();
+      zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
+      // std::cout << "p" << std::endl;
+      const boost::posix_time::ptime hbTime =
+                            boost::posix_time::second_clock::local_time();
+      if (items[0].revents & ZMQ_POLLIN)
+        {
+        //we need to strip the client address from the message
+        zmq::socketIdentity clientIdentity = zmq::address_recv(this->ClientQueries);
 
-      //Note the contents of the message isn't valid
-      //after the DetermineJobQueryResponse call
-      remus::common::Message message(this->ClientQueries);
-      this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
+        //Note the contents of the message isn't valid
+        //after the DetermineJobQueryResponse call
+        remus::common::Message message(this->ClientQueries);
+        this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
 
-      // std::cout << "c" << std::endl;
+        // std::cout << "c" << std::endl;
+        }
+      if (items[1].revents & ZMQ_POLLIN)
+        {
+        //a worker is registering
+        //we need to strip the worker address from the message
+        zmq::socketIdentity workerIdentity = zmq::address_recv(this->WorkerQueries);
+
+        //Note the contents of the message isn't valid
+        //after the DetermineWorkerResponse call
+        remus::common::Message message(this->WorkerQueries);
+        this->DetermineWorkerResponse(workerIdentity,message);
+
+        //refresh all jobs for a given worker with a new expiry time
+        this->ActiveJobs->refreshJobs(workerIdentity);
+
+        //refresh the worker if it is actuall in the pool instead of doing a job
+        this->WorkerPool->refreshWorker(workerIdentity);
+
+        // std::cout << "w" << std::endl;
+        }
+
+      //mark all jobs whose worker haven't sent a heartbeat in time
+      //as a job that failed.
+      this->ActiveJobs->markExpiredJobs(hbTime);
+
+      //purge all pending workers with jobs that haven't sent a heartbeat
+      this->WorkerPool->purgeDeadWorkers(hbTime);
+
+      //see if we have a worker in the pool for the next job in the queue,
+      //otherwise as the factory to generat a new worker to handle that job
+      this->FindWorkerForQueuedJob();
       }
-    if (items[1].revents & ZMQ_POLLIN)
-      {
-      //a worker is registering
-      //we need to strip the worker address from the message
-      zmq::socketIdentity workerIdentity = zmq::address_recv(this->WorkerQueries);
-
-      //Note the contents of the message isn't valid
-      //after the DetermineWorkerResponse call
-      remus::common::Message message(this->WorkerQueries);
-      this->DetermineWorkerResponse(workerIdentity,message);
-
-      //refresh all jobs for a given worker with a new expiry time
-      this->ActiveJobs->refreshJobs(workerIdentity);
-
-      //refresh the worker if it is actuall in the pool instead of doing a job
-      this->WorkerPool->refreshWorker(workerIdentity);
-
-      // std::cout << "w" << std::endl;
-      }
-
-    //mark all jobs whose worker haven't sent a heartbeat in time
-    //as a job that failed.
-    this->ActiveJobs->markExpiredJobs(hbTime);
-
-    //purge all pending workers with jobs that haven't sent a heartbeat
-    this->WorkerPool->purgeDeadWorkers(hbTime);
-
-    //see if we have a worker in the pool for the next job in the queue,
-    //otherwise as the factory to generat a new worker to handle that job
-    this->FindWorkerForQueuedJob();
+    }
+  catch (boost::thread_interrupted const&)
+    {
+    //std::cout << "Server Terminated." << std::endl;
     }
 
-  //this should never be hit, but just incase lets make sure we close
+  //this should only happen with interrupted threads be hit; lets make sure we close
   //down all workers.
   this->TerminateAllWorkers();
 
   this->StopCatchingSignals();
 
+  this->Thread->unlockServer();
+
   return true;
   }
+
+//------------------------------------------------------------------------------
+bool Server::startBrokeringThreaded(SignalHandling sh)
+{
+  return this->Thread->start(this, sh);
+}
+
+//------------------------------------------------------------------------------
+void Server::waitForBrokeringToFinish()
+{
+  this->Thread->wait();
+}
 
 //------------------------------------------------------------------------------
 void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity,
@@ -489,6 +594,8 @@ void Server::FindWorkerForQueuedJob()
 //------------------------------------------------------------------------------
 void Server::SignalCaught( SignalCatcher::SignalType )
 {
+  this->Thread->stop();
+
   //first step is to purge any workers that might have died since
   //the last time we polled. Because just maybe they also died
   //so no point in sending them a kill message now
