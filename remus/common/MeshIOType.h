@@ -90,6 +90,14 @@ protected:
   boost::uint32_t CombinedType;
 };
 
+inline
+remus::common::MeshIOType make_MeshIOType(
+             const remus::meshtypes::MeshTypeBase& in,
+             const remus::meshtypes::MeshTypeBase& out)
+{
+  return remus::common::MeshIOType(in,out);
+}
+
 
 }
 }
