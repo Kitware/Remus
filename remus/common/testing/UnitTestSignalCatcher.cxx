@@ -57,7 +57,7 @@ struct SignalCatcherVerifier : private remus::common::SignalCatcher
   {
   //make sure that the signal we catch is the one we expect to catch
   std::cout << "testing signal " << sig_names[signal] << std::endl;
-  REMUS_ASSERT(this->ExpectedSignal == signal);
+  REMUS_ASSERT( (this->ExpectedSignal == signal) );
   }
 };
 
