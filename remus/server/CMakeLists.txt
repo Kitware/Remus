@@ -17,7 +17,8 @@ set(server_srcs
 add_library(RemusServer ${server_srcs} ${headers})
 target_link_libraries(RemusServer
                       LINK_PUBLIC RemusCommon
-                      LINK_PRIVATE ${Boost_LIBRARIES} )
+                      LINK_PRIVATE ${Boost_LIBRARIES}
+                                   ${CMAKE_THREAD_LIBS_INIT} )
 
 #create the export header symbol exporting
 remus_export_header(RemusServer ServerExports.h)
