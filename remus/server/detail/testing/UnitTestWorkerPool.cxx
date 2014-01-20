@@ -19,11 +19,11 @@
 #include <boost/uuid/random_generator.hpp>
 
 namespace {
-const remus::common::MeshIOType worker_type2D(remus::RAW_EDGES,
-                                            remus::MESH2D);
 
-const remus::common::MeshIOType worker_type3D(remus::RAW_EDGES,
-                                             remus::MESH3D);
+using namespace remus::meshtypes;
+const remus::common::MeshIOType worker_type2D( (Edges()), (Mesh2D()) );
+const remus::common::MeshIOType worker_type3D( (Edges()), (Mesh3D()) );
+
 
 boost::uuids::random_generator generator;
 
@@ -78,15 +78,17 @@ void verify_has_worker_type()
   pool.addWorker(worker1_id, worker_type2D);
   pool.readyForWork(worker1_id);
 
-  for(remus::MESH_INPUT_TYPE input_type = remus::INVALID_MESH_IN;
-    input_type != remus::NUM_MESH_INPUT_TYPES;
-    input_type = remus::MESH_INPUT_TYPE((int)input_type+1))
+  //what really we need are iterators to the mesh registrar
+  const std::size_t num_mesh_types =
+                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+
+  for(int input_type = 1; input_type < num_mesh_types+1; ++input_type)
     {
-    for(remus::MESH_OUTPUT_TYPE output_type = remus::INVALID_MESH_OUT;
-        output_type != remus::NUM_MESH_OUTPUT_TYPES;
-        output_type = remus::MESH_OUTPUT_TYPE((int)output_type+1))
+    for(int output_type = 1; output_type < num_mesh_types+1; ++output_type)
       {
-      remus::common::MeshIOType io_type(input_type,output_type);
+      remus::common::MeshIOType io_type(
+          remus::meshtypes::to_meshType(input_type),
+          remus::meshtypes::to_meshType(output_type));
       bool valid = pool.haveWaitingWorker(io_type);
       //only when io_type equals
       REMUS_ASSERT( (valid == (io_type == worker_type2D) ) )

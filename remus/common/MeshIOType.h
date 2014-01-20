@@ -13,8 +13,8 @@
 #ifndef remus_common_MeshIOType_h
 #define remus_common_MeshIOType_h
 
+#include <remus/common/MeshTypes.h>
 #include <remus/common/remusGlobals.h>
-
 
 namespace remus {
 namespace common {
@@ -33,31 +33,38 @@ struct MeshIOType
     CombinedType(0)
     {}
 
-  MeshIOType(remus::MESH_INPUT_TYPE in, remus::MESH_OUTPUT_TYPE out)
+  MeshIOType(boost::shared_ptr<remus::meshtypes::MeshTypeBase> in,
+             boost::shared_ptr<remus::meshtypes::MeshTypeBase> out)
+    {
+    this->CombinedType = out->id();
+    this->CombinedType <<= 16; //shift out to the upper 16 bits
+    this->CombinedType += in->id(); //now set the lower 16 bits to the value in
+    }
+
+  MeshIOType(const remus::meshtypes::MeshTypeBase& in,
+             const remus::meshtypes::MeshTypeBase& out)
     {
     //set combined to out
-    this->CombinedType = out;
+    this->CombinedType = out.id();
     this->CombinedType <<= 16; //shift out to the upper 16 bits
-    this->CombinedType += in; //now set the lower 16 bits to the value in
+    this->CombinedType += in.id(); //now set the lower 16 bits to the value in
     }
 
   boost::uint32_t type() const { return CombinedType; }
 
-  remus::MESH_INPUT_TYPE inputType() const
+  boost::uint16_t inputType() const
     {
-    const boost::uint32_t input = this->CombinedType & 0xFFFF;
-    return static_cast<remus::MESH_INPUT_TYPE>(input);
+    return this->CombinedType & 0xFFFF;
     }
 
-  remus::MESH_OUTPUT_TYPE outputType() const
+  boost::uint16_t outputType() const
     {
-    const boost::uint32_t output = (this->CombinedType & (0xFFFF << 16)) >> 16;
-    return static_cast<remus::MESH_OUTPUT_TYPE>(output);
+    return (this->CombinedType & (0xFFFF << 16)) >> 16;
     }
 
   //since zero for input and out is invalid a combined value of
   //zero for the full int32 is also invalid
-  bool valid() const { return CombinedType != 0; }
+  bool valid() const { return inputType() != 0 && outputType() !=0; }
 
   //needed to see if a client request type and a workers type are equal
   bool operator ==(const MeshIOType& b) const { return CombinedType == b.CombinedType; }
@@ -82,6 +89,14 @@ struct MeshIOType
 protected:
   boost::uint32_t CombinedType;
 };
+
+inline
+remus::common::MeshIOType make_MeshIOType(
+             const remus::meshtypes::MeshTypeBase& in,
+             const remus::meshtypes::MeshTypeBase& out)
+{
+  return remus::common::MeshIOType(in,out);
+}
 
 
 }

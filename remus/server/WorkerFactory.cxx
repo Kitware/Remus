@@ -13,6 +13,9 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/common/ExecuteProcess.h>
 
+#include <remus/common/MeshIOType.h>
+#include <remus/common/MeshRegistrar.h>
+
 //force to use filesystem version 3
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
@@ -161,10 +164,6 @@ public:
       getline(f,outputMeshIOType);
       getline(f,mesherName);
 
-      //convert from string to the proper types
-      remus::MESH_INPUT_TYPE itype = remus::to_meshInType(inputFileType);
-      remus::MESH_OUTPUT_TYPE otype = remus::to_meshOutType(outputMeshIOType);
-
       boost::filesystem::path mesher_path(mesherName);
 
       //try the mesherName as an absolute path, if that isn't
@@ -183,7 +182,10 @@ public:
         {
         //convert the mesher_path into an absolute canonical path now
         mesher_path = boost::filesystem::canonical(mesher_path);
-        remus::common::MeshIOType combinedType(itype,otype);
+        remus::common::MeshIOType combinedType(
+                               remus::meshtypes::to_meshType(inputFileType),
+                               remus::meshtypes::to_meshType(outputMeshIOType)
+                               );
         this->Info.push_back(MeshWorkerInfo(combinedType,
                                             mesher_path.string()));
         }

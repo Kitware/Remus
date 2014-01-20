@@ -26,9 +26,11 @@ int main (int argc, char* argv[])
     connection = remus::worker::make_ServerConnection(std::string(argv[1]));
     }
 
-  remus::common::MeshIOType requirements(remus::RAW_EDGES,remus::MESH2D);
-  remus::Worker w(requirements,connection);
+  remus::common::MeshIOType requirements =
+                    remus::common::make_MeshIOType(remus::meshtypes::Edges(),
+                                                   remus::meshtypes::Mesh2D());
 
+  remus::Worker w(requirements,connection);
   remus::worker::Job jd = w.getJob();
 
   remus::worker::JobStatus status(jd.id(),remus::IN_PROGRESS);

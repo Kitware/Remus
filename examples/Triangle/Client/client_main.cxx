@@ -45,7 +45,9 @@ int main (int argc, char* argv[])
   input_data.setHole(0, 4, 4); //hole in the middle of triangle
 
   //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request(remus::RAW_EDGES,remus::MESH2D, input_data);
+  remus::client::JobRequest request( (remus::meshtypes::Edges()),
+                                     (remus::meshtypes::Mesh2D()),
+                                     input_data);
 
   if(c.canMesh(request))
     {

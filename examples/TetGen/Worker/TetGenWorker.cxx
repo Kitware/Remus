@@ -47,7 +47,8 @@ tetgenParameters::~tetgenParameters()
 //----------------------------------------------------------------------------
 TetGenWorker::TetGenWorker(remus::worker::ServerConnection const& connection):
   remus::worker::Worker(
-    remus::common::MeshIOType(remus::PIECWISE_LINEAR_COMPLEX,remus::MESH3D),
+    remus::common::make_MeshIOType(remus::meshtypes::PiecewiseLinearComplex(),
+                                   remus::meshtypes::Mesh3D()),
     connection)
 {
 }

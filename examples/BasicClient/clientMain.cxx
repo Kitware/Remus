@@ -73,7 +73,8 @@ int main ()
 
   Timer time;
   //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request(remus::RAW_EDGES, remus::MESH2D,
+  remus::client::JobRequest request(remus::meshtypes::Edges(),
+                                    remus::meshtypes::Mesh2D(),
                                     "TEST THE APPLICATION BY PASSING SPACES");
   if(c.canMesh(request))
     {

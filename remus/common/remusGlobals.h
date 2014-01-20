@@ -15,7 +15,6 @@
 
 #include <string>
 #include <sstream>
-#include <boost/cstdint.hpp>
 
 //Define global information that the mesh server needs
 namespace remus {
@@ -33,29 +32,6 @@ static const int HEARTBEAT_INTERVAL_IN_SEC = 5;
 static const int HEARTBEAT_INTERVAL = 1000 * HEARTBEAT_INTERVAL_IN_SEC;
 
 static const std::string INVALID_MSG = "INVALID_MSG";
-
-
-//------------------------------------------------------------------------------
-enum MESH_INPUT_TYPE
-{
-  INVALID_MESH_IN = 0,
-  SCENE_FILE = 1,
-  MODEL = 2,
-  RAW_EDGES = 3,
-  PIECWISE_LINEAR_COMPLEX = 4,
-  NUM_MESH_INPUT_TYPES=6
-};
-
-//------------------------------------------------------------------------------
-enum MESH_OUTPUT_TYPE
-{
-  INVALID_MESH_OUT = 0,
-  MESH1D = 1,
-  MESH2D = 2,
-  MESH3D = 3,
-  MESH3DSurface = 4,
-  NUM_MESH_OUTPUT_TYPES=5
-};
 
 //------------------------------------------------------------------------------
 enum SERVICE_TYPE
@@ -89,23 +65,9 @@ enum STATUS_TYPE
 namespace common
   {
   //a mapping of enum types to char*
-  static const char *mesh_in_types[] = { "INVALID","SCENE FILE", "MODEL", "RAW EDGES", "PIECWISE LINEAR COMPLEX"};
-  static const char *mesh_out_types[] = { "INVALID","1D", "2D", "3D", "3D Surface" };
   static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "TERMINATE JOB AND WORKER" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
   }
-
-//------------------------------------------------------------------------------
-inline std::string to_string(remus::MESH_INPUT_TYPE t)
-{
-  return std::string(remus::common::mesh_in_types[(int)t]);
-}
-
-//------------------------------------------------------------------------------
-inline std::string to_string(remus::MESH_OUTPUT_TYPE t)
-{
-  return std::string(remus::common::mesh_out_types[(int)t]);
-}
 
 //------------------------------------------------------------------------------
 inline std::string to_string(remus::SERVICE_TYPE t)
@@ -120,33 +82,6 @@ inline std::string to_string(remus::STATUS_TYPE t)
 }
 
 
-//------------------------------------------------------------------------------
-inline remus::MESH_INPUT_TYPE to_meshInType(const std::string& t)
-{
-  for(int i=0; i < remus::NUM_MESH_INPUT_TYPES; i++)
-    {
-    remus::MESH_INPUT_TYPE mt=static_cast<remus::MESH_INPUT_TYPE>(i);
-    if (remus::to_string(mt) == t)
-      {
-      return mt;
-      }
-    }
-  return remus::INVALID_MESH_IN;
-}
-
-//------------------------------------------------------------------------------
-inline remus::MESH_OUTPUT_TYPE to_meshOutType(const std::string& t)
-{
-  for(int i=0; i < remus::NUM_MESH_OUTPUT_TYPES; i++)
-    {
-    remus::MESH_OUTPUT_TYPE mt=static_cast<remus::MESH_OUTPUT_TYPE>(i);
-    if (remus::to_string(mt) == t)
-      {
-      return mt;
-      }
-    }
-  return remus::INVALID_MESH_OUT;
-}
 
 //------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)

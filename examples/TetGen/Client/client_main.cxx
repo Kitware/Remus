@@ -23,9 +23,10 @@ int main (int argc, char* argv[])
   TetGenInput input_data("pmdc.poly");
 
   //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request(remus::PIECWISE_LINEAR_COMPLEX,
-                                    remus::MESH3D,
-                                    input_data);
+  remus::client::JobRequest request(
+                            (remus::meshtypes::PiecewiseLinearComplex()),
+                            (remus::meshtypes::Mesh3D()),
+                            input_data);
 
   if(c.canMesh(request))
     {

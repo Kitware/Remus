@@ -30,6 +30,8 @@ configure_file(PathToTestExecutable.h.in
 
 set(unit_tests
   UnitTestExecuteProcess.cxx
+  UnitTestMeshIOType.cxx
+  UnitTestMeshRegistry.cxx
   UnitTestSignalCatcher.cxx
   )
 
