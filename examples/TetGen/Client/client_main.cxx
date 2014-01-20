@@ -6,6 +6,8 @@
 #include "TetGenInput.h"
 #include "TetGenResult.h"
 
+#include <iostream>
+
 int main (int argc, char* argv[])
 {
   remus::client::ServerConnection connection;

@@ -8,6 +8,8 @@
 
 #include <remus/server/Server.h>
 #include <remus/server/WorkerFactory.h>
+
+#include <iostream>
 int main ()
 {
   //create a custom worker factory that creates children processes
