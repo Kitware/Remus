@@ -14,4 +14,4 @@ target_include_directories(TriangleWorker
 
 #write out the worker registration file for the default worker factory
 include(${Remus_SOURCE_DIR}/CMake/RemusRegisterWorker.cmake)
-Register_Mesh_Worker(TriangleWorker "RAW EDGES" "2D")
+Register_Mesh_Worker(TriangleWorker "Edges" "Mesh2D")

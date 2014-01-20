@@ -7,4 +7,4 @@ set(SRCS_Workers
 
 add_executable(BasicWorker ${SRCS_Workers})
 target_link_libraries(BasicWorker RemusWorker)
-Register_Mesh_Worker(BasicWorker "RAW EDGES" "2D")
+Register_Mesh_Worker(BasicWorker "Edges" "Mesh2D")

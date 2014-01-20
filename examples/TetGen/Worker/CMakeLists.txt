@@ -14,4 +14,4 @@ target_include_directories(TetGenWorker
 
 #write out the worker registration file for the default worker factory
 include(${Remus_SOURCE_DIR}/CMake/RemusRegisterWorker.cmake)
-Register_Mesh_Worker(TetGenWorker "PIECWISE LINEAR COMPLEX" "3D")
+Register_Mesh_Worker(TetGenWorker "PiecewiseLinearComplex" "Mesh3D")
