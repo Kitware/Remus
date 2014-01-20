@@ -22,7 +22,7 @@ int main ()
 
   //start accepting connections for clients and workers
   bool valid = b.startBrokeringThreaded();
-  std::cout << "Brockering started, waiting for finishing" << std::endl;
+  std::cout << "Brokering started, waiting for finishing" << std::endl;
   b.waitForBrokeringToFinish();
   return valid ? 0 : 1;
 }

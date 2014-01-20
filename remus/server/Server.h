@@ -44,8 +44,9 @@ namespace server{
     class ActiveJobs;
     class JobQueue;
     class WorkerPool;
+    struct ThreadImpl;
     }
-  struct ThreadImpl;
+
 
 //Server is the broker of Remus. It handles accepting client
 //connections, worker connections, and manages the life cycle of submitted jobs.
@@ -71,7 +72,7 @@ public:
   //construct a new server using the given loop back ports
   //and the default factory
   Server(remus::server::ServerPorts ports,
-                  const remus::server::WorkerFactory& factory);
+         const remus::server::WorkerFactory& factory);
 
   //cleanup the server
   virtual ~Server();
@@ -133,11 +134,12 @@ protected:
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
+  boost::scoped_ptr<detail::ThreadImpl> Thread;
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;
 
-  ThreadImpl * Thread;
+
 };
 
 }

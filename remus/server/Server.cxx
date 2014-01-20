@@ -1,4 +1,4 @@
-//=============================================================================
+  //=============================================================================
 //
 //  Copyright (c) Kitware, Inc.
 //  All rights reserved.
@@ -56,20 +56,79 @@ void make_terminateJob(remus::common::Response& response,
   response.setData(remus::worker::to_string(terminateJob));
 }
 
+struct ThreadImpl
+{
+  boost::thread* ServerThread;
+  boost::mutex ServerMutex;
+  boost::mutex BrokeringStartMutex;
+  ThreadImpl():
+    ServerThread(),
+    ServerMutex(),
+    BrokeringStartMutex()
+  {
+  }
+
+  ~ThreadImpl()
+  {
+  if(this->ServerThread != NULL)
+    {
+    this->ServerThread->interrupt(); //Unlocks
+    delete this->ServerThread;
+    this->ServerThread = NULL;
+    }
+  }
+
+  void lockServer()
+  {
+  this->ServerMutex.lock();
+  this->BrokeringStartMutex.unlock();
+  }
+
+  void unlockServer()
+  {
+  this->ServerMutex.unlock();
+  }
+
+
+  bool start(remus::server::Server* server,
+             remus::server::Server::SignalHandling sigHandleState)
+  {
+  this->BrokeringStartMutex.lock();
+  this->ServerThread =
+          new boost::thread(&Server::startBrokering, server, sigHandleState);
+  return this->ServerThread != NULL;
+  }
+
+  void stop()
+  {
+  this->BrokeringStartMutex.lock();
+  if(this->ServerThread != NULL)
+    {
+    this->ServerThread->interrupt(); //Unlocks
+    delete this->ServerThread;
+    this->ServerThread = NULL;
+    }
+  this->BrokeringStartMutex.unlock();
+  }
+
+  void wait()
+  {
+  //Wait until brokering gets a chance to start
+  this->BrokeringStartMutex.lock();
+  this->BrokeringStartMutex.unlock();
+  this->ServerMutex.lock();           //Wait for brokering to finish
+  this->ServerMutex.unlock();         //Allow delete to proceed
+  }
+
+};
+
+
 }
 }
 }
 
 namespace remus{
 namespace server{
-
-struct ThreadImpl
-{
-  boost::thread* ServerThread;
-  boost::mutex ServerMutex;
-  boost::mutex BrockeringStartMutex;
-  ThreadImpl():ServerThread(NULL){}
-};
 
 //------------------------------------------------------------------------------
 Server::Server():
@@ -80,9 +139,9 @@ Server::Server():
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(),
-  PortInfo(), //use default loopback ports
-  Thread(new ThreadImpl())
+  PortInfo() //use default loopback ports
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(this->ClientQueries);
@@ -100,9 +159,9 @@ Server::Server(const remus::server::WorkerFactory& factory):
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(factory),
-  PortInfo(),
-  Thread(new ThreadImpl())
+  PortInfo()
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(this->ClientQueries);
@@ -120,9 +179,9 @@ Server::Server(remus::server::ServerPorts ports):
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(),
-  PortInfo(ports),
-  Thread(new ThreadImpl())
+  PortInfo(ports)
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(this->ClientQueries);
@@ -141,9 +200,9 @@ Server::Server(remus::server::ServerPorts ports,
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
+  Thread(new detail::ThreadImpl() ),
   WorkerFactory(factory),
-  PortInfo(ports),
-  Thread(new ThreadImpl())
+  PortInfo(ports)
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(this->ClientQueries);
@@ -160,22 +219,14 @@ Server::~Server()
   this->TerminateAllWorkers();
 
   this->StopCatchingSignals();
-  Thread->BrockeringStartMutex.lock();
-  if(Thread->ServerThread != NULL)
-  {
-    this->Thread->ServerThread->interrupt(); //Unlocks
-    Thread->ServerMutex.lock(); //try to lock so other locks will clear
-  }
-  Thread->BrockeringStartMutex.unlock();
-  delete Thread;
-  Thread->ServerThread = NULL;
+  this->Thread->stop();
 }
 
 //------------------------------------------------------------------------------
 bool Server::startBrokering(Server::SignalHandling sh)
   {
-  Thread->ServerMutex.lock();
-  Thread->BrockeringStartMutex.unlock();
+  this->Thread->lockServer();
+
   //start up signal catching before we start polling. We do this in the
   //startBrokering method since really the server isn't doing anything before
   //this point.
@@ -195,12 +246,12 @@ bool Server::startBrokering(Server::SignalHandling sh)
 
   //  Process messages from both sockets
   try
-  {
+    {
     while (true)
       {
       boost::this_thread::interruption_point();
       zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
-      //std::cout << "p" << std::endl;
+      // std::cout << "p" << std::endl;
       const boost::posix_time::ptime hbTime =
                             boost::posix_time::second_clock::local_time();
       if (items[0].revents & ZMQ_POLLIN)
@@ -246,15 +297,19 @@ bool Server::startBrokering(Server::SignalHandling sh)
       //otherwise as the factory to generat a new worker to handle that job
       this->FindWorkerForQueuedJob();
       }
-  } catch (boost::thread_interrupted const&)
-    { /*std::cout << "INTERUPTED!!" << std::endl;*/ }
+    }
+  catch (boost::thread_interrupted const&)
+    {
+    //std::cout << "Server Terminated." << std::endl;
+    }
 
   //this should only happen with interrupted threads be hit; lets make sure we close
   //down all workers.
   this->TerminateAllWorkers();
 
   this->StopCatchingSignals();
-  Thread->ServerMutex.unlock();
+
+  this->Thread->unlockServer();
 
   return true;
   }
@@ -262,19 +317,13 @@ bool Server::startBrokering(Server::SignalHandling sh)
 //------------------------------------------------------------------------------
 bool Server::startBrokeringThreaded(SignalHandling sh)
 {
-  Thread->BrockeringStartMutex.lock();
-  this->Thread->ServerThread = new boost::thread(&Server::startBrokering, this, sh);
-  return Thread->ServerThread != NULL;
+  return this->Thread->start(this, sh);
 }
 
 //------------------------------------------------------------------------------
 void Server::waitForBrokeringToFinish()
 {
-  Thread->BrockeringStartMutex.lock(); //Wait until brockering gets a chance
-                                       //to start
-  Thread->BrockeringStartMutex.unlock();
-  Thread->ServerMutex.lock();          //Wait for brockering to finish
-  Thread->ServerMutex.unlock();        //Allow delete to proceed
+  this->Thread->wait();
 }
 
 //------------------------------------------------------------------------------
@@ -545,15 +594,8 @@ void Server::FindWorkerForQueuedJob()
 //------------------------------------------------------------------------------
 void Server::SignalCaught( SignalCatcher::SignalType )
 {
-  Thread->BrockeringStartMutex.lock(); //The lock helps protect the thread
-                                       //pointer
-  if(Thread->ServerThread != NULL)
-    {
-    Thread->ServerThread->interrupt();
-    delete Thread->ServerThread;
-    Thread->ServerThread = NULL;
-    }
-  Thread->BrockeringStartMutex.unlock();
+  this->Thread->stop();
+
   //first step is to purge any workers that might have died since
   //the last time we polled. Because just maybe they also died
   //so no point in sending them a kill message now
