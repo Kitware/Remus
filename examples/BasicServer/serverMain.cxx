@@ -21,7 +21,7 @@ int main ()
   remus::server::Server b(factory);
 
   //start accepting connections for clients and workers
-  bool valid = b.startBrokeringThreaded();
+  bool valid = b.startBrokering();
   std::cout << "Brokering started, waiting for finishing" << std::endl;
   b.waitForBrokeringToFinish();
   return valid ? 0 : 1;

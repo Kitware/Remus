@@ -56,6 +56,7 @@ namespace server{
 class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
+  friend struct remus::server::detail::ThreadImpl;
   enum SignalHandling {NONE, CAPTURE};
   //construct a new server using the default worker factory
   //and default loopback ports
@@ -79,12 +80,14 @@ public:
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
-  virtual bool startBrokering(SignalHandling sh = CAPTURE);
-  //Calls startBrokering in a new thread.  This is a non-blocking function.
-  bool startBrokeringThreaded(SignalHandling sh = CAPTURE);
+  bool startBrokering(SignalHandling sh = CAPTURE);
+  //when you call stop brokering, the server will stop accepting worker
+  //or client requests
   void stopBrokering();
 
+  //Waits until brockering finishes
   void waitForBrokeringToFinish();
+  //Waits until the thread is up and running
   void waitForBrokeringToStart();
 
   //get back the port information that this server bound too. Since multiple
@@ -96,6 +99,8 @@ public:
   virtual void SignalCaught( SignalCatcher::SignalType signal );
 
 protected:
+  //The main brokering loop, called by thread
+  virtual bool brokering(SignalHandling sh = CAPTURE);
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
                                  const remus::common::Message& msg);

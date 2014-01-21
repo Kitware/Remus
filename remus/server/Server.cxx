@@ -230,7 +230,7 @@ Server::~Server()
 }
 
 //------------------------------------------------------------------------------
-bool Server::startBrokering(Server::SignalHandling sh)
+bool Server::brokering(Server::SignalHandling sh)
   {
   this->Thread->lockServer();
 
@@ -322,7 +322,7 @@ bool Server::startBrokering(Server::SignalHandling sh)
   }
 
 //------------------------------------------------------------------------------
-bool Server::startBrokeringThreaded(SignalHandling sh)
+bool Server::startBrokering(SignalHandling sh)
 {
   return this->Thread->start(this, sh);
 }

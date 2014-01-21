@@ -20,5 +20,6 @@ int main ()
 
   //start accepting connections for clients and workers
   bool valid = b.startBrokering();
+  b.waitForBrokeringToFinish();
   return valid ? 0 : 1;
 }
