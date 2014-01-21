@@ -1,5 +1,7 @@
 project(Remus_Worker)
 
+add_subdirectory(detail)
+
 set(headers
     Job.h
     JobResult.h
@@ -10,6 +12,7 @@ set(headers
 
 set(worker_srcs
    Worker.cxx
+   detail/JobQueue.cxx
    )
 
 add_library(RemusWorker ${worker_srcs} ${headers})

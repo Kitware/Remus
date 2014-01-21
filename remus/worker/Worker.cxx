@@ -28,28 +28,39 @@ class Worker::ServerCommunicator
 {
 public:
   ServerCommunicator(const std::string& serverInfo,
-                     const std::string& mainThreadInfo):
+                     const std::string& mainThreadInfo,
+                     const std::string& jobQueueInfo):
+    ServerCommThread(NULL),
     ContinueTalking(true),
     ServerEndpoint(serverInfo),
-    MainEndpoint(mainThreadInfo)
+    MainEndpoint(mainThreadInfo),
+    JobQueueEndpoint(jobQueueInfo)
     {
     }
 
   ~ServerCommunicator()
   {
+  if(this->ServerCommThread)
+    {
+    delete this->ServerCommThread;
+    this->ServerCommThread = NULL;
+    }
   }
 
   void run(zmq::context_t *context)
   {
     zmq::socket_t Worker(*context,ZMQ_PAIR);
+    zmq::socket_t JobQueue(*context,ZMQ_PAIR);
+
     zmq::socket_t Server(*context,ZMQ_DEALER);
 
     zmq::connectToAddress(Server,this->ServerEndpoint);
     zmq::connectToAddress(Worker,this->MainEndpoint);
+    zmq::connectToAddress(JobQueue,this->JobQueueEndpoint);
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
                                   { Server,  0, ZMQ_POLLIN, 0 } };
-    while( this->ContinueTalking)
+    while( this->ContinueTalking )
       {
       zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
       bool sentToServer=false;
@@ -76,7 +87,12 @@ public:
         //and the other for the Service TERMINATE_JOB_AND_WORKER which kills
         //the worker process
         remus::common::Response response(Server);
-        if(response.serviceType() != remus::TERMINATE_JOB_AND_WORKER)
+        if(response.serviceType() == remus::MAKE_MESH)
+          {
+          //send the job to the queue so that somebody can take it later
+          response.send(JobQueue);
+          }
+        else if(response.serviceType() != remus::TERMINATE_JOB_AND_WORKER)
           {
           response.send(Worker);
           }
@@ -103,10 +119,13 @@ public:
       }
   }
 
+  boost::thread* ServerCommThread;
+
 private:
   bool ContinueTalking;
   std::string ServerEndpoint;
   std::string MainEndpoint;
+  std::string JobQueueEndpoint;
 };
 
 //-----------------------------------------------------------------------------
@@ -116,14 +135,16 @@ Worker::Worker(remus::common::MeshIOType mtype,
   Context(1),
   ServerComm(Context,ZMQ_PAIR),
   BComm(NULL),
-  ServerCommThread(NULL),
+  JobQueue( Context ),
   ConnectedToLocalServer( conn.isLocalEndpoint() )
 {
   //FIRST THREAD HAS TO BIND THE INPROC SOCKET
   zmq::socketInfo<zmq::proto::inproc> internalCommInfo =
       zmq::bindToAddress<zmq::proto::inproc>(this->ServerComm,"worker");
 
-  this->startCommunicationThread(conn.endpoint(),internalCommInfo.endpoint());
+  this->startCommunicationThread(conn.endpoint(),
+                                 internalCommInfo.endpoint(),
+                                 this->JobQueue.endpoint());
 }
 
 
@@ -136,14 +157,19 @@ Worker::~Worker()
 
 //-----------------------------------------------------------------------------
 bool Worker::startCommunicationThread(const std::string &serverEndpoint,
-                                      const std::string &commEndpoint)
+                                      const std::string &commEndpoint,
+                                      const std::string &jobQueueEndpoint)
 {
-  if(!this->ServerCommThread && !this->BComm)
+  if(!this->BComm)
     {
     //start about the server communication thread
-    this->BComm = new Worker::ServerCommunicator(serverEndpoint,commEndpoint);
-    this->ServerCommThread = new boost::thread(&Worker::ServerCommunicator::run,
-                                             this->BComm,&this->Context);
+    this->BComm = new Worker::ServerCommunicator(serverEndpoint,
+                                                 commEndpoint,
+                                                 jobQueueEndpoint);
+    this->BComm->ServerCommThread =
+             new boost::thread(&Worker::ServerCommunicator::run,
+                               this->BComm,
+                               &this->Context);
 
     //register with the server that we can mesh a certain type
     remus::common::Message canMesh(this->MeshIOType,remus::CAN_MESH);
@@ -156,7 +182,7 @@ bool Worker::startCommunicationThread(const std::string &serverEndpoint,
 //-----------------------------------------------------------------------------
 bool Worker::stopCommunicationThread()
 {
-  if(this->ServerCommThread && this->BComm)
+  if(this->BComm)
     {
     //send message that we are shutting down communication, and we can stop
     //polling the server
@@ -164,30 +190,43 @@ bool Worker::stopCommunicationThread()
                                     remus::TERMINATE_JOB_AND_WORKER);
     shutdown.send(this->ServerComm);
 
-    this->ServerCommThread->join();
+    this->BComm->ServerCommThread->join();
     delete this->BComm;
-    delete this->ServerCommThread;
-
     this->BComm = NULL;
-    this->ServerCommThread = NULL;
     return true;
     }
   return false;
 }
 
 //-----------------------------------------------------------------------------
-remus::worker::Job Worker::getJob()
+void Worker::askForJobs( unsigned int numberOfJobs )
 {
   remus::common::Message askForMesh(this->MeshIOType,remus::MAKE_MESH);
-  askForMesh.send(this->ServerComm);
+  for(int i=0; i < numberOfJobs; ++i)
+    { askForMesh.send(this->ServerComm); }
+}
 
-  //we have our message back
-  remus::common::Response response(this->ServerComm);
-  //std::cout << "have our job from the server com in the real worker" <<std::endl;
+//-----------------------------------------------------------------------------
+std::size_t Worker::pendingJobCount() const
+{
+  return this->JobQueue.size();
+}
 
-  //we need a better serialization technique
-  std::string msg = response.dataAs<std::string>();
-  return remus::worker::to_Job(msg);
+//-----------------------------------------------------------------------------
+remus::worker::Job Worker::takePendingJob()
+{
+  return this->JobQueue.take();
+}
+
+//-----------------------------------------------------------------------------
+remus::worker::Job Worker::getJob()
+{
+  if(this->pendingJobCount() == 0)
+    {
+    this->askForJobs(1);
+    while(this->pendingJobCount() == 0) {}
+    }
+  return this->JobQueue.take();
 }
 
 //-----------------------------------------------------------------------------

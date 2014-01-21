@@ -22,12 +22,10 @@
 #include <remus/common/MeshIOType.h>
 
 #include <remus/worker/ServerConnection.h>
+#include <remus/worker/detail/JobQueue.h>
 
 //included for symbol exports
 #include <remus/worker/WorkerExports.h>
-
-//forward declare boost::thread
-namespace boost { class thread; }
 
 namespace remus{
 namespace worker{
@@ -47,8 +45,17 @@ public:
 
   virtual ~Worker();
 
-  //gets back a job from the server
-  //this will lock the worker as it will wait on a job message
+  //send a message to the server stating how many jobs
+  //that we want to be sent to process
+  virtual void askForJobs( unsigned int numberOfJobs = 1 );
+
+  //query to see how many pending jobs we need to process
+  virtual std::size_t pendingJobCount( ) const;
+
+  //fetch a pending job
+  virtual remus::worker::Job takePendingJob();
+
+  //Blocking fetch a pending job and return it
   virtual remus::worker::Job getJob();
 
   //update the status of the worker
@@ -61,7 +68,8 @@ protected:
   //start communication. Currently is called by
   //the constructor
   bool startCommunicationThread(const std::string &serverEndpoint,
-                                const std::string &commEndpoint);
+                                const std::string &commEndpoint,
+                                const std::string &jobQueueEndpoint);
 
   //currently called by the destructor
   bool stopCommunicationThread();
@@ -79,7 +87,9 @@ private:
   //and dealing with heartbeats
   class ServerCommunicator;
   ServerCommunicator *BComm;
-  boost::thread* ServerCommThread;
+
+  remus::worker::detail::JobQueue JobQueue;
+
   bool ConnectedToLocalServer;
 };
 
