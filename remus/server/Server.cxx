@@ -113,9 +113,9 @@ struct ThreadImpl
 
   void waitForStart()
   {
-    this->BrokeringStartMutex.lock(); //Wait until brockering gets a chance
-                                      //to start
-    this->BrokeringStartMutex.unlock();
+  this->BrokeringStartMutex.lock(); //Wait until brockering gets a chance
+                                    //to start
+  this->BrokeringStartMutex.unlock();
   }
 
   void wait()
