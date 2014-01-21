@@ -61,6 +61,8 @@ struct ThreadImpl
   boost::thread* ServerThread;
   boost::mutex ServerMutex;
   boost::mutex BrokeringStartMutex;
+  boost::mutex ThreadBoolMutex;
+  bool RunThread;
   ThreadImpl():
     ServerThread(),
     ServerMutex(),
@@ -84,24 +86,43 @@ struct ThreadImpl
   this->ServerMutex.unlock();
   }
 
+  bool runThread()
+  {
+  this->ThreadBoolMutex.lock();
+  bool r = this->RunThread;
+  this->ThreadBoolMutex.unlock();
+  return r;
+  }
+
+  void setThreadRun(bool t)
+  {
+  this->ThreadBoolMutex.lock();
+  this->RunThread = t;
+  this->ThreadBoolMutex.unlock();
+  }
 
   bool start(remus::server::Server* server,
              remus::server::Server::SignalHandling sigHandleState)
   {
   this->BrokeringStartMutex.lock();
+  this->setThreadRun(true);
   this->ServerThread =
           new boost::thread(&Server::brokering, server, sigHandleState);
+  this->RunThread = true;
   return this->ServerThread != NULL;
   }
 
   void stop()
   {
   this->BrokeringStartMutex.lock();
+  this->setThreadRun(false);
+  this->RunThread = false;
   if(this->ServerThread != NULL)
     {
-    this->ServerThread->interrupt(); //Unlocks
+    this->ServerThread->join();
     delete this->ServerThread;
     this->ServerThread = NULL;
+    this->ServerMutex.unlock();
     }
   this->BrokeringStartMutex.unlock();
   }
@@ -218,9 +239,6 @@ Server::~Server()
 {
   //the server is shutting down we need to terminate any workers that
   //are still running.
-  this->TerminateAllWorkers();
-
-  this->StopCatchingSignals();
   this->Thread->stop();
 }
 
@@ -249,9 +267,8 @@ bool Server::brokering(Server::SignalHandling sh)
   //  Process messages from both sockets
   try
     {
-    while (true)
+    while (Thread->runThread())
       {
-      boost::this_thread::interruption_point();
       zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
       // std::cout << "p" << std::endl;
       const boost::posix_time::ptime hbTime =
