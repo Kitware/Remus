@@ -82,6 +82,7 @@ public:
   virtual bool startBrokering(SignalHandling sh = CAPTURE);
   //Calls startBrokering in a new thread.  This is a non-blocking function.
   bool startBrokeringThreaded(SignalHandling sh = CAPTURE);
+  void stopBrokering();
 
   void waitForBrokeringToFinish();
   void waitForBrokeringToStart();
