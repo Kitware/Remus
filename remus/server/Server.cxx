@@ -70,12 +70,7 @@ struct ThreadImpl
 
   ~ThreadImpl()
   {
-  if(this->ServerThread != NULL)
-    {
-    this->ServerThread->interrupt(); //Unlocks
-    delete this->ServerThread;
-    this->ServerThread = NULL;
-    }
+  this->stop();
   }
 
   void lockServer()
@@ -95,7 +90,7 @@ struct ThreadImpl
   {
   this->BrokeringStartMutex.lock();
   this->ServerThread =
-          new boost::thread(&Server::startBrokering, server, sigHandleState);
+          new boost::thread(&Server::brokering, server, sigHandleState);
   return this->ServerThread != NULL;
   }
 
