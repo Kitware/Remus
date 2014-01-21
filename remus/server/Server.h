@@ -84,6 +84,7 @@ public:
   bool startBrokeringThreaded(SignalHandling sh = CAPTURE);
 
   void waitForBrokeringToFinish();
+  void waitForBrokeringToStart();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server

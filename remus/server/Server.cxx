@@ -111,6 +111,13 @@ struct ThreadImpl
   this->BrokeringStartMutex.unlock();
   }
 
+  void waitForStart()
+  {
+    Thread->BrockeringStartMutex.lock(); //Wait until brockering gets a chance
+                                         //to start
+    Thread->BrockeringStartMutex.unlock();
+  }
+
   void wait()
   {
   //Wait until brokering gets a chance to start
@@ -324,6 +331,12 @@ bool Server::startBrokeringThreaded(SignalHandling sh)
 void Server::waitForBrokeringToFinish()
 {
   this->Thread->wait();
+}
+
+//------------------------------------------------------------------------------
+void Server::waitForBrokeringToStart()
+{
+  this->Thread->waitForStart();
 }
 
 //------------------------------------------------------------------------------
