@@ -237,8 +237,6 @@ Server::Server(remus::server::ServerPorts ports,
 //------------------------------------------------------------------------------
 Server::~Server()
 {
-  //the server is shutting down we need to terminate any workers that
-  //are still running.
   this->Thread->stop();
 }
 
@@ -265,61 +263,54 @@ bool Server::brokering(Server::SignalHandling sh)
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
   //  Process messages from both sockets
-  try
+  while (Thread->runThread())
     {
-    while (Thread->runThread())
-      {
-      zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
-      // std::cout << "p" << std::endl;
-      const boost::posix_time::ptime hbTime =
+    zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
+    // std::cout << "p" << std::endl;
+    const boost::posix_time::ptime hbTime =
                             boost::posix_time::second_clock::local_time();
-      if (items[0].revents & ZMQ_POLLIN)
-        {
-        //we need to strip the client address from the message
-        zmq::socketIdentity clientIdentity = zmq::address_recv(this->ClientQueries);
+    if (items[0].revents & ZMQ_POLLIN)
+      {
+      //we need to strip the client address from the message
+      zmq::socketIdentity clientIdentity = zmq::address_recv(this->ClientQueries);
 
-        //Note the contents of the message isn't valid
-        //after the DetermineJobQueryResponse call
-        remus::common::Message message(this->ClientQueries);
-        this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
+      //Note the contents of the message isn't valid
+      //after the DetermineJobQueryResponse call
+      remus::common::Message message(this->ClientQueries);
+      this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
 
-        // std::cout << "c" << std::endl;
-        }
-      if (items[1].revents & ZMQ_POLLIN)
-        {
-        //a worker is registering
-        //we need to strip the worker address from the message
-        zmq::socketIdentity workerIdentity = zmq::address_recv(this->WorkerQueries);
-
-        //Note the contents of the message isn't valid
-        //after the DetermineWorkerResponse call
-        remus::common::Message message(this->WorkerQueries);
-        this->DetermineWorkerResponse(workerIdentity,message);
-
-        //refresh all jobs for a given worker with a new expiry time
-        this->ActiveJobs->refreshJobs(workerIdentity);
-
-        //refresh the worker if it is actuall in the pool instead of doing a job
-        this->WorkerPool->refreshWorker(workerIdentity);
-
-        // std::cout << "w" << std::endl;
-        }
-
-      //mark all jobs whose worker haven't sent a heartbeat in time
-      //as a job that failed.
-      this->ActiveJobs->markExpiredJobs(hbTime);
-
-      //purge all pending workers with jobs that haven't sent a heartbeat
-      this->WorkerPool->purgeDeadWorkers(hbTime);
-
-      //see if we have a worker in the pool for the next job in the queue,
-      //otherwise as the factory to generat a new worker to handle that job
-      this->FindWorkerForQueuedJob();
+      // std::cout << "c" << std::endl;
       }
-    }
-  catch (boost::thread_interrupted const&)
-    {
-    //std::cout << "Server Terminated." << std::endl;
+    if (items[1].revents & ZMQ_POLLIN)
+      {
+      //a worker is registering
+      //we need to strip the worker address from the message
+      zmq::socketIdentity workerIdentity = zmq::address_recv(this->WorkerQueries);
+
+      //Note the contents of the message isn't valid
+      //after the DetermineWorkerResponse call
+      remus::common::Message message(this->WorkerQueries);
+      this->DetermineWorkerResponse(workerIdentity,message);
+
+      //refresh all jobs for a given worker with a new expiry time
+      this->ActiveJobs->refreshJobs(workerIdentity);
+
+      //refresh the worker if it is actuall in the pool instead of doing a job
+      this->WorkerPool->refreshWorker(workerIdentity);
+
+      // std::cout << "w" << std::endl;
+      }
+
+    //mark all jobs whose worker haven't sent a heartbeat in time
+    //as a job that failed.
+    this->ActiveJobs->markExpiredJobs(hbTime);
+
+    //purge all pending workers with jobs that haven't sent a heartbeat
+    this->WorkerPool->purgeDeadWorkers(hbTime);
+
+    //see if we have a worker in the pool for the next job in the queue,
+    //otherwise as the factory to generat a new worker to handle that job
+    this->FindWorkerForQueuedJob();
     }
 
   //this should only happen with interrupted threads be hit; lets make sure we close
