@@ -2,6 +2,7 @@ project(Remus_Common)
 
 set(headers
   ExecuteProcess.h
+  JobProgress.h
   MeshIOType.h
   MeshRegistrar.h
   MeshTypes.h
