@@ -4,7 +4,7 @@ set(worker_srcs worker_main.cxx
                 worker.h        worker.cxx )
 
 add_executable(CubitWorker ${worker_srcs})
-target_link_libraries(CubitWorker RemusWorker ${TRIANGLE_LIBRARIES})
+target_link_libraries(CubitWorker RemusWorker ${Boost_LIBRARIES})
 target_include_directories(CubitWorker
                            PRIVATE ${TRIANGLE_INCLUDE_DIRS}
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../" )
