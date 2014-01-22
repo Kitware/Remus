@@ -81,14 +81,16 @@ public:
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
   bool startBrokering(SignalHandling sh = CAPTURE);
+
   //when you call stop brokering, the server will stop accepting worker
   //or client requests
   void stopBrokering();
 
-  //Waits until brockering finishes
-  void waitForBrokeringToFinish();
   //Waits until the thread is up and running
   void waitForBrokeringToStart();
+
+  //Waits until brokering finishes
+  void waitForBrokeringToFinish();
 
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
