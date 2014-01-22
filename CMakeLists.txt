@@ -8,7 +8,7 @@ project(Remus)
 option(Remus_NO_SYSTEM_BOOST "Allow boost to search for system installed boost" ON)
 option(Remus_ENABLE_TESTING "Enable Testing" ON)
 option(Remus_ENABLE_EXAMPLES "Enable Examples" ON)
-
+option(BUILD_SHARED_LIBS "Build Remus using shared libraries" OFF)
 
 #------------------------------------------------------------------------------
 #---------------------------- Remus CMake Modules -----------------------------
@@ -28,20 +28,29 @@ list(APPEND CMAKE_MODULE_PATH "${Remus_SOURCE_DIR}/CMake")
 #ZeroMQ is used for all message passing between components.
 find_package(ZeroMQ REQUIRED)
 
-# List of Boost features used:
-# * UUID Generation
-# * Shared Ptr
-# * Threads
-# * filesystem
-# * string algorithms
-# * date time
-set(Boost_USE_STATIC_LIBS ON)
+#setup if we should use boost static libraries based on if we are
+#building static or shared. We need to match boosts library type to ours so
+#that we handle symbol visibility properly
+if(${BUILD_SHARED_LIBS})
+  set(Boost_USE_STATIC_LIBS OFF)
+else()
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
 
 #if boost is installed as a system library on a machine, we will never
 #be able to set the superbuild to use the custom boost version. The solution
 #is that when doing a system
-
 set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
+
+# List of Boost features used:
+# * Date time
+# * Filesystem
+# * Scoped Ptr
+# * Shared Ptr
+# * String algorithms
+# * Threads
+# * Unordered map
+# * UUID Generation
 find_package(Boost 1.45.0
              COMPONENTS thread filesystem system date_time REQUIRED)
 
