@@ -4,7 +4,7 @@ set(worker_srcs worker_main.cxx
                 worker.h        worker.cxx )
 
 add_executable(CoreGenWorker ${worker_srcs})
-target_link_libraries(CoreGenWorker RemusWorker ${TRIANGLE_LIBRARIES})
+target_link_libraries(CoreGenWorker RemusWorker ${Boost_LIBRARIES})
 target_include_directories(CoreGenWorker
                            PRIVATE ${TRIANGLE_INCLUDE_DIRS}
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../" )

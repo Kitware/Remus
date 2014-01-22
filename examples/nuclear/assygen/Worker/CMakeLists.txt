@@ -7,7 +7,7 @@ set(worker_srcs
     )
 
 add_executable(AssyGenWorker ${worker_srcs})
-target_link_libraries(AssyGenWorker RemusWorker)
+target_link_libraries(AssyGenWorker RemusWorker ${Boost_LIBRARIES})
 target_include_directories(AssyGenWorker
                            PRIVATE ${Boost_INCLUDE_DIRS}
                                    "${CMAKE_CURRENT_SOURCE_DIR}/../" )

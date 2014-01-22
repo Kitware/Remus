@@ -33,7 +33,7 @@
 //to retrieve the results of the job when it is finished.
 namespace remus{
 namespace client{
-class Client
+class REMUSCLIENT_EXPORT Client
 {
 public:
   //connect to a given host on a given port with tcp
