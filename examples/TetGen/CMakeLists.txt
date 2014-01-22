@@ -5,7 +5,7 @@ set(runtime_srcs
     TetGenInput.cxx
     )
 
-add_library(TetGenRuntime ${runtime_srcs})
+add_library(TetGenRuntime STATIC ${runtime_srcs})
 target_link_libraries(TetGenRuntime LINK_PRIVATE ${Boost_LIBRARIES})
 target_include_directories(TetGenRuntime
                 INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
