@@ -18,10 +18,12 @@
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <remus/common/CommonExports.h>
+
 namespace remus {
 namespace meshtypes {
 
-struct MeshTypeBase
+struct REMUSCOMMON_EXPORT MeshTypeBase
 {
   //virtual destructor
   virtual ~MeshTypeBase() { }
@@ -42,7 +44,7 @@ struct MeshTypeBase
 namespace remus {
 namespace common {
 
-struct MeshRegistrar
+struct REMUSCOMMON_EXPORT MeshRegistrar
 {
 private:
   //typedef of the create function ptr
