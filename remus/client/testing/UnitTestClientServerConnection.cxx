@@ -35,7 +35,7 @@ zmq::socketInfo<zmq::proto::inproc> make_inproc_socket(std::string host)
 } //namespace
 
 
-int UnitTestServerConnection(int, char *[])
+int UnitTestClientServerConnection(int, char *[])
 {
 
   remus::client::ServerConnection sc;
@@ -69,12 +69,12 @@ int UnitTestServerConnection(int, char *[])
   REMUS_ASSERT( (test_full_sc.isLocalEndpoint()==false) );
 
   //test inproc
-  remus::worker::ServerConnection sc_inproc( make_inproc_socket("worker") );
+  remus::client::ServerConnection sc_inproc( make_inproc_socket("client") );
   REMUS_ASSERT( (sc_inproc.isLocalEndpoint()==true) );
-  REMUS_ASSERT( (sc_inproc.endpoint() == std::string("inproc://worker")) );
+  REMUS_ASSERT( (sc_inproc.endpoint() == std::string("inproc://client")) );
 
   //test ipc
-  remus::worker::ServerConnection sc_ipc( make_ipc_socket("task_pool") );
+  remus::client::ServerConnection sc_ipc( make_ipc_socket("task_pool") );
   REMUS_ASSERT( (sc_ipc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (sc_ipc.endpoint() == std::string("ipc://task_pool")) );
 
