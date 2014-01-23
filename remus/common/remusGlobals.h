@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_RemusInfo_h
-#define __remus_common_RemusInfo_h
+#ifndef __remus_common_RemusGlobals_h
+#define __remus_common_RemusGlobals_h
 
 #include <string>
 #include <sstream>
@@ -46,7 +46,8 @@ enum SERVICE_TYPE
   //the first would be stop_job which would only stop the current job
   //it might terminate the worker if needed, but no mandatory. The
   //second would be to terminate a worker and all jobs it contains
-  TERMINATE_JOB_AND_WORKER = 6
+  TERMINATE_JOB_AND_WORKER = 6,
+  MESH_REQUIREMENTS = 8
 };
 
 //------------------------------------------------------------------------------
@@ -123,4 +124,4 @@ inline void writeString(std::stringstream& buffer, const std::string str)
 
 }
 
-#endif // __remus_common_RemusInfo_h
+#endif // __remus_common_RemusGlobals_h
