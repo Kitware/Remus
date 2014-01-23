@@ -2,6 +2,7 @@ project(Remus_Common)
 
 set(headers
   ExecuteProcess.h
+  ConditionalStorage.h
   JobProgress.h
   MeshIOType.h
   MeshRegistrar.h

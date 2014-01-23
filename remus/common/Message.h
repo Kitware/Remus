@@ -10,13 +10,14 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_Message_h
-#define __remus_common_Message_h
+#ifndef remus_common_Message_h
+#define remus_common_Message_h
 
 #include <boost/shared_ptr.hpp>
 
 #include <remus/common/zmqHelper.h>
 #include <remus/common/MeshIOType.h>
+#include <remus/common/ConditionalStorage.h>
 
 namespace remus{
 namespace common{
@@ -29,14 +30,12 @@ public:
     MType(mtype),
     SType(stype),
     Data(NULL),
-    Size(data.size()),
+    Size(0),
     ValidMsg(true),
-    Storage(new DataStorage(data.size()))
+    Storage(data)
     {
-    //copy the string into local held storage, the string passed in can
-    //be temporary, so we want to copy it.
-    memcpy(this->Storage->Space,data.data(),this->Size);
-    this->Data = this->Storage->Space;
+    this->Data = this->Storage.get();
+    this->Size = this->Storage.size();
     }
 
   //----------------------------------------------------------------------------
@@ -48,7 +47,7 @@ public:
     Data(data),
     Size(size),
     ValidMsg(true),
-    Storage(new DataStorage())
+    Storage()
     {
     }
 
@@ -60,7 +59,7 @@ public:
     Data(NULL),
     Size(0),
     ValidMsg(true),
-    Storage(new DataStorage())
+    Storage()
     {
     }
 
@@ -93,11 +92,10 @@ public:
       {
       zmq::message_t data;
       zmq::recv_harder(socket,&data);
-      this->Size = data.size();
-      this->Storage.reset(new DataStorage(this->Size));
-
-      memcpy(this->Storage->Space,data.data(),this->Size);
-      this->Data = this->Storage->Space;
+      ConditionalStorage tempStorage(data);
+      this->Storage.swap( tempStorage );
+      this->Size = this->Storage.size();
+      this->Data = this->Storage.get();
       }
     else
       {
@@ -134,26 +132,15 @@ public:
 private:
   bool send_impl(zmq::socket_t& socket, int flags = 0) const;
 
-  //a special struct that holds any space we need malloced
-  struct DataStorage
-    {
-    DataStorage(): Size(0), Space(NULL){}
-    DataStorage(unsigned int size): Size(size){this->Space = new char[this->Size];}
-    ~DataStorage(){if(Size>0){delete[] this->Space;}}
-    int Size;
-    char* Space;
-    };
-
   remus::common::MeshIOType MType;
   remus::SERVICE_TYPE SType;
   const char* Data; //points to the message contents to send
   int Size;
   bool ValidMsg; //tells if the message is valid, mainly used by the server
 
-  //Storage is an optional allocation that is used when recieving job messages
-  //when the process accepting the message has no memory already allocated to recieve it
-  //It isn't used when sending messages to the server
-  boost::shared_ptr<DataStorage> Storage;
+  //Storage is an optional allocation that is used when we need to have
+  //ownership over that data being received or sent.
+  ConditionalStorage Storage;
 };
 
 
