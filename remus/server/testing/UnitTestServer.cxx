@@ -15,6 +15,8 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/testing/Testing.h>
 
+#include <iostream>
+
 namespace {
 
 //presumes a != b
@@ -60,13 +62,57 @@ void test_server_constructors()
 
 void test_server_sig_catching()
 {
+  void (*prev_sig_func)(int);
+  {
   //construct a server that will not swallow signals since
   //it hasn't started brokering
   remus::server::Server server;
 
   //raise all signals, and verify that the default handler is catching
   //them
-  void (*prev_sig_func)(int);
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  //now start the server for brokering and make sure it has
+  //hooked onto all the signals
+  server.startBrokering();
+
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
+
+  server.stopBrokering();
+  //now the signals should be back to normal
+
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
@@ -86,30 +132,112 @@ void test_server_sig_catching()
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
 
-  //ToDo: Now enable the brokering of the server and verify
-  //that it is swallowing all signals
+  server.startBrokering();
+  }
+
+  //now on destruction without calling stop brokering we should see
+  //signal handling going back to defaults
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  //now create a server without signal catching
 
 }
 
 void test_server_brokering()
 {
-  //Todo: Nothing can happen intill the server is threaded.
+  //the all the different permutation of brokering and the destructor
+  {
+    remus::Server s;
+   //make sure we destruct without brokering
+  }
+
+  {
+    remus::Server s;
+    s.startBrokering();
+    //make sure we start brokering and can still destruct
+  }
+
+  {
+    remus::Server s;
+    s.startBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    //make sure multiple calls to start brokering is handled
+  }
+
+  {
+    remus::Server s;
+    s.startBrokering();
+    s.stopBrokering();
+    //make sure we start brokering and can still destruct
+  }
+
+  {
+    remus::Server s;
+    s.stopBrokering();
+    //make sure we stop brokering works without starting
+  }
+
+  {
+    remus::Server s;
+    s.stopBrokering();
+    s.startBrokering();
+    s.stopBrokering();
+    s.startBrokering();
+    s.stopBrokering();
+    s.stopBrokering();
+    s.stopBrokering();
+    s.startBrokering();
+    //make sure we can start stop the brokering and destruct in the start
+    //sate
+  }
+  {
+    remus::Server s;
+    s.stopBrokering();
+    s.startBrokering();
+    s.stopBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    s.startBrokering();
+    s.stopBrokering();
+    s.stopBrokering();
+    s.stopBrokering();
+    s.startBrokering();
+    s.stopBrokering();
+    //make sure we can start stop the brokering and destruct in the start
+    //sate
+  }
+
 }
 
 } //namespace
 
 int UnitTestServer(int, char *[])
 {
-  //Todo: Before we can have a real server test we need a way
-  //to stop the server from brokering.
-
   //Test server construction
   test_server_constructors();
 
-
   //Test server signal catching
   test_server_sig_catching();
-
 
   //Test server brokering
   test_server_brokering();

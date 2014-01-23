@@ -58,15 +58,10 @@ void make_terminateJob(remus::common::Response& response,
 
 struct ThreadImpl
 {
-  boost::thread* ServerThread;
-  boost::mutex ServerMutex;
-  boost::mutex BrokeringStartMutex;
-  boost::mutex ThreadBoolMutex;
-  bool RunThread;
   ThreadImpl():
-    ServerThread(),
-    ServerMutex(),
-    BrokeringStartMutex()
+    BrokerThread( new boost::thread() ),
+    BrokeringStatus(),
+    BrokerIsRunning(false)
   {
   }
 
@@ -75,74 +70,79 @@ struct ThreadImpl
   this->stop();
   }
 
-  void lockServer()
+  bool isBrokering()
   {
-  this->ServerMutex.lock();
-  this->BrokeringStartMutex.unlock();
-  }
-
-  void unlockServer()
-  {
-  this->ServerMutex.unlock();
-  }
-
-  bool runThread()
-  {
-  this->ThreadBoolMutex.lock();
-  bool r = this->RunThread;
-  this->ThreadBoolMutex.unlock();
-  return r;
-  }
-
-  void setThreadRun(bool t)
-  {
-  this->ThreadBoolMutex.lock();
-  this->RunThread = t;
-  this->ThreadBoolMutex.unlock();
+  boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+  return this->BrokerIsRunning;
   }
 
   bool start(remus::server::Server* server,
              remus::server::Server::SignalHandling sigHandleState)
   {
-  this->BrokeringStartMutex.lock();
-  this->setThreadRun(true);
-  this->ServerThread =
-          new boost::thread(&Server::brokering, server, sigHandleState);
-  this->RunThread = true;
-  return this->ServerThread != NULL;
+  bool launchThread = false;
+
+    //lock the construction of thread as a critical section
+    {
+    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    launchThread = !this->BrokerIsRunning;
+    if(launchThread)
+      {
+      boost::scoped_ptr<boost::thread> bthread(
+        new  boost::thread(&Server::brokering, server, sigHandleState) );
+      this->BrokerThread.swap(bthread);
+      }
+    }
+
+  //do this outside the previous critical section so that we properly
+  //tell other threads that the thread has been launched. We don't
+  //want to cause a recursive lock in the same thread to happen
+  if(launchThread)
+    {
+    this->setIsBrokering(true);
+    }
+
+  return this->isBrokering();
   }
 
   void stop()
   {
-  this->BrokeringStartMutex.lock();
-  this->setThreadRun(false);
-  this->RunThread = false;
-  if(this->ServerThread != NULL)
+  this->setIsBrokering(false);
+  this->BrokerThread->join();
+  }
+
+  void waitForThreadToStart()
+  {
+  boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+  while(!this->BrokerIsRunning)
     {
-    this->ServerThread->join();
-    delete this->ServerThread;
-    this->ServerThread = NULL;
-    this->ServerMutex.unlock();
+    BrokerStatusChanged.wait(lock);
     }
-  this->BrokeringStartMutex.unlock();
   }
 
-  void waitForStart()
+  void waitForThreadToFinish()
   {
-  this->BrokeringStartMutex.lock(); //Wait until brockering gets a chance
-                                    //to start
-  this->BrokeringStartMutex.unlock();
+  //first we wait for the Broker to start up
+  this->waitForThreadToStart();
+
+  //now we wait for the broker to finish
+  this->BrokerThread->join();
   }
 
-  void wait()
+private:
+  boost::scoped_ptr<boost::thread> BrokerThread;
+
+  boost::mutex BrokeringStatus;
+  boost::condition_variable BrokerStatusChanged;
+  bool BrokerIsRunning;
+
+  void setIsBrokering(bool t)
   {
-  //Wait until brokering gets a chance to start
-  this->BrokeringStartMutex.lock();
-  this->BrokeringStartMutex.unlock();
-  this->ServerMutex.lock();           //Wait for brokering to finish
-  this->ServerMutex.unlock();         //Allow delete to proceed
+    {
+    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    this->BrokerIsRunning = t;
+    }
+  this->BrokerStatusChanged.notify_all();
   }
-
 };
 
 
@@ -237,14 +237,12 @@ Server::Server(remus::server::ServerPorts ports,
 //------------------------------------------------------------------------------
 Server::~Server()
 {
-  this->Thread->stop();
+
 }
 
 //------------------------------------------------------------------------------
 bool Server::brokering(Server::SignalHandling sh)
   {
-  this->Thread->lockServer();
-
   //start up signal catching before we start polling. We do this in the
   //startBrokering method since really the server isn't doing anything before
   //this point.
@@ -263,7 +261,7 @@ bool Server::brokering(Server::SignalHandling sh)
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
   //  Process messages from both sockets
-  while (Thread->runThread())
+  while (Thread->isBrokering())
     {
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
     // std::cout << "p" << std::endl;
@@ -319,8 +317,6 @@ bool Server::brokering(Server::SignalHandling sh)
 
   this->StopCatchingSignals();
 
-  this->Thread->unlockServer();
-
   return true;
   }
 
@@ -339,13 +335,13 @@ void Server::stopBrokering()
 //------------------------------------------------------------------------------
 void Server::waitForBrokeringToFinish()
 {
-  this->Thread->wait();
+  this->Thread->waitForThreadToFinish();
 }
 
 //------------------------------------------------------------------------------
 void Server::waitForBrokeringToStart()
 {
-  this->Thread->waitForStart();
+  this->Thread->waitForThreadToStart();
 }
 
 //------------------------------------------------------------------------------
