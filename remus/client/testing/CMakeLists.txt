@@ -11,7 +11,7 @@
 #=============================================================================
 
 set(unit_tests
-  UnitTestServerConnection.cxx
+  UnitTestClientServerConnection.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}

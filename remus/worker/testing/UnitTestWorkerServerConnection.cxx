@@ -36,7 +36,7 @@ zmq::socketInfo<zmq::proto::inproc> make_inproc_socket(std::string host)
 } //namespace
 
 
-int UnitTestServerConnection(int, char *[])
+int UnitTestWorkerServerConnection(int, char *[])
 {
 
   remus::worker::ServerConnection sc;
