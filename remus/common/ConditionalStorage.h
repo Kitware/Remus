@@ -35,7 +35,10 @@ struct ConditionalStorage
   }
 
   std::size_t size() const { return this->Size; }
+
   const char* get() const { return this->Space.get(); }
+
+  const char* data() const { return this->Space.get(); }
 
   void swap(ConditionalStorage& otherStorage )
   {
