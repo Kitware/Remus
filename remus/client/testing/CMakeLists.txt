@@ -15,4 +15,4 @@ set(unit_tests
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusCommon)
+                 LIBRARIES RemusClient)
