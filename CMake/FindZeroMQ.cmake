@@ -34,7 +34,7 @@ find_path(ZeroMQ_INCLUDE_DIR
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ZeroMQ DEFAULT_MSG
-    ZeroMQ_LIBRARIES
+    ZeroMQ_LIBRARY
     ZeroMQ_INCLUDE_DIR
 )
 
