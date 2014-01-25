@@ -58,7 +58,7 @@ public:
   }
 
   //get if the current job is a valid job
-  bool valid() const { return Validity != INVALID || Type.valid(); }
+  bool valid() const { return Validity != INVALID && Type.valid(); }
 
   //Get the status of the message
   JobValidity validityReason() const { return Validity; }
