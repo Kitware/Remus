@@ -258,12 +258,5 @@ void Worker::returnMeshResults(const remus::worker::JobResult& result)
   message.send(this->ServerComm);
 }
 
-//-----------------------------------------------------------------------------
-void Worker::terminateWorker()
-{
-  exit(1);
-}
-
-
 }
 }
