@@ -66,7 +66,7 @@ enum STATUS_TYPE
 namespace common
   {
   //a mapping of enum types to char*
-  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "TERMINATE JOB AND WORKER" };
+  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "TERMINATE JOB", "TERMINATE WORKER" };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
   }
 
