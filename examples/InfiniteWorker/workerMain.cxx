@@ -35,6 +35,16 @@ int main (int argc, char* argv[])
   while(true)
   {
     remus::worker::Job jd = w.getJob();
+    switch(jd.validityReason())
+    {
+      case remus::worker::Job::INVALID:
+        std::cout << "job invalid" << std::endl;
+        return 0;
+      case remus::worker::Job::TERMINATE_WORKER:
+        return 1;
+      default:
+        break;
+    }
 
     remus::worker::JobStatus status(jd.id(),remus::IN_PROGRESS);
     for(int progress=1; progress <= 100; ++progress)

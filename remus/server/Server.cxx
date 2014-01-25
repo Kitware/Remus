@@ -46,13 +46,23 @@ namespace remus{
 namespace server{
 namespace detail{
 
+void make_terminateWorker(remus::common::Response& response,
+                          boost::uuids::uuid jobId)
+{
+  remus::worker::Job terminateJob(jobId,
+                                  remus::common::MeshIOType(),
+                                  remus::to_string(remus::TERMINATE_WORKER));
+  response.setServiceType(remus::TERMINATE_WORKER);
+  response.setData(remus::worker::to_string(terminateJob));
+}
+
 void make_terminateJob(remus::common::Response& response,
                        boost::uuids::uuid jobId)
 {
   remus::worker::Job terminateJob(jobId,
                           remus::common::MeshIOType(),
-                          remus::to_string(remus::TERMINATE_JOB_AND_WORKER));
-  response.setServiceType(remus::TERMINATE_JOB_AND_WORKER);
+                          remus::to_string(remus::TERMINATE_JOB));
+  response.setServiceType(remus::TERMINATE_JOB);
   response.setData(remus::worker::to_string(terminateJob));
 }
 
@@ -376,7 +386,7 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     case remus::RETRIEVE_MESH:
       response.setData(this->retrieveMesh(msg));
       break;
-    case remus::TERMINATE_JOB_AND_WORKER:
+    case remus::TERMINATE_JOB:
       response.setData(this->terminateJob(msg));
       break;
     default:
@@ -644,7 +654,7 @@ void Server::TerminateAllWorkers( )
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = this->UUIDGenerator();
     remus::common::Response response(*i);
-    detail::make_terminateJob(response,jobId);
+    detail::make_terminateWorker(response,jobId);
     response.send(this->WorkerQueries);
     }
 
@@ -658,7 +668,7 @@ void Server::TerminateAllWorkers( )
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = this->UUIDGenerator();
     remus::common::Response response(*i);
-    detail::make_terminateJob(response,jobId);
+    detail::make_terminateWorker(response,jobId);
     response.send(this->WorkerQueries);
     }
 
