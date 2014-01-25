@@ -85,8 +85,8 @@ remus::client::JobResult Client::retrieveResults(const remus::client::Job& job)
 remus::client::JobStatus Client::terminate(const remus::client::Job& job)
 {
   remus::common::Message j(job.type(),
-                              remus::TERMINATE_JOB_AND_WORKER,
-                              remus::client::to_string(job));
+                           remus::TERMINATE_JOB,
+                           remus::client::to_string(job));
   j.send(this->Server);
 
   remus::common::Response response(this->Server);

@@ -38,8 +38,9 @@ public:
   //return the number of jobs waiting for work
   std::size_t size() const;
 
-private:
+  //Terminates and Remove a job
 
+private:
 
   class JobQueueImplementation;
   JobQueueImplementation *Implementation;

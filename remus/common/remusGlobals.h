@@ -46,7 +46,8 @@ enum SERVICE_TYPE
   //the first would be stop_job which would only stop the current job
   //it might terminate the worker if needed, but no mandatory. The
   //second would be to terminate a worker and all jobs it contains
-  TERMINATE_JOB_AND_WORKER = 6
+  TERMINATE_JOB = 6,
+  TERMINATE_WORKER = 7
 };
 
 //------------------------------------------------------------------------------

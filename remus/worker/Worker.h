@@ -64,6 +64,8 @@ public:
   //send to the server the mesh results.
   virtual void returnMeshResults(const remus::worker::JobResult& result);
 
+  virtual void terminateWorker();
+
 protected:
   //start communication. Currently is called by
   //the constructor

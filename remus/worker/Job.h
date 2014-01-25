@@ -33,28 +33,36 @@ namespace worker{
 class Job
 {
 public:
+  enum JobValidity{ INVALID = 0, VALID_JOB, TERMINATE_WORKER};
 
   //construct an invalid job object
-  Job():
+  explicit Job(JobValidity js = INVALID):
     Id(),
     Type(),
-    JobDetails()
+    JobDetails(),
+    Validity(js)
   {
   }
 
   //construct a valid server side job object with Id, Type, and JobDetails
   Job(const boost::uuids::uuid& id,
       const remus::common::MeshIOType& type,
-      const std::string& data):
+      const std::string& data,
+      JobValidity js = VALID_JOB):
   Id(id),
   Type(type),
-  JobDetails(data)
+  JobDetails(data),
+  Validity(js)
   {
 
   }
 
   //get if the current job is a valid job
-  bool valid() const { return Type.valid(); }
+  bool valid() const { return Validity != INVALID || Type.valid(); }
+
+  //Get the status of the message
+  JobValidity validityReason() const { return Validity; }
+  void updateValidityReason(JobValidity v){ Validity = v; }
 
   //get the id of the job
   const boost::uuids::uuid& id() const { return Id; }
@@ -69,6 +77,7 @@ private:
   boost::uuids::uuid Id;
   remus::common::MeshIOType Type;
   std::string JobDetails;
+  JobValidity Validity;
 };
 
 //------------------------------------------------------------------------------
