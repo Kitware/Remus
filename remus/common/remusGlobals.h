@@ -54,14 +54,21 @@ enum SERVICE_TYPE
 };
 
 //------------------------------------------------------------------------------
+// Status Type macros
+#define StatusTypeMacros() \
+     StatusTypeMacro(INVALID_STATUS, 0,"INVALID"), \
+     StatusTypeMacro(QUEUED, 1, "QUEUED"), \
+     StatusTypeMacro(IN_PROGRESS, 2, "IN PROGRESS"), \
+     StatusTypeMacro(FINISHED, 3, "FINISHED"), \
+     StatusTypeMacro(FAILED, 4, "FAILED"), \
+     StatusTypeMacro(EXPIRED, 5, "EXPIRED")
+
+//------------------------------------------------------------------------------
 enum STATUS_TYPE
 {
-  INVALID_STATUS = 0,
-  QUEUED = 1,
-  IN_PROGRESS = 2,
-  FINISHED = 3,
-  FAILED = 4,
-  EXPIRED = 5
+#define StatusTypeMacro(ID,NUM,NAME) ID = NUM
+  StatusTypeMacros()
+#undef StatusTypeMacro
 };
 
 
@@ -74,7 +81,11 @@ namespace common
     ServiceTypeMacros()
 #undef ServiceTypeMacro
   };
-  static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
+  static const char *stat_types[] = {
+#define StatusTypeMacro(ID,NUM,NAME) NAME
+    StatusTypeMacros()
+#undef StatusTypeMacro
+  };
   }
 
 //------------------------------------------------------------------------------
