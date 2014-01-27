@@ -114,12 +114,22 @@ inline std::string extractString(std::stringstream& buffer, int size)
   return msg;
 }
 
+
 //------------------------------------------------------------------------------
 inline void writeString(std::stringstream& buffer, const std::string str)
 {
   buffer.rdbuf()->sputn(str.c_str(),str.length());
   buffer << std::endl;
 }
+
+//------------------------------------------------------------------------------
+inline void writeString(std::stringstream& buffer, const char * str,
+                        std::size_t size)
+{
+  buffer.rdbuf()->sputn(str,size);
+  buffer << std::endl;
+}
+
 }
 
 }
