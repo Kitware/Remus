@@ -12,6 +12,7 @@
 
 set(unit_tests
   UnitTestWorkerServerConnection.cxx
+  UnitTestWorkerJobResult.cxx
   UnitTestWorkerJobStatus.cxx
   )
 
