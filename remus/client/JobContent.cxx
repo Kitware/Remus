@@ -23,7 +23,7 @@ struct JobContent::InternalImpl
 {
 
   template<typename T>
-  InternalImpl(const T& t)
+  explicit InternalImpl(const T& t)
   {
     this->Storage = remus::common::ConditionalStorage(t);
     this->Size = this->Storage.size();
@@ -79,11 +79,24 @@ void JobContent::setServerToBeRemote(bool isRemote) const
 }
 
 //------------------------------------------------------------------------------
+const char* JobContent::data() const
+{
+  return this->Implementation->Data;
+}
+
+//------------------------------------------------------------------------------
+std::size_t JobContent::dataSize() const
+{
+  return this->Implementation->Size;
+}
+
+//------------------------------------------------------------------------------
 void JobContent::serialize(std::stringstream& buffer) const
 {
-  buffer << this->source_type() << std::endl;
-  buffer << this->format_type() << std::endl;
+  buffer << this->sourceType() << std::endl;
+  buffer << this->formatType() << std::endl;
   buffer << this->tag().size() << std::endl;
+
   remus::internal::writeString(buffer,this->tag());
   buffer << this->Implementation->Size << std::endl;
 
@@ -111,7 +124,7 @@ JobContent::JobContent(std::stringstream& buffer)
 
   //read in the contents, todo do this with less temp objects and copies
   buffer >> contentsSize;
-  std::string temp = remus::internal::extractString(buffer,contentsSize);
+  const std::string temp = remus::internal::extractString(buffer,contentsSize);
   this->Implementation = boost::shared_ptr< InternalImpl >(new InternalImpl(temp));
 
 

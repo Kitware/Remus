@@ -51,15 +51,18 @@ public:
              std::size_t size);
 
   //returns if the source of the content is memory or a file
-  ContentSource::Type source_type() const { return this->SourceType; }
+  ContentSource::Type sourceType() const { return this->SourceType; }
 
   //get the storage format that we currently have setup for the source
-  ContentFormat::Type format_type() const { return this->FormatType; }
+  ContentFormat::Type formatType() const { return this->FormatType; }
 
   //tag this section of data with a user defined tag
   void tag(const std::string& tag_value) { this->Tag = tag_value; }
   //get the value of the tag for this data
   const std::string& tag() const { return this->Tag; }
+
+  const char* data() const;
+  std::size_t dataSize() const;
 
 private:
   friend class remus::client::Client;
