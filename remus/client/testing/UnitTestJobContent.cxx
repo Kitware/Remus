@@ -13,10 +13,77 @@
 #include <remus/client/JobContent.h>
 #include <remus/testing/Testing.h>
 
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+#include <ctime>
+
+
 //we need a better name for JobContents, Data is a bad name I think that
 //a better name could be JobContents, or JobInput
 
+namespace {
 using namespace remus::client;
+
+
+
+std::string efficientStringGenerator(int length) {
+    std::string result;
+    result.reserve(length);
+
+    std::string charset("abcdefghijklmnopqrstuvwxyz");
+    std::random_shuffle(charset.begin(),charset.end());
+
+    const std::size_t remainder = length % charset.length();
+    const std::size_t times_to_copy = length / charset.length();
+
+    //fill the remainder in first
+    typedef std::string::iterator it;
+    it start = result.begin();
+    std::copy(charset.begin(), charset.begin()+remainder,start);
+
+    std::random_shuffle(charset.begin(),charset.end());
+    start += remainder;
+    for(int i=0; i < times_to_copy; ++i, start+=charset.length())
+      { std::copy(charset.begin(), charset.end(), start); }
+    return result;
+}
+
+struct make_empty_string
+{
+  std::string operator()() const
+  {
+    return std::string();
+  }
+};
+struct make_small_string
+{
+  std::string operator()() const
+  {
+    return std::string("small string");
+  }
+};
+
+//makes rougly a 10mb sting
+struct make_large_string
+{
+  std::string operator()() const
+  {
+    return efficientStringGenerator(10240*1024);
+  }
+};
+
+//makes roughly a 2GB string
+struct make_really_large_string
+{
+  std::string operator()() const
+  {
+    std::string example;
+    std::size_t my_max_size = example.max_size() / 10;
+    return efficientStringGenerator(my_max_size);
+  }
+};
+
 
 void verify_source_and_format()
 {
@@ -37,7 +104,6 @@ void verify_source_and_format()
   REMUS_ASSERT( (json_file_test.format_type() == ContentFormat::JSON ) );
   REMUS_ASSERT( (bson_file_test.format_type() == ContentFormat::BSON ) );
   REMUS_ASSERT( (user_file_test.format_type() == ContentFormat::USER ) );
-
 
   JobContent xml_mem_test = make_MemoryJobContent( ContentFormat::XML, path );
   JobContent json_mem_test = make_MemoryJobContent( ContentFormat::JSON, path );
@@ -63,13 +129,12 @@ void verify_tag()
   REMUS_ASSERT( (test.tag() == "hello") );
 }
 
-void verify_serilization()
+template<typename StringFactory>
+void verify_serilization(StringFactory factory)
 {
-  std::string path="example_data.txt";
-  JobContent input_content = make_MemoryJobContent(ContentFormat::XML, path);
+  JobContent input_content = make_MemoryJobContent(ContentFormat::XML, factory() );
 
-  std::string wire_format = to_string(test);
-
+  std::string wire_format = to_string(input_content);
   JobContent from_wire = to_JobContent(wire_format);
 
   REMUS_ASSERT( (from_wire.source_type() == input_content.source_type() ) );
@@ -77,10 +142,18 @@ void verify_serilization()
   REMUS_ASSERT( (from_wire.tag() == input_content.tag() ) );
 }
 
+}
+
 int UnitTestJobContent(int, char *[])
 {
+  //setup the random number generator
+  std::srand(std::time(0));
+
   verify_source_and_format();
   verify_tag();
-  verify_serilization();
+  verify_serilization( (make_empty_string()) );
+  verify_serilization( (make_small_string()) );
+  verify_serilization( (make_large_string()) );
+  verify_serilization( (make_really_large_string()) );
   return 0;
 }

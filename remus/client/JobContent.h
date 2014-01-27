@@ -72,8 +72,8 @@ private:
   //serialize function
   void serialize(std::stringstream& buffer) const;
 
-  //deserialize function
-  static remus::client::JobContent deserialize(std::stringstream& buffer);
+  //deserialize constructor function
+  explicit JobContent(std::stringstream& buffer);
 
 
   ContentSource::Type SourceType;
@@ -117,7 +117,7 @@ inline remus::client::JobContent to_JobContent(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
-  return remus::client::JobContent::deserialize(buffer);
+  return remus::client::JobContent(buffer);
 }
 
 //------------------------------------------------------------------------------
