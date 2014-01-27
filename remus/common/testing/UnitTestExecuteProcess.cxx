@@ -14,6 +14,13 @@
 #include <remus/common/ExecuteProcess.h>
 #include <remus/testing/Testing.h>
 
+#ifdef _WIN32
+#  include "windows.h"
+#  defind usleep(X) Sleep((X))
+#else
+#  include <unistd.h>
+#endif
+
 #include "PathToTestExecutable.h"
 
 namespace
@@ -140,6 +147,7 @@ int UnitTestExecuteProcess(int, char *[])
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
 
+  usleep(1);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
 
@@ -163,6 +171,7 @@ int UnitTestExecuteProcess(int, char *[])
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
 
+  usleep(1);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
 
