@@ -12,6 +12,8 @@
 
 set(unit_tests
   UnitTestClientServerConnection.cxx
+  UnitTestJobContent.cxx
+  UnitTestClientJobStatus.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}

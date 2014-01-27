@@ -124,15 +124,18 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
   buffer >> t;
 
   const remus::STATUS_TYPE type = static_cast<remus::STATUS_TYPE>(t);
-  if(type!=remus::IN_PROGRESS)
+
+  remus::client::JobStatus jstatus(id,type);
+  if(type == remus::IN_PROGRESS)
     {
-    return remus::client::JobStatus(id,type);
-    }
-  else
-    {
+    remus::client::JobProgress pr(type);
     //if we are progress status message we have two more pieces of info to decode
     int progressValue;
     buffer >> progressValue;
+    if(progressValue > 0)
+      {
+      pr.setValue(progressValue);
+      }
 
     int progressMessageLen;
     std::string progressMessage;
@@ -143,9 +146,10 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
     buffer >>progressMessageLen;
     progressMessage = remus::internal::extractString(buffer,progressMessageLen);
 
-    remus::client::JobProgress pr(progressValue,progressMessage);
-    return remus::client::JobStatus(id,pr);
+    pr.setMessage(progressMessage);
+    jstatus = remus::client::JobStatus(id,pr);
     }
+  return jstatus;
 }
 
 

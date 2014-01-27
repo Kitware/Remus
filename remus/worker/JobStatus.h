@@ -33,10 +33,11 @@ using remus::common::JobProgress;
 
 class JobStatus
 {
+  remus::worker::JobProgress Progress;
 public:
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
-  remus::worker::JobProgress Progress;
+
 
   //Construct a job status that has no form of progress value or message
   JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
@@ -56,6 +57,12 @@ public:
     {
 
     }
+
+  //get a read only reference to current progress
+  const remus::worker::JobProgress& progress() const
+  {
+    return this->Progress;
+  }
 
   //update the progress values of the status object
   void updateProgress( const remus::worker::JobProgress& progress )
@@ -112,9 +119,9 @@ inline std::string to_string(const remus::worker::JobStatus& status)
   //cares about that information
   if(status.Status == remus::IN_PROGRESS)
     {
-    buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message().size() << std::endl;
-    remus::internal::writeString(buffer,status.Progress.message());
+    buffer << status.progress().value() << std::endl;
+    buffer << status.progress().message().size() << std::endl;
+    remus::internal::writeString(buffer,status.progress().message());
     }
   return buffer.str();
 }
@@ -131,15 +138,17 @@ inline remus::worker::JobStatus to_JobStatus(const std::string& status)
   buffer >> t;
 
   const remus::STATUS_TYPE type = static_cast<remus::STATUS_TYPE>(t);
-  if(type!=remus::IN_PROGRESS)
+  remus::worker::JobStatus jstatus(id,type);
+  if(type==remus::IN_PROGRESS)
     {
-    return remus::worker::JobStatus(id,type);
-    }
-  else
-    {
+    remus::worker::JobProgress pr(type);
     //if we are progress status message we have two more pieces of info to decode
     int progressValue;
     buffer >> progressValue;
+    if(progressValue > 0)
+      {
+      pr.setValue(progressValue);
+      }
 
     int progressMessageLen;
     std::string progressMessage;
@@ -151,9 +160,10 @@ inline remus::worker::JobStatus to_JobStatus(const std::string& status)
     progressMessage = remus::internal::extractString(buffer,progressMessageLen);
 
 
-    remus::worker::JobProgress pr(progressValue,progressMessage);
-    return remus::worker::JobStatus(id,pr);
+    pr.setMessage(progressMessage);
+    jstatus = remus::worker::JobStatus(id,pr);
     }
+  return jstatus;
 }
 
 
