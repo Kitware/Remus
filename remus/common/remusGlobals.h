@@ -34,20 +34,23 @@ static const int HEARTBEAT_INTERVAL = 1000 * HEARTBEAT_INTERVAL_IN_SEC;
 static const std::string INVALID_MSG = "INVALID_MSG";
 
 //------------------------------------------------------------------------------
+// Severice Type macros.
+#define ServiceTypeMacros() \
+     ServiceTypeMacro(INVALID_SERVICE, 0,"INVALID"), \
+     ServiceTypeMacro(MAKE_MESH, 1, "MAKE MESH"), \
+     ServiceTypeMacro(MESH_STATUS, 2, "MESH STATUS"), \
+     ServiceTypeMacro(CAN_MESH, 3, "CAN MESH"), \
+     ServiceTypeMacro(RETRIEVE_MESH, 4, "RETRIEVE MESH"), \
+     ServiceTypeMacro(HEARTBEAT, 5, "HEARTBEAT"), \
+     ServiceTypeMacro(TERMINATE_JOB, 6, "TERMINATE JOB"), \
+     ServiceTypeMacro(TERMINATE_WORKER, 7, "TERMINATE WORKER")
+
+//------------------------------------------------------------------------------
 enum SERVICE_TYPE
 {
-  INVALID_SERVICE = 0,
-  MAKE_MESH = 1,
-  MESH_STATUS = 2,
-  CAN_MESH = 3,
-  RETRIEVE_MESH = 4,
-  HEARTBEAT = 5,
-  //we should split up the TERMINATE_JOB_AND_WORKER into really two calls
-  //the first would be stop_job which would only stop the current job
-  //it might terminate the worker if needed, but no mandatory. The
-  //second would be to terminate a worker and all jobs it contains
-  TERMINATE_JOB = 6,
-  TERMINATE_WORKER = 7
+#define ServiceTypeMacro(ID,NUM,NAME) ID = NUM
+   ServiceTypeMacros()
+#undef ServiceTypeMacro
 };
 
 //------------------------------------------------------------------------------
@@ -66,7 +69,11 @@ enum STATUS_TYPE
 namespace common
   {
   //a mapping of enum types to char*
-  static const char *serv_types[] = { "INVALID", "MAKE MESH", "MESH STATUS", "CAN MESH", "RETRIEVE MESH", "HEARTBEAT", "TERMINATE JOB", "TERMINATE WORKER" };
+  static const char *serv_types[] = {
+#define ServiceTypeMacro(ID,NUM,NAME) NAME
+    ServiceTypeMacros()
+#undef ServiceTypeMacro
+  };
   static const char *stat_types[] = { "INVALID", "QUEUED", "IN PROGRESS", "FINISHED", "FAILED","EXPIRED" };
   }
 
