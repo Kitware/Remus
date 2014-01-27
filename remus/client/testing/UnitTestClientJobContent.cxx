@@ -211,7 +211,7 @@ void verify_serilization_with_tag(StringFactory factory)
 
 }
 
-int UnitTestJobContent(int, char *[])
+int UnitTestClientJobContent(int, char *[])
 {
   //setup the random number generator
   std::srand(std::time(0));

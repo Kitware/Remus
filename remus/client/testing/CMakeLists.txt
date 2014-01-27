@@ -11,11 +11,10 @@
 #=============================================================================
 
 set(unit_tests
-  UnitTestClientServerConnection.cxx
+  UnitTestClientJobContent.cxx
   UnitTestClientJobResult.cxx
   UnitTestClientJobStatus.cxx
-  UnitTestJobContent.cxx
-
+  UnitTestClientServerConnection.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
