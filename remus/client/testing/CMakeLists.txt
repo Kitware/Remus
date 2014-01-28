@@ -11,6 +11,7 @@
 #=============================================================================
 
 set(unit_tests
+  UnitTestClientJob.cxx
   UnitTestClientJobContent.cxx
   UnitTestClientJobResult.cxx
   UnitTestClientJobStatus.cxx

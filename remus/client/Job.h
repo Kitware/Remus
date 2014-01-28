@@ -75,8 +75,8 @@ inline remus::client::Job to_Job(const std::string& msg)
   //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
 
-  boost::uuids::uuid id;
   remus::common::MeshIOType type;
+  boost::uuids::uuid id;
 
   buffer >> type;
   buffer >> id;
