@@ -111,16 +111,16 @@ void verify_updating_status()
       //not updateStatus
       remus::worker::JobStatus status(uuids_used[0], status_type);
       jobs.updateStatus(status);
-      REMUS_ASSERT( (jobs.status(uuids_used[0]).Status != status_type) );
+      REMUS_ASSERT( (jobs.status(uuids_used[0]).status() != status_type) );
 
       remus::worker::JobResult result(uuids_used[0]);
       jobs.updateResult(result);
-      REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
+      REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == false) );
 
       remus::worker::JobResult result_with_data(uuids_used[0],"data");
       jobs.updateResult(result_with_data);
-      REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
+      REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == true) );
       }
     else
@@ -129,14 +129,14 @@ void verify_updating_status()
       jobs.updateStatus(status);
       }
 
-    REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
+    REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
     for(remus::STATUS_TYPE other_status = remus::QUEUED;
         other_status != status_type;
         other_status = remus::STATUS_TYPE((int)other_status+1))
       {
       remus::worker::JobStatus status_attempt(uuids_used[0], other_status);
       jobs.updateStatus(status_attempt);
-      REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == status_type) );
+      REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
       }
 
     }
@@ -144,11 +144,11 @@ void verify_updating_status()
   //verify that finished is greater than expired or failed
   remus::worker::JobStatus status_failed(uuids_used[0], remus::FAILED);
   jobs.updateStatus(status_failed);
-  REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == remus::FINISHED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == remus::FINISHED) );
 
   remus::worker::JobStatus status_expired(uuids_used[0], remus::EXPIRED);
   jobs.updateStatus(status_expired);
-  REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == remus::FINISHED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == remus::FINISHED) );
 
 
   remus::worker::JobStatus status_mk1(uuids_used[1], remus::FAILED);
@@ -162,7 +162,7 @@ void verify_updating_status()
     {
     remus::worker::JobStatus status(uuids_used[1], status_type);
     jobs.updateStatus(status);
-    REMUS_ASSERT( (jobs.status(uuids_used[1]).Status == remus::FAILED) );
+    REMUS_ASSERT( (jobs.status(uuids_used[1]).status() == remus::FAILED) );
     }
 
   remus::worker::JobStatus status_mk2(uuids_used[2], remus::EXPIRED);
@@ -175,7 +175,7 @@ void verify_updating_status()
     {
     remus::worker::JobStatus status(uuids_used[2], status_type);
     jobs.updateStatus(status);
-    REMUS_ASSERT( (jobs.status(uuids_used[2]).Status == remus::EXPIRED) );
+    REMUS_ASSERT( (jobs.status(uuids_used[2]).status() == remus::EXPIRED) );
     }
 
 
@@ -185,11 +185,11 @@ void verify_updating_status()
   //2 = EXPIRED
   //3 = QUEUED
   //4 = QUEUED
-  REMUS_ASSERT( (jobs.status(uuids_used[0]).Status == remus::FINISHED) );
-  REMUS_ASSERT( (jobs.status(uuids_used[1]).Status == remus::FAILED) );
-  REMUS_ASSERT( (jobs.status(uuids_used[2]).Status == remus::EXPIRED) );
-  REMUS_ASSERT( (jobs.status(uuids_used[3]).Status == remus::QUEUED) );
-  REMUS_ASSERT( (jobs.status(uuids_used[4]).Status == remus::QUEUED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == remus::FINISHED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[1]).status() == remus::FAILED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[2]).status() == remus::EXPIRED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[3]).status() == remus::QUEUED) );
+  REMUS_ASSERT( (jobs.status(uuids_used[4]).status() == remus::QUEUED) );
 
   //check for results
   REMUS_ASSERT( (jobs.haveResult(uuids_used[0]) == true) );
@@ -217,25 +217,23 @@ void verify_updating_progress()
   remus::worker::JobStatus wjs(uuid_used, remus::worker::JobProgress(5) );
   jobs.updateStatus(wjs);
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 5) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message().size() == 0) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 5) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message().size() == 0) );
 
-  wjs.Progress.setValue(20);
-  wjs.Progress.setMessage("random text");
+  wjs.updateProgress( remus::worker::JobProgress(20,"random text") );
   jobs.updateStatus(wjs);
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 20) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message() == "random text") );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 20) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text") );
 
   //lets go backwards in progress, this should work
-  wjs.Progress.setValue(19);
-  wjs.Progress.setMessage(std::string()); //clear the string
+  wjs.updateProgress( remus::worker::JobProgress(19,"random text"));
   jobs.updateStatus(wjs);
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.value() == 19) );
-  REMUS_ASSERT( (jobs.status(uuid_used).Progress.message() == std::string() ) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 19) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == std::string() ) );
 
 }
 
@@ -258,19 +256,19 @@ void verify_refresh_jobs()
 
   jobs.markExpiredJobs( long_ago );
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.status(uuids_used[i]).Status == remus::QUEUED) ); }
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
   jobs.markExpiredJobs( current);
   for(int i=0; i < 5; ++i)
-    {  REMUS_ASSERT( (jobs.status(uuids_used[i]).Status == remus::QUEUED) ); }
+    {  REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
   jobs.markExpiredJobs( future);
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.status(uuids_used[i]).Status == remus::EXPIRED) ); }
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
 
   jobs.markExpiredJobs( long_ago);
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.status(uuids_used[i]).Status == remus::EXPIRED) ); }
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
 
   //verify that jobs marked as finished can't be marked as expired
   boost::uuids::uuid finished_job_uuid = make_id();
@@ -278,7 +276,7 @@ void verify_refresh_jobs()
   jobs.add(make_socketId(), finished_job_uuid);
   jobs.updateResult(result_with_data);
   jobs.markExpiredJobs( future );
-  REMUS_ASSERT( (jobs.status(finished_job_uuid).Status == remus::FINISHED) );
+  REMUS_ASSERT( (jobs.status(finished_job_uuid).status() == remus::FINISHED) );
 
 }
 

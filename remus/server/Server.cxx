@@ -406,10 +406,10 @@ bool Server::canMesh(const remus::common::Message& msg)
 std::string Server::meshStatus(const remus::common::Message& msg)
 {
   remus::client::Job job = remus::client::to_Job(msg.data());
-  remus::client::JobStatus js(job.id(),INVALID_STATUS);
+  remus::client::JobStatus js(job.id(),remus::INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(job.id()))
     {
-    js.Status = remus::QUEUED;
+    js = remus::client::JobStatus(job.id(),remus::QUEUED);
     }
   else if(this->ActiveJobs->haveUUID(job.id()))
     {

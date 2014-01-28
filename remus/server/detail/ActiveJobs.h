@@ -196,8 +196,15 @@ void ActiveJobs::updateStatus(const remus::worker::JobStatus& s)
     //we don't want the worker to ever explicitly state it has finished the
     //job. That is why we use canUpdateStatusTo, which checks the status
     //we are moving too
-    item->second.jstatus.Status = s.Status;
-    item->second.jstatus.Progress = s.Progress;
+    if(s.Status == remus::IN_PROGRESS)
+      {
+      item->second.jstatus = remus::client::JobStatus(s.JobId,
+                                                      s.progress());
+      }
+    else
+      {
+      item->second.jstatus = remus::client::JobStatus(s.JobId,s.Status);
+      }
     }
   item->second.refresh();
 }
@@ -216,7 +223,7 @@ void ActiveJobs::updateResult(const remus::worker::JobResult& r)
       }
 
     //update the client result data to equal the server data
-    item->second.jresult.Data = r.Data;
+    item->second.jresult = remus::client::JobResult(r.JobId,r.Data);
     item->second.haveResult = true;
     item->second.refresh();
     }
@@ -232,9 +239,9 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
     if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
            item->second.expiry < time)
       {
-      item->second.jstatus.Status = remus::EXPIRED;
-      item->second.jstatus.Progress =
-                                remus::client::JobProgress(remus::EXPIRED);
+
+      item->second.jstatus =
+          remus::client::JobStatus( item->second.jstatus.id(),remus::EXPIRED);
       //std::cout << "Marking job id: " << item->first << " as EXPIRED" << std::endl;
       }
     }
