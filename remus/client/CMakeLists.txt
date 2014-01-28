@@ -2,6 +2,7 @@ project(Remus_Client)
 
 set(headers
     Client.h
+    ContentTypes.h
     Job.h
     JobRequest.h
     JobContent.h

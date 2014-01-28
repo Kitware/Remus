@@ -18,6 +18,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+//for ContentFomrat and ContentSource
+#include <remus/client/ContentTypes.h>
+
 //included for symbol exports
 #include <remus/client/ClientExports.h>
 
@@ -26,10 +29,6 @@ namespace client{
 
 //forward declare for friendship
 class Client;
-
-//we need to work on these two more
-struct ContentFormat{ enum Type{USER=0, XML=1, JSON=2, BSON=3}; };
-struct ContentSource{ enum Type{File=0, Memory=1}; };
 
 class REMUSCLIENT_EXPORT JobContent
 {
@@ -118,7 +117,6 @@ inline std::string to_string(const remus::client::JobContent& content)
 //------------------------------------------------------------------------------
 inline remus::client::JobContent to_JobContent(const std::string& msg)
 {
-  //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
   return remus::client::JobContent(buffer);
 }
@@ -126,7 +124,6 @@ inline remus::client::JobContent to_JobContent(const std::string& msg)
 //------------------------------------------------------------------------------
 inline remus::client::JobContent to_JobContent(const char* data, int size)
 {
-  //convert a job request from a string, used as a hack to serialize
   std::string temp(size,char());
   std::copy( data, data+size, temp.begin() );
   return to_JobContent( temp );
