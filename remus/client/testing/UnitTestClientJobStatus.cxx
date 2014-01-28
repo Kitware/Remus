@@ -105,9 +105,9 @@ void state_test()
   REMUS_ASSERT(!bb.finished());
 
   //reuse ids
-  JobStatus cc(c.JobId, c.Status);
-  REMUS_ASSERT( (cc.JobId == c.JobId) );
-  REMUS_ASSERT( (cc.Status == c.Status) );
+  JobStatus cc(c.id(), c.status());
+  REMUS_ASSERT( (cc.id() == c.id()) );
+  REMUS_ASSERT( (cc.status() == c.status()) );
   REMUS_ASSERT(!cc.failed());
   REMUS_ASSERT(cc.good());
   REMUS_ASSERT(!cc.queued());
@@ -134,8 +134,8 @@ void validate_serialization(JobStatus s)
   std::string temp = to_string(s);
   JobStatus from_string = to_JobStatus(temp);
 
-  REMUS_ASSERT( (from_string.JobId == s.JobId) );
-  REMUS_ASSERT( (from_string.Status == s.Status) );
+  REMUS_ASSERT( (from_string.id() == s.id()) );
+  REMUS_ASSERT( (from_string.status() == s.status()) );
   REMUS_ASSERT( (from_string.progress() == s.progress()) );
 
   REMUS_ASSERT( (from_string.failed() == s.failed() ) );

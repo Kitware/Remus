@@ -32,10 +32,6 @@ using remus::common::JobProgress;
 class JobStatus
 {
 public:
-  boost::uuids::uuid JobId;
-  remus::STATUS_TYPE Status;
-  remus::client::JobProgress Progress;
-
   //Construct a job status that has no form of progress value or message
   JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
     JobId(id),
@@ -91,6 +87,16 @@ public:
     return this->Status == remus::FINISHED;
   }
 
+  //returns the uuid for the job that this status is for
+  const boost::uuids::uuid& id() const { return JobId; }
+
+  //get back the status flag type for this job
+  remus::STATUS_TYPE status() const { return Status; }
+
+private:
+  boost::uuids::uuid JobId;
+  remus::STATUS_TYPE Status;
+  remus::client::JobProgress Progress;
 };
 
 //------------------------------------------------------------------------------
@@ -98,16 +104,16 @@ inline std::string to_string(const remus::client::JobStatus& status)
 {
   //convert a job status to a string, used as a hack to serialize
   std::stringstream buffer;
-  buffer << status.JobId << std::endl;
-  buffer << status.Status << std::endl;
+  buffer << status.id() << std::endl;
+  buffer << status.status() << std::endl;
 
   //only send progress info, if we are actually a status message that
   //cares about that information
-  if(status.Status == remus::IN_PROGRESS)
+  if(status.status() == remus::IN_PROGRESS)
     {
-    buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message().size() << std::endl;
-    remus::internal::writeString(buffer,status.Progress.message());
+    buffer << status.progress().value() << std::endl;
+    buffer << status.progress().message().size() << std::endl;
+    remus::internal::writeString(buffer,status.progress().message());
     }
   return buffer.str();
 }

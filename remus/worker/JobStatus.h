@@ -33,8 +33,8 @@ using remus::common::JobProgress;
 
 class JobStatus
 {
-  remus::worker::JobProgress Progress;
 public:
+  remus::worker::JobProgress Progress;
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
 
