@@ -13,6 +13,7 @@
 #ifndef remus_common_ConditionStorage_h
 #define remus_common_ConditionStorage_h
 
+#include <cstring> //from memcpy
 #include <boost/shared_array.hpp>
 
 namespace remus {
