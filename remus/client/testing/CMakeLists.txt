@@ -14,6 +14,7 @@ set(unit_tests
   UnitTestClientJob.cxx
   UnitTestClientJobContent.cxx
   UnitTestClientJobResult.cxx
+  UnitTestClientJobMeshRequirements.cxx
   UnitTestClientJobStatus.cxx
   UnitTestClientServerConnection.cxx
   )

@@ -6,6 +6,7 @@ set(headers
     Job.h
     JobRequest.h
     JobContent.h
+    JobMeshRequirements.h
     JobResult.h
     JobStatus.h
     ServerConnection.h
@@ -13,6 +14,7 @@ set(headers
 
 set(client_srcs
     Client.cxx
+    JobMeshRequirements.cxx
     JobContent.cxx
     )
 
