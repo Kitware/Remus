@@ -26,7 +26,7 @@ using namespace remus::client;
 boost::uuids::random_generator generator;
 
 
-std::string efficientStringGenerator(int length)
+std::string efficientStringGenerator(std::size_t length)
 {
   std::string result;
   result.resize(length);
@@ -54,8 +54,8 @@ void validate_serialization(JobResult s)
   std::string temp = to_string(s);
   JobResult from_string = to_JobResult(temp);
 
-  REMUS_ASSERT( (from_string.JobId == s.JobId) );
-  REMUS_ASSERT( (from_string.Data == s.Data) );
+  REMUS_ASSERT( (from_string.id() == s.id()) );
+  REMUS_ASSERT( (from_string.data() == s.data()) );
   REMUS_ASSERT( (from_string.valid() == s.valid()) );
 }
 

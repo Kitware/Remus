@@ -31,9 +31,6 @@ namespace client {
 class JobResult
 {
 public:
-  boost::uuids::uuid JobId;
-  std::string Data; //data of the result of a job
-
   //construct am invalid JobResult
   JobResult(const boost::uuids::uuid& id):
     JobId(id),
@@ -48,6 +45,13 @@ public:
     {}
 
   bool valid() const { return Data.size() > 0; }
+
+  const boost::uuids::uuid& id() const { return JobId; }
+  const std::string& data() const { return Data; }
+
+private:
+  boost::uuids::uuid JobId;
+  std::string Data; //data of the result of a job
 };
 
 //------------------------------------------------------------------------------
@@ -56,9 +60,9 @@ inline std::string to_string(const remus::client::JobResult& status)
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
   std::stringstream buffer;
-  buffer << status.JobId << std::endl;
-  buffer << status.Data.length() << std::endl;
-  remus::internal::writeString(buffer, status.Data);
+  buffer << status.id() << std::endl;
+  buffer << status.data().length() << std::endl;
+  remus::internal::writeString(buffer, status.data());
   return buffer.str();
 }
 
