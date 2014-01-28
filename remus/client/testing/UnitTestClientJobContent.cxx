@@ -25,7 +25,7 @@
 namespace {
 using namespace remus::client;
 
-std::string efficientStringGenerator(int length)
+std::string efficientStringGenerator(std::size_t length)
 {
   std::string result;
   result.resize(length);
@@ -98,8 +98,8 @@ struct make_really_large_string
 
   std::size_t size() const
   {
-    std::string example;
-    return (example.max_size() / 10);
+    //make the size 1.5GB
+    return (2 << 29) + (2 << 28);
   }
 };
 
