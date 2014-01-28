@@ -152,7 +152,7 @@ template<typename StringFactory>
 void verify_serilization_no_tag(StringFactory factory)
 {
   JobContent input_content = make_MemoryJobContent(ContentFormat::XML, factory() );
-  REMUS_ASSERT( factory.size() == input_content.dataSize() );
+  REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
 
   REMUS_ASSERT( (input_content.tag().size() == 0 ) );
   REMUS_ASSERT( (input_content.tag() == std::string() ) );
@@ -180,7 +180,7 @@ template<typename StringFactory>
 void verify_serilization_with_tag(StringFactory factory)
 {
   JobContent input_content = make_MemoryJobContent(ContentFormat::XML, factory() );
-  REMUS_ASSERT( factory.size() == input_content.dataSize() );
+  REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
 
   input_content.tag("we have a tag");
   REMUS_ASSERT( (input_content.tag().size() ==
