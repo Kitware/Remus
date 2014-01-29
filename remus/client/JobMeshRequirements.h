@@ -28,6 +28,10 @@ namespace client{
 class REMUSCLIENT_EXPORT JobMeshRequirements
 {
 public:
+  //construct an invalid JobMeshRequirments. This constructor is designed
+  //to allows this class to be stored in containers.
+  JobMeshRequirements();
+
   //returns if the source of the mesh requirements is memory or a file
   //this can allow people to pass just file paths for local workers
   ContentSource::Type sourceType() const { return this->SourceType; }
@@ -51,9 +55,10 @@ public:
   std::size_t requirementsSize() const { return Storage.size(); }
   const char* requirements() const { return Storage.data(); }
 
-  //implement a less than operator so that can store
-  //JobMeshRequirments in sets.
+  //implement a less than operator and equal operator so you
+  //can use the class in containers and algorithms
   bool operator<(const JobMeshRequirements& other) const;
+  bool operator==(const JobMeshRequirements& other) const;
 
 private:
   friend std::string to_string(

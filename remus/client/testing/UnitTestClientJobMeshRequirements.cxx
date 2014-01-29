@@ -15,9 +15,9 @@
 #include <remus/testing/Testing.h>
 
 #include <algorithm>
-#include <cstdlib>
-#include <iostream>
-#include <ctime>
+#include <set>
+#include <vector>
+
 
 namespace
 {
@@ -164,7 +164,32 @@ void verify_worker_name()
 
 void verify_less_than_op()
 {
+  //construct 1024 mesh requirements using random data, store them into
+  //a vector and sort the vector. than walk the data to verify
+  //everything is in sorted order
 
+  std::vector< JobMeshRequirements > reqs(100);
+  std::generate(reqs.begin(),reqs.end(), make_random_MeshReqs );
+
+  std::set< JobMeshRequirements > set_reqs(reqs.begin(),reqs.end());
+
+  std::sort(reqs.begin(),reqs.end());
+  reqs.erase(std::unique(reqs.begin(),reqs.end()), reqs.end());
+
+  //at this point the number in set and vector should be equal
+  REMUS_ASSERT( (reqs.size() == set_reqs.size()) );
+  REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), set_reqs.begin()) );
+
+  std::vector< JobMeshRequirements > reqs_reversed(100);
+  std::copy(reqs.begin(), reqs.end(), reqs_reversed.begin());
+
+  //reverse the string and verify that it is reversed
+  std::reverse(reqs_reversed.begin(),reqs_reversed.end());
+  REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), reqs_reversed.rbegin()) );
+
+  //resort the reveresed ones and verify the < operator works
+  std::sort(reqs_reversed.begin(),reqs_reversed.end());
+  REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), reqs_reversed.begin()) );
 }
 
 void verify_serilization()

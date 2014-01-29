@@ -18,10 +18,55 @@ namespace remus{
 namespace client{
 
 //------------------------------------------------------------------------------
+JobMeshRequirements::JobMeshRequirements():
+  SourceType(),
+  FormatType(),
+  MeshType(),
+  WorkerName(),
+  Tag(),
+  Storage()
+{
+}
+
+//------------------------------------------------------------------------------
  bool JobMeshRequirements::operator<(const JobMeshRequirements& other) const
 {
- return true;
+  //the sort order as follows.
+  //first comes mesh input & output type, this allows us to group all
+  //requirements for a given input & output type together
+  //than comes source type, allowing all File sources to come before
+  //all Memory sources
+  //than comes format type, allowing all user defined to come before
+  //XML, JSON and BSOn
+  //than comes worker name
+  //than comes tag
+  if (this->jobMeshTypes().type() != other.jobMeshTypes().type())
+  { return (this->jobMeshTypes().type() < other.jobMeshTypes().type()); }
+
+  if (this->sourceType() != other.sourceType())
+  { return (this->sourceType() < other.sourceType()); }
+
+  if (this->formatType() != other.formatType())
+  { return (this->formatType() < other.formatType()); }
+
+  if (this->workerName() != other.workerName())
+  { return (this->workerName() < other.workerName()); }
+
+  if (this->tag() != other.tag())
+  { return (this->tag() < other.tag()); }
+
+ return false; //both objects are equal
 }
+
+//------------------------------------------------------------------------------
+ bool JobMeshRequirements::operator==(const JobMeshRequirements& other) const
+ {
+  return ((this->jobMeshTypes().type() == other.jobMeshTypes().type()) &&
+          (this->sourceType() == other.sourceType()) &&
+          (this->formatType() == other.formatType()) &&
+          (this->workerName() == other.workerName()) &&
+          (this->tag() == other.tag()));
+ }
 
 //------------------------------------------------------------------------------
 void JobMeshRequirements::serialize(std::stringstream& buffer) const
