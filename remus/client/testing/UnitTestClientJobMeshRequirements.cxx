@@ -23,7 +23,7 @@ namespace
 {
 using namespace remus::client;
 
-std::size_t randomInt(std::size_t min_v, std::size_t max_v)
+int randomInt(int min_v, int max_v)
 {
   const float random = ((float)std::rand()/(float)RAND_MAX);
   const std::size_t diff = (max_v - min_v);
@@ -41,29 +41,16 @@ std::string randomString()
   std::size_t length = 0;
   if(doEmptyLength>0)
     {
-    length = randomInt(1, 100000 * (10 * doEmptyLength));
+    length = randomInt(1, 20 * doEmptyLength);
     }
-  std::string result;
-  result.resize(length);
+  return remus::testing::AsciiStringGenerator(length);
+}
 
-  std::string charset("abcdefghijklmnopqrstuvwxyz");
-  std::random_shuffle(charset.begin(),charset.end());
-
-  const std::size_t remainder = length % charset.length();
-  const std::size_t times_to_copy = length / charset.length();
-
-  //fill the remainder in first
-  typedef std::string::iterator it;
-  it start = result.begin();
-  std::copy(charset.begin(), charset.begin()+remainder,start);
-
-  std::random_shuffle(charset.begin(),charset.end());
-  start += remainder;
-  for(int i=0; i < times_to_copy; ++i, start+=charset.length())
-    {
-    std::copy(charset.begin(), charset.end(), start);
-    }
-  return result;
+std::string randomBinaryData()
+{
+  int doEmptyLength  = randomInt(0, 4);
+  std::size_t length = randomInt(0, 100000 * (10 * doEmptyLength));
+  return remus::testing::BinaryDataGenerator(length);
 }
 
 template<typename T>
@@ -131,7 +118,7 @@ JobMeshRequirements make_random_MeshReqs()
                         randomMeshTypes(),
                         randomString(),
                         randomString(),
-                        randomString() );
+                        randomBinaryData() );
 }
 
 

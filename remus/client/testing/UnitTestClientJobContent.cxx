@@ -13,40 +13,12 @@
 #include <remus/client/JobContent.h>
 #include <remus/testing/Testing.h>
 
-#include <algorithm>
-#include <cstdlib>
-#include <iostream>
-#include <ctime>
-
-
 //we need a better name for JobContents, Data is a bad name I think that
 //a better name could be JobContents, or JobInput
 
 namespace {
 using namespace remus::client;
 
-std::string efficientStringGenerator(std::size_t length)
-{
-  std::string result;
-  result.resize(length);
-
-  std::string charset("abcdefghijklmnopqrstuvwxyz");
-  std::random_shuffle(charset.begin(),charset.end());
-
-  const std::size_t remainder = length % charset.length();
-  const std::size_t times_to_copy = length / charset.length();
-
-  //fill the remainder in first
-  typedef std::string::iterator it;
-  it start = result.begin();
-  std::copy(charset.begin(), charset.begin()+remainder,start);
-
-  std::random_shuffle(charset.begin(),charset.end());
-  start += remainder;
-  for(int i=0; i < times_to_copy; ++i, start+=charset.length())
-    { std::copy(charset.begin(), charset.end(), start); }
-  return result;
-}
 
 struct make_empty_string
 {
@@ -79,7 +51,7 @@ struct make_large_string
 {
   std::string operator()() const
   {
-    return efficientStringGenerator(this->size());
+    return remus::testing::BinaryDataGenerator(this->size());
   }
 
   std::size_t size() const
@@ -93,7 +65,7 @@ struct make_really_large_string
 {
   std::string operator()() const
   {
-    return efficientStringGenerator(this->size());
+    return remus::testing::BinaryDataGenerator(this->size());
   }
 
   std::size_t size() const
@@ -213,9 +185,6 @@ void verify_serilization_with_tag(StringFactory factory)
 
 int UnitTestClientJobContent(int, char *[])
 {
-  //setup the random number generator
-  std::srand(std::time(0));
-
   verify_source_and_format();
   verify_tag();
 
