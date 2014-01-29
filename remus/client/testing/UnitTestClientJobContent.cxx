@@ -140,6 +140,10 @@ void verify_serilization_no_tag(StringFactory factory)
     {
     REMUS_ASSERT( (from_wire.data() != NULL ) );
     REMUS_ASSERT( (input_content.data() != NULL ) );
+    const bool same = std::equal(input_content.data(),
+                                 input_content.data()+input_content.dataSize(),
+                                 from_wire.data());
+    REMUS_ASSERT( same );
     }
   else
     {
@@ -171,13 +175,59 @@ void verify_serilization_with_tag(StringFactory factory)
 
   if(input_content.dataSize() > 0 )
     {
-    REMUS_ASSERT( (from_wire.data() != NULL ) );
-    REMUS_ASSERT( (input_content.data() != NULL ) );
+     REMUS_ASSERT( (from_wire.data() != NULL ) );
+     REMUS_ASSERT( (input_content.data() != NULL ) );
+     bool same = std::equal(input_content.data(),
+                           input_content.data()+input_content.dataSize(),
+                           from_wire.data());
+     REMUS_ASSERT( same );
     }
   else
     {
     REMUS_ASSERT( (from_wire.data() == NULL ) );
     REMUS_ASSERT( (input_content.data() == NULL ) );
+    }
+
+}
+
+template<typename StringFactory>
+void verify_zero_copy_serilization(StringFactory factory)
+{
+  std::string zeroCopyData = factory();
+  JobContent input_content = JobContent(ContentFormat::XML,
+                                        zeroCopyData.c_str(),
+                                        zeroCopyData.size());
+
+  REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
+  REMUS_ASSERT( (zeroCopyData.c_str() == input_content.data()) );
+  bool same = std::equal(input_content.data(),
+                         input_content.data()+input_content.dataSize(),
+                         zeroCopyData.c_str());
+  REMUS_ASSERT( same );
+
+  std::string wire_format = to_string(input_content);
+  JobContent from_wire = to_JobContent(wire_format);
+
+  REMUS_ASSERT( (from_wire.dataSize() == input_content.dataSize()) );
+
+  if(input_content.dataSize() > 0 )
+    {
+    REMUS_ASSERT( (from_wire.data() != NULL ) );
+    REMUS_ASSERT( (input_content.data() != NULL ) );
+    bool same = std::equal(input_content.data(),
+                           input_content.data()+input_content.dataSize(),
+                           from_wire.data());
+    REMUS_ASSERT( same );
+    }
+  else
+    {
+    REMUS_ASSERT( (from_wire.data() == NULL ) );
+    //this is where we leak some implementation details. When you
+    //are in zero copy mode and you pass in an pointer which is allocated
+    //but whose size is zero you get back the valid pointer, which is
+    //different compared to when we allocate and zero size gives back the
+    //null pointer
+    REMUS_ASSERT( (input_content.data() != NULL ) );
     }
 }
 
@@ -205,5 +255,14 @@ int UnitTestClientJobContent(int, char *[])
   verify_serilization_with_tag( (make_large_string()) );
   std::cout << "make_really_large_string" << std::endl;
   verify_serilization_with_tag( (make_really_large_string()) );
+
+  std::cout << "make_empty_string" << std::endl;
+  verify_zero_copy_serilization( (make_empty_string()) );
+  std::cout << "make_small_string" << std::endl;
+  verify_zero_copy_serilization( (make_small_string()) );
+  std::cout << "make_large_string" << std::endl;
+  verify_zero_copy_serilization( (make_large_string()) );
+  std::cout << "make_really_large_string" << std::endl;
+  verify_zero_copy_serilization( (make_really_large_string()) );
   return 0;
 }
