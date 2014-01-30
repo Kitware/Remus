@@ -32,6 +32,7 @@ set(unit_tests
   UnitTestConditionalStorage.cxx
   UnitTestExecuteProcess.cxx
   UnitTestJobProgress.cxx
+  UnitTestMD5Hash.cxx
   UnitTestMeshIOType.cxx
   UnitTestMeshRegistry.cxx
   UnitTestSignalCatcher.cxx

@@ -1,9 +1,10 @@
 project(Remus_Common)
 
 set(headers
-  ExecuteProcess.h
   ConditionalStorage.h
+  ExecuteProcess.h
   JobProgress.h
+  MD5Hash.h
   MeshIOType.h
   MeshRegistrar.h
   MeshTypes.h
@@ -18,6 +19,7 @@ set(headers
 
 set(common_srcs
   ExecuteProcess.cxx
+  MD5Hash.cxx
   MeshRegistrar.cxx
   )
 

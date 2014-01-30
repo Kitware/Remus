@@ -130,6 +130,7 @@ include_directories(
 #to launch external processes.
 set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
+set(KWSYS_USE_MD5 1)
 set(KWSYS_INSTALL_LIB_DIR "lib")
 set(KWSYS_INSTALL_EXPORT_NAME Remus-targets)
 add_subdirectory(thirdparty/kwsys)
