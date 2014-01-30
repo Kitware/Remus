@@ -13,6 +13,10 @@
 #include <remus/client/JobContent.h>
 #include <remus/testing/Testing.h>
 
+#include <algorithm>
+#include <vector>
+#include <set>
+
 //we need a better name for JobContents, Data is a bad name I think that
 //a better name could be JobContents, or JobInput
 
@@ -118,6 +122,31 @@ void verify_tag()
   JobContent test = make_FileJobContent(  ContentFormat::XML, path );
   test.tag("hello");
   REMUS_ASSERT( (test.tag() == "hello") );
+}
+
+
+void verify_container_algorithm_support()
+{
+  make_small_string str_factory;
+  make_large_string large_str_factory;
+  std::vector<JobContent> jc_vec(100);
+  for(std::size_t i=0; i < 100; ++i)
+  { jc_vec[i] = make_MemoryJobContent(ContentFormat::XML, str_factory() ); }
+
+  std::set<JobContent> jc_set(jc_vec.begin(),jc_vec.end());
+  REMUS_ASSERT( (jc_set.size() == 1) ) //all the items in the vector are the same
+
+  jc_vec.erase(std::unique(jc_vec.begin(),jc_vec.end()), jc_vec.end());
+  REMUS_ASSERT( (jc_vec.size() == 1) );
+
+  for(std::size_t i=0; i < 100; ++i)
+  { jc_vec[i] = make_MemoryJobContent(ContentFormat::XML, large_str_factory() ); }
+
+  jc_set = std::set<JobContent>(jc_vec.begin(),jc_vec.end());
+
+  std::sort(jc_vec.begin(),jc_vec.end());
+  jc_vec.erase(std::unique(jc_vec.begin(),jc_vec.end()), jc_vec.end());
+  REMUS_ASSERT( (jc_vec.size() == jc_set.size()) );
 }
 
 template<typename StringFactory>
@@ -235,6 +264,8 @@ int UnitTestClientJobContent(int, char *[])
 {
   verify_source_and_format();
   verify_tag();
+
+  verify_container_algorithm_support();
 
   std::cout << "make_empty_string" << std::endl;
   verify_serilization_no_tag( (make_empty_string()) );

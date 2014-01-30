@@ -67,6 +67,15 @@ struct JobContent::InternalImpl
 };
 
 //------------------------------------------------------------------------------
+JobContent::JobContent():
+  SourceType(),
+  FormatType(),
+  Tag(),
+  Implementation( new InternalImpl(NULL,0) )
+{
+}
+
+//------------------------------------------------------------------------------
 JobContent::JobContent(ContentSource::Type source,
                        ContentFormat::Type format,
                        const std::string& contents):

@@ -33,6 +33,10 @@ class Client;
 class REMUSCLIENT_EXPORT JobContent
 {
 public:
+  //construct an invalid JobContent. This constructor is designed
+  //to allows this class to be stored in containers.
+  JobContent();
+
   //pass in some data to send to the worker. The
   //contents of the string will be copied into a local memory if the
   //data type is Memory. If the data type is file we will read the contents
