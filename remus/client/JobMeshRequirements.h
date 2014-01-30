@@ -15,7 +15,7 @@
 #include <string>
 #include <sstream>
 
-//for ContentFomrat and ContentSource
+//for ContentFormat and ContentSource
 #include <remus/client/ContentTypes.h>
 #include <remus/common/MeshIOType.h>
 #include <remus/common/ConditionalStorage.h>
