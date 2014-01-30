@@ -82,9 +82,9 @@ void verify_has_worker_type()
   const std::size_t num_mesh_types =
                     remus::common::MeshRegistrar::numberOfRegisteredTypes();
 
-  for(int input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
     {
-    for(int output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
       {
       remus::common::MeshIOType io_type(
           remus::meshtypes::to_meshType(input_type),

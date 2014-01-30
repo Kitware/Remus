@@ -79,7 +79,7 @@ struct char_gen
 
 };
 
-static std::string CharacterGenerator(const std::string& charset,
+inline std::string CharacterGenerator(const std::string& charset,
                                       std::size_t length)
 {
 
@@ -100,7 +100,7 @@ static std::string CharacterGenerator(const std::string& charset,
 
     std::size_t times_to_copy = length / sampling.size();
     std::string::iterator pos = result.begin()+remainder;
-    for(int i=0; i < times_to_copy; ++i, pos += sampling.size())
+    for(std::size_t i=0; i < times_to_copy; ++i, pos += sampling.size())
       {
       std::copy(sampling.begin(),sampling.end(),pos);
       }
@@ -110,13 +110,13 @@ static std::string CharacterGenerator(const std::string& charset,
 
 }
 
-static std::string BinaryDataGenerator(std::size_t length)
+inline std::string BinaryDataGenerator(std::size_t length)
 {
   std::string characters(full_character_set(),256);
   return CharacterGenerator(characters,length);
 }
 
-static std::string AsciiStringGenerator(std::size_t length)
+inline std::string AsciiStringGenerator(std::size_t length)
 {
   //we only want the subset of visible ascii characters
   char* full_chars = full_character_set();

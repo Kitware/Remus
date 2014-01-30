@@ -25,30 +25,6 @@ namespace {
 using namespace remus::worker;
 boost::uuids::random_generator generator;
 
-
-std::string efficientStringGenerator(int length)
-{
-  std::string result;
-  result.resize(length);
-
-  std::string charset("abcdefghijklmnopqrstuvwxyz");
-  std::random_shuffle(charset.begin(),charset.end());
-
-  const std::size_t remainder = length % charset.length();
-  const std::size_t times_to_copy = length / charset.length();
-
-  //fill the remainder in first
-  typedef std::string::iterator it;
-  it start = result.begin();
-  std::copy(charset.begin(), charset.begin()+remainder,start);
-
-  std::random_shuffle(charset.begin(),charset.end());
-  start += remainder;
-  for(int i=0; i < times_to_copy; ++i, start+=charset.length())
-    { std::copy(charset.begin(), charset.end(), start); }
-  return result;
-}
-
 void validate_serialization(JobResult s)
 {
   std::string temp = to_string(s);
@@ -70,7 +46,7 @@ void serialize_test()
   JobResult c(generator(),std::string("Contents"));
   validate_serialization(c);
 
-  JobResult d(generator(), efficientStringGenerator(10240*10240) );
+  JobResult d(generator(), remus::testing::BinaryDataGenerator(10240*10240) );
   validate_serialization(d);
 }
 

@@ -29,8 +29,8 @@ struct ConditionalStorage
   //T here needs to be support the .size() and .data() methods
   template<typename T>
   ConditionalStorage(const T& t):
-    Size(t.size()),
-    Space( t.size() > 0 ? new char[t.size()] : NULL )
+    Space( t.size() > 0 ? new char[t.size()] : NULL ),
+    Size(t.size())
   { //copy the contents of t into our storage
   memcpy(this->Space.get(),t.data(),t.size());
   }

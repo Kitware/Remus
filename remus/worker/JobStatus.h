@@ -34,10 +34,9 @@ using remus::common::JobProgress;
 class JobStatus
 {
 public:
-  remus::worker::JobProgress Progress;
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
-
+  remus::worker::JobProgress Progress;
 
   //Construct a job status that has no form of progress value or message
   JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
