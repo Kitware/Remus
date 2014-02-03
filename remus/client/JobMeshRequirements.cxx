@@ -96,8 +96,8 @@ JobMeshRequirements::JobMeshRequirements(std::istream& buffer)
   buffer >> ftype;
   buffer >> this->MeshType;
 
-  this->SourceType = static_cast<ContentSource::Type>(stype);
-  this->FormatType = static_cast<ContentFormat::Type>(ftype);
+  this->SourceType = static_cast<remus::common::ContentSource::Type>(stype);
+  this->FormatType = static_cast<remus::common::ContentFormat::Type>(ftype);
 
   buffer >> workerNameSize;
   this->WorkerName = remus::internal::extractString(buffer,workerNameSize);

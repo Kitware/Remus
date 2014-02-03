@@ -19,7 +19,7 @@
 #include <boost/shared_ptr.hpp>
 
 //for ContentFormat and ContentSource
-#include <remus/client/ContentTypes.h>
+#include <remus/common/ContentTypes.h>
 
 //included for symbol exports
 #include <remus/client/ClientExports.h>
@@ -41,23 +41,25 @@ public:
   //contents of the string will be copied into a local memory if the
   //data type is Memory. If the data type is file we will read the contents
   //of the file
-  JobContent(ContentSource::Type source,
-             ContentFormat::Type format,
+  JobContent(remus::common::ContentSource::Type source,
+             remus::common::ContentFormat::Type format,
              const std::string& contents);
 
   //pass in some Memory data to send to the worker. A pointer
   //to the contents is kept and no copy will of data will happen, so
   //the contents of the pointer can't be deleted while the JobContent instance
   //is valid.
-  JobContent(ContentFormat::Type format,
+  JobContent(remus::common::ContentFormat::Type format,
              const char* contents,
              std::size_t size);
 
   //returns if the source of the content is memory or a file
-  ContentSource::Type sourceType() const { return this->SourceType; }
+  remus::common::ContentSource::Type sourceType() const
+    { return this->SourceType; }
 
   //get the storage format that we currently have setup for the source
-  ContentFormat::Type formatType() const { return this->FormatType; }
+  remus::common::ContentFormat::Type formatType() const
+    { return this->FormatType; }
 
   //tag this section of data with a user defined tag
   void tag(const std::string& tag_value) { this->Tag = tag_value; }
@@ -91,8 +93,8 @@ private:
   explicit JobContent(std::istream& buffer);
 
 
-  ContentSource::Type SourceType;
-  ContentFormat::Type FormatType;
+  remus::common::ContentSource::Type SourceType;
+  remus::common::ContentFormat::Type FormatType;
   std::string Tag;
 
   struct InternalImpl;
@@ -101,20 +103,20 @@ private:
 
 //------------------------------------------------------------------------------
 inline remus::client::JobContent make_FileJobContent(
-      remus::client::ContentFormat::Type format,
+      remus::common::ContentFormat::Type format,
       const std::string& path)
 {
-  return remus::client::JobContent(remus::client::ContentSource::File,
+  return remus::client::JobContent(remus::common::ContentSource::File,
                                    format,
                                    path);
 }
 
 //------------------------------------------------------------------------------
 inline remus::client::JobContent make_MemoryJobContent(
-      remus::client::ContentFormat::Type format,
+      remus::common::ContentFormat::Type format,
       const std::string& content )
 {
-  return remus::client::JobContent(remus::client::ContentSource::Memory,
+  return remus::client::JobContent(remus::common::ContentSource::Memory,
                                    format,
                                    content);
 }

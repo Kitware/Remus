@@ -2,6 +2,7 @@ project(Remus_Common)
 
 set(headers
   ConditionalStorage.h
+  ContentTypes.h
   ExecuteProcess.h
   JobProgress.h
   MD5Hash.h

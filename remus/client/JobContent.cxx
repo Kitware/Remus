@@ -114,8 +114,8 @@ JobContent::JobContent():
 }
 
 //------------------------------------------------------------------------------
-JobContent::JobContent(ContentSource::Type source,
-                       ContentFormat::Type format,
+JobContent::JobContent(remus::common::ContentSource::Type source,
+                       remus::common::ContentFormat::Type format,
                        const std::string& contents):
   SourceType(source),
   FormatType(format),
@@ -126,10 +126,10 @@ JobContent::JobContent(ContentSource::Type source,
 }
 
 //------------------------------------------------------------------------------
-JobContent::JobContent(ContentFormat::Type format,
+JobContent::JobContent(remus::common::ContentFormat::Type format,
                        const char* contents,
                        std::size_t size):
-  SourceType(ContentSource::Memory),
+  SourceType(remus::common::ContentSource::Memory),
   FormatType(format),
   Tag(),
   Implementation( new InternalImpl(contents,size) )
@@ -213,8 +213,8 @@ JobContent::JobContent(std::istream& buffer)
   //read in the source and format types
   buffer >> stype;
   buffer >> ftype;
-  this->SourceType = static_cast<ContentSource::Type>(stype);
-  this->FormatType = static_cast<ContentFormat::Type>(ftype);
+  this->SourceType = static_cast<remus::common::ContentSource::Type>(stype);
+  this->FormatType = static_cast<remus::common::ContentFormat::Type>(ftype);
 
   //read in the tag data, if we have any
   buffer >> tagSize;

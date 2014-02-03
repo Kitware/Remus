@@ -16,7 +16,7 @@
 #include <sstream>
 
 //for ContentFormat and ContentSource
-#include <remus/client/ContentTypes.h>
+#include <remus/common/ContentTypes.h>
 #include <remus/common/MeshIOType.h>
 #include <remus/common/ConditionalStorage.h>
 
@@ -34,11 +34,13 @@ public:
 
   //returns if the source of the mesh requirements is memory or a file
   //this can allow people to pass just file paths for local workers
-  ContentSource::Type sourceType() const { return this->SourceType; }
+  remus::common::ContentSource::Type sourceType() const
+    { return this->SourceType; }
 
   //get the storage format that we currently have setup for the
   //mesh requirements. This is something like XML, or JSON.
-  ContentFormat::Type formatType() const { return this->FormatType; }
+  remus::common::ContentFormat::Type formatType() const
+    { return this->FormatType; }
 
   //get the mesh types for the given workers job mesh requirements
   const remus::common::MeshIOType& jobMeshTypes() const { return MeshType; }
@@ -75,8 +77,8 @@ private:
   //deserialize constructor function
   explicit JobMeshRequirements(std::istream& buffer);
 
-  ContentSource::Type SourceType;
-  ContentFormat::Type FormatType;
+  remus::common::ContentSource::Type SourceType;
+  remus::common::ContentFormat::Type FormatType;
   remus::common::MeshIOType MeshType;
   std::string WorkerName;
   std::string Tag;

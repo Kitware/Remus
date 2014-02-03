@@ -10,11 +10,11 @@
 //
 //=============================================================================
 
-#ifndef remus_client_ContentTypes_h
-#define remus_client_ContentTypes_h
+#ifndef remus_common_ContentTypes_h
+#define remus_common_ContentTypes_h
 
 namespace remus{
-namespace client{
+namespace common{
 
 struct ContentFormat{ enum Type{USER=0, XML=1, JSON=2, BSON=3}; };
 struct ContentSource{ enum Type{File=0, Memory=1}; };

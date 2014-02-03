@@ -134,6 +134,14 @@ to_JobSubmission(const std::string& msg)
   return submission;
 }
 
+//------------------------------------------------------------------------------
+inline remus::client::JobSubmission
+to_JobSubmission(const char* data, std::size_t length)
+{
+  std::string temp(data,length);
+  return to_JobSubmission( temp );
+}
+
 }
 }
 
