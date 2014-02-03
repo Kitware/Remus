@@ -21,4 +21,4 @@ set(unit_tests
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusClient)
+                 LIBRARIES RemusClient RemusClientProtocol)
