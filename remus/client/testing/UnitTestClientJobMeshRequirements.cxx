@@ -214,6 +214,26 @@ void verify_serilization()
 }
 
 
+void verify_req_set()
+{
+  JobMeshRequirementsSet to_wire, from_wire;
+  for(int i=0; i < 1024; ++i)
+    {
+    to_wire.get().insert( make_random_MeshReqs() );
+    }
+
+  std::stringstream buffer;
+  buffer << to_wire;
+  buffer >> from_wire;
+
+  const bool same = std::equal(to_wire.get().begin(),
+                               to_wire.get().end(),
+                               from_wire.get().begin());
+
+  REMUS_ASSERT( same );
+}
+
+
 }
 
 int UnitTestClientJobMeshRequirements(int, char *[])
@@ -226,5 +246,7 @@ int UnitTestClientJobMeshRequirements(int, char *[])
   verify_less_than_op();
 
   verify_serilization();
+
+  verify_req_set();
   return 0;
 }

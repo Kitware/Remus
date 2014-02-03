@@ -84,6 +84,35 @@ private:
   remus::common::ConditionalStorage Storage;
 };
 
+//a simple container so we can send a collection of requirements
+//to and from the client easily.
+struct REMUSCLIENT_EXPORT JobMeshRequirementsSet
+{
+  typedef std::set< JobMeshRequirements > ContainerType;
+
+  JobMeshRequirementsSet();
+  JobMeshRequirementsSet(const ContainerType& container);
+
+  friend std::ostream& operator<<(std::ostream &os,
+                                  const JobMeshRequirementsSet &reqs)
+    { reqs.serialize(os); return os; }
+
+  friend std::istream& operator>>(std::istream &is,
+                                  JobMeshRequirementsSet &reqs)
+    { reqs = JobMeshRequirementsSet(is); return is; }
+
+
+  const ContainerType& get() const { return Container; }
+  ContainerType& get() { return Container; }
+
+
+private:
+  void serialize(std::ostream& buffer) const;
+  explicit JobMeshRequirementsSet(std::istream& buffer);
+
+  ContainerType Container;
+};
+
 //------------------------------------------------------------------------------
 inline std::string to_string(const remus::client::JobMeshRequirements& reqs)
 {

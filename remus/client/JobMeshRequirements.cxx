@@ -111,6 +111,43 @@ JobMeshRequirements::JobMeshRequirements(std::istream& buffer)
                       remus::internal::extractString(buffer,contentsSize) );
 }
 
+//------------------------------------------------------------------------------
+JobMeshRequirementsSet::JobMeshRequirementsSet():
+Container()
+{
+}
+
+//------------------------------------------------------------------------------
+JobMeshRequirementsSet::JobMeshRequirementsSet(const ContainerType& container):
+Container(container)
+{
+}
+
+//------------------------------------------------------------------------------
+void JobMeshRequirementsSet::serialize(std::ostream& buffer) const
+{
+  buffer << this->Container.size() << std::endl;
+  typedef JobMeshRequirementsSet::ContainerType::const_iterator IteratorType;
+  for(IteratorType i = this->Container.begin();
+      i != this->Container.end(); ++i)
+    {
+    buffer << *i << std::endl;
+    }
+}
+
+//------------------------------------------------------------------------------
+JobMeshRequirementsSet::JobMeshRequirementsSet(std::istream& buffer)
+{
+  std::size_t csize = 0;
+  buffer >> csize;
+  for(std::size_t i = 0; i < csize; ++i)
+    {
+    JobMeshRequirements reqs;
+    buffer >> reqs;
+    this->Container.insert(reqs);
+    }
+}
+
 
 }
 }
