@@ -70,8 +70,8 @@ struct make_really_large_string
 
   std::size_t size() const
   {
-    //make the size 1.5GB
-    return (2 << 29) + (2 << 28);
+    //make the size 1.0GB
+    return (2 << 29);
   }
 };
 
@@ -125,12 +125,15 @@ void verify_serilization_no_tag(StringFactory factory)
 {
   JobContent input_content = make_MemoryJobContent(ContentFormat::XML, factory() );
   REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
+  std::cout << input_content.dataSize() << std::endl;
 
   REMUS_ASSERT( (input_content.tag().size() == 0 ) );
   REMUS_ASSERT( (input_content.tag() == std::string() ) );
 
+
   std::string wire_format = to_string(input_content);
   JobContent from_wire = to_JobContent(wire_format);
+  wire_format = ""; //deallocate massive string
 
   REMUS_ASSERT( (from_wire.sourceType() == input_content.sourceType() ) );
   REMUS_ASSERT( (from_wire.formatType() == input_content.formatType() ) );
@@ -140,16 +143,14 @@ void verify_serilization_no_tag(StringFactory factory)
     {
     REMUS_ASSERT( (from_wire.data() != NULL ) );
     REMUS_ASSERT( (input_content.data() != NULL ) );
-    const bool same = std::equal(input_content.data(),
-                                 input_content.data()+input_content.dataSize(),
-                                 from_wire.data());
-    REMUS_ASSERT( same );
     }
   else
     {
     REMUS_ASSERT( (from_wire.data() == NULL ) );
     REMUS_ASSERT( (input_content.data() == NULL ) );
     }
+
+  REMUS_ASSERT( (from_wire == input_content) );
 }
 
 template<typename StringFactory>
@@ -165,6 +166,7 @@ void verify_serilization_with_tag(StringFactory factory)
 
   std::string wire_format = to_string(input_content);
   JobContent from_wire = to_JobContent(wire_format);
+  wire_format = ""; //deallocate massive string
 
   REMUS_ASSERT( (from_wire.sourceType() == input_content.sourceType() ) );
   REMUS_ASSERT( (from_wire.formatType() == input_content.formatType() ) );
@@ -177,10 +179,6 @@ void verify_serilization_with_tag(StringFactory factory)
     {
      REMUS_ASSERT( (from_wire.data() != NULL ) );
      REMUS_ASSERT( (input_content.data() != NULL ) );
-     bool same = std::equal(input_content.data(),
-                           input_content.data()+input_content.dataSize(),
-                           from_wire.data());
-     REMUS_ASSERT( same );
     }
   else
     {
@@ -188,6 +186,7 @@ void verify_serilization_with_tag(StringFactory factory)
     REMUS_ASSERT( (input_content.data() == NULL ) );
     }
 
+  REMUS_ASSERT( (from_wire == input_content) );
 }
 
 template<typename StringFactory>
@@ -207,6 +206,7 @@ void verify_zero_copy_serilization(StringFactory factory)
 
   std::string wire_format = to_string(input_content);
   JobContent from_wire = to_JobContent(wire_format);
+  wire_format = ""; //deallocate massive string
 
   REMUS_ASSERT( (from_wire.dataSize() == input_content.dataSize()) );
 
@@ -214,10 +214,6 @@ void verify_zero_copy_serilization(StringFactory factory)
     {
     REMUS_ASSERT( (from_wire.data() != NULL ) );
     REMUS_ASSERT( (input_content.data() != NULL ) );
-    bool same = std::equal(input_content.data(),
-                           input_content.data()+input_content.dataSize(),
-                           from_wire.data());
-    REMUS_ASSERT( same );
     }
   else
     {
@@ -229,6 +225,8 @@ void verify_zero_copy_serilization(StringFactory factory)
     //null pointer
     REMUS_ASSERT( (input_content.data() != NULL ) );
     }
+
+  REMUS_ASSERT( (from_wire == input_content) );
 }
 
 }

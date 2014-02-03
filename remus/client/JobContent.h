@@ -18,7 +18,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-//for ContentFomrat and ContentSource
+//for ContentFormat and ContentSource
 #include <remus/client/ContentTypes.h>
 
 //included for symbol exports
@@ -63,10 +63,18 @@ public:
   const char* data() const;
   std::size_t dataSize() const;
 
+  ///implement a less than operator and equal operator so you
+  //can use the class in containers and algorithms
+  bool operator<(const JobContent& other) const;
+  bool operator==(const JobContent& other) const;
+
 private:
   friend class remus::client::Client;
   friend std::string to_string(const remus::client::JobContent& content);
   friend remus::client::JobContent to_JobContent(const std::string& msg);
+
+  //get the md5hash of the data stored by the job content.
+  std::string hash() const;
 
   //state to mark if the file should be read when we serialize
   void setServerToBeRemote(bool isRemote) const;
