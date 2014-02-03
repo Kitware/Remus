@@ -12,6 +12,9 @@
 
 #include <remus/client/Client.h>
 
+#include <remus/common/Message.h>
+#include <remus/common/Response.h>
+
 namespace remus{
 namespace client{
 
@@ -25,14 +28,9 @@ Client::Client(const remus::client::ServerConnection &conn):
 }
 
 //------------------------------------------------------------------------------
-bool Client::canMesh(const remus::client::JobRequest& request)
+bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 {
-  //hold as a string so message doesn't have to copy a second time
-  const std::string stringRequest(remus::client::to_string(request));
-  remus::common::Message j(request.type(),
-                              remus::CAN_MESH,
-                              stringRequest.data(),
-                              stringRequest.size());
+  remus::common::Message j(meshtypes, remus::CAN_MESH);
   j.send(this->Server);
 
   remus::common::Response response(this->Server);
@@ -40,11 +38,28 @@ bool Client::canMesh(const remus::client::JobRequest& request)
 }
 
 //------------------------------------------------------------------------------
-remus::client::Job Client::submitJob(const remus::client::JobRequest& request)
+std::set < remus::client::JobMeshRequirements >
+Client::retrieveMeshRequirements( const remus::common::MeshIOType& meshtypes)
+{
+  remus::common::Message j(meshtypes, remus::MESH_REQUIREMENTS);
+  j.send(this->Server);
+
+  remus::common::Response response(this->Server);
+
+  std::istringstream buffer(response.dataAs<std::string>());
+
+  JobMeshRequirementsSet set;
+  buffer >> set;
+  return set.get(); //copy on return on purpose
+}
+
+//------------------------------------------------------------------------------
+remus::client::Job
+Client::submitJob(const remus::client::JobSubmission& submission)
 {
   //hold as a string so message doesn't have to copy a second time
-  const std::string stringRequest(remus::client::to_string(request));
-  remus::common::Message j(request.type(),
+  const std::string stringRequest(remus::client::to_string(submission));
+  remus::common::Message j(submission.type(),
                            remus::MAKE_MESH,
                            stringRequest.data(),
                            stringRequest.size());

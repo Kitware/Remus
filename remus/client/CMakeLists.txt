@@ -15,8 +15,8 @@ set(headers
 
 set(client_srcs
     Client.cxx
-    JobMeshRequirements.cxx
     JobContent.cxx
+    JobMeshRequirements.cxx
     JobSubmission.cxx
     )
 

@@ -14,15 +14,15 @@
 #define remus_client_Client_h
 
 #include <string>
+#include <set>
+
+#include <remus/common/zmq.hpp>
 
 #include <remus/client/Job.h>
+#include <remus/client/JobMeshRequirements.h>
 #include <remus/client/JobResult.h>
-#include <remus/client/JobRequest.h>
 #include <remus/client/JobStatus.h>
-
-#include <remus/common/Message.h>
-#include <remus/common/Response.h>
-#include <remus/common/zmqHelper.h>
+#include <remus/client/JobSubmission.h>
 #include <remus/client/ServerConnection.h>
 
 //included for symbol exports
@@ -39,12 +39,19 @@ public:
   //connect to a given host on a given port with tcp
   explicit Client(const remus::client::ServerConnection& conn);
 
-  //Submit a request to the server to see if it support the requirements
-  //of a given job request
-  bool canMesh(const remus::client::JobRequest& request);
+  //Submit a request to the server to see if the server supports
+  //the requested input and output mesh types
+  bool canMesh(const remus::common::MeshIOType& meshtypes);
 
-  //Submit a job to the server.
-  remus::client::Job submitJob(const remus::client::JobRequest& request);
+  //submit a request to the server to see if the server supports
+  //the request input and output mesh types. If the server does support
+  //the given types, return a collection of
+  std::set < remus::client::JobMeshRequirements >
+  retrieveMeshRequirements( const remus::common::MeshIOType& meshtypes );
+
+  //Submit a job to the server. The job submission has a JobData and
+  //a JobMeshRequirements component
+  remus::client::Job submitJob(const remus::client::JobSubmission& submission);
 
   //Given a remus Job object returns the status of the job
   remus::client::JobStatus jobStatus(const remus::client::Job& job);
