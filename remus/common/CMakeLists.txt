@@ -5,6 +5,7 @@ set(headers
   ContentTypes.h
   ExecuteProcess.h
   JobProgress.h
+  JobContent.h
   MD5Hash.h
   MeshIOType.h
   MeshRegistrar.h
@@ -20,6 +21,7 @@ set(headers
 
 set(common_srcs
   ExecuteProcess.cxx
+  JobContent.cxx
   MD5Hash.cxx
   MeshRegistrar.cxx
   )

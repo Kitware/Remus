@@ -11,7 +11,6 @@ set(protocol_headers
     )
 
 set(protocol_srcs
-    JobContent.cxx
     JobMeshRequirements.cxx
     JobSubmission.cxx
     )

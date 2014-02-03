@@ -10,18 +10,14 @@
 //
 //=============================================================================
 
-#include <remus/client/JobContent.h>
+#include <remus/common/JobContent.h>
 #include <remus/testing/Testing.h>
 
 #include <algorithm>
 #include <vector>
 #include <set>
 
-//we need a better name for JobContents, Data is a bad name I think that
-//a better name could be JobContents, or JobInput
-
 namespace {
-using namespace remus::client;
 using namespace remus::common;
 
 
@@ -260,7 +256,7 @@ void verify_zero_copy_serilization(StringFactory factory)
 
 }
 
-int UnitTestClientJobContent(int, char *[])
+int UnitTestJobContent(int, char *[])
 {
   verify_source_and_format();
   verify_tag();

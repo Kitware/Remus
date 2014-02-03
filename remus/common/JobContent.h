@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_client_JobContent_h
-#define remus_client_JobContent_h
+#ifndef remus_common_JobContent_h
+#define remus_common_JobContent_h
 
 #include <string>
 #include <sstream>
@@ -22,15 +22,12 @@
 #include <remus/common/ContentTypes.h>
 
 //included for symbol exports
-#include <remus/client/ClientExports.h>
+#include <remus/common/CommonExports.h>
 
 namespace remus{
-namespace client{
+namespace common{
 
-//forward declare for friendship
-class Client;
-
-class REMUSCLIENT_EXPORT JobContent
+class REMUSCOMMON_EXPORT JobContent
 {
 public:
   //construct an invalid JobContent. This constructor is designed
@@ -81,11 +78,6 @@ public:
     { content = JobContent(is); return is; }
 
 private:
-  friend class remus::client::Client;
-
-  //state to mark if the file should be read when we serialize
-  void setServerToBeRemote(bool isRemote) const;
-
   //serialize function
   void serialize(std::ostream& buffer) const;
 
@@ -102,27 +94,27 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline remus::client::JobContent make_FileJobContent(
+inline remus::common::JobContent make_FileJobContent(
       remus::common::ContentFormat::Type format,
       const std::string& path)
 {
-  return remus::client::JobContent(remus::common::ContentSource::File,
+  return remus::common::JobContent(remus::common::ContentSource::File,
                                    format,
                                    path);
 }
 
 //------------------------------------------------------------------------------
-inline remus::client::JobContent make_MemoryJobContent(
+inline remus::common::JobContent make_MemoryJobContent(
       remus::common::ContentFormat::Type format,
       const std::string& content )
 {
-  return remus::client::JobContent(remus::common::ContentSource::Memory,
+  return remus::common::JobContent(remus::common::ContentSource::Memory,
                                    format,
                                    content);
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::client::JobContent& content)
+inline std::string to_string(const remus::common::JobContent& content)
 {
   std::ostringstream buffer;
   buffer << content;
@@ -130,16 +122,16 @@ inline std::string to_string(const remus::client::JobContent& content)
 }
 
 //------------------------------------------------------------------------------
-inline remus::client::JobContent to_JobContent(const std::string& msg)
+inline remus::common::JobContent to_JobContent(const std::string& msg)
 {
   std::istringstream buffer(msg);
-  remus::client::JobContent content;
+  remus::common::JobContent content;
   buffer >> content;
   return content;
 }
 
 //------------------------------------------------------------------------------
-inline remus::client::JobContent to_JobContent(const char* data, int size)
+inline remus::common::JobContent to_JobContent(const char* data, int size)
 {
   std::string temp(size,char());
   std::copy( data, data+size, temp.begin() );

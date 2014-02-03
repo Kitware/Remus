@@ -10,7 +10,7 @@
 //
 //=============================================================================
 
-#include <remus/client/JobContent.h>
+#include <remus/common/JobContent.h>
 #include <remus/common/ConditionalStorage.h>
 #include <remus/common/MD5Hash.h>
 #include <remus/common/remusGlobals.h>
@@ -18,21 +18,19 @@
 #include <algorithm>
 
 namespace remus{
-namespace client{
+namespace common{
 
 struct JobContent::InternalImpl
 {
   template<typename T>
   explicit InternalImpl(const T& t)
   {
-    this->ServerIsRemote = false;
     this->Storage = remus::common::ConditionalStorage(t);
     this->Size = this->Storage.size();
     this->Data = this->Storage.data();
   }
 
   InternalImpl(const char* data, std::size_t size):
-    ServerIsRemote(false),
     Size(size),
     Data(data),
     Storage(),
@@ -85,9 +83,6 @@ struct JobContent::InternalImpl
       }
     return this->FullHash;
   }
-
-  //is the server remote or not
-  bool ServerIsRemote;
 private:
 
   //store the size of the data being held
@@ -135,12 +130,6 @@ JobContent::JobContent(remus::common::ContentFormat::Type format,
   Implementation( new InternalImpl(contents,size) )
 {
 
-}
-
-//------------------------------------------------------------------------------
-void JobContent::setServerToBeRemote(bool isRemote) const
-{
-  this->Implementation->ServerIsRemote = isRemote;
 }
 
 //------------------------------------------------------------------------------
