@@ -22,6 +22,7 @@
 
 namespace {
 using namespace remus::client;
+using namespace remus::common;
 
 
 struct make_empty_string

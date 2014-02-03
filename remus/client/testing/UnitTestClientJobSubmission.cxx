@@ -15,6 +15,7 @@
 
 namespace {
 using namespace remus::client;
+using namespace remus::common;
 
 int randomInt(int min_v, int max_v)
 {
