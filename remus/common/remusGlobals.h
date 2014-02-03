@@ -15,6 +15,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 //Define global information that the mesh server needs
 namespace remus {
@@ -82,8 +83,6 @@ inline std::string to_string(remus::STATUS_TYPE t)
   return std::string(remus::common::stat_types[(int)t]);
 }
 
-
-
 //------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 {
@@ -101,30 +100,38 @@ inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 namespace internal
 {
 //------------------------------------------------------------------------------
-inline std::string extractString(std::stringstream& buffer, int size)
+template<typename BufferType>
+inline void extractVector(BufferType& buffer, std::vector<char>& msg)
 {
   if(buffer.peek()=='\n')
     {
     buffer.get();
     }
+  buffer.rdbuf()->sgetn(&msg[0],msg.size());
+}
 
-  std::string msg(size,char());
-  char* raw = const_cast<char*>(msg.c_str());
-  buffer.rdbuf()->sgetn(raw,size);
-  return msg;
+//------------------------------------------------------------------------------
+template<typename BufferType>
+inline std::string extractString(BufferType& buffer, int size)
+{
+  std::vector<char> msg(size);
+  extractVector(buffer,msg);
+  return std::string(&msg[0],size);
 }
 
 
 //------------------------------------------------------------------------------
-inline void writeString(std::stringstream& buffer, const std::string str)
+template<typename BufferType>
+inline void writeString(BufferType& buffer, const std::string str)
 {
   buffer.rdbuf()->sputn(str.c_str(),str.length());
   buffer << std::endl;
 }
 
+
 //------------------------------------------------------------------------------
-inline void writeString(std::stringstream& buffer, const char * str,
-                        std::size_t size)
+template<typename BufferType>
+inline void writeString(BufferType& buffer, const char * str, std::size_t size)
 {
   buffer.rdbuf()->sputn(str,size);
   buffer << std::endl;

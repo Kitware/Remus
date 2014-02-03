@@ -154,7 +154,6 @@ void verify_serilization_no_tag(StringFactory factory)
 {
   JobContent input_content = make_MemoryJobContent(ContentFormat::XML, factory() );
   REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
-  std::cout << input_content.dataSize() << std::endl;
 
   REMUS_ASSERT( (input_content.tag().size() == 0 ) );
   REMUS_ASSERT( (input_content.tag() == std::string() ) );

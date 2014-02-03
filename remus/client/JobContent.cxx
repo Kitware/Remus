@@ -15,55 +15,93 @@
 #include <remus/common/MD5Hash.h>
 #include <remus/common/remusGlobals.h>
 
-#include <cassert>
-
-#include <iostream>
+#include <algorithm>
 
 namespace remus{
 namespace client{
 
 struct JobContent::InternalImpl
 {
-
   template<typename T>
   explicit InternalImpl(const T& t)
   {
+    this->ServerIsRemote = false;
     this->Storage = remus::common::ConditionalStorage(t);
     this->Size = this->Storage.size();
     this->Data = this->Storage.data();
-
-    //JobContent can store really large data, so in the future
-    //we need to move to a smarter hashing strategy. I think
-    //something where we hash only the first 1024bytes on creation
-    //and than hash the full data lazily when we are compared to the
-    //first item that matches our short hash is the best way.
-    this->Hash = remus::common::MD5Hash(this->Storage);
-
-    this->ServerIsRemote = false;
   }
 
   InternalImpl(const char* data, std::size_t size):
+    ServerIsRemote(false),
     Size(size),
     Data(data),
     Storage(),
-    Hash(remus::common::MD5Hash(data,size)),
-    ServerIsRemote(false)
+    ShortHash(),
+    FullHash()
   {
   }
 
+  std::size_t size() const { return Size; }
+  const char* data() const { return Data; }
+
+  bool equal(const boost::shared_ptr<InternalImpl> other)
+    {
+    return (this->shortHash() == other->shortHash()) &&
+           (this->fullHash() == other->fullHash());
+    }
+
+  bool less(const boost::shared_ptr<InternalImpl> other)
+    {
+    if(this->shortHash() != other->shortHash())
+      { return this->shortHash() < other->shortHash(); }
+    if(this->fullHash() != other->fullHash())
+      { return this->fullHash() < other->fullHash(); }
+    return false;
+    }
+
+  const std::string& shortHash()
+  {
+    if(this->ShortHash.size() == 0 && this->size() < 4096)
+      {
+      this->ShortHash = std::string(this->data(),this->size());
+      }
+    else if(this->ShortHash.size() == 0)
+      {
+      //only hash the first 4096 characters
+      std::size_t hashsize = 4096;
+      this->ShortHash = remus::common::MD5Hash(this->data(),
+                                               hashsize);
+      }
+    return this->ShortHash;
+  }
+
+  const std::string& fullHash()
+  {
+   if(this->FullHash.size() == 0)
+      {
+      //has the whole damn file
+      this->FullHash = remus::common::MD5Hash(this->data(),
+                                              this->size());
+      }
+    return this->FullHash;
+  }
+
+  //is the server remote or not
+  bool ServerIsRemote;
+private:
+
   //store the size of the data being held
-  int Size;
+  std::size_t Size;
+
   //points to the zero copy or data in the conditional storage
   const char* Data;
+
   //Storage is an optional allocation that is used when we need to copy data
   remus::common::ConditionalStorage Storage;
 
   //MD5Hash of the data held by us.
-  std::string Hash;
-
-  //is the server remote or not
-  bool ServerIsRemote;
-
+  std::string ShortHash;
+  std::string FullHash;
 };
 
 //------------------------------------------------------------------------------
@@ -108,13 +146,13 @@ void JobContent::setServerToBeRemote(bool isRemote) const
 //------------------------------------------------------------------------------
 const char* JobContent::data() const
 {
-  return this->Implementation->Data;
+  return this->Implementation->data();
 }
 
 //------------------------------------------------------------------------------
 std::size_t JobContent::dataSize() const
 {
-  return this->Implementation->Size;
+  return this->Implementation->size();
 }
 
 //------------------------------------------------------------------------------
@@ -134,8 +172,8 @@ bool JobContent::operator<(const JobContent& other) const
 
   //instead of comparing the full data of the content, we just compare
   //cached md5 hashes of the content
-  if (this->hash() != other.hash())
-  { return this->hash() < other.hash(); }
+  if (!(this->Implementation->equal(other.Implementation)))
+    { return (this->Implementation->less(other.Implementation)); }
 
   return false; //they are the same
 }
@@ -147,17 +185,11 @@ bool JobContent::operator==(const JobContent& other) const
          && (this->formatType() == other.formatType())
          && (this->tag() == other.tag())
          && (this->dataSize() == other.dataSize())
-         && (this->hash() == other.hash());
+         && (this->Implementation->equal(other.Implementation));
 }
 
 //------------------------------------------------------------------------------
-std::string JobContent::hash() const
-{
-  return this->Implementation->Hash;
-}
-
-//------------------------------------------------------------------------------
-void JobContent::serialize(std::stringstream& buffer) const
+void JobContent::serialize(std::ostringstream& buffer) const
 {
   buffer << this->sourceType() << std::endl;
   buffer << this->formatType() << std::endl;
@@ -165,21 +197,18 @@ void JobContent::serialize(std::stringstream& buffer) const
   buffer << this->tag().size() << std::endl;
   remus::internal::writeString(buffer,this->tag());
 
-  buffer << this->hash().size() << std::endl;
-  remus::internal::writeString(buffer,this->hash());
-
-  buffer << this->Implementation->Size << std::endl;
+  buffer << this->Implementation->size() << std::endl;
   remus::internal::writeString( buffer,
-                                this->Implementation->Data,
-                                this->Implementation->Size );
-
-
+                                this->Implementation->data(),
+                                this->Implementation->size() );
 }
 
 //------------------------------------------------------------------------------
-JobContent::JobContent(std::stringstream& buffer)
+JobContent::JobContent(std::istringstream& buffer)
 {
-  int stype=0, ftype=0, tagSize=0, hashSize=0,contentsSize=0;
+  int stype=0, ftype=0;
+  std::size_t tagSize=0;
+  std::size_t contentsSize=0;
 
   //read in the source and format types
   buffer >> stype;
@@ -191,17 +220,15 @@ JobContent::JobContent(std::stringstream& buffer)
   buffer >> tagSize;
   this->Tag = remus::internal::extractString(buffer,tagSize);
 
-  //read in the md5 has of the data
-  buffer >> hashSize;
-  std::string wire_hash = remus::internal::extractString(buffer,hashSize);
-
   //read in the contents, todo do this with less temp objects and copies
   buffer >> contentsSize;
-  const std::string temp = remus::internal::extractString(buffer,contentsSize);
-  this->Implementation = boost::shared_ptr< InternalImpl >(new InternalImpl(temp));
+  std::vector<char> contents(contentsSize);
 
-  //verify the hash we received is the same as the one we computed.
-  assert( wire_hash == this->hash() );
+  //enables us to use less copies for faster read of large data
+  remus::internal::extractVector(buffer,contents);
+
+  this->Implementation =
+    boost::shared_ptr< InternalImpl >(new InternalImpl(contents));
 }
 
 
