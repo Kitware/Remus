@@ -68,7 +68,7 @@ JobMeshRequirements::JobMeshRequirements():
  }
 
 //------------------------------------------------------------------------------
-void JobMeshRequirements::serialize(std::stringstream& buffer) const
+void JobMeshRequirements::serialize(std::ostream& buffer) const
 {
   buffer << this->sourceType() << std::endl;
   buffer << this->formatType() << std::endl;
@@ -87,7 +87,7 @@ void JobMeshRequirements::serialize(std::stringstream& buffer) const
 }
 
 //------------------------------------------------------------------------------
-JobMeshRequirements::JobMeshRequirements(std::stringstream& buffer)
+JobMeshRequirements::JobMeshRequirements(std::istream& buffer)
 {
   int stype=0, ftype=0, workerNameSize=0, tagSize=0, contentsSize=0;
 

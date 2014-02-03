@@ -189,7 +189,7 @@ bool JobContent::operator==(const JobContent& other) const
 }
 
 //------------------------------------------------------------------------------
-void JobContent::serialize(std::ostringstream& buffer) const
+void JobContent::serialize(std::ostream& buffer) const
 {
   buffer << this->sourceType() << std::endl;
   buffer << this->formatType() << std::endl;
@@ -204,7 +204,7 @@ void JobContent::serialize(std::ostringstream& buffer) const
 }
 
 //------------------------------------------------------------------------------
-JobContent::JobContent(std::istringstream& buffer)
+JobContent::JobContent(std::istream& buffer)
 {
   int stype=0, ftype=0;
   std::size_t tagSize=0;

@@ -14,7 +14,6 @@
 #define remus_client_JobContent_h
 
 #include <string>
-#include <iostream>
 #include <sstream>
 
 #include <boost/shared_ptr.hpp>
@@ -73,19 +72,23 @@ public:
   bool operator<(const JobContent& other) const;
   bool operator==(const JobContent& other) const;
 
+  friend std::ostream& operator<<(std::ostream &os, const JobContent &content)
+    { content.serialize(os); return os; }
+
+  friend std::istream& operator>>(std::istream &is, JobContent &content)
+    { content = JobContent(is); return is; }
+
 private:
   friend class remus::client::Client;
-  friend std::string to_string(const remus::client::JobContent& content);
-  friend remus::client::JobContent to_JobContent(const std::string& msg);
 
   //state to mark if the file should be read when we serialize
   void setServerToBeRemote(bool isRemote) const;
 
   //serialize function
-  void serialize(std::ostringstream& buffer) const;
+  void serialize(std::ostream& buffer) const;
 
   //deserialize constructor function
-  explicit JobContent(std::istringstream& buffer);
+  explicit JobContent(std::istream& buffer);
 
 
   ContentSource::Type SourceType;
@@ -120,7 +123,7 @@ inline remus::client::JobContent make_MemoryJobContent(
 inline std::string to_string(const remus::client::JobContent& content)
 {
   std::ostringstream buffer;
-  content.serialize(buffer);
+  buffer << content;
   return buffer.str();
 }
 
@@ -128,7 +131,9 @@ inline std::string to_string(const remus::client::JobContent& content)
 inline remus::client::JobContent to_JobContent(const std::string& msg)
 {
   std::istringstream buffer(msg);
-  return remus::client::JobContent(buffer);
+  remus::client::JobContent content;
+  buffer >> content;
+  return content;
 }
 
 //------------------------------------------------------------------------------

@@ -60,17 +60,20 @@ public:
   bool operator<(const JobMeshRequirements& other) const;
   bool operator==(const JobMeshRequirements& other) const;
 
-private:
-  friend std::string to_string(
-                        const remus::client::JobMeshRequirements& content);
-  friend remus::client::JobMeshRequirements to_JobMeshRequirements(
-                        const std::string& msg);
+  friend std::ostream& operator<<(std::ostream &os,
+                                  const JobMeshRequirements &reqs)
+    { reqs.serialize(os); return os; }
 
+  friend std::istream& operator>>(std::istream &is,
+                                  JobMeshRequirements &reqs)
+    { reqs = JobMeshRequirements(is); return is; }
+
+private:
   //serialize function
-  void serialize(std::stringstream& buffer) const;
+  void serialize(std::ostream& buffer) const;
 
   //deserialize constructor function
-  explicit JobMeshRequirements(std::stringstream& buffer);
+  explicit JobMeshRequirements(std::istream& buffer);
 
   ContentSource::Type SourceType;
   ContentFormat::Type FormatType;
@@ -84,8 +87,8 @@ private:
 //------------------------------------------------------------------------------
 inline std::string to_string(const remus::client::JobMeshRequirements& reqs)
 {
-  std::stringstream buffer;
-  reqs.serialize(buffer);
+  std::ostringstream buffer;
+  buffer << reqs;
   return buffer.str();
 }
 
@@ -93,8 +96,10 @@ inline std::string to_string(const remus::client::JobMeshRequirements& reqs)
 inline remus::client::JobMeshRequirements
 to_JobMeshRequirements(const std::string& msg)
 {
-  std::stringstream buffer(msg);
-  return remus::client::JobMeshRequirements(buffer);
+  std::istringstream buffer(msg);
+  remus::client::JobMeshRequirements reqs;
+  buffer >> reqs;
+  return reqs;
 }
 
 //------------------------------------------------------------------------------
