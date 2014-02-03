@@ -9,6 +9,7 @@ set(headers
     JobMeshRequirements.h
     JobResult.h
     JobStatus.h
+    JobSubmission.h
     ServerConnection.h
     )
 
@@ -16,6 +17,7 @@ set(client_srcs
     Client.cxx
     JobMeshRequirements.cxx
     JobContent.cxx
+    JobSubmission.cxx
     )
 
 add_library(RemusClient ${client_srcs} ${headers})
