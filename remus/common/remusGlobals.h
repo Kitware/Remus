@@ -122,7 +122,7 @@ inline std::string extractString(BufferType& buffer, int size)
 
 //------------------------------------------------------------------------------
 template<typename BufferType>
-inline void writeString(BufferType& buffer, const std::string str)
+inline void writeString(BufferType& buffer, const std::string& str)
 {
   buffer.rdbuf()->sputn(str.c_str(),str.length());
   buffer << std::endl;
