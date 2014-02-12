@@ -9,8 +9,8 @@
 //  PURPOSE.  See the above copyright notice for more information.
 //
 //=============================================================================
-#ifndef __remus_common_MeshRegistrar_h
-#define __remus_common_MeshRegistrar_h
+#ifndef remus_common_MeshRegistrar_h
+#define remus_common_MeshRegistrar_h
 
 #include <string>
 

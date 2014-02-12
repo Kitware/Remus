@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_RemusGlobals_h
-#define __remus_common_RemusGlobals_h
+#ifndef remus_common_RemusGlobals_h
+#define remus_common_RemusGlobals_h
 
 #include <string>
 #include <sstream>
@@ -142,4 +142,4 @@ inline void writeString(BufferType& buffer, const char * str, std::size_t size)
 
 }
 
-#endif // __remus_common_RemusGlobals_h
+#endif // remus_common_RemusGlobals_h

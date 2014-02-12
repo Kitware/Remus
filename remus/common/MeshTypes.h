@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_MeshTypes_h
-#define __remus_common_MeshTypes_h
+#ifndef remus_common_MeshTypes_h
+#define remus_common_MeshTypes_h
 
 #include <string>
 #include <remus/common/MeshRegistrar.h>
@@ -101,4 +101,4 @@ to_meshType(boost::uint16_t t)
 }
 
 
-#endif //__remus_common_MeshTypes_h
+#endif //remus_common_MeshTypes_h

@@ -31,8 +31,6 @@ configure_file(PathToTestExecutable.h.in
 set(unit_tests
   UnitTestConditionalStorage.cxx
   UnitTestExecuteProcess.cxx
-  UnitTestJobContent.cxx
-  UnitTestJobProgress.cxx
   UnitTestMD5Hash.cxx
   UnitTestMeshIOType.cxx
   UnitTestMeshRegistry.cxx
