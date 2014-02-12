@@ -11,14 +11,9 @@
 #=============================================================================
 
 set(unit_tests
-  UnitTestClientJob.cxx
-  UnitTestClientJobContent.cxx
-  UnitTestClientJobResult.cxx
-  UnitTestClientJobMeshRequirements.cxx
-  UnitTestClientJobStatus.cxx
-  UnitTestClientJobSubmission.cxx
+  UnitTestClient.cxx
   UnitTestClientServerConnection.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusClient RemusClientProtocol)
+                 LIBRARIES RemusClient)

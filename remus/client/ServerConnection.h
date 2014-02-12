@@ -10,13 +10,13 @@
 //
 //=============================================================================
 
-#ifndef __remus_client_serverConnection_h
-#define __remus_client_serverConnection_h
+#ifndef remus_client_serverConnection_h
+#define remus_client_serverConnection_h
 
 #include <boost/lexical_cast.hpp>
 
-#include <remus/common/zmqHelper.h>
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/zmqSocketInfo.h>
 #include <assert.h>
 
 namespace remus{
@@ -123,4 +123,4 @@ remus::client::ServerConnection make_ServerConnection(const std::string& dest)
 }
 }
 
-#endif // __remus_serverConnection_h
+#endif // remus_serverConnection_h
