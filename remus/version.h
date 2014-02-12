@@ -11,8 +11,8 @@
 //=============================================================================
 //  Remus version.h
 
-#ifndef __remus_version_h
-#define __remus_version_h
+#ifndef remus_version_h
+#define remus_version_h
 
 //  This header will change with every official release.
 

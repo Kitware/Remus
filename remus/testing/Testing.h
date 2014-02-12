@@ -13,8 +13,8 @@
 //  the U.S. Government retains certain rights in this software.
 //
 //=============================================================================
-#ifndef __remus_testing_Testing_h
-#define __remus_testing_Testing_h
+#ifndef remus_testing_Testing_h
+#define remus_testing_Testing_h
 
 #include <algorithm>
 #include <cstdlib>
@@ -156,4 +156,4 @@ inline std::string AsciiStringGenerator(std::size_t length)
 
 
 
-#endif //__remus_testing_Testing
+#endif //remus_testing_Testing
