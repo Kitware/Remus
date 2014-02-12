@@ -47,6 +47,18 @@ public:
     }
   }
 
+  bool isTalking() const
+  {
+  boost::unique_lock<boost::mutex>(TalkingMutex);
+  return ContinueTalking;
+  }
+
+  void stopTalking()
+  {
+  boost::unique_lock<boost::mutex>(TalkingMutex);
+  ContinueTalking = false;
+  }
+
   void run(zmq::context_t *context)
   {
     zmq::socket_t Worker(*context,ZMQ_PAIR);
@@ -60,7 +72,7 @@ public:
 
     zmq::pollitem_t items[2]  = { { Worker,  0, ZMQ_POLLIN, 0 },
                                   { Server,  0, ZMQ_POLLIN, 0 } };
-    while( this->ContinueTalking )
+    while( this->isTalking() )
       {
       zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
       bool sentToServer=false;
@@ -73,12 +85,12 @@ public:
         message.send(Server);
 
         //special case is that TERMINATE_JOB_AND_WORKER means we stop looping
-        if(message.serviceType()==remus::TERMINATE_JOB_AND_WORKER)
+        if(message.serviceType()==remus::TERMINATE_WORKER)
           {
-          this->ContinueTalking = false;
+          this->stopTalking();
           }
         }
-      if(items[1].revents & ZMQ_POLLIN && this->ContinueTalking)
+      if(items[1].revents & ZMQ_POLLIN && this->isTalking())
         {
         //we make sure ContinueTalking is valid so we know the worker
         //is still listening and not in destructor
@@ -87,26 +99,17 @@ public:
         //and the other for the Service TERMINATE_JOB_AND_WORKER which kills
         //the worker process
         remus::common::Response response(Server);
-        if(response.serviceType() == remus::MAKE_MESH)
+        switch(response.serviceType())
           {
-          //send the job to the queue so that somebody can take it later
-          response.send(JobQueue);
-          }
-        else if(response.serviceType() != remus::TERMINATE_JOB_AND_WORKER)
-          {
-          response.send(Worker);
-          }
-        else
-          {
-          //we should split up the TERMINATE_JOB_AND_WORKER into really two calls
-          //the first would be stop_job which would only stop the current job
-          //it might terminate the worker if needed, but no mandatory. The
-          //second would be to terminate a worker and all jobs it contains
-
-          //todo should we allow the worker a better way to cleanup?
-          //currently the worker will need to inherit from
-          //remus::common::SignalCatcher to find out it is closing
-          exit(1);
+          case remus::TERMINATE_WORKER:
+            this->stopTalking();
+          case remus::TERMINATE_JOB:
+          case remus::MAKE_MESH:
+            //send the job to the queue so that somebody can take it later
+            response.send(JobQueue);
+            break;
+          default:
+            response.send(Worker);
           }
         }
       if(!sentToServer)
@@ -123,6 +126,7 @@ public:
 
 private:
   bool ContinueTalking;
+  boost::mutex TalkingMutex;
   std::string ServerEndpoint;
   std::string MainEndpoint;
   std::string JobQueueEndpoint;
@@ -186,9 +190,12 @@ bool Worker::stopCommunicationThread()
     {
     //send message that we are shutting down communication, and we can stop
     //polling the server
-    remus::common::Message shutdown(this->MeshIOType,
-                                    remus::TERMINATE_JOB_AND_WORKER);
-    shutdown.send(this->ServerComm);
+    if(this->BComm->isTalking())
+    {
+      remus::common::Message shutdown(this->MeshIOType,
+                                      remus::TERMINATE_WORKER);
+      shutdown.send(this->ServerComm);
+    }
 
     this->BComm->ServerCommThread->join();
     delete this->BComm;
@@ -250,7 +257,6 @@ void Worker::returnMeshResults(const remus::worker::JobResult& result)
                                     msg.data(),msg.size());
   message.send(this->ServerComm);
 }
-
 
 }
 }

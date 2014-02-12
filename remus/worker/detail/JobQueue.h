@@ -40,7 +40,6 @@ public:
 
 private:
 
-
   class JobQueueImplementation;
   JobQueueImplementation *Implementation;
 
