@@ -10,6 +10,7 @@ set(headers
 
 set(server_srcs
    Server.cxx
+   ServerPorts.cxx
    WorkerFactory.cxx
    )
 
@@ -17,7 +18,8 @@ set(server_srcs
 add_library(RemusServer ${server_srcs} ${headers})
 target_link_libraries(RemusServer
                       LINK_PUBLIC RemusCommon
-                      LINK_PRIVATE ${Boost_LIBRARIES}
+                      LINK_PRIVATE RemusProto
+                                   ${Boost_LIBRARIES}
                                    ${CMAKE_THREAD_LIBS_INIT} )
 
 #create the export header symbol exporting
@@ -31,7 +33,8 @@ remus_public_headers(${headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusServer)
-export(TARGETS RemusServer RemusCommon sysTools FILE Remus-exports.cmake)
+export(TARGETS RemusServer RemusProto RemusCommon sysTools
+               FILE Remus-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
   add_subdirectory(testing)

@@ -10,8 +10,7 @@
 //
 //=============================================================================
 
-
-#include <remus/common/zmqHelper.h>
+#include <remus/proto/zmqHelper.h>
 #include <remus/server/detail/WorkerPool.h>
 #include <remus/testing/Testing.h>
 

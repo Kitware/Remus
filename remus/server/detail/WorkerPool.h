@@ -10,13 +10,13 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_detail_ActiveJobState_h
-#define __remus_server_detail_ActiveJobState_h
+#ifndef remus_server_detail_ActiveJobState_h
+#define remus_server_detail_ActiveJobState_h
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <remus/server/detail/uuidHelper.h>
-#include <remus/common/zmqHelper.h>
+#include <remus/proto/zmqHelper.h>
 
 #include <string>
 #include <set>

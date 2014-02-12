@@ -10,12 +10,14 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_detail_JobQueue_h
-#define __remus_server_detail_JobQueue_h
+#ifndef remus_server_detail_JobQueue_h
+#define remus_server_detail_JobQueue_h
 
-#include <remus/client/JobRequest.h>
-#include <remus/common/Message.h>
+#include <remus/proto/JobSubmission.h>
+#include <remus/proto/Message.h>
+
 #include <remus/server/detail/uuidHelper.h>
+
 #include <remus/worker/Job.h>
 
 #include <boost/uuid/uuid.hpp>
@@ -45,7 +47,7 @@ public:
   //Convert a Message and UUID into a WorkerMessage.
   //will return false if the uuid is already queued
   inline bool addJob( const boost::uuids::uuid& id,
-                      const remus::client::JobRequest& request);
+                      const remus::proto::JobSubmission& submission);
 
   //Removes a job from the queue of the given mesh type.
   //Return it as a worker Job. We prioritize jobs waiting for
@@ -83,14 +85,14 @@ private:
   struct QueuedJob
   {
     QueuedJob(const boost::uuids::uuid& id,
-              const remus::client::JobRequest& request):
+              const remus::proto::JobSubmission& submission):
               Id(id),
-              Request(request),
+              Submission(submission),
               WorkerDispatchTime(boost::posix_time::second_clock::local_time())
               {}
 
     boost::uuids::uuid Id;
-    remus::client::JobRequest Request;
+    remus::proto::JobSubmission Submission;
 
     //information on when the job was marked as scheduled
     boost::posix_time::ptime WorkerDispatchTime;
@@ -103,7 +105,7 @@ private:
   struct CountTypes
   {
     void operator()( const QueuedJob& job )
-      { types.insert(job.Request.type()); }
+      { types.insert(job.Submission.type()); }
     std::set<remus::common::MeshIOType> types;
   };
 
@@ -124,7 +126,7 @@ private:
     type(t) {}
 
     bool operator()(const QueuedJob& job) const
-      { return type == job.Request.type(); }
+      { return type == job.Submission.type(); }
 
     remus::common::MeshIOType type;
   };
@@ -150,18 +152,17 @@ private:
 
 //------------------------------------------------------------------------------
 bool JobQueue::addJob(const boost::uuids::uuid &id,
-                      const remus::client::JobRequest& request)
+                      const remus::proto::JobSubmission& submission)
 {
   //only add the message as a job if the uuid hasn't been used already
   const bool can_add = QueuedIds.count(id) == 0;
   if(can_add)
     {
-    QueuedJob newQueuedJob(id,request);
+    QueuedJob newQueuedJob(id,submission);
     this->QueuedJobs.insert(
           std::lower_bound( this->QueuedJobs.begin(), this->QueuedJobs.end(),
                             newQueuedJob ),
           newQueuedJob);
-    // this->QueuedJobs.push_back(QueuedJob(id,request));
     this->QueuedIds.insert(id);
     }
   return can_add;
@@ -189,10 +190,10 @@ remus::worker::Job JobQueue::takeJob(remus::common::MeshIOType type)
     }
 
   //we need to copy the id and the contents of item now into a job
-  //request, if we use item after the remove_if it is invalid as
+  //submission, if we use item after the remove_if it is invalid as
   //remove_if moves the vector items around making what item
   //is pointing too change
-  remus::worker::Job job(item->Id,type,item->Request.jobInfo());
+  remus::worker::Job job(item->Id, type, item->Submission);
 
   //again don't use item after the remove_if the iterator is invalid
   JobIdMatches id_pred(job.id());

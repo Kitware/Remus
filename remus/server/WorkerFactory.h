@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_WorkeryFactory_h
-#define __remus_server_WorkeryFactory_h
+#ifndef remus_server_WorkeryFactory_h
+#define remus_server_WorkeryFactory_h
 
 #include <vector>
 #include <remus/common/MeshIOType.h>
