@@ -1,6 +1,7 @@
 
 set(headers
 	JobQueue.h
+  MessageRouter.h
 	)
 
-remus_public_headers(${headers})
+remus_private_headers(${headers})

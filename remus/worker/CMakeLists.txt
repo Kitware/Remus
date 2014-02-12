@@ -4,8 +4,6 @@ add_subdirectory(detail)
 
 set(headers
     Job.h
-    JobResult.h
-    JobStatus.h
     ServerConnection.h
     Worker.h
     )
@@ -13,6 +11,7 @@ set(headers
 set(worker_srcs
    Worker.cxx
    detail/JobQueue.cxx
+   detail/MessageRouter.cxx
    )
 
 add_library(RemusWorker ${worker_srcs} ${headers})
@@ -20,7 +19,7 @@ add_library(RemusWorker ${worker_srcs} ${headers})
 #need to link to the threading libraries to make sure threading is properly
 #set up
 target_link_libraries(RemusWorker
-                      LINK_PUBLIC RemusCommon
+                      LINK_PUBLIC RemusProto
                       LINK_PRIVATE ${Boost_LIBRARIES}
                                    ${CMAKE_THREAD_LIBS_INIT} )
 
@@ -35,7 +34,8 @@ remus_public_headers(${headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusWorker)
-export(TARGETS RemusWorker RemusCommon sysTools FILE RemusWorker-exports.cmake)
+export(TARGETS RemusWorker RemusProto RemusCommon sysTools
+       FILE RemusWorker-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
   add_subdirectory(testing)
