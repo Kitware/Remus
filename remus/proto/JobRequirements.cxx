@@ -11,10 +11,44 @@
 //=============================================================================
 
 #include <remus/proto/JobRequirements.h>
-#include <remus/common/remusGlobals.h>
+
+#include <remus/common/ConditionalStorage.h>
+#include <remus/proto/conversionHelpers.h>
 
 namespace remus{
 namespace proto{
+
+struct JobRequirements::InternalImpl
+{
+  template<typename T>
+  explicit InternalImpl(const T& t)
+  {
+    remus::common::ConditionalStorage temp(t);
+    this->Storage.swap(temp);
+    this->Size = this->Storage.size();
+    this->Data = this->Storage.data();
+  }
+
+  InternalImpl(const char* data, std::size_t size):
+    Size(size),
+    Data(data),
+    Storage()
+  {
+  }
+
+  std::size_t size() const { return Size; }
+  const char* data() const { return Data; }
+
+private:
+  //store the size of the data being held
+  std::size_t Size;
+
+  //points to the zero copy or data in the conditional storage
+  const char* Data;
+
+  //Storage is an optional allocation that is used when we need to copy data
+  remus::common::ConditionalStorage Storage;
+};
 
 //------------------------------------------------------------------------------
 JobRequirements::JobRequirements():
@@ -23,8 +57,90 @@ JobRequirements::JobRequirements():
   MeshType(),
   WorkerName(),
   Tag(),
-  Storage()
+  Implementation(new InternalImpl(NULL,0))
 {
+}
+
+//------------------------------------------------------------------------------
+JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
+                                 remus::common::ContentFormat::Type ftype,
+                                 remus::common::MeshIOType mtype,
+                                 const std::string& wname,
+                                 const std::string& reqs ):
+  SourceType(stype),
+  FormatType(ftype),
+  MeshType(mtype),
+  WorkerName(wname),
+  Tag(),
+  Implementation(new InternalImpl(reqs))
+{
+}
+
+//------------------------------------------------------------------------------
+JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
+                                 remus::common::ContentFormat::Type ftype,
+                                 remus::common::MeshIOType mtype,
+                                 const std::string& wname,
+                                 const char* reqs,
+                                 std::size_t reqs_size ):
+  SourceType(stype),
+  FormatType(ftype),
+  MeshType(mtype),
+  WorkerName(wname),
+  Tag(),
+  Implementation(new InternalImpl(reqs,reqs_size))
+{
+}
+
+//------------------------------------------------------------------------------
+JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
+                                 remus::common::ContentFormat::Type ftype,
+                                 remus::common::MeshIOType mtype,
+                                 const std::string& wname,
+                                 const std::string& tag,
+                                 const std::string& reqs ):
+  SourceType(stype),
+  FormatType(ftype),
+  MeshType(mtype),
+  WorkerName(wname),
+  Tag(tag),
+  Implementation(new InternalImpl(reqs))
+{
+}
+
+//------------------------------------------------------------------------------
+JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
+                                 remus::common::ContentFormat::Type ftype,
+                                 remus::common::MeshIOType mtype,
+                                 const std::string& wname,
+                                 const std::string& tag,
+                                 const char* reqs,
+                                 std::size_t reqs_size ):
+  SourceType(stype),
+  FormatType(ftype),
+  MeshType(mtype),
+  WorkerName(wname),
+  Tag(tag),
+  Implementation(new InternalImpl(reqs,reqs_size))
+{
+}
+
+//------------------------------------------------------------------------------
+bool JobRequirements::hasRequirements() const
+{
+  return this->Implementation->size() > 0;
+}
+
+//------------------------------------------------------------------------------
+std::size_t JobRequirements::requirementsSize() const
+{
+  return this->Implementation->size() > 0;
+}
+
+//------------------------------------------------------------------------------
+const char* JobRequirements::requirements() const
+{
+  return this->Implementation->data();
 }
 
 //------------------------------------------------------------------------------
@@ -107,8 +223,14 @@ JobRequirements::JobRequirements(std::istream& buffer)
 
   //read in the contents, todo do this with less temp objects and copies
   buffer >> contentsSize;
-  this->Storage = remus::common::ConditionalStorage(
-                      remus::internal::extractString(buffer,contentsSize) );
+
+  std::vector<char> contents(contentsSize);
+
+  //enables us to use less copies for faster read of large data
+  remus::internal::extractVector(buffer,contents);
+
+  this->Implementation =
+    boost::shared_ptr< InternalImpl >(new InternalImpl(contents));
 }
 
 //------------------------------------------------------------------------------

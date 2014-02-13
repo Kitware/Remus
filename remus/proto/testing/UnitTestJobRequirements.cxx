@@ -84,29 +84,7 @@ JobRequirements make_MeshReqs(ContentSource::Type stype,
                                   std::string tag,
                                   std::string reqs)
 {
-  //the JobMeshReqs has no public constructor so we need to take
-  //a string and convert it to the class
-  std::stringstream buffer;
-
-  buffer << stype << std::endl;
-  buffer << ftype << std::endl;
-  buffer << mtype << std::endl;
-
-  buffer << name.size() << std::endl;
-  remus::internal::writeString( buffer, name );
-
-  buffer << tag.size() << std::endl;
-  remus::internal::writeString( buffer,  tag);
-
-  remus::common::ConditionalStorage storage(reqs);
-  buffer << storage.size() << std::endl;
-  remus::internal::writeString( buffer,
-                                storage.get(),
-                                storage.size() );
-
-  //now that we have the string stream we can convert it back
-  //to a class
-  return to_JobRequirements(buffer.str());
+  return JobRequirements(stype,ftype,mtype,name,tag,reqs);
 }
 
 JobRequirements make_random_MeshReqs()
