@@ -29,7 +29,7 @@ JobSubmission::JobSubmission(  ):
 
 //------------------------------------------------------------------------------
 JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs ):
-  MeshType(reqs.jobMeshTypes()),
+  MeshType(reqs.meshTypes()),
   Requirements(reqs),
   Content()
 {
@@ -38,7 +38,7 @@ JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs ):
 //------------------------------------------------------------------------------
 JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs,
                               const remus::proto::JobContent& content ):
-  MeshType(reqs.jobMeshTypes()),
+  MeshType(reqs.meshTypes()),
   Requirements(reqs),
   Content( )
 {
@@ -48,7 +48,7 @@ JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs,
 //------------------------------------------------------------------------------
 JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs,
             const std::map<std::string,remus::proto::JobContent>& content ):
-  MeshType(reqs.jobMeshTypes()),
+  MeshType(reqs.meshTypes()),
   Requirements(reqs),
   Content(content)
 {

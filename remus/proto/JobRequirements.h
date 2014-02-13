@@ -88,7 +88,7 @@ public:
     { return this->FormatType; }
 
   //get the mesh types for the given workers job mesh requirements
-  const remus::common::MeshIOType& jobMeshTypes() const { return MeshType; }
+  const remus::common::MeshIOType& meshTypes() const { return MeshType; }
 
   //get the name of the worker that this job mesh requirements is for
   const std::string& workerName() const { return this->WorkerName; }
@@ -214,6 +214,33 @@ to_JobRequirements(const char* data, int size)
   std::string temp(size,char());
   std::copy( data, data+size, temp.begin() );
   return to_JobRequirements( temp );
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(const remus::proto::JobRequirementsSet& reqs)
+{
+  std::ostringstream buffer;
+  buffer << reqs;
+  return buffer.str();
+}
+
+//------------------------------------------------------------------------------
+inline remus::proto::JobRequirementsSet
+to_JobRequirementsSet(const std::string& msg)
+{
+  std::istringstream buffer(msg);
+  remus::proto::JobRequirementsSet reqs;
+  buffer >> reqs;
+  return reqs;
+}
+
+//------------------------------------------------------------------------------
+inline remus::proto::JobRequirementsSet
+to_JobRequirementsSet(const char* data, int size)
+{
+  std::string temp(size,char());
+  std::copy( data, data+size, temp.begin() );
+  return to_JobRequirementsSet( temp );
 }
 
 

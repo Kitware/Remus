@@ -183,7 +183,7 @@ void verify_serilization()
 
     REMUS_ASSERT( (reqs.sourceType() == reqs_serialized.sourceType()) );
     REMUS_ASSERT( (reqs.formatType() == reqs_serialized.formatType()) );
-    REMUS_ASSERT( (reqs.jobMeshTypes() == reqs_serialized.jobMeshTypes()) );
+    REMUS_ASSERT( (reqs.meshTypes() == reqs_serialized.meshTypes()) );
     REMUS_ASSERT( (reqs.workerName() == reqs_serialized.workerName()) );
     REMUS_ASSERT( (reqs.tag() == reqs_serialized.tag()) );
     REMUS_ASSERT( (reqs.hasRequirements() == reqs_serialized.hasRequirements()) );

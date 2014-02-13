@@ -155,8 +155,8 @@ const char* JobRequirements::requirements() const
   //XML, JSON and BSOn
   //than comes worker name
   //than comes tag
-  if (this->jobMeshTypes().type() != other.jobMeshTypes().type())
-  { return (this->jobMeshTypes().type() < other.jobMeshTypes().type()); }
+  if (this->meshTypes().type() != other.meshTypes().type())
+  { return (this->meshTypes().type() < other.meshTypes().type()); }
 
   if (this->sourceType() != other.sourceType())
   { return (this->sourceType() < other.sourceType()); }
@@ -176,7 +176,7 @@ const char* JobRequirements::requirements() const
 //------------------------------------------------------------------------------
  bool JobRequirements::operator==(const JobRequirements& other) const
  {
-  return ((this->jobMeshTypes().type() == other.jobMeshTypes().type()) &&
+  return ((this->meshTypes().type() == other.meshTypes().type()) &&
           (this->sourceType() == other.sourceType()) &&
           (this->formatType() == other.formatType()) &&
           (this->workerName() == other.workerName()) &&
@@ -188,7 +188,7 @@ void JobRequirements::serialize(std::ostream& buffer) const
 {
   buffer << this->sourceType() << std::endl;
   buffer << this->formatType() << std::endl;
-  buffer << this->jobMeshTypes() << std::endl;
+  buffer << this->meshTypes() << std::endl;
 
   buffer << this->workerName().size() << std::endl;
   remus::internal::writeString( buffer, this->workerName());
