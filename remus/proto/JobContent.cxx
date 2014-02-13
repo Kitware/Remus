@@ -14,7 +14,7 @@
 
 #include <remus/common/ConditionalStorage.h>
 #include <remus/common/MD5Hash.h>
-#include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
 
 #include <algorithm>
 
@@ -26,7 +26,8 @@ struct JobContent::InternalImpl
   template<typename T>
   explicit InternalImpl(const T& t)
   {
-    this->Storage = remus::common::ConditionalStorage(t);
+    remus::common::ConditionalStorage temp(t);
+    this->Storage.swap(temp);
     this->Size = this->Storage.size();
     this->Data = this->Storage.data();
   }

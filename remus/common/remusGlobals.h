@@ -14,8 +14,6 @@
 #define remus_common_RemusGlobals_h
 
 #include <string>
-#include <sstream>
-#include <vector>
 
 //Define global information that the mesh server needs
 namespace remus {
@@ -96,48 +94,6 @@ inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
       }
     }
   return remus::INVALID_SERVICE;
-}
-
-namespace internal
-{
-//------------------------------------------------------------------------------
-template<typename BufferType>
-inline void extractVector(BufferType& buffer, std::vector<char>& msg)
-{
-  if(buffer.peek()=='\n')
-    {
-    buffer.get();
-    }
-  buffer.rdbuf()->sgetn(&msg[0],msg.size());
-}
-
-//------------------------------------------------------------------------------
-template<typename BufferType>
-inline std::string extractString(BufferType& buffer, int size)
-{
-  std::vector<char> msg(size);
-  extractVector(buffer,msg);
-  return std::string(&msg[0],size);
-}
-
-
-//------------------------------------------------------------------------------
-template<typename BufferType>
-inline void writeString(BufferType& buffer, const std::string& str)
-{
-  buffer.rdbuf()->sputn(str.c_str(),str.length());
-  buffer << std::endl;
-}
-
-
-//------------------------------------------------------------------------------
-template<typename BufferType>
-inline void writeString(BufferType& buffer, const char * str, std::size_t size)
-{
-  buffer.rdbuf()->sputn(str,size);
-  buffer << std::endl;
-}
-
 }
 
 }

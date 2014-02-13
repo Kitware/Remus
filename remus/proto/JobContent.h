@@ -21,7 +21,7 @@
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
 
-//included for symbol exports
+//included for export symbols
 #include <remus/proto/ProtoExports.h>
 
 namespace remus{

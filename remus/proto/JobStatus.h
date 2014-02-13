@@ -21,6 +21,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
 #include <remus/proto/JobProgress.h>
 
 namespace remus {

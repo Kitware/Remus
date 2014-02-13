@@ -20,6 +20,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
 
 namespace remus {
 namespace proto {
