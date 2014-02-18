@@ -39,8 +39,8 @@ struct socketInfo
   explicit socketInfo(const std::string& hostName):Host(hostName){}
   std::string endpoint() const {return  zmq::proto::scheme_and_separator(Protocall()) + Host;}
   const std::string& host() const{ return Host; }
-  std::string protocall() const { return zmq::proto::scheme_name(Protocall());}
-
+  std::string scheme() const { return zmq::proto::scheme_name(Protocall());}
+  int port() const { return -1; }
 private:
   std::string Host;
 };
@@ -62,7 +62,7 @@ template<> struct socketInfo<zmq::proto::tcp>
     }
 
   const std::string& host() const{ return Host; }
-  std::string protocall() const { return zmq::proto::scheme_and_separator(Protocall());}
+  std::string scheme() const { return zmq::proto::scheme_name(Protocall());}
 
   int port() const { return Port; }
 
