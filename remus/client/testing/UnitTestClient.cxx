@@ -14,6 +14,8 @@
 #include <remus/client/Client.h>
 #include <remus/testing/Testing.h>
 
+#include <remus/proto/zmq.hpp>
+
 #include <string>
 
 namespace {
@@ -48,16 +50,29 @@ void verify_server_connection()
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
 
-  remus::client::ServerConnection test_full_sc("foo",82);
-  remus::client::Client full_client(test_full_sc);
+  remus::client::ServerConnection ipc_conn =
+        remus::client::make_ServerConnection("ipc://foo_ipc");
+  remus::client::Client ipc_client(ipc_conn);
 
-    REMUS_ASSERT( (full_client.connection().endpoint() ==
-                        make_tcp_socket("foo",82).endpoint()) );
-  REMUS_ASSERT( (full_client.connection().endpoint() != default_endpoint) );
+  REMUS_ASSERT( (ipc_client.connection().endpoint() ==
+                 make_ipc_socket("foo_ipc").endpoint()) );
+
+
+  remus::client::ServerConnection remote_tcp_conn =
+        remus::client::make_ServerConnection("tcp://74.125.30.106:83");
+  remus::client::Client remote_tcp_client(remote_tcp_conn);
+
+  REMUS_ASSERT( (remote_tcp_client.connection().endpoint() ==
+                 make_tcp_socket("74.125.30.106",83).endpoint()) );
+
+  //We currently don't test with inproc since for inproc to work correctly
+  //we need to share the same context between the client and calling code,
+  //this would require a change on who holds the clients context
 
   //test local host bool with tcp ip
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
-  REMUS_ASSERT( (full_client.connection().isLocalEndpoint()==false) );
+  REMUS_ASSERT( (ipc_client.connection().isLocalEndpoint()==true) );
+  REMUS_ASSERT( (remote_tcp_client.connection().isLocalEndpoint()==false) );
 
 }
 
