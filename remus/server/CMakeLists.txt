@@ -9,6 +9,9 @@ set(headers
     )
 
 set(server_srcs
+   detail/ActiveJobs.cxx
+   detail/JobQueue.cxx
+   detail/WorkerPool.cxx
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx

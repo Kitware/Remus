@@ -22,7 +22,7 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/server/ServerPorts.h>
 
-//included for symbol exports
+//included for export symbols
 #include <remus/server/ServerExports.h>
 
 namespace remus {
@@ -84,7 +84,9 @@ public:
   bool startBrokering(SignalHandling sh = CAPTURE);
 
   //when you call stop brokering, the server will stop accepting worker
-  //or client requests
+  //and client requests. This will also tell all active workers that we
+  //are shutting down, so they themselves will terminate. You can't stop
+  //the server and expect 'good' things to happen.
   void stopBrokering();
 
   //Waits until the thread is up and running
@@ -109,7 +111,7 @@ protected:
                                  const remus::proto::Message& msg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(const remus::proto::Message& msg);
+  std::string canMesh(const remus::proto::Message& msg);
   std::string meshStatus(const remus::proto::Message& msg);
   std::string queueJob(const remus::proto::Message& msg);
   std::string retrieveMesh(const remus::proto::Message& msg);

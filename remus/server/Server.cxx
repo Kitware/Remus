@@ -13,12 +13,14 @@
 #include <remus/server/Server.h>
 
 #include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <remus/proto/Job.h>
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
+#include <remus/proto/JobRequirements.h>
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
 #include <remus/proto/zmqHelper.h>
@@ -48,7 +50,6 @@ void make_terminateWorker(remus::proto::Response& response,
                           boost::uuids::uuid jobId)
 {
   remus::worker::Job terminateJob(jobId,
-                                  remus::common::MeshIOType(),
                                   remus::proto::JobSubmission());
   response.setServiceType(remus::TERMINATE_WORKER);
   response.setData(remus::worker::to_string(terminateJob));
@@ -59,8 +60,7 @@ void make_terminateJob(remus::proto::Response& response,
                        boost::uuids::uuid jobId)
 {
   remus::worker::Job terminateJob(jobId,
-                          remus::common::MeshIOType(),
-                          remus::proto::JobSubmission());
+                                  remus::proto::JobSubmission());
   response.setServiceType(remus::TERMINATE_JOB);
   response.setData(remus::worker::to_string(terminateJob));
 }
@@ -85,7 +85,7 @@ struct ThreadManagement
   //----------------------------------------------------------------------------
   bool isBrokering()
   {
-  boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+  boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
   return this->BrokerIsRunning;
   }
 
@@ -172,7 +172,7 @@ struct ZmqManagement
 
   //----------------------------------------------------------------------------
   ZmqManagement():
-    Context(1),
+    Context(2),
     ClientQueries(Context,ZMQ_ROUTER),
     WorkerQueries(Context,ZMQ_ROUTER)
   {}
@@ -412,19 +412,22 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
 }
 
 //------------------------------------------------------------------------------
-bool Server::canMesh(const remus::proto::Message& msg)
+std::string Server::canMesh(const remus::proto::Message& msg)
 {
   //we state that the factory can support a mesh type by having a worker
-  //registered to it that supports the mesh type, and the worker factory
-  //also has the ability to create workers
-  bool factorySupportsType =
-                    this->WorkerFactory.haveSupport(msg.MeshIOType()) &&
-                    this->WorkerFactory.maxWorkerCount() > 0;
+  //registered to it that supports the mesh type.
+  remus::proto::JobRequirementsSet reqSet(
+            this->WorkerFactory.workerRequirements(msg.MeshIOType()));
 
-  //if the current worker pool has a worker connected
-  bool workerPoolSupportsType =
-                    this->WorkerPool->haveWaitingWorker(msg.MeshIOType());
-  return factorySupportsType || workerPoolSupportsType;
+  //Query the worker pool to get the set of requirements for waiting
+  //workers that support the given mesh type info
+  remus::proto::JobRequirementsSet poolSet; //=
+            //this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType());
+
+  //combine the two sets to get all the valid requirements
+  reqSet.insert(poolSet.begin(),poolSet.end());
+
+  return remus::proto::to_string(reqSet);
 }
 
 //------------------------------------------------------------------------------
@@ -446,22 +449,18 @@ std::string Server::meshStatus(const remus::proto::Message& msg)
 //------------------------------------------------------------------------------
 std::string Server::queueJob(const remus::proto::Message& msg)
 {
-  if(this->canMesh(msg))
-  {
-    //generate an UUID
-    const boost::uuids::uuid jobUUID = this->UUIDGenerator();
+  //generate an UUID
+  const boost::uuids::uuid jobUUID = this->UUIDGenerator();
 
-    //create a new job to place on the queue
-    const remus::proto::JobSubmission request =
-                    remus::proto::to_JobSubmission(msg.data(),msg.dataSize());
+  //create a new job to place on the queue
+  const remus::proto::JobSubmission submission =
+                  remus::proto::to_JobSubmission(msg.data(),msg.dataSize());
 
-    this->QueuedJobs->addJob(jobUUID,request);
-    //return the UUID
+  this->QueuedJobs->addJob(jobUUID,submission);
+  //return the UUID
 
-    const remus::proto::Job validJob(jobUUID,msg.MeshIOType());
-    return remus::proto::to_string(validJob);
-  }
-  return remus::INVALID_MSG;
+  const remus::proto::Job validJob(jobUUID,msg.MeshIOType());
+  return remus::proto::to_string(validJob);
 }
 
 //------------------------------------------------------------------------------
@@ -517,15 +516,22 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
   switch(msg.serviceType())
     {
     case remus::CAN_MESH:
-      this->WorkerPool->addWorker(workerIdentity,msg.MeshIOType());
+      {
+      const remus::proto::JobRequirements reqs =
+            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
+      this->WorkerPool->addWorker(workerIdentity,reqs);
+      }
       break;
     case remus::MAKE_MESH:
-      //the worker will block while it waits for a response.
+      {
+      const remus::proto::JobRequirements reqs =
+            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       if(!this->WorkerPool->haveWorker(workerIdentity))
         {
-        this->WorkerPool->addWorker(workerIdentity,msg.MeshIOType());
+        this->WorkerPool->addWorker(workerIdentity,reqs);
         }
       this->WorkerPool->readyForWork(workerIdentity);
+      }
       break;
     case remus::MESH_STATUS:
       //store the mesh status msg,  no response needed
@@ -585,51 +591,51 @@ void Server::FindWorkerForQueuedJob()
 
   typedef std::set<remus::common::MeshIOType>::const_iterator it;
   this->WorkerFactory.updateWorkerCount();
-  std::set<remus::common::MeshIOType> types;
+  remus::proto::JobRequirementsSet types;
 
 
   //find all the jobs that have been marked as waiting for a worker
   //and ask if we have a worker in the poll that can mesh that job
-  types = this->QueuedJobs->waitingForWorkerTypes();
-  for(it type = types.begin(); type != types.end(); ++type)
-    {
-    if(this->WorkerPool->haveWaitingWorker(*type))
-      {
-      //give this job to that worker
-      this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
-                              this->QueuedJobs->takeJob(*type));
-      }
-    }
+  // types = this->QueuedJobs->waitingForWorkerTypes();
+  // for(it type = types.begin(); type != types.end(); ++type)
+  //   {
+  //   if(this->WorkerPool->haveWaitingWorker(*type))
+  //     {
+  //     //give this job to that worker
+  //     this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
+  //                             this->QueuedJobs->takeJob(*type));
+  //     }
+  //   }
 
 
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
-  types = this->QueuedJobs->queuedJobTypes();
-  for(it type = types.begin(); type != types.end(); ++type)
-    {
-    if(this->WorkerPool->haveWaitingWorker(*type))
-      {
-      //give this job to that worker
-      this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
-                              this->QueuedJobs->takeJob(*type));
-      }
-    }
+  // types = this->QueuedJobs->queuedJobTypes();
+  // for(it type = types.begin(); type != types.end(); ++type)
+  //   {
+  //   if(this->WorkerPool->haveWaitingWorker(*type))
+  //     {
+  //     //give this job to that worker
+  //     this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
+  //                             this->QueuedJobs->takeJob(*type));
+  //     }
+  //   }
 
   //now if we have room in our worker pool for more pending workers create some
   //make sure we ask the worker pool what its limit on number of pending
   //workers is before creating more. We have to requery to get the updated
   //job types since the worker pool might have taken some.
-  types = this->QueuedJobs->queuedJobTypes();
-  for(it type = types.begin(); type != types.end(); ++type)
-    {
-    //check if we have a waiting worker, if we don't than try
-    //ask the factory to create a worker of that type.
-    if(this->WorkerFactory.createWorker(*type,
-                           WorkerFactory::KillOnFactoryDeletion))
-      {
-      this->QueuedJobs->workerDispatched(*type);
-      }
-    }
+  // types = this->QueuedJobs->queuedJobTypes();
+  // for(it type = types.begin(); type != types.end(); ++type)
+  //   {
+  //   //check if we have a waiting worker, if we don't than try
+  //   //ask the factory to create a worker of that type.
+  //   if(this->WorkerFactory.createWorker(*type,
+  //                          WorkerFactory::KillOnFactoryDeletion))
+  //     {
+  //     this->QueuedJobs->workerDispatched(*type);
+  //     }
+  //   }
 }
 
 
