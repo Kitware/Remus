@@ -221,6 +221,7 @@ void verify_updating_progress()
   REMUS_ASSERT( (jobs.status(uuid_used).progress().message().size() == 0) );
 
   wjs.updateProgress( remus::proto::JobProgress(20,"random text") );
+  REMUS_ASSERT( (wjs.inProgress() == true) );
   jobs.updateStatus(wjs);
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
@@ -228,13 +229,22 @@ void verify_updating_progress()
   REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text") );
 
   //lets go backwards in progress, this should work
-  wjs.updateProgress( remus::proto::JobProgress(19,"random text"));
+  wjs.updateProgress( remus::proto::JobProgress(19,"random text v2"));
+  REMUS_ASSERT( (wjs.inProgress() == true) );
   jobs.updateStatus(wjs);
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
   REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 19) );
-  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == std::string() ) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text v2" ) );
 
+  //lets go backwards in progress and remove the text, this should work
+  wjs.updateProgress( remus::proto::JobProgress(2));
+  REMUS_ASSERT( (wjs.inProgress() == true) );
+  jobs.updateStatus(wjs);
+
+  REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 2) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == std::string() ) );
 }
 
 void verify_refresh_jobs()

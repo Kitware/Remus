@@ -10,12 +10,21 @@
 #
 #=============================================================================
 
+#the detail classes aren't exported classes, and don't
+#have any symbols, so we need to compile them into our unit test executable
+set(srcs
+  ../ActiveJobs.cxx
+  ../JobQueue.cxx
+  ../WorkerPool.cxx
+  )
+
 set(unit_tests
   UnitTestActiveJobs.cxx
-  UnitTestJobQueue.cxx
+  UnitTestServerJobQueue.cxx
   UnitTestUUIDHelper.cxx
   UnitTestWorkerPool.cxx
   )
 
 remus_unit_tests( SOURCES ${unit_tests}
+                  EXTRA_SOURCES ${srcs}
                   LIBRARIES RemusProto)

@@ -9,19 +9,29 @@
 //  PURPOSE.  See the above copyright notice for more information.
 //
 //=============================================================================
+#include <remus/server/detail/WorkerPool.h>
 
 #include <remus/proto/zmqHelper.h>
-#include <remus/server/detail/WorkerPool.h>
+#include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
+
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/uuid/random_generator.hpp>
 
 namespace {
 
+using namespace remus::common;
 using namespace remus::meshtypes;
-const remus::common::MeshIOType worker_type2D( (Edges()), (Mesh2D()) );
-const remus::common::MeshIOType worker_type3D( (Edges()), (Mesh3D()) );
+
+const remus::proto::JobRequirements worker_type2D(ContentSource::Memory,
+                                                  ContentFormat::User,
+                                                  MeshIOType(Edges(),Mesh2D()),
+                                                  "", "" );
+const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
+                                                  ContentFormat::User,
+                                                  MeshIOType(Edges(),Mesh3D()),
+                                                  "", "" );
 
 
 boost::uuids::random_generator generator;
@@ -88,9 +98,16 @@ void verify_has_worker_type()
       remus::common::MeshIOType io_type(
           remus::meshtypes::to_meshType(input_type),
           remus::meshtypes::to_meshType(output_type));
-      bool valid = pool.haveWaitingWorker(io_type);
+      remus::proto::JobRequirements reqs( worker_type2D.sourceType(),
+                                          worker_type2D.formatType(),
+                                          io_type,
+                                          worker_type2D.workerName(),
+                                          worker_type2D.requirements(),
+                                          worker_type2D.requirementsSize()
+                                         );
+      bool valid = pool.haveWaitingWorker(reqs);
       //only when io_type equals
-      REMUS_ASSERT( (valid == (io_type == worker_type2D) ) )
+      REMUS_ASSERT( (valid == (reqs == worker_type2D) ) )
       }
     }
 
