@@ -13,7 +13,7 @@
 #ifndef remus_proto_JobSubmission_h
 #define remus_proto_JobSubmission_h
 
-#include <iostream>
+#include <string>
 #include <map>
 
 #include <remus/proto/JobContent.h>

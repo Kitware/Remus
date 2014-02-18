@@ -13,8 +13,8 @@
 #ifndef remus_proto_conversionHelpers_h
 #define remus_proto_conversionHelpers_h
 
-#include <iostream>
 #include <string>
+#include <ostream>
 #include <vector>
 
 namespace remus {
