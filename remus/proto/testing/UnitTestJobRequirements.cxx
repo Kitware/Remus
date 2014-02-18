@@ -93,7 +93,7 @@ JobRequirements make_random_MeshReqs()
   //fill in the following optional flags:
   // tag.
   return make_MeshReqs( randomEnum(ContentSource::File,ContentSource::Memory),
-                        randomEnum(ContentFormat::USER,ContentFormat::BSON),
+                        randomEnum(ContentFormat::User,ContentFormat::BSON),
                         randomMeshTypes(),
                         randomString(),
                         randomString(),
@@ -109,7 +109,7 @@ void verify_tag()
                                    (remus::meshtypes::Model()) );
 
   JobRequirements reqs = make_MeshReqs( ContentSource::Memory,
-                                            ContentFormat::USER,
+                                            ContentFormat::User,
                                             mtypes,
                                             "worker_name",
                                             tag_data,
@@ -129,7 +129,7 @@ void verify_worker_name()
                                    (remus::meshtypes::Model()) );
 
   JobRequirements reqs = make_MeshReqs( ContentSource::Memory,
-                                            ContentFormat::USER,
+                                            ContentFormat::User,
                                             mtypes,
                                             workerName,
                                             "example tag data",

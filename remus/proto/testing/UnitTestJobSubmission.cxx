@@ -86,7 +86,7 @@ JobRequirements make_random_MeshReqs()
   //fill in the following optional flags:
   // tag.
   return make_MeshReqs( randomEnum(ContentSource::File,ContentSource::Memory),
-                        randomEnum(ContentFormat::USER,ContentFormat::BSON),
+                        randomEnum(ContentFormat::User,ContentFormat::BSON),
                         randomMeshTypes(),
                         randomString(),
                         randomString(),
@@ -98,7 +98,7 @@ std::pair<std::string,JobContent> make_random_MapPairs()
 {
   return std::pair<std::string,JobContent>( randomString(),
         JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                      randomEnum(ContentFormat::USER,ContentFormat::BSON),
+                      randomEnum(ContentFormat::User,ContentFormat::BSON),
                       randomBinaryData() )
         );
 }
@@ -118,7 +118,7 @@ void constructor_test()
 
   JobSubmission single_content(make_random_MeshReqs(),
      JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                 randomEnum(ContentFormat::USER,ContentFormat::BSON),
+                 randomEnum(ContentFormat::User,ContentFormat::BSON),
                  randomBinaryData() ));
 
   REMUS_ASSERT( (single_content.size() == 1) );
@@ -132,7 +132,7 @@ void constructor_test()
       std::pair<std::string,JobContent>(
       "default",
       JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                  randomEnum(ContentFormat::USER,ContentFormat::BSON),
+                  randomEnum(ContentFormat::User,ContentFormat::BSON),
                   randomBinaryData() )
         )
       );

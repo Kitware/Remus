@@ -86,7 +86,7 @@ void verify_source_and_format()
   JobContent xml_file_test = make_FileJobContent(  ContentFormat::XML, path );
   JobContent json_file_test = make_FileJobContent( ContentFormat::JSON, path );
   JobContent bson_file_test = make_FileJobContent( ContentFormat::BSON, path );
-  JobContent user_file_test = make_FileJobContent( ContentFormat::USER, path );
+  JobContent user_file_test = make_FileJobContent( ContentFormat::User, path );
 
   REMUS_ASSERT( (xml_file_test.sourceType() == ContentSource::File ) );
   REMUS_ASSERT( (json_file_test.sourceType() == ContentSource::File ) );
@@ -96,12 +96,12 @@ void verify_source_and_format()
   REMUS_ASSERT( (xml_file_test.formatType() == ContentFormat::XML ) );
   REMUS_ASSERT( (json_file_test.formatType() == ContentFormat::JSON ) );
   REMUS_ASSERT( (bson_file_test.formatType() == ContentFormat::BSON ) );
-  REMUS_ASSERT( (user_file_test.formatType() == ContentFormat::USER ) );
+  REMUS_ASSERT( (user_file_test.formatType() == ContentFormat::User ) );
 
   JobContent xml_mem_test = make_MemoryJobContent( ContentFormat::XML, path );
   JobContent json_mem_test = make_MemoryJobContent( ContentFormat::JSON, path );
   JobContent bson_mem_test = make_MemoryJobContent( ContentFormat::BSON, path );
-  JobContent user_mem_test = make_MemoryJobContent( ContentFormat::USER, path );
+  JobContent user_mem_test = make_MemoryJobContent( ContentFormat::User, path );
 
   REMUS_ASSERT( (xml_mem_test.sourceType() == ContentSource::Memory ) );
   REMUS_ASSERT( (json_mem_test.sourceType() == ContentSource::Memory ) );
@@ -111,7 +111,7 @@ void verify_source_and_format()
   REMUS_ASSERT( (xml_mem_test.formatType() == ContentFormat::XML ) );
   REMUS_ASSERT( (json_mem_test.formatType() == ContentFormat::JSON ) );
   REMUS_ASSERT( (bson_mem_test.formatType() == ContentFormat::BSON ) );
-  REMUS_ASSERT( (user_mem_test.formatType() == ContentFormat::USER ) );
+  REMUS_ASSERT( (user_mem_test.formatType() == ContentFormat::User ) );
 }
 
 void verify_tag()
