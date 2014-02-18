@@ -137,6 +137,12 @@ struct REMUSPROTO_EXPORT JobRequirementsSet
 {
   typedef std::set< JobRequirements > ContainerType;
 
+  typedef ContainerType::iterator iterator;
+  typedef ContainerType::const_iterator const_iterator;
+  typedef ContainerType::reference reference;
+  typedef ContainerType::const_reference const_reference;
+  typedef ContainerType::value_type value_type;
+
   JobRequirementsSet();
   JobRequirementsSet(const ContainerType& container);
 
@@ -148,10 +154,23 @@ struct REMUSPROTO_EXPORT JobRequirementsSet
                                   JobRequirementsSet &reqs)
     { reqs = JobRequirementsSet(is); return is; }
 
+  std::pair<iterator,bool> insert( const value_type& value )
+    { return this->Container.insert(value); }
 
-  const ContainerType& get() const { return Container; }
-  ContainerType& get() { return Container; }
+  template< class InputIt >
+  void insert( InputIt first, InputIt last )
+    { return this->Container.insert(first,last); }
 
+  iterator begin() { return this->Container.begin(); }
+  const_iterator begin() const { return this->Container.begin(); }
+
+  iterator end( ) { return this->Container.end(); }
+  const_iterator end( ) const { return this->Container.end(); }
+
+  std::size_t size() const { return this->Container.size(); }
+
+  std::size_t count( const value_type& item ) const
+    { return this->Container.count(item); }
 
 private:
   void serialize(std::ostream& buffer) const;
