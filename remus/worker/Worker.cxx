@@ -36,7 +36,8 @@ Worker::Worker(remus::common::MeshIOType mtype,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   //We have to bind to the inproc socket before the MessageRouter class does
-  zmq::bindToAddress<zmq::proto::inproc>(this->ServerSocket,"worker");
+  std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
+  this->ServerSocket.bind( ep.c_str() );
 
   this->MessageRouter->start();
 

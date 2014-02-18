@@ -106,35 +106,6 @@ inline void connectToAddress(zmq::socket_t &socket,const zmq::socketInfo<T> &sIn
   socket.connect(sInfo.endpoint().c_str());
 }
 
-inline zmq::socketInfo<zmq::proto::tcp> bindToTCPSocket(zmq::socket_t &socket,
-                                                        zmq::socketInfo<zmq::proto::tcp> socketInfo)
-{
-  //go through all ports, I hope the input port is inside the Ephemeral range
-  int rc = -1;
-  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
-    {
-    socketInfo.setPort(i);
-    //using the C syntax to skip having to catch the exception;
-    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
-    }
-
-  if(rc!=0)
-    {
-    throw zmq::error_t();
-    }
-  return socketInfo;
-}
-
-template<typename Proto>
-inline zmq::socketInfo<Proto> bindToAddress(zmq::socket_t &socket, const std::string &address)
-{
-  //given a default port try to connect using tcp on that port, continue
-  //till we hit maximum number of ports and if still failing throw execption
-  zmq::socketInfo<Proto> socketInfo(address);
-  socket.bind(socketInfo.endpoint().c_str());
-  return socketInfo;
-}
-
 //A wrapper around zeroMQ send. When we call the standard send call
 //from a Qt class we experience high number of system level interrupts which
 //cause zero to throw an exception when we are sending a blocking message.
