@@ -105,7 +105,7 @@ JobData()
 This is the basic flow:
 
 1. bool client::canMesh( client::RequiredMeshTypes(inttype, outtype) );
-2. std::set < MeshRequirements > client::getMeshRequirements( client::JobMeshTypes(intype, outtype) );
+2. std::set < MeshRequirements > client::getMeshRequirements( client::meshTypes(intype, outtype) );
 3. client::Job client::submitJob( JobSubmission( JobData(), MeshRequirements() )  );
 
 We have JobSubmission

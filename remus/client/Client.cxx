@@ -75,7 +75,7 @@ Client::retrieveMeshRequirements( const remus::common::MeshIOType& meshtypes)
 
   remus::proto::JobRequirementsSet set;
   buffer >> set;
-  return set.get(); //copy on return on purpose
+  return set;
 }
 
 //------------------------------------------------------------------------------

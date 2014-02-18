@@ -26,7 +26,7 @@
 #include <remus/proto/JobStatus.h>
 #include <remus/proto/JobSubmission.h>
 
-//included for symbol exports
+//included for export symbols
 #include <remus/client/ClientExports.h>
 
 //The client class is used to submit meshing jobs to a remus server.
