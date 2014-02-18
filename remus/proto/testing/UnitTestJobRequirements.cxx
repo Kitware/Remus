@@ -159,16 +159,24 @@ void verify_less_than_op()
   REMUS_ASSERT( (reqs.size() == set_reqs.size()) );
   REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), set_reqs.begin()) );
 
-  std::vector< JobRequirements > reqs_reversed(100);
+  //the size of the reversed vector is equal to the sorted && uniqueified size
+  //of the original vector, which can be less than 100.
+  std::vector< JobRequirements > reqs_reversed(reqs.size());
   std::copy(reqs.begin(), reqs.end(), reqs_reversed.begin());
 
   //reverse the string and verify that it is reversed
   std::reverse(reqs_reversed.begin(),reqs_reversed.end());
   REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), reqs_reversed.rbegin()) );
 
-  //resort the reveresed ones and verify the < operator works
+  //resort the reversed ones and verify the < operator works
   std::sort(reqs_reversed.begin(),reqs_reversed.end());
-  REMUS_ASSERT( std::equal(reqs.begin(), reqs.end(), reqs_reversed.begin()) );
+  const bool rev_equal = std::equal(reqs.begin(),
+                                    reqs.end(),
+                                    reqs_reversed.begin());
+  const bool rev_set_equal = std::equal(reqs_reversed.begin(),
+                                        reqs_reversed.end(),
+                                        set_reqs.begin());
+  REMUS_ASSERT( ( rev_equal && rev_set_equal ) )
 }
 
 void verify_serilization()
@@ -198,16 +206,16 @@ void verify_req_set()
   JobRequirementsSet to_wire, from_wire;
   for(int i=0; i < 1024; ++i)
     {
-    to_wire.get().insert( make_random_MeshReqs() );
+    to_wire.insert( make_random_MeshReqs() );
     }
 
   std::stringstream buffer;
   buffer << to_wire;
   buffer >> from_wire;
 
-  const bool same = std::equal(to_wire.get().begin(),
-                               to_wire.get().end(),
-                               from_wire.get().begin());
+  const bool same = std::equal(to_wire.begin(),
+                               to_wire.end(),
+                               from_wire.begin());
 
   REMUS_ASSERT( same );
 }
