@@ -28,11 +28,12 @@ namespace proto{
 class REMUSPROTO_EXPORT JobSubmission
 {
 public:
-  typedef std::map<std::string,remus::proto::JobContent>::const_iterator const_iterator;
-  typedef std::map<std::string,remus::proto::JobContent>::iterator iterator;
-  typedef std::map<std::string,remus::proto::JobContent>::const_reference const_reference;
-  typedef std::map<std::string,remus::proto::JobContent>::reference reference;
-  typedef std::map<std::string,remus::proto::JobContent>::value_type value_type;
+  typedef std::map<std::string,remus::proto::JobContent> ContainerType;
+  typedef ContainerType::iterator iterator;
+  typedef ContainerType::const_iterator const_iterator;
+  typedef ContainerType::const_reference const_reference;
+  typedef ContainerType::reference reference;
+  typedef ContainerType::value_type value_type;
 
   //construct an invalid JobSubmission. This constructor is designed
   //to allows this class to be stored in containers.
@@ -47,7 +48,7 @@ public:
                  const remus::proto::JobContent& content);
 
   JobSubmission( const remus::proto::JobRequirements& reqs,
-                 const std::map<std::string,remus::proto::JobContent>& content);
+                 const ContainerType& content);
 
   //add new content to the job submission. If the key is already in use
   //we will overwrite the job content with
@@ -72,14 +73,13 @@ public:
   iterator find( const std::string& key )
     { return this->Content.find(key); }
 
-  std::size_t size() const
-    { return this->Content.size(); }
+  std::size_t size() const { return this->Content.size(); }
 
   //get the mesh types for this submission
   const remus::common::MeshIOType& type() const { return MeshType; }
 
   //get the requirements for this submission
-  const remus::proto::JobRequirements& retrieveRequirements( ) const
+  const remus::proto::JobRequirements& requirements( ) const
     { return this->Requirements; }
 
   //implement a less than operator and equal operator so you
@@ -111,7 +111,7 @@ private:
 
   remus::common::MeshIOType MeshType;
   remus::proto::JobRequirements Requirements;
-  std::map<std::string,remus::proto::JobContent> Content;
+  ContainerType Content;
 
 
 };

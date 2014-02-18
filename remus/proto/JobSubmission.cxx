@@ -62,8 +62,8 @@ bool JobSubmission::operator<(const JobSubmission& other) const
   if ( !(this->type() == other.type()))
   { return (this->type() < other.type()); }
 
-  if (!(this->retrieveRequirements() == other.retrieveRequirements()))
-  { return (this->retrieveRequirements() < other.retrieveRequirements()); }
+  if (!(this->requirements() == other.requirements()))
+  { return (this->requirements() < other.requirements()); }
 
   if (this->Content.size() != other.Content.size())
   {  return this->Content < other.Content; }
@@ -77,7 +77,7 @@ bool JobSubmission::operator==(const JobSubmission& other) const
   //we need to think about this more, a job submission isn't really unique
   //if we don't look at the submitted job content. You can submit the same
   return ((this->type() == other.type()) &&
-          (this->retrieveRequirements() == other.retrieveRequirements()) &&
+          (this->requirements() == other.requirements()) &&
           (this->Content.size() == other.Content.size()) &&
           (this->Content == other.Content)
           );
