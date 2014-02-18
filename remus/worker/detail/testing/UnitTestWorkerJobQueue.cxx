@@ -23,6 +23,12 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
+
 using namespace remus::worker::detail;
 
 namespace {
@@ -87,6 +93,11 @@ void verify_basic_comms(zmq::context_t& context)
   response.send(jobSocket);
 
   //gotta wait for all three messages to come in
+#ifdef _WIN32
+      Sleep(2000);
+#else
+      sleep(2);
+#endif
   while(jq.size()<3){}
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==3) );

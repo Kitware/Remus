@@ -159,7 +159,7 @@ remus::worker::Job take()
     {
       {
       boost::unique_lock<boost::mutex> lock(this->QueueMutex);
-      msg = this->Queue.front();
+      msg = this->Queue[0];
       this->Queue.pop_front();
       }
     }

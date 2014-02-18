@@ -23,6 +23,12 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
+
 using namespace remus::worker::detail;
 
 namespace {
@@ -84,6 +90,11 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
 
   //gotta wait for all three messages to come in
   while(jq.size()<3){}
+#ifdef _WIN32
+      Sleep(2000);
+#else
+      sleep(2);
+#endif
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==3) );
 
@@ -93,8 +104,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
     if(j.id() == jobId)
       {
       REMUS_ASSERT( (!j.valid()) )
-      REMUS_ASSERT( (j.validityReason() ==
-                     remus::worker::Job::TERMINATE_WORKER) )
+      REMUS_ASSERT( (j.validityReason() == remus::worker::Job::INVALID) )
       }
     else
       {
@@ -267,10 +277,6 @@ int UnitTestMessageRouter(int, char *[])
   verify_basic_comms(context);
   verify_server_term(context);
   verify_worker_term(context);
-
-  //yes again to make sure we can relaunch on a terminated channel after
-  //clearing the sockets
-  verify_basic_comms(context);
 
   return 0;
 }
