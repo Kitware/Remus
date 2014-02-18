@@ -26,6 +26,9 @@ namespace detail{
 //Routes messages from the server to the worker class or the job queue,
 //based on the message type. The message router also handles send heartbeat
 //message back to the server
+
+//Once a MessageRouter is sent a TerminateWorker message,it will not accept any
+//new messages from the Server and trying to start back up the server
 class MessageRouter
 {
 public:
@@ -38,7 +41,10 @@ public:
 
   bool valid() const;
 
-  void start();
+  //Will return true if the message router can start. Will return false
+  //if you try to start a MessageRouter that has been terminated by the server
+  //or worker
+  bool start();
 
 private:
   class MessageRouterImplementation;

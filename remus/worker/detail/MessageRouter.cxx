@@ -14,7 +14,11 @@
 
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
+#include <remus/worker/Job.h>
+
 #include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/uuid/uuid.hpp>
 
 namespace remus{
 namespace worker{
@@ -32,7 +36,7 @@ class MessageRouter::MessageRouterImplementation
   std::string ServerEndpoint;
 
   //thread our polling method
-  boost::mutex ThreadMutex;
+  mutable boost::mutex ThreadMutex;
   boost::scoped_ptr<boost::thread> PollingThread;
   //state to tell when we should stop polling
   bool ContinueTalking;
@@ -58,64 +62,109 @@ MessageRouterImplementation(zmq::context_t& context,
 //-----------------------------------------------------------------------------
 ~MessageRouterImplementation()
 {
-  this->PollingThread->join();
+  if(this->PollingThread)
+    {
+    this->stopTalking();
+    }
 }
 
 //-----------------------------------------------------------------------------
 bool isTalking() const
 {
-  boost::unique_lock<boost::mutex>(ThreadMutex);
+  boost::lock_guard<boost::mutex> lock(ThreadMutex);
   return this->ContinueTalking;
 }
 
 //------------------------------------------------------------------------------
-void stopTalking()
+bool startTalking()
 {
-  boost::unique_lock<boost::mutex>(ThreadMutex);
-  this->ContinueTalking = false;
+  bool launchThread = false;
+
+    //lock the construction of thread as a critical section
+    {
+    boost::unique_lock<boost::mutex> lock(ThreadMutex);
+    launchThread = !this->ContinueTalking && !this->PollingThread;
+    if(launchThread)
+      {
+      zmq::connectToAddress(this->ServerComm, this->ServerEndpoint);
+      zmq::connectToAddress(this->WorkerComm, this->WorkerEndpoint);
+      zmq::connectToAddress(this->QueueComm,  this->QueueEndpoint);
+
+      this->ContinueTalking = true;
+
+      boost::scoped_ptr<boost::thread> pollthread(
+        new boost::thread( &MessageRouterImplementation::poll, this) );
+      this->PollingThread.swap(pollthread);
+      }
+    }
+
+  //do this outside the previous critical section so that we properly
+  //tell other threads that the thread has been launched. We don't
+  //want to cause a recursive lock in the same thread to happen
+  if(launchThread)
+    {
+    this->setIsTalking(true);
+    }
+
+  //we can only launch the thread once, and once it has been terminated
+  //the entire message router is invalid to start up again.
+  return launchThread;
+}
+
+private:
+
+//----------------------------------------------------------------------------
+void setIsTalking(bool t)
+{
+    {
+    boost::unique_lock<boost::mutex> lock(ThreadMutex);
+    this->ContinueTalking = t;
+    }
 }
 
 //------------------------------------------------------------------------------
-void startTalking()
+void poll()
 {
-  zmq::connectToAddress(this->ServerComm, this->ServerEndpoint);
-  zmq::connectToAddress(this->WorkerComm, this->WorkerEndpoint);
-  zmq::connectToAddress(this->QueueComm,  this->QueueEndpoint);
-
   zmq::pollitem_t items[2]  = {
                                 { this->WorkerComm,  0, ZMQ_POLLIN, 0 },
                                 { this->ServerComm,  0, ZMQ_POLLIN, 0 }
                               };
-  { //start talking
-  boost::unique_lock<boost::mutex>(ThreadMutex);
-  this->ContinueTalking = true;
-  }
-
   while( this->isTalking() )
     {
-    zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
     bool sentToServer=false;
+    zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
     if(items[0].revents & ZMQ_POLLIN)
       {
       sentToServer = true;
       remus::proto::Message message(this->WorkerComm);
 
-      //just pass the message on to the server
-      message.send(this->ServerComm);
-
-      //special case is that TERMINATE_JOB_AND_WORKER means we stop looping
+      //special case is that TERMINATE_WORKER means we stop looping
       if(message.serviceType()==remus::TERMINATE_WORKER)
         {
-        this->stopTalking();
+        //send the terminate worker message to the job queue too
+        remus::worker::Job terminateJob;
+        remus::proto::Response termJob( (zmq::socketIdentity()) );
+        termJob.setServiceType(remus::TERMINATE_WORKER);
+        termJob.setData(remus::worker::to_string(terminateJob));
+        termJob.send(this->QueueComm);
+
+        this->setIsTalking(false);
+        }
+      else
+        {
+        //just pass the message on to the server
+        message.send(this->ServerComm);
         }
       }
-    if(items[1].revents & ZMQ_POLLIN && this->isTalking())
+    if(items[1].revents & ZMQ_POLLIN)
       {
       remus::proto::Response response(this->ServerComm);
       switch(response.serviceType())
           {
           case remus::TERMINATE_WORKER:
-            this->stopTalking();
+            response.send(this->QueueComm);
+            this->setIsTalking(false);
+            break;
           case remus::TERMINATE_JOB:
             //send the terminate to the job queue since it holds the jobs
           case remus::MAKE_MESH:
@@ -136,6 +185,15 @@ void startTalking()
     }
 }
 
+//------------------------------------------------------------------------------
+//presumes the thread is valid
+void stopTalking()
+{
+  this->setIsTalking(false);
+
+  this->PollingThread->join();
+}
+
 };
 
 
@@ -153,7 +211,6 @@ Implementation( new MessageRouterImplementation(context, server_info,
 //-----------------------------------------------------------------------------
 MessageRouter::~MessageRouter()
 {
-  this->Implementation->stopTalking();
 }
 
 //-----------------------------------------------------------------------------
@@ -163,9 +220,9 @@ bool MessageRouter::valid() const
 }
 
 //-----------------------------------------------------------------------------
-void MessageRouter::start()
+bool MessageRouter::start()
 {
-  this->Implementation->startTalking();
+  return this->Implementation->startTalking();
 }
 
 }
