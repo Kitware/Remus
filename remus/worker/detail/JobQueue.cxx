@@ -16,6 +16,7 @@
 #include <remus/proto/JobSubmission.h>
 
 #include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
 
 #include <deque>
 #include <map>
@@ -54,12 +55,11 @@ JobQueueImplementation(zmq::context_t& context,
   PollingThread(NULL),
   QueueMutex(),
   Queue(),
-  Validity(remus::worker::Job::VALID_JOB),
   EndPoint(queue_info.endpoint()),
   ContinuePolling(true)
 {
   //bind to the work_jobs communication channel first
-  this->ServerComm.bind(this->EndPoint.c_str());
+  this->ServerComm.bind( this->EndPoint.c_str() );
 
   //start up our thread
   boost::scoped_ptr<boost::thread> pollingThread(
@@ -95,16 +95,15 @@ void pollForJobs()
   zmq::pollitem_t item  = { this->ServerComm,  0, ZMQ_POLLIN, 0 };
   while( this->ContinuePolling )
     {
-    zmq::poll(&item,1,remus::HEARTBEAT_INTERVAL);
+    zmq::poll(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
       remus::proto::Response response(this->ServerComm);
       switch(response.serviceType())
         {
         case remus::TERMINATE_WORKER:
-          this->stop();
-          Validity = remus::worker::Job::TERMINATE_WORKER;
           this->clearJobs();
+          this->stop();
           break;
         case remus::MAKE_MESH:
           this->addItem(response);
@@ -121,7 +120,7 @@ void pollForJobs()
 
 void terminateJob(remus::proto::Response& response)
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   remus::worker::Job tj = remus::worker::to_Job(response.dataAs<std::string>());
   for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
        i != this->Queue.end(); ++i)
@@ -134,7 +133,7 @@ void terminateJob(remus::proto::Response& response)
 //------------------------------------------------------------------------------
 void clearJobs()
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   this->Queue.clear();
   remus::worker::Job j;
   j.updateValidityReason(remus::worker::Job::TERMINATE_WORKER);
@@ -144,7 +143,7 @@ void clearJobs()
 //------------------------------------------------------------------------------
 void addItem(remus::proto::Response& response )
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   remus::worker::Job j = remus::worker::to_Job(response.dataAs<std::string>());
   this->Queue.push_back( j );
 }

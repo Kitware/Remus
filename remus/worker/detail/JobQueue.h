@@ -22,9 +22,12 @@ namespace remus{
 namespace worker{
 namespace detail{
 
-//A FIFO queue. each mesh type has its own queue
-//where we keep jobs. The uuid for each job
-//must be unique.
+//A Simple JobQueue that holds onto a collection of jobs from the server.
+//If the TermianteWorker job is sent to the job queue, we will clear the
+//entire queue and only have a TerminateJob on the queue.
+//
+//Once a JobQueue is sent a TerminateWorker, it will not accept any new jobs
+//and will refuse to start back up looking for jobs
 class JobQueue
 {
 public:
