@@ -155,19 +155,19 @@ const char* JobRequirements::requirements() const
   //XML, JSON and BSOn
   //than comes worker name
   //than comes tag
-  if (this->meshTypes().type() != other.meshTypes().type())
-  { return (this->meshTypes().type() < other.meshTypes().type()); }
+  if ( !(this->meshTypes() == other.meshTypes()) )
+  { return (this->meshTypes() < other.meshTypes()); }
 
-  if (this->sourceType() != other.sourceType())
+  else if (this->sourceType() != other.sourceType())
   { return (this->sourceType() < other.sourceType()); }
 
-  if (this->formatType() != other.formatType())
+  else if (this->formatType() != other.formatType())
   { return (this->formatType() < other.formatType()); }
 
-  if (this->workerName() != other.workerName())
+  else if (this->workerName() != other.workerName())
   { return (this->workerName() < other.workerName()); }
 
-  if (this->tag() != other.tag())
+  else if (this->tag() != other.tag())
   { return (this->tag() < other.tag()); }
 
  return false; //both objects are equal
@@ -176,7 +176,7 @@ const char* JobRequirements::requirements() const
 //------------------------------------------------------------------------------
  bool JobRequirements::operator==(const JobRequirements& other) const
  {
-  return ((this->meshTypes().type() == other.meshTypes().type()) &&
+  return ((this->meshTypes() == other.meshTypes()) &&
           (this->sourceType() == other.sourceType()) &&
           (this->formatType() == other.formatType()) &&
           (this->workerName() == other.workerName()) &&
