@@ -77,13 +77,14 @@ endfunction(remus_export_header)
 # Declare unit tests Usage:
 #
 # remus_unit_tests(
-#   SOURCES <source_list>
+#   SOURCES <test_source_list>
+#   EXTRA_SOURCES <helper_source_files>
 #   LIBRARIES <dependent_library_list>
 #   )
 function(remus_unit_tests)
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES LIBRARIES)
+  set(multiValueArgs SOURCES EXTRA_SOURCES LIBRARIES)
   cmake_parse_arguments(Remus_ut
     "${options}" "${oneValueArgs}" "${multiValueArgs}"
     ${ARGN}
@@ -95,7 +96,7 @@ function(remus_unit_tests)
     set(test_prog UnitTests_${kit})
     create_test_sourcelist(TestSources ${test_prog}.cxx ${Remus_ut_SOURCES})
 
-    add_executable(${test_prog} ${TestSources})
+    add_executable(${test_prog} ${TestSources} ${Remus_ut_EXTRA_SOURCES})
     target_link_libraries(${test_prog} LINK_PRIVATE ${Remus_ut_LIBRARIES})
     target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     foreach (test ${Remus_ut_SOURCES})
