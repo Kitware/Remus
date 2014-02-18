@@ -23,7 +23,7 @@
 #include <remus/worker/ServerConnection.h>
 
 
-//included for symbol exports
+//included for export symbols
 #include <remus/worker/WorkerExports.h>
 
 #include <boost/scoped_ptr.hpp>
