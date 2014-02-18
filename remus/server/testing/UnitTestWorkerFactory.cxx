@@ -19,7 +19,18 @@
 
 namespace {
 
+using namespace remus::common;
 using namespace remus::meshtypes;
+
+template<typename In, typename Out>
+remus::proto::JobRequirements make_Reqs(In in, Out out)
+{
+  return remus::proto::JobRequirements( ContentSource::Memory,
+                                        ContentFormat::User,
+                                        MeshIOType(in,out),
+                                        std::string("TestWorker"),
+                                        std::string());
+}
 
 void test_factory_constructors()
 {
@@ -70,7 +81,7 @@ void test_factory_worker_finder()
 
   //we should only support raw_edges and mesh2d, otherwise the rest
   //should return false
-  remus::common::MeshIOType raw_edges((Edges()),(Mesh2D()));
+  remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 
 
@@ -82,12 +93,17 @@ void test_factory_worker_finder()
     {
     for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
       {
-      remus::common::MeshIOType io_type(
-          remus::meshtypes::to_meshType(input_type),
-          remus::meshtypes::to_meshType(output_type));
-      bool valid = f_def.haveSupport(io_type);
+      remus::proto::JobRequirements io_type = make_Reqs(
+                                    remus::meshtypes::to_meshType(input_type),
+                                    remus::meshtypes::to_meshType(output_type));
+
+      bool should_be_valid = (io_type == raw_edges);
+      bool haveSupport_valid = f_def.haveSupport(io_type);
+      bool workerReqs_valid =
+              (f_def.workerRequirements(io_type.meshTypes()).size() > 0);
       //only when io_type equals
-      REMUS_ASSERT( (valid == (io_type == raw_edges) ) )
+      REMUS_ASSERT( (haveSupport_valid == should_be_valid ) )
+      REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
       }
     }
 }
@@ -106,7 +122,7 @@ void test_factory_worker_launching()
 
   //we should only support raw_edges and mesh2d, otherwise the rest
   //should return false
-  remus::common::MeshIOType raw_edges((Edges()),(Mesh2D()));
+  remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
 
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 

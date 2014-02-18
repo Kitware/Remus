@@ -14,10 +14,13 @@
 #define remus_server_WorkeryFactory_h
 
 #include <vector>
+
 #include <remus/common/MeshIOType.h>
+#include <remus/proto/JobRequirements.h>
+
 #include <boost/shared_ptr.hpp>
 
-//included for symbol exports
+//included for export symbols
 #include <remus/server/ServerExports.h>
 
 //forward declare the execute process
@@ -32,10 +35,11 @@ namespace server{
 
 struct REMUSSERVER_EXPORT MeshWorkerInfo
 {
-  remus::common::MeshIOType Type;
+  remus::proto::JobRequirements Requirements;
   std::string ExecutionPath;
-  MeshWorkerInfo(remus::common::MeshIOType t, const std::string& p):
-    Type(t),ExecutionPath(p){}
+  MeshWorkerInfo(const remus::proto::JobRequirements& r,
+                 const std::string& p):
+    Requirements(r),ExecutionPath(p){}
 };
 
 //The Worker Factory has two tasks.
@@ -79,10 +83,13 @@ public:
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
 
-  virtual bool haveSupport(remus::common::MeshIOType type ) const;
+  virtual remus::proto::JobRequirementsSet workerRequirements(
+                                       remus::common::MeshIOType type) const;
 
-  virtual bool createWorker(remus::common::MeshIOType type,
-                      WorkerFactory::FactoryDeletionBehavior lifespan);
+  virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const;
+
+  virtual bool createWorker(const remus::proto::JobRequirements& type,
+                            WorkerFactory::FactoryDeletionBehavior lifespan);
 
   //checks all current processes and removes any that have
   //shutdown

@@ -41,4 +41,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/UnitTestWorkerFactoryPaths.h.in
 #calls zmq directly to verify that the binding logic in ServerPorts
 #is correct
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusServer ${ZeroMQ_LIBRARIES})
+                 LIBRARIES RemusServer RemusProto ${ZeroMQ_LIBRARIES})
