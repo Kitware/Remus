@@ -40,26 +40,23 @@ public:
   //construct an invalid job object
   Job():
     Id(),
-    Type(),
-    Validity(INVALID),
-    Submission()
+    Submission(),
+    Validity(INVALID)
   {
   }
 
   //construct a valid server side job object with Id, Type, and Submission
   Job(const boost::uuids::uuid& id,
-      const remus::common::MeshIOType& type,
       const remus::proto::JobSubmission& sub):
   Id(id),
-  Type(type),
-  Validity(VALID_JOB),
-  Submission(sub)
+  Submission(sub),
+  Validity(VALID_JOB)
   {
 
   }
 
   //get if the current job is a valid job
-  bool valid() const { return Validity != INVALID && Type.valid(); }
+  bool valid() const { return Validity != INVALID && this->type().valid(); }
 
   //Get the status of the message
   JobValidity validityReason() const { return Validity; }
@@ -69,7 +66,8 @@ public:
   const boost::uuids::uuid& id() const { return Id; }
 
   //get the mesh type of the job
-  const remus::common::MeshIOType& type() const { return Type; }
+  const remus::common::MeshIOType& type() const
+    { return this->Submission.type(); }
 
   //get the submission object that was sent on the client
   const remus::proto::JobSubmission& submission() const
@@ -77,10 +75,9 @@ public:
 
 private:
   boost::uuids::uuid Id;
-  remus::common::MeshIOType Type;
-  JobValidity Validity;
-
   remus::proto::JobSubmission Submission;
+
+  JobValidity Validity;
 };
 
 //------------------------------------------------------------------------------
@@ -89,7 +86,6 @@ inline std::string to_string(const remus::worker::Job& job)
   //convert a job to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
   std::stringstream buffer;
-  buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
   buffer << job.submission() << std::endl;
   return buffer.str();
@@ -103,13 +99,11 @@ inline remus::worker::Job to_Job(const std::string& msg)
   std::stringstream buffer(msg);
 
   boost::uuids::uuid id;
-  remus::common::MeshIOType type;
   remus::proto::JobSubmission submission;
 
-  buffer >> type;
   buffer >> id;
   buffer >> submission;
-  return remus::worker::Job(id,type,submission);
+  return remus::worker::Job(id,submission);
 }
 
 
