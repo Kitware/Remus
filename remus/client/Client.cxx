@@ -64,7 +64,7 @@ bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 
 //------------------------------------------------------------------------------
 remus::proto::JobRequirementsSet
-Client::retrieveMeshRequirements( const remus::common::MeshIOType& meshtypes)
+Client::retrieveRequirements( const remus::common::MeshIOType& meshtypes)
 {
   remus::proto::Message j(meshtypes, remus::MESH_REQUIREMENTS);
   j.send(this->Zmq->Server);

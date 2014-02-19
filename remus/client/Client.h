@@ -60,9 +60,9 @@ public:
 
   //submit a request to the server to see if the server supports
   //the request input and output mesh types. If the server does support
-  //the given types, return a collection of
+  //the given types, return a collection of JobRequirements
   remus::proto::JobRequirementsSet
-  retrieveMeshRequirements( const remus::common::MeshIOType& meshtypes );
+  retrieveRequirements( const remus::common::MeshIOType& meshtypes );
 
   //Submit a job to the server. The job submission has a JobData and
   //a JobRequirements component
