@@ -19,6 +19,10 @@
 
 int main (int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
+  using namespace remus::proto;
+
+
   remus::worker::ServerConnection connection;
   if(argc>=2)
     {
@@ -26,10 +30,11 @@ int main (int argc, char* argv[])
     connection = remus::worker::make_ServerConnection(std::string(argv[1]));
     }
 
-  remus::common::MeshIOType requirements =
-                    remus::common::make_MeshIOType(remus::meshtypes::Edges(),
-                                                   remus::meshtypes::Mesh2D());
-
+  remus::common::MeshIOType io_type =
+                    remus::common::make_MeshIOType(Edges(),Mesh2D());
+  JobRequirements requirements = make_MemoryJobRequirements(io_type,
+                                                            "InfiniteWorker",
+                                                            "");
   remus::Worker w(requirements,connection);
 
   while(true)
@@ -46,7 +51,8 @@ int main (int argc, char* argv[])
         break;
     }
 
-    remus::worker::JobStatus status(jd.id(),remus::IN_PROGRESS);
+    JobProgress jprogress;
+    JobStatus status(jd.id(),remus::IN_PROGRESS);
     for(int progress=1; progress <= 100; ++progress)
       {
       if(progress%20==0)
@@ -56,13 +62,14 @@ int main (int argc, char* argv[])
 #else
         sleep(1);
 #endif
-        status.Progress.setValue(progress);
-        status.Progress.setMessage("Example Message With Random Content");
+        jprogress.setValue(progress);
+        jprogress.setMessage("Random Content From InfiniteWorker");
+        status.updateProgress(jprogress);
         w.updateStatus(status);
         }
       }
 
-    remus::worker::JobResult results(jd.id(),"FAKE RESULTS");
+    JobResult results(jd.id(),"Hello From InfiniteWorker");
     w.returnMeshResults(results);
   }
 
