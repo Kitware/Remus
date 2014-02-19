@@ -15,6 +15,7 @@
 
 #include <remus/common/MeshIOType.h>
 
+#include <remus/proto/JobRequirements.h>
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
 #include <remus/proto/zmqHelper.h>
@@ -46,8 +47,15 @@ class REMUSWORKER_EXPORT Worker
 public:
   //construct a worker that can mesh a single type
   //it uses the server connection object to determine what server
-  //to connect too
+  //to connect too. The requirements of this worker are extremely simple
+  //in that it only demands a given mesh input and output type.
   explicit Worker(remus::common::MeshIOType mtype,
+                  const remus::worker::ServerConnection& conn);
+
+  //construct a worker that can mesh only an exact set of requirements.
+  //it uses the server connection object to determine what server
+  //to connect too
+  explicit Worker(const remus::proto::JobRequirements& requirements,
                   const remus::worker::ServerConnection& conn);
 
   virtual ~Worker();
@@ -73,7 +81,7 @@ public:
 
 private:
   //holds the type of mesh we support
-  const remus::common::MeshIOType MeshIOType;
+  const remus::proto::JobRequirements MeshRequirements;
 
   remus::worker::ServerConnection ConnectionInfo;
 
