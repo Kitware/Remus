@@ -289,7 +289,6 @@ bool Server::brokering(Server::SignalHandling sh)
   while (Thread->isBrokering())
     {
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
-    // std::cout << "p" << std::endl;
     const boost::posix_time::ptime hbTime =
                             boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
@@ -301,8 +300,6 @@ bool Server::brokering(Server::SignalHandling sh)
       //after the DetermineJobQueryResponse call
       remus::proto::Message message(this->Zmq->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
-
-      // std::cout << "c" << std::endl;
       }
     if (items[1].revents & ZMQ_POLLIN)
       {
@@ -398,6 +395,9 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     case remus::CAN_MESH:
       response.setData(this->canMesh(msg));
       break;
+    case remus::MESH_REQUIREMENTS:
+      response.setData(this->meshRequirements(msg));
+      break;
     case remus::RETRIEVE_MESH:
       response.setData(this->retrieveMesh(msg));
       break;
@@ -412,7 +412,25 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
 }
 
 //------------------------------------------------------------------------------
-std::string Server::canMesh(const remus::proto::Message& msg)
+bool Server::canMesh(const remus::proto::Message& msg)
+{
+  //we state that the factory can support a mesh type by having a worker
+  //registered to it that supports the mesh type.
+  bool workerSupport =
+    (this->WorkerFactory.workerRequirements(msg.MeshIOType()).size() > 0) &&
+    (this->WorkerFactory.maxWorkerCount() > 0);
+
+  //Query the worker pool to get the set of requirements for waiting
+  //workers that support the given mesh type info
+  bool poolSupport =
+    (this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType()).size() > 0);
+
+
+  return workerSupport || poolSupport;
+}
+
+//------------------------------------------------------------------------------
+std::string Server::meshRequirements(const remus::proto::Message& msg)
 {
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
