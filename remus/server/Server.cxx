@@ -421,8 +421,8 @@ std::string Server::canMesh(const remus::proto::Message& msg)
 
   //Query the worker pool to get the set of requirements for waiting
   //workers that support the given mesh type info
-  remus::proto::JobRequirementsSet poolSet; //=
-            //this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType());
+  remus::proto::JobRequirementsSet poolSet =
+            this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType());
 
   //combine the two sets to get all the valid requirements
   reqSet.insert(poolSet.begin(),poolSet.end());
@@ -587,55 +587,54 @@ void Server::FindWorkerForQueuedJob()
   //In order to prevent allocating more workers than needed we use a set instead of a vector.
   //This results in the server only creating one worker per job type.
   //This gives the new workers the opportunity of getting assigned multiple jobs.
-
-
-  typedef std::set<remus::common::MeshIOType>::const_iterator it;
   this->WorkerFactory.updateWorkerCount();
-  remus::proto::JobRequirementsSet types;
 
+
+  typedef remus::proto::JobRequirementsSet::const_iterator it;
+  remus::proto::JobRequirementsSet types;
 
   //find all the jobs that have been marked as waiting for a worker
   //and ask if we have a worker in the poll that can mesh that job
-  // types = this->QueuedJobs->waitingForWorkerTypes();
-  // for(it type = types.begin(); type != types.end(); ++type)
-  //   {
-  //   if(this->WorkerPool->haveWaitingWorker(*type))
-  //     {
-  //     //give this job to that worker
-  //     this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
-  //                             this->QueuedJobs->takeJob(*type));
-  //     }
-  //   }
+  types = this->QueuedJobs->waitingJobRequirements();
+  for(it type = types.begin(); type != types.end(); ++type)
+    {
+    if(this->WorkerPool->haveWaitingWorker(*type))
+      {
+      //give this job to that worker
+      this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
+                              this->QueuedJobs->takeJob(*type));
+      }
+    }
 
 
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
-  // types = this->QueuedJobs->queuedJobTypes();
-  // for(it type = types.begin(); type != types.end(); ++type)
-  //   {
-  //   if(this->WorkerPool->haveWaitingWorker(*type))
-  //     {
-  //     //give this job to that worker
-  //     this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
-  //                             this->QueuedJobs->takeJob(*type));
-  //     }
-  //   }
+  types = this->QueuedJobs->queuedJobRequirements();
+  for(it type = types.begin(); type != types.end(); ++type)
+    {
+    if(this->WorkerPool->haveWaitingWorker(*type))
+      {
+      //give this job to that worker
+      this->assignJobToWorker(this->WorkerPool->takeWorker(*type),
+                              this->QueuedJobs->takeJob(*type));
+      }
+    }
 
   //now if we have room in our worker pool for more pending workers create some
   //make sure we ask the worker pool what its limit on number of pending
   //workers is before creating more. We have to requery to get the updated
   //job types since the worker pool might have taken some.
-  // types = this->QueuedJobs->queuedJobTypes();
-  // for(it type = types.begin(); type != types.end(); ++type)
-  //   {
-  //   //check if we have a waiting worker, if we don't than try
-  //   //ask the factory to create a worker of that type.
-  //   if(this->WorkerFactory.createWorker(*type,
-  //                          WorkerFactory::KillOnFactoryDeletion))
-  //     {
-  //     this->QueuedJobs->workerDispatched(*type);
-  //     }
-  //   }
+  types = this->QueuedJobs->queuedJobRequirements();
+  for(it type = types.begin(); type != types.end(); ++type)
+    {
+    //check if we have a waiting worker, if we don't than try
+    //ask the factory to create a worker of that type.
+    if(this->WorkerFactory.createWorker(*type,
+                           WorkerFactory::KillOnFactoryDeletion))
+      {
+      this->QueuedJobs->workerDispatched(*type);
+      }
+    }
 }
 
 
