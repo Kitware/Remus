@@ -12,7 +12,7 @@ set(srcs
 #setup the client side api library which uses the protocol library
 add_library(RemusClient ${srcs} ${headers})
 target_link_libraries(RemusClient
-                      LINK_PRIVATE RemusProto
+                      LINK_PUBLIC RemusProto
                       )
 
 #create the export header symbol exporting
