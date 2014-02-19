@@ -181,24 +181,24 @@ private:
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobRequirements make_FileJobRequirements(
-      remus::common::ContentFormat::Type format,
       remus::common::MeshIOType meshtypes,
       const std::string& wname,
-      const std::string& reqs)
+      const std::string& reqs,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
   return remus::proto::JobRequirements(remus::common::ContentSource::File,
-                                        format,
-                                        meshtypes,
-                                        wname,
-                                        reqs);
+                                       format,
+                                       meshtypes,
+                                       wname,
+                                       reqs);
 }
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobRequirements make_MemoryJobRequirements(
-      remus::common::ContentFormat::Type format,
       remus::common::MeshIOType meshtypes,
       const std::string& wname,
-      const std::string& reqs )
+      const std::string& reqs,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
   return remus::proto::JobRequirements(remus::common::ContentSource::Memory,
                                        format,

@@ -95,8 +95,8 @@ private:
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobContent make_FileJobContent(
-      remus::common::ContentFormat::Type format,
-      const std::string& path)
+      const std::string& path,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
   return remus::proto::JobContent(remus::common::ContentSource::File,
                                    format,
@@ -105,8 +105,8 @@ inline remus::proto::JobContent make_FileJobContent(
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobContent make_MemoryJobContent(
-      remus::common::ContentFormat::Type format,
-      const std::string& content )
+      const std::string& content,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
   return remus::proto::JobContent(remus::common::ContentSource::Memory,
                                    format,
