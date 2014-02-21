@@ -24,15 +24,21 @@ namespace common {
 //coming in has a size greater than zero.
 struct ConditionalStorage
 {
-  ConditionalStorage(): Space(), Size(0) { }
+  ConditionalStorage()
+  {
+  this->Size=0;
+  }
 
   //T here needs to be support the .size() and .data() methods
   template<typename T>
-  ConditionalStorage(const T& t):
-    Space( t.size() > 0 ? new char[t.size()] : NULL ),
-    Size(t.size())
+  ConditionalStorage(const T& t)
   { //copy the contents of t into our storage
-  memcpy(this->Space.get(),t.data(),t.size());
+  this->Size = t.size();
+  if(this->Size > 0)
+    {
+    this->Space = boost::shared_array<char>( new char[this->Size] );
+    memcpy(this->Space.get(),t.data(),t.size());
+    }
   }
 
   std::size_t size() const { return this->Size; }

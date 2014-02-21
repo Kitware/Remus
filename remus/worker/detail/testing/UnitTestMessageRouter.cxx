@@ -35,6 +35,29 @@ namespace {
 
 boost::uuids::random_generator generator;
 
+remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
+{
+  //try a new port each time we are called this is to help speed up the test
+  static int port_offset = 0;
+  ++port_offset;
+
+  int rc = -1;
+  zmq::socketInfo<zmq::proto::tcp> socketInfo("127.0.0.1",
+                                    port_offset + remus::SERVER_WORKER_PORT);
+  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
+    {
+    socketInfo.setPort(i);
+    //using the C syntax to skip having to catch the exception;
+    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
+    }
+
+  if(rc!=0)
+    {
+    throw zmq::error_t();
+    }
+  return remus::worker::ServerConnection(socketInfo);
+}
+
 void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
                       JobQueue& jq)
 {
@@ -169,13 +192,12 @@ void test_worker_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
 
 void verify_basic_comms(zmq::context_t& context)
 {
-  remus::worker::ServerConnection serverConn("127.0.0.1",50511);
   zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
   zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);
-  serverSocket.bind(serverConn.endpoint().c_str());
+  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
@@ -214,13 +236,12 @@ void verify_basic_comms(zmq::context_t& context)
 
 void verify_server_term(zmq::context_t& context)
 {
-  remus::worker::ServerConnection serverConn("127.0.0.1",50512);
   zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
   zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);
-  serverSocket.bind(serverConn.endpoint().c_str());
+  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
@@ -243,13 +264,12 @@ void verify_server_term(zmq::context_t& context)
 
 void verify_worker_term(zmq::context_t& context)
 {
-  remus::worker::ServerConnection serverConn("127.0.0.1",50513);
   zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
   zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);
-  serverSocket.bind(serverConn.endpoint().c_str());
+  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
@@ -274,8 +294,13 @@ int UnitTestMessageRouter(int, char *[])
 {
   zmq::context_t context(1);
 
+  std::cout << "verify_basic_comms" << std::endl;
   verify_basic_comms(context);
+
+  std::cout << "verify_server_term" << std::endl;
   verify_server_term(context);
+
+  std::cout << "verify_worker_term" << std::endl;
   verify_worker_term(context);
 
   return 0;

@@ -137,6 +137,8 @@ void verify_container_algorithm_support()
   jc_vec.erase(std::unique(jc_vec.begin(),jc_vec.end()), jc_vec.end());
   REMUS_ASSERT( (jc_vec.size() == 1) );
 
+  //resize the array jc_vec is now size 1,
+  jc_vec.resize(100);
   for(std::size_t i=0; i < 100; ++i)
   { jc_vec[i] = make_MemoryJobContent(large_str_factory()); }
 

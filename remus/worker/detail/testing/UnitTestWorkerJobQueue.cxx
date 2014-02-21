@@ -35,8 +35,6 @@ namespace {
 
 boost::uuids::random_generator generator;
 
-
-
 void verify_basic_comms(zmq::context_t& context)
 {
   zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
