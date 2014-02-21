@@ -10,14 +10,14 @@
 //
 //=============================================================================
 
-#ifndef _TriangleResult_h
-#define _TriangleResult_h
+#ifndef remus_examples_TriangleResult_h
+#define remus_examples_TriangleResult_h
 
 #include <string>
 #include <sstream>
 #include <vector>
 
-#include <remus/client/JobResult.h>
+#include <remus/proto/JobResult.h>
 
 #include "TriangleInput.h"
 #include "StreamHelpers.h"
@@ -31,9 +31,9 @@
 class TriangleResult
 {
 public:
-  TriangleResult(const remus::client::JobResult& result)
+  TriangleResult(const remus::proto::JobResult& result)
   {
-  std::stringstream buffer(result.Data);
+  std::stringstream buffer(result.data());
   buffer >> this->NumberOfPoints;
   buffer >> this->NumberOfLines;
   buffer >> this->NumberOfTriangles;
