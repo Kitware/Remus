@@ -27,7 +27,7 @@
 /// aborted and failure is returned.
 
 #define REMUS_ASSERT(condition) \
-  if(!condition) { std::cerr << "Error at file: "  << __FILE__ << std::cout; \
+  if(!condition) { std::cerr << "Error at file: "  << __FILE__ << std::endl; \
     std::cerr<<  "On line: " <<  __LINE__ << std::endl; exit(1); }
 
 
