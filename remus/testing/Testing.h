@@ -21,13 +21,12 @@
 #include <sstream>
 #include <string>
 
-
 /// Asserts a condition for a test to pass. A passing condition is when \a
 /// condition resolves to true. If \a condition is false, then the test is
 /// aborted and failure is returned.
 #define REMUS_ASSERT(condition) \
   if(!condition) \
-    { std::cerr << "Error at file: "  << __FILE__ << std::cout; \
+    { std::cerr << "Error at file: "  << __FILE__ << std::endl; \
     std::cerr <<  "On line: " <<  __LINE__ << std::endl; exit(1); }
 
 
@@ -38,10 +37,8 @@
 #define REMUS_VALID(condition, valid_flag) \
   valid_flag &= condition; \
   if(!condition) \
-    { std::cerr << "Error at file: "  << __FILE__ << std::cout; \
+    { std::cerr << "Error at file: "  << __FILE__ << std::endl; \
     std::cerr <<  "On line: " <<  __LINE__ << std::endl; \
     }
-
-
 
 #endif //__remus_testing_Testing
