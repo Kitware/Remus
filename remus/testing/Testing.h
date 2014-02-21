@@ -139,7 +139,7 @@ inline std::string AsciiStringGenerator(std::size_t length)
 /// aborted and failure is returned.
 #define REMUS_ASSERT(condition) \
   if(!condition) \
-    { std::cerr << "Error at file: "  << __FILE__ << std::cout; \
+    { std::cerr << "Error at file: "  << __FILE__ << std::endl; \
     std::cerr <<  "On line: " <<  __LINE__ << std::endl; exit(1); }
 
 
@@ -150,10 +150,8 @@ inline std::string AsciiStringGenerator(std::size_t length)
 #define REMUS_VALID(condition, valid_flag) \
   valid_flag &= condition; \
   if(!condition) \
-    { std::cerr << "Error at file: "  << __FILE__ << std::cout; \
+    { std::cerr << "Error at file: "  << __FILE__ << std::endl; \
     std::cerr <<  "On line: " <<  __LINE__ << std::endl; \
     }
-
-
 
 #endif //remus_testing_Testing
