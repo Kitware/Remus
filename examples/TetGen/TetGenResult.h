@@ -17,7 +17,7 @@
 #include <sstream>
 #include <vector>
 
-#include <remus/client/JobResult.h>
+#include <remus/proto/JobResult.h>
 
 #include "TetGenInput.h"
 
@@ -39,7 +39,7 @@ public:
 
   TetGenResult( const std::string& file_base, OutputFileType type );
 
-  TetGenResult(const remus::client::JobResult& result);
+  TetGenResult(const remus::proto::JobResult& result);
 
   //returns the base file path that is used to
   std::string baseFilePath() const { return this->FileBase; }
@@ -66,10 +66,10 @@ inline TetGenResult::TetGenResult( const std::string& file_base,
 
 
 //------------------------------------------------------------------------------
-inline TetGenResult::TetGenResult(const remus::client::JobResult& result)
+inline TetGenResult::TetGenResult(const remus::proto::JobResult& result)
 {
   //convert the data into a massive string
-  std::stringstream buffer(result.Data);
+  std::stringstream buffer(result.data());
 
   buffer >> this->FileBase;
 

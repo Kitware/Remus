@@ -18,7 +18,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <remus/worker/JobStatus.h>
+#include <remus/proto/JobStatus.h>
 
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
@@ -56,7 +56,7 @@ void worker::meshJob()
   }
 
   //Do it
-  remus::worker::JobResult results(j.id(),in.getInputFile());
+  remus::proto::JobResult results(j.id(),in.getInputFile());
   this->returnMeshResults(results);
 
   return;
@@ -65,7 +65,7 @@ void worker::meshJob()
 //----------------------------------------------------------------------------
 void worker::jobFailed(const remus::worker::Job& job)
 {
-  remus::worker::JobStatus status(job.id(),remus::FAILED);
+  remus::proto::JobStatus status(job.id(),remus::FAILED);
   this->updateStatus(status);
 
   return;
@@ -116,7 +116,7 @@ bool worker::pollStatus(const remus::worker::Job& job)
 
   //poll on STDOUT and STDERRR only
   bool validExection=true;
-  remus::worker::JobStatus status(job.id(),remus::IN_PROGRESS);
+  remus::proto::JobStatus status(job.id(),remus::IN_PROGRESS);
   while(this->Process->isAlive()&& validExection )
   {
     //poll till we have a data, waiting for-ever!
@@ -124,7 +124,8 @@ bool worker::pollStatus(const remus::worker::Job& job)
     if(data.type == ProcessPipe::STDOUT)
     {
       //we have something on the output pipe
-      status.Progress.setMessage(data.text);
+      remus::proto::JobProgress progress(data.text);
+      status.updateProgress(progress);
       this->updateStatus(status);
     }
   }

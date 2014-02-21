@@ -21,18 +21,22 @@ int main (int argc, char* argv[])
   remus::Client c(connection);
 
   TetGenInput input_data("pmdc.poly");
+  remus::proto::JobContent content =
+      remus::proto::make_MemoryJobContent(input_data);
 
-  //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request(
-                            (remus::meshtypes::PiecewiseLinearComplex()),
-                            (remus::meshtypes::Mesh3D()),
-                            input_data);
+  remus::common::MeshIOType mtype( (remus::meshtypes::PiecewiseLinearComplex()),
+                                   (remus::meshtypes::Mesh2D()) );
+  remus::proto::JobRequirements request =
+      remus::proto::make_MemoryJobRequirements( mtype, "TetGenWorker", "");
 
-  if(c.canMesh(request))
+  if(c.canMesh(mtype))
     {
+    remus::proto::JobSubmission sub(request);
+    sub["data"]=content;
+
     std::cout << "submitting tetgen job" << std::endl;
-    remus::client::Job job = c.submitJob(request);
-    remus::client::JobStatus jobState = c.jobStatus(job);
+    remus::proto::Job job = c.submitJob(sub);
+    remus::proto::JobStatus jobState = c.jobStatus(job);
 
     //wait while the job is running
     while(jobState.good())
@@ -43,7 +47,7 @@ int main (int argc, char* argv[])
     if(jobState.finished())
       {
       std::cout << "tetgen finished meshing" << std::endl;
-      remus::client::JobResult result = c.retrieveResults(job);
+      remus::proto::JobResult result = c.retrieveResults(job);
       TetGenResult tetgen_data(result);
 
       //todo rip out the data and verify we have the correct resulting mesh

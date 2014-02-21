@@ -26,7 +26,7 @@ class AssygenInput
 public:
   AssygenInput(const remus::worker::Job& job)
   {
-    std::stringstream ss(job.details());
+    std::stringstream ss(job.details("default"));
     getline(ss, Prefix, ';');
     boost::algorithm::trim_if(Prefix,boost::algorithm::is_cntrl());
     getline(ss, ExecutablePath, ';');
@@ -42,10 +42,10 @@ public:
   }
   void setPrefix(std::string p)
   { Prefix = p; }
-  
+
   std::string const& getExecutablePath() const
   { return ExecutablePath; }
-  
+
   operator std::string(void) const
   {
     std::stringstream ss;

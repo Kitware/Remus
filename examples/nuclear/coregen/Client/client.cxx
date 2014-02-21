@@ -25,11 +25,18 @@ CoregenOutput client::getOutput(CoregenInput const& in)
   remus::meshtypes::Mesh3D in_and_out_type;
 
   remus::Client c(Connection);
-  remus::client::JobRequest request(in_and_out_type,in_and_out_type, in);
-  if(c.canMesh(request))
+
+  remus::common::MeshIOType mesh_types(in_and_out_type,in_and_out_type);
+  if(c.canMesh(mesh_types))
     {
-    remus::client::Job job = c.submitJob(request);
-    remus::client::JobStatus jobState = c.jobStatus(job);
+    remus::proto::JobRequirements reqs =
+      remus::proto::make_MemoryJobRequirements(mesh_types,"CoreGenWorker","");
+    remus::proto::JobContent content =
+      remus::proto::make_MemoryJobContent(in);
+
+    remus::proto::JobSubmission sub(reqs,content);
+    remus::proto::Job job = c.submitJob(sub);
+    remus::proto::JobStatus jobState = c.jobStatus(job);
 
     //wait while the job is running
     while(jobState.good())
@@ -39,7 +46,7 @@ CoregenOutput client::getOutput(CoregenInput const& in)
 
     if(jobState.finished())
       {
-      remus::client::JobResult result = c.retrieveResults(job);
+      remus::proto::JobResult result = c.retrieveResults(job);
       return CoregenOutput(result);
       }
     }

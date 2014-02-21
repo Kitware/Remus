@@ -51,8 +51,8 @@ int main (int argc, char* argv[])
                                     (remus::meshtypes::Mesh2D()) );
   remus::proto::JobRequirements request =
                           remus::proto::make_MemoryJobRequirements( mtype,
-                                                                   "Triangle",
-                                                                   "");
+                                                               "TriangleWorker",
+                                                               "");
 
   if(c.canMesh(mtype))
     {

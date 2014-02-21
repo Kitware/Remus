@@ -128,8 +128,11 @@ triangleParameters::~triangleParameters()
 TriangleWorker::TriangleWorker(
                      remus::worker::ServerConnection const& connection):
 remus::worker::Worker(
-  remus::common::make_MeshIOType( remus::meshtypes::Edges(),
-                                  remus::meshtypes::Mesh2D()),
+    remus::proto::make_MemoryJobRequirements(
+      remus::common::make_MeshIOType(remus::meshtypes::Edges(),
+                                     remus::meshtypes::Mesh2D()),
+      "TriangleWorker",
+      ""),
   connection)
 {
 }

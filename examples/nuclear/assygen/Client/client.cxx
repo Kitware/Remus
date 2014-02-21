@@ -26,12 +26,18 @@ AssygenOutput client::getOutput(AssygenInput const& in)
   remus::meshtypes::Model out_type;
 
   remus::Client c(Connection);
-  remus::client::JobRequest request(in_type,out_type, in);
-
-  if(c.canMesh(request))
+  remus::common::MeshIOType mesh_types(in_type,out_type);
+  if(c.canMesh(mesh_types))
     {
-    remus::client::Job job = c.submitJob(request);
-    remus::client::JobStatus jobState = c.jobStatus(job);
+    remus::proto::JobRequirements reqs =
+      remus::proto::make_MemoryJobRequirements(mesh_types,"AssyGenWorker","");
+    remus::proto::JobContent content =
+      remus::proto::make_MemoryJobContent(in);
+
+    remus::proto::JobSubmission sub(reqs,content);
+
+    remus::proto::Job job = c.submitJob(sub);
+    remus::proto::JobStatus jobState = c.jobStatus(job);
 
     //wait while the job is running
     while(jobState.good())
@@ -41,7 +47,7 @@ AssygenOutput client::getOutput(AssygenInput const& in)
 
     if(jobState.finished())
       {
-      remus::client::JobResult result = c.retrieveResults(job);
+      remus::proto::JobResult result = c.retrieveResults(job);
       return AssygenOutput(result);
       }
     }

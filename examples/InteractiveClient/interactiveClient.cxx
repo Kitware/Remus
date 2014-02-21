@@ -16,10 +16,10 @@
 //store a mappin of job output types to every jobrequest of that type.
 //this way we can easily send out a query to the server for a single output type
 typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-std::map<std::string,std::vector<remus::client::JobRequest> > AllJobTypeCombinations;
-typedef std::map<std::string,std::vector<remus::client::JobRequest> >::iterator AllTypeIt;
-typedef std::vector<remus::client::JobRequest> RequestVector;
-typedef std::vector<remus::client::JobRequest>::iterator RequestIt;
+std::map<std::string,std::vector<remus::common::MeshIOType> > AllJobTypeCombinations;
+typedef std::map<std::string,std::vector<remus::common::MeshIOType> >::iterator AllTypeIt;
+typedef std::vector<remus::common::MeshIOType> RequestVector;
+typedef std::vector<remus::common::MeshIOType>::iterator RequestIt;
 
 //populate the global memory mapping of job requests
 void populateJobTypes()
@@ -34,7 +34,7 @@ void populateJobTypes()
       {
       MeshType inType = remus::meshtypes::to_meshType(j);
       AllJobTypeCombinations[outType->name()].push_back(
-                 remus::client::JobRequest(*(inType.get()),*(outType.get()) ));
+                 remus::common::MeshIOType(*(inType.get()),*(outType.get()) ));
       }
     }
 }
@@ -80,12 +80,12 @@ void dumpJobInfo(remus::Client& client)
     {
     for(RequestIt j = i->second.begin(); j != i->second.end(); ++j)
       {
-      remus::client::Job job(rawId,j->type());
-      remus::client::JobStatus status = client.jobStatus(job);
-      std::cout << " status of job is: " << status.Status << " " << remus::to_string(status.Status)  << std::endl;
+      remus::proto::Job job(rawId,*j);
+      remus::proto::JobStatus status = client.jobStatus(job);
+      std::cout << " status of job is: " << status.status() << " " << remus::to_string(status.status())  << std::endl;
       if(status.inProgress())
         {
-        std::cout << " progress is " << status.Progress << std::endl;
+        std::cout << " progress is " << status.progress() << std::endl;
         }
       }
     }
@@ -120,10 +120,13 @@ void submitJob(remus::Client& client)
   MeshType in = remus::meshtypes::to_meshType(inType);
   MeshType out = remus::meshtypes::to_meshType(outType);
 
-  remus::client::JobRequest request( *(in.get()),
-                                     *(out.get()),
-                                     data);
-  remus::client::Job job = client.submitJob(request);
+  remus::common::MeshIOType mtypes( *(in.get()),
+                                     *(out.get()) );
+
+  remus::proto::JobRequirements request =
+    remus::proto::make_MemoryJobRequirements(mtypes,"",data);
+
+  remus::proto::Job job = client.submitJob(request);
 
   std::cout << "Job Submitted, info is: " << std::endl;
   std::cout << "Job Valid: " << job.valid() << std::endl;
