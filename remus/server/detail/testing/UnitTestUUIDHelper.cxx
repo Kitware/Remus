@@ -13,15 +13,10 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
-#include <boost/uuid/random_generator.hpp>
-
-
 int UnitTestUUIDHelper(int, char *[])
 {
-  boost::uuids::random_generator generator;
-
   //pretty simple to test.
-  const boost::uuids::uuid example = generator();
+  const boost::uuids::uuid example = remus::testing::UUIDGenerator();
 
   const std::string text = remus::to_string(example);
   const std::string b_text = boost::lexical_cast<std::string>(example);

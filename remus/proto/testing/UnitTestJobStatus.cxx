@@ -11,61 +11,64 @@
 //=============================================================================
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
 #include <remus/proto/JobStatus.h>
 #include <remus/testing/Testing.h>
 
 namespace
 {
 using namespace remus::proto;
-boost::uuids::random_generator generator;
+
+boost::uuids::uuid make_id()
+{
+  return remus::testing::UUIDGenerator();
+}
 
 void state_test()
 {
   //try out all permutations of constructor
-  JobStatus a(generator(),remus::INVALID_STATUS);
+  JobStatus a(make_id(),remus::INVALID_STATUS);
   REMUS_ASSERT(a.failed());
   REMUS_ASSERT(!a.good());
   REMUS_ASSERT(!a.queued());
   REMUS_ASSERT(!a.inProgress());
   REMUS_ASSERT(!a.finished());
 
-  JobStatus b(generator(),remus::QUEUED);
+  JobStatus b(make_id(),remus::QUEUED);
   REMUS_ASSERT(!b.failed());
   REMUS_ASSERT(b.good());
   REMUS_ASSERT(b.queued());
   REMUS_ASSERT(!b.inProgress());
   REMUS_ASSERT(!b.finished());
 
-  JobStatus c(generator(),remus::IN_PROGRESS);
+  JobStatus c(make_id(),remus::IN_PROGRESS);
   REMUS_ASSERT(!c.failed());
   REMUS_ASSERT(c.good());
   REMUS_ASSERT(!c.queued());
   REMUS_ASSERT(c.inProgress());
   REMUS_ASSERT(!c.finished());
 
-  JobStatus d(generator(),remus::FINISHED);
+  JobStatus d(make_id(),remus::FINISHED);
   REMUS_ASSERT(!d.failed());
   REMUS_ASSERT(!d.good());
   REMUS_ASSERT(!d.queued());
   REMUS_ASSERT(!d.inProgress());
   REMUS_ASSERT(d.finished());
 
-  JobStatus e(generator(),remus::FAILED);
+  JobStatus e(make_id(),remus::FAILED);
   REMUS_ASSERT(e.failed());
   REMUS_ASSERT(!e.good());
   REMUS_ASSERT(!e.queued());
   REMUS_ASSERT(!e.inProgress());
   REMUS_ASSERT(!e.finished());
 
-  JobStatus f(generator(),remus::EXPIRED);
+  JobStatus f(make_id(),remus::EXPIRED);
   REMUS_ASSERT(f.failed());
   REMUS_ASSERT(!f.good());
   REMUS_ASSERT(!f.queued());
   REMUS_ASSERT(!f.inProgress());
   REMUS_ASSERT(!f.finished());
 
-  JobStatus g(generator(),JobProgress());
+  JobStatus g(make_id(),JobProgress());
   REMUS_ASSERT(!g.failed());
   REMUS_ASSERT(g.good());
   REMUS_ASSERT(!g.queued());
@@ -73,7 +76,7 @@ void state_test()
   REMUS_ASSERT(!g.finished());
 
   JobProgress msg_progress("message"); //progress with just a message
-  JobStatus h(generator(),msg_progress);
+  JobStatus h(make_id(),msg_progress);
   REMUS_ASSERT(!h.failed());
   REMUS_ASSERT(h.good());
   REMUS_ASSERT(!h.queued());
@@ -81,7 +84,7 @@ void state_test()
   REMUS_ASSERT(!h.finished());
 
   JobProgress value_progress(50); //progress with a value
-  JobStatus i(generator(),value_progress);
+  JobStatus i(make_id(),value_progress);
   REMUS_ASSERT(!i.failed());
   REMUS_ASSERT(i.good());
   REMUS_ASSERT(!i.queued());
@@ -120,8 +123,8 @@ void progress_test()
 {
   //really simple progress test
   JobProgress value_progress(50); //progress with a value
-  JobStatus a(generator(),value_progress);
-  JobStatus b(generator(),value_progress);
+  JobStatus a(make_id(),value_progress);
+  JobStatus b(make_id(),value_progress);
 
 
   REMUS_ASSERT( (a.progress() == b.progress()) );
@@ -148,23 +151,23 @@ void validate_serialization(JobStatus s)
 
 void serialize_test()
 {
-  JobStatus a(generator(),remus::EXPIRED);
+  JobStatus a(make_id(),remus::EXPIRED);
   validate_serialization(a);
 
-  JobStatus b(generator(),remus::IN_PROGRESS);
+  JobStatus b(make_id(),remus::IN_PROGRESS);
   validate_serialization(b);
 
   JobProgress msg_progress("message"); //progress with just a message
-  JobStatus c(generator(),msg_progress);
+  JobStatus c(make_id(),msg_progress);
   validate_serialization(c);
 
 
   JobProgress value_progress(50); //progress with a value
-  JobStatus d(generator(),value_progress);
+  JobStatus d(make_id(),value_progress);
   validate_serialization(d);
 
   JobProgress value_msg_progress("message"); //progress with just a message
-  JobStatus e(generator(),msg_progress);
+  JobStatus e(make_id(),msg_progress);
   validate_serialization(e);
 }
 

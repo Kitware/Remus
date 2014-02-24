@@ -15,7 +15,6 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
-#include <boost/uuid/random_generator.hpp>
 
 namespace {
 
@@ -35,13 +34,10 @@ const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
                                                   MeshIOType(Edges(),Mesh3D()),
                                                   "", "" );
 
-boost::uuids::random_generator generator;
-
-
 //makes a random socket identity
 boost::uuids::uuid make_id()
 {
-  return generator();
+  return remus::testing::UUIDGenerator();
 }
 
 //make a random JobSubmission

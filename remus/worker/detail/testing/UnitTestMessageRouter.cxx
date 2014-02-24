@@ -21,7 +21,6 @@
 #include <remus/testing/Testing.h>
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -32,8 +31,6 @@
 using namespace remus::worker::detail;
 
 namespace {
-
-boost::uuids::random_generator generator;
 
 remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
 {
@@ -71,7 +68,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   //now send it a terminate message over the server channel
   remus::proto::Response response(sid);
 
-  boost::uuids::uuid jobId = generator();
+  boost::uuids::uuid jobId = remus::testing::UUIDGenerator();
   remus::worker::Job fakeJob(jobId,
                              remus::proto::JobSubmission());
   response.setServiceType(remus::MAKE_MESH);
@@ -93,12 +90,12 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
           );
   remus::proto::JobSubmission sub(reqs);
 
-  remus::worker::Job fakeJob2(generator(), sub);
+  remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
   response.send(socket);
 
-  remus::worker::Job fakeJob3(generator(), sub);
+  remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
   response.send(socket);
@@ -149,7 +146,7 @@ void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
   //now send it a terminate message over the server channel
   remus::proto::Response response(sid);
 
-  remus::worker::Job terminateJob(generator(),
+  remus::worker::Job terminateJob(remus::testing::UUIDGenerator(),
                                   remus::proto::JobSubmission());
   response.setServiceType(remus::TERMINATE_WORKER);
   response.setData(remus::worker::to_string(terminateJob));
@@ -192,8 +189,8 @@ void test_worker_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
 
 void verify_basic_comms(zmq::context_t& context)
 {
-  zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
-  zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
+  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);
@@ -236,8 +233,8 @@ void verify_basic_comms(zmq::context_t& context)
 
 void verify_server_term(zmq::context_t& context)
 {
-  zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
-  zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
+  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);
@@ -264,8 +261,8 @@ void verify_server_term(zmq::context_t& context)
 
 void verify_worker_term(zmq::context_t& context)
 {
-  zmq::socketInfo<zmq::proto::inproc> worker_channel("worker");
-  zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
+  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
   zmq::socket_t serverSocket(context, ZMQ_ROUTER);

@@ -11,14 +11,17 @@
 //=============================================================================
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
 #include <remus/proto/JobResult.h>
 #include <remus/testing/Testing.h>
 
 namespace {
 
 using namespace remus::proto;
-boost::uuids::random_generator generator;
+
+boost::uuids::uuid make_id()
+{
+  return remus::testing::UUIDGenerator();
+}
 
 void validate_serialization(JobResult s)
 {
@@ -32,16 +35,16 @@ void validate_serialization(JobResult s)
 
 void serialize_test()
 {
-  JobResult a(generator());
+  JobResult a(make_id());
   validate_serialization(a);
 
-  JobResult b(generator(),std::string());
+  JobResult b(make_id(),std::string());
   validate_serialization(b);
 
-  JobResult c(generator(),std::string("Contents"));
+  JobResult c(make_id(),std::string("Contents"));
   validate_serialization(c);
 
-  JobResult d(generator(), remus::testing::BinaryDataGenerator(10240*10240) );
+  JobResult d(make_id(), remus::testing::BinaryDataGenerator(10240*10240) );
   validate_serialization(d);
 }
 
