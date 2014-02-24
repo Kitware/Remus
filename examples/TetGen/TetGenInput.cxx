@@ -68,7 +68,8 @@ TetGenInput::TetGenInput(const remus::worker::Job& job):
   VolumeConstraint(0)
 {
   //convert the from a string back into the class
-  std::stringstream buffer(job.details());
+  const remus::proto::JobContent& content = job.submission().find("data")->second;
+  std::stringstream buffer( std::string(content.data(),content.dataSize()));
 
   buffer >> AbsFilePath;
   buffer >> BaseFileName;

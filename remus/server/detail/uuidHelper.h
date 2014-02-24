@@ -10,15 +10,15 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_detail_uuidHelper_h
-#define __remus_server_detail_uuidHelper_h
+#ifndef remus_server_detail_uuidHelper_h
+#define remus_server_detail_uuidHelper_h
 
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <remus/common/Message.h>
+#include <remus/proto/Message.h>
 
 namespace remus
 {
@@ -31,7 +31,7 @@ inline std::string to_string(const boost::uuids::uuid& id)
 }
 
 //------------------------------------------------------------------------------
-inline boost::uuids::uuid to_uuid(const remus::common::Message& msg)
+inline boost::uuids::uuid to_uuid(const remus::proto::Message& msg)
 {
   //take the contents of the msg and convert it to an uuid
   //no type checking will be done to make sure this is valid for now
@@ -46,4 +46,4 @@ inline boost::uuids::uuid to_uuid(const std::string& str)
 }
 }
 
-#endif // __remus_server_detail_uuidHelper_h
+#endif // remus_server_detail_uuidHelper_h

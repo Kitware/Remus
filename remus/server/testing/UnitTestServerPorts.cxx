@@ -11,6 +11,8 @@
 //=============================================================================
 
 #include <remus/server/ServerPorts.h>
+
+#include <remus/proto/zmqHelper.h>
 #include <remus/testing/Testing.h>
 
 #include <string>
@@ -57,8 +59,8 @@ bool verify_bindings(remus::server::ServerPorts ports)
   //bind the sockets manually and verify that the binding works.
   zmq::context_t context(1);
 
-  zmq::socket_t client_socket(context,ZMQ_ROUTER);
-  zmq::socket_t worker_socket(context,ZMQ_ROUTER);
+  zmq::socket_t client_socket(context,ZMQ_REP);
+  zmq::socket_t worker_socket(context,ZMQ_REP);
 
   ports.bindClient(client_socket);
   ports.bindWorker(worker_socket);
@@ -66,27 +68,45 @@ bool verify_bindings(remus::server::ServerPorts ports)
 
   //verify that we are bound by trying to manually bind again
   //to the port using raw zmq
-  zmq::socket_t check_socket(context,ZMQ_ROUTER);
-  zmq::socketInfo<zmq::proto::tcp> check_socket_info;
+  zmq::socket_t check_client(context,ZMQ_REQ);
+  zmq::socket_t check_worker(context,ZMQ_REQ);
 
-  //check client socket is bound
-  check_socket_info = ports.client();
-  int rc = zmq_bind(check_socket.operator void *(),
-                    check_socket_info.endpoint().c_str());
+  //get the information of the socket to connect to
+  remus::server::PortConnection client_socket_info = ports.client();
+  remus::server::PortConnection worker_socket_info = ports.worker();
 
-  //verify that we can't bind to the socket since the client is already bound
-  //to it
-  REMUS_VALID( (rc != 0), valid);
+  int rc = zmq_connect(check_client.operator void *(),
+                       client_socket_info.endpoint().c_str());
+  REMUS_VALID( (rc == 0), valid);
 
+  rc = zmq_connect(check_worker.operator void *(),
+                   worker_socket_info.endpoint().c_str());
+  REMUS_VALID( (rc == 0), valid);
 
-  check_socket_info = ports.worker();
-  rc = zmq_bind(check_socket.operator void *(),
-                    check_socket_info.endpoint().c_str());
+  //send data on the client and worker
+  int clientTag = 1, workerTag = 2;
+  {
+  zmq::message_t client_data(sizeof(clientTag));
+  memcpy(client_data.data(),&clientTag,sizeof(clientTag));
+  zmq::send_harder(check_client,client_data);
 
-  //verify that we can't bind to the socket since the worker is already bound
-  //to it
-  REMUS_VALID( (rc != 0), valid);
+  zmq::message_t worker_data(sizeof(workerTag));
+  memcpy(worker_data.data(),&workerTag,sizeof(workerTag));
+  zmq::send_harder(check_worker,worker_data);
+  }
 
+  {
+  //grab the data from the client and worker sockets we just bound
+  zmq::message_t client_data_recv;
+  zmq::recv_harder(client_socket,&client_data_recv);
+  int client_recv_tag = *(reinterpret_cast<int*>(client_data_recv.data()));
+  REMUS_VALID( (clientTag == client_recv_tag), valid);
+
+  zmq::message_t worker_data_recv;
+  zmq::recv_harder(worker_socket,&worker_data_recv);
+  int worker_recv_tag = *(reinterpret_cast<int*>(worker_data_recv.data()));
+  REMUS_VALID( (workerTag == worker_recv_tag), valid);
+  }
 
   return valid;
 }
@@ -113,7 +133,31 @@ int UnitTestServerPorts(int, char *[])
                 "90.78.56.34", 2)
                 );
 
+  //verify everything works with dual tcp-ip
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts()) );
+
+  //verify everything works with dual ipc
+  zmq::socketInfo<zmq::proto::ipc> c("client_channel");
+  zmq::socketInfo<zmq::proto::ipc> w("worker_channel");
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,w)) );
+
+  //verify everything works with dual inproc
+  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
+  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(ci,wi)) );
+
+  //now mix ipc and tcp-ip
+  zmq::socketInfo<zmq::proto::tcp> default_ctcp("127.0.0.1",
+                                               remus::SERVER_CLIENT_PORT);
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,w)) );
+
+  //now mix inproc and ipc
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,wi)) );
+
+  //now mix inproc and tcp-ip
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,wi)) );
+
+
 
   //we reach here we have a valid server ports test
   return 0;

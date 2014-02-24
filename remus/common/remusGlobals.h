@@ -10,11 +10,10 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_RemusInfo_h
-#define __remus_common_RemusInfo_h
+#ifndef remus_common_RemusGlobals_h
+#define remus_common_RemusGlobals_h
 
 #include <string>
-#include <sstream>
 
 //Define global information that the mesh server needs
 namespace remus {
@@ -43,7 +42,8 @@ static const std::string INVALID_MSG = "INVALID_MSG";
      ServiceTypeMacro(RETRIEVE_MESH, 4, "RETRIEVE MESH"), \
      ServiceTypeMacro(HEARTBEAT, 5, "HEARTBEAT"), \
      ServiceTypeMacro(TERMINATE_JOB, 6, "TERMINATE JOB"), \
-     ServiceTypeMacro(TERMINATE_WORKER, 7, "TERMINATE WORKER")
+     ServiceTypeMacro(TERMINATE_WORKER, 7, "TERMINATE WORKER"), \
+     ServiceTypeMacro(MESH_REQUIREMENTS, 8, "MESH REQUIREMENTS")
 
 //------------------------------------------------------------------------------
 enum SERVICE_TYPE
@@ -100,8 +100,6 @@ inline std::string to_string(remus::STATUS_TYPE t)
   return std::string(remus::common::stat_types[(int)t]);
 }
 
-
-
 //------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 {
@@ -116,30 +114,6 @@ inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
   return remus::INVALID_SERVICE;
 }
 
-namespace internal
-{
-//------------------------------------------------------------------------------
-inline std::string extractString(std::stringstream& buffer, int size)
-{
-  if(buffer.peek()=='\n')
-    {
-    buffer.get();
-    }
-
-  std::string msg(size,char());
-  char* raw = const_cast<char*>(msg.c_str());
-  buffer.rdbuf()->sgetn(raw,size);
-  return msg;
 }
 
-//------------------------------------------------------------------------------
-inline void writeString(std::stringstream& buffer, const std::string str)
-{
-  buffer.rdbuf()->sputn(str.c_str(),str.length());
-  buffer << std::endl;
-}
-}
-
-}
-
-#endif // __remus_common_RemusInfo_h
+#endif // remus_common_RemusGlobals_h

@@ -37,5 +37,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/UnitTestWorkerFactoryPaths.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/UnitTestWorkerFactoryPaths.h
                @ONLY)
 
+#we need to explicitly link to zmq for server ports test, which
+#calls zmq directly to verify that the binding logic in ServerPorts
+#is correct
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusServer)
+                 LIBRARIES RemusServer RemusProto ${ZeroMQ_LIBRARIES})

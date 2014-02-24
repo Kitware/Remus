@@ -12,86 +12,126 @@
 
 #include <remus/client/Client.h>
 
+#include <remus/proto/Message.h>
+#include <remus/proto/Response.h>
+
 namespace remus{
 namespace client{
 
-//------------------------------------------------------------------------------
-Client::Client(const remus::client::ServerConnection &conn):
-  Context(1),
-  Server(Context, ZMQ_REQ),
-  ConnectedToLocalServer( conn.isLocalEndpoint() )
+//lightweight struct to hide zmq from leaking into libraries that link
+//to remus client
+namespace detail{
+struct ZmqManagement
 {
-  zmq::connectToAddress(this->Server,conn.endpoint());
+  zmq::context_t Context;
+  zmq::socket_t Server;
+
+  ZmqManagement():
+    Context(1),
+    Server(Context, ZMQ_REQ)
+  {}
+};
 }
 
 //------------------------------------------------------------------------------
-bool Client::canMesh(const remus::client::JobRequest& request)
+Client::Client(const remus::client::ServerConnection &conn):
+  ConnectionInfo(conn),
+  Zmq( new detail::ZmqManagement() )
 {
-  //hold as a string so message doesn't have to copy a second time
-  const std::string stringRequest(remus::client::to_string(request));
-  remus::common::Message j(request.type(),
-                              remus::CAN_MESH,
-                              stringRequest.data(),
-                              stringRequest.size());
-  j.send(this->Server);
+  zmq::connectToAddress(this->Zmq->Server,conn.endpoint());
+}
 
-  remus::common::Response response(this->Server);
+//------------------------------------------------------------------------------
+Client::~Client()
+{
+}
+
+//------------------------------------------------------------------------------
+const remus::client::ServerConnection& Client::connection() const
+{
+  return this->ConnectionInfo;
+}
+
+//------------------------------------------------------------------------------
+bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
+{
+  remus::proto::Message j(meshtypes, remus::CAN_MESH);
+  j.send(this->Zmq->Server);
+
+  remus::proto::Response response(this->Zmq->Server);
   return response.dataAs<remus::STATUS_TYPE>() != remus::INVALID_STATUS;
 }
 
 //------------------------------------------------------------------------------
-remus::client::Job Client::submitJob(const remus::client::JobRequest& request)
+remus::proto::JobRequirementsSet
+Client::retrieveRequirements( const remus::common::MeshIOType& meshtypes)
+{
+  remus::proto::Message j(meshtypes, remus::MESH_REQUIREMENTS);
+  j.send(this->Zmq->Server);
+
+  remus::proto::Response response(this->Zmq->Server);
+
+  std::istringstream buffer(response.dataAs<std::string>());
+
+  remus::proto::JobRequirementsSet set;
+  buffer >> set;
+  return set;
+}
+
+//------------------------------------------------------------------------------
+remus::proto::Job
+Client::submitJob(const remus::proto::JobSubmission& submission)
 {
   //hold as a string so message doesn't have to copy a second time
-  const std::string stringRequest(remus::client::to_string(request));
-  remus::common::Message j(request.type(),
+  const std::string stringRequest(remus::proto::to_string(submission));
+  remus::proto::Message j(submission.type(),
                            remus::MAKE_MESH,
                            stringRequest.data(),
                            stringRequest.size());
-  j.send(this->Server);
+  j.send(this->Zmq->Server);
 
-  remus::common::Response response(this->Server);
+  remus::proto::Response response(this->Zmq->Server);
   const std::string job = response.dataAs<std::string>();
-  return remus::client::to_Job(job);
+  return remus::proto::to_Job(job);
 }
 
 //------------------------------------------------------------------------------
-remus::client::JobStatus Client::jobStatus(const remus::client::Job& job)
+remus::proto::JobStatus Client::jobStatus(const remus::proto::Job& job)
 {
-  remus::common::Message j(job.type(),
+  remus::proto::Message j(job.type(),
                               remus::MESH_STATUS,
-                              remus::client::to_string(job));
-  j.send(this->Server);
+                              remus::proto::to_string(job));
+  j.send(this->Zmq->Server);
 
-  remus::common::Response response(this->Server);
+  remus::proto::Response response(this->Zmq->Server);
   const std::string status = response.dataAs<std::string>();
-  return remus::client::to_JobStatus(status);
+  return remus::proto::to_JobStatus(status);
 }
 
 //------------------------------------------------------------------------------
-remus::client::JobResult Client::retrieveResults(const remus::client::Job& job)
+remus::proto::JobResult Client::retrieveResults(const remus::proto::Job& job)
 {
-  remus::common::Message j(job.type(),
+  remus::proto::Message j(job.type(),
                               remus::RETRIEVE_MESH,
-                              remus::client::to_string(job));
-  j.send(this->Server);
+                              remus::proto::to_string(job));
+  j.send(this->Zmq->Server);
 
-  remus::common::Response response(this->Server);
+  remus::proto::Response response(this->Zmq->Server);
   const std::string result = response.dataAs<std::string>();
-  return remus::client::to_JobResult(result);
+  return remus::proto::to_JobResult(result);
 }
 
 //------------------------------------------------------------------------------
-remus::client::JobStatus Client::terminate(const remus::client::Job& job)
+remus::proto::JobStatus Client::terminate(const remus::proto::Job& job)
 {
-  remus::common::Message j(job.type(),
-                           remus::TERMINATE_JOB,
-                           remus::client::to_string(job));
-  j.send(this->Server);
+  remus::proto::Message j(job.type(),
+                              remus::TERMINATE_JOB,
+                              remus::proto::to_string(job));
+  j.send(this->Zmq->Server);
 
-  remus::common::Response response(this->Server);
+  remus::proto::Response response(this->Zmq->Server);
   const std::string status = response.dataAs<std::string>();
-  return remus::client::to_JobStatus(status);
+  return remus::proto::to_JobStatus(status);
 }
 
 }

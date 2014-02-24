@@ -11,10 +11,12 @@
 //=============================================================================
 
 #include <remus/server/WorkerFactory.h>
-#include <remus/common/ExecuteProcess.h>
 
+#include <remus/common/ExecuteProcess.h>
 #include <remus/common/MeshIOType.h>
 #include <remus/common/MeshRegistrar.h>
+
+#include <algorithm>
 
 //force to use filesystem version 3
 #define BOOST_FILESYSTEM_VERSION 3
@@ -27,7 +29,6 @@ namespace
   typedef std::vector<remus::server::MeshWorkerInfo>::const_iterator WorkerIterator;
   typedef std::vector< remus::server::WorkerFactory::RunningProcessInfo >::iterator ProcessIterator;
 
-
   //----------------------------------------------------------------------------
   struct support_MeshIOType
   {
@@ -35,7 +36,20 @@ namespace
     support_MeshIOType(remus::common::MeshIOType type):Type(type){}
     bool operator()(const remus::server::MeshWorkerInfo& info)
       {
-      return info.Type == this->Type;
+      return info.Requirements.meshTypes() == this->Type;
+      }
+  };
+
+  //----------------------------------------------------------------------------
+  struct support_JobReqs
+  {
+    remus::proto::JobRequirements& Requirements;
+    support_JobReqs(remus::proto::JobRequirements& reqs):
+      Requirements(reqs)
+    {}
+    bool operator()(const remus::server::MeshWorkerInfo& info)
+      {
+      return info.Requirements == this->Requirements;
       }
   };
 
@@ -82,12 +96,13 @@ namespace
     std::string path;
   };
 
+
   //----------------------------------------------------------------------------
   template<typename Container >
-  ValidWorker find_worker_path(remus::common::MeshIOType type,
+  ValidWorker find_worker_path(remus::proto::JobRequirements reqs,
                                Container const& container)
   {
-    support_MeshIOType pred(type);
+    support_JobReqs pred(reqs);
     WorkerIterator result = std::find_if(container.begin(),container.end(),pred);
 
     if(result != container.end())
@@ -99,6 +114,21 @@ namespace
     return ValidWorker();
   }
 
+  //----------------------------------------------------------------------------
+  template<typename Container >
+  remus::proto::JobRequirementsSet
+  find_all_matching_workers(remus::common::MeshIOType type,
+                            Container const& container)
+  {
+    typedef typename Container::const_iterator IterType;
+    support_MeshIOType pred(type);
+    remus::proto::JobRequirementsSet validWorkers;
+    for(IterType i = container.begin(); i != container.end(); ++i)
+      {
+      if(pred(*i)) { validWorkers.insert(i->Requirements); }
+      }
+    return validWorkers;
+  }
 }
 
 
@@ -159,20 +189,20 @@ public:
     f.open(file);
     if(f.is_open())
       {
-      std::string inputFileType,outputMeshIOType,mesherName;
+      std::string inputFileType,outputMeshIOType,mesherFilePath;
       getline(f,inputFileType);
       getline(f,outputMeshIOType);
-      getline(f,mesherName);
+      getline(f,mesherFilePath);
 
-      boost::filesystem::path mesher_path(mesherName);
+      boost::filesystem::path mesher_path(mesherFilePath);
 
-      //try the mesherName as an absolute path, if that isn't
+      //try the mesherFilePath as an absolute path, if that isn't
       //a file than fall back to looking based on the file we are parsing
       //path
       if(!boost::filesystem::is_regular_file(mesher_path))
         {
         mesher_path = boost::filesystem::path(file.parent_path());
-        mesher_path /= mesherName;
+        mesher_path /= mesherFilePath;
 #ifdef _WIN32
         mesher_path.replace_extension(".exe");
 #endif
@@ -186,8 +216,15 @@ public:
                                remus::meshtypes::to_meshType(inputFileType),
                                remus::meshtypes::to_meshType(outputMeshIOType)
                                );
-        this->Info.push_back(MeshWorkerInfo(combinedType,
-                                            mesher_path.string()));
+
+        //name the worker with the given name
+        remus::proto::JobRequirements reqs(remus::common::ContentSource::Memory,
+                                           remus::common::ContentFormat::User,
+                                           combinedType,
+                                           mesher_path.filename().string(),
+                                           std::string());
+
+        this->Info.push_back(MeshWorkerInfo(reqs,mesher_path.string()));
         }
       }
     f.close();
@@ -269,19 +306,27 @@ void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::haveSupport(remus::common::MeshIOType type ) const
+remus::proto::JobRequirementsSet WorkerFactory::workerRequirements(
+                                       remus::common::MeshIOType type) const
 {
-  return find_worker_path(type,this->PossibleWorkers).valid;
+  return find_all_matching_workers(type,this->PossibleWorkers);
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::createWorker(remus::common::MeshIOType type,
+bool WorkerFactory::haveSupport(
+                            const remus::proto::JobRequirements& reqs) const
+{
+  return find_worker_path(reqs, this->PossibleWorkers).valid;
+}
+
+//----------------------------------------------------------------------------
+bool WorkerFactory::createWorker(const remus::proto::JobRequirements& reqs,
                                WorkerFactory::FactoryDeletionBehavior lifespan)
 {
   this->updateWorkerCount(); //remove dead workers
   if(this->currentWorkerCount() < this->maxWorkerCount())
     {
-    const ValidWorker w = find_worker_path(type, this->PossibleWorkers);
+    const ValidWorker w = find_worker_path(reqs, this->PossibleWorkers);
     if(w.valid)
       {
       return this->addWorker(w.path,lifespan);

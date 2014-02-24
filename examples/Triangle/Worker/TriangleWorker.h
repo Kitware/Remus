@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef _TriangleWorker_h
-#define _TriangleWorker_h
+#ifndef remus_examples_TriangleWorker_h
+#define remus_examples_TriangleWorker_h
 
 #include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>

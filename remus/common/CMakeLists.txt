@@ -1,38 +1,37 @@
 project(Remus_Common)
 
 set(headers
-  ExecuteProcess.h
-  JobProgress.h
-  MeshIOType.h
-  MeshRegistrar.h
-  MeshTypes.h
-  Message.h
-  remusGlobals.h
-  Response.h
-  SignalCatcher.h
-  zmq.hpp
-  zmqHelper.h
-  zmqTraits.h
-  )
+    ConditionalStorage.h
+    ContentTypes.h
+    ExecuteProcess.h
+    MD5Hash.h
+    MeshIOType.h
+    MeshRegistrar.h
+    MeshTypes.h
+    remusGlobals.h
+    SignalCatcher.h
+    )
 
-set(common_srcs
-  ExecuteProcess.cxx
-  MeshRegistrar.cxx
-  )
+set(srcs
+    ExecuteProcess.cxx
+    MD5Hash.cxx
+    MeshRegistrar.cxx
+    )
 
-add_library(RemusCommon ${common_srcs} ${headers})
+#setup the common library
+add_library(RemusCommon ${srcs} ${headers})
 target_link_libraries(RemusCommon
-                      LINK_PUBLIC ${ZeroMQ_LIBRARIES}
                       LINK_PRIVATE sysTools
                       )
 target_include_directories(RemusCommon
-                           PUBLIC  ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
+                           PUBLIC  ${Boost_INCLUDE_DIRS}
                            PRIVATE ${sysTools_BINARY_DIR} )
+
 
 #create the export header symbol exporting
 remus_export_header(RemusCommon CommonExports.h)
 
-#install the library
+#install the libraries
 remus_install_library(RemusCommon)
 
 #install the headers

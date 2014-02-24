@@ -11,8 +11,12 @@
 #=============================================================================
 
 set(unit_tests
+  UnitTestClient.cxx
   UnitTestClientServerConnection.cxx
   )
 
+#we need to explicitly link to zmq for client test, which
+#calls zmq directly to verify that we can properly connect a client
+#to an inproc socket
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusCommon)
+                 LIBRARIES RemusClient  ${ZeroMQ_LIBRARIES})

@@ -10,14 +10,14 @@
 //
 //=============================================================================
 
-#ifndef remus_client_JobResult_h
-#define remus_client_JobResult_h
+#ifndef remus_proto_JobResult_h
+#define remus_proto_JobResult_h
 
 #include <algorithm>
 #include <string>
 #include <sstream>
 
-#include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -27,13 +27,10 @@
 //serialized data structure.
 
 namespace remus {
-namespace client {
+namespace proto {
 class JobResult
 {
 public:
-  boost::uuids::uuid JobId;
-  std::string Data; //data of the result of a job
-
   //construct am invalid JobResult
   JobResult(const boost::uuids::uuid& id):
     JobId(id),
@@ -48,22 +45,29 @@ public:
     {}
 
   bool valid() const { return Data.size() > 0; }
+
+  const boost::uuids::uuid& id() const { return JobId; }
+  const std::string& data() const { return Data; }
+
+private:
+  boost::uuids::uuid JobId;
+  std::string Data; //data of the result of a job
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::client::JobResult& status)
+inline std::string to_string(const remus::proto::JobResult& status)
 {
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
   std::stringstream buffer;
-  buffer << status.JobId << std::endl;
-  buffer << status.Data.length() << std::endl;
-  remus::internal::writeString(buffer, status.Data);
+  buffer << status.id() << std::endl;
+  buffer << status.data().length() << std::endl;
+  remus::internal::writeString(buffer, status.data());
   return buffer.str();
 }
 
 //------------------------------------------------------------------------------
-inline remus::client::JobResult to_JobResult(const std::string& status)
+inline remus::proto::JobResult to_JobResult(const std::string& status)
 {
   //convert a job detail from a string, used as a hack to serialize
 
@@ -77,12 +81,12 @@ inline remus::client::JobResult to_JobResult(const std::string& status)
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
 
-  return remus::client::JobResult(id,data);
+  return remus::proto::JobResult(id,data);
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::client::JobResult to_JobResult(const char* data, int size)
+inline remus::proto::JobResult to_JobResult(const char* data, int size)
 {
   //convert a job status from a string, used as a hack to serialize
   std::string temp(size,char());

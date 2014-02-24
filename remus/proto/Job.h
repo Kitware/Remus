@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_client_Job_h
-#define remus_client_Job_h
+#ifndef remus_proto_Job_h
+#define remus_proto_Job_h
 
 #include <algorithm>
 #include <string>
@@ -22,20 +22,16 @@
 
 #include <remus/common/MeshIOType.h>
 
-//The remus::client::Job class
-// For the client side interface it holds the Id and Type of a submitted job.
-// The client interface is given a job object after submitting a JobRequest.
-// For the client this class holds no information on the details of the
-// submitted job. But holds just enough information to ask the server for
-// the status and results.
+//The remus::proto::Job class
+// Holds the Id and Type of a submitted job.
 
 namespace remus{
-namespace client{
+namespace proto{
 class Job
 {
 public:
 
-  //construct a valid client side job object with an Id and Type
+  //construct a valid job object with an Id and Type
   Job(const boost::uuids::uuid& id,
       const remus::common::MeshIOType& type):
   Id(id),
@@ -58,7 +54,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::client::Job& job)
+inline std::string to_string(const remus::proto::Job& job)
 {
   //convert a job to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
@@ -70,22 +66,22 @@ inline std::string to_string(const remus::client::Job& job)
 
 
 //------------------------------------------------------------------------------
-inline remus::client::Job to_Job(const std::string& msg)
+inline remus::proto::Job to_Job(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
 
-  boost::uuids::uuid id;
   remus::common::MeshIOType type;
+  boost::uuids::uuid id;
 
   buffer >> type;
   buffer >> id;
-  return remus::client::Job(id,type);
+  return remus::proto::Job(id,type);
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::client::Job to_Job(const char* data, int size)
+inline remus::proto::Job to_Job(const char* data, int size)
 {
   //convert a job from a string, used as a hack to serialize
   std::string temp(size,char());

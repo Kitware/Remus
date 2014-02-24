@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include <remus/client/JobResult.h>
+#include <remus/proto/JobResult.h>
 
 class CoregenOutput
 {
@@ -24,8 +24,8 @@ public:
     :Valid(false)
   {}
 
-  CoregenOutput(const remus::client::JobResult& job, bool valid=true)
-    : Prefix(job.Data), Valid(valid)
+  CoregenOutput(const remus::proto::JobResult& job, bool valid=true)
+    : Prefix(job.data()), Valid(valid)
   {}
 
   CoregenOutput(std::string& prefix, bool valid=true)

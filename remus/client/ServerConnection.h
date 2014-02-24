@@ -10,13 +10,13 @@
 //
 //=============================================================================
 
-#ifndef __remus_client_serverConnection_h
-#define __remus_client_serverConnection_h
+#ifndef remus_client_serverConnection_h
+#define remus_client_serverConnection_h
 
 #include <boost/lexical_cast.hpp>
 
-#include <remus/common/zmqHelper.h>
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/zmqSocketInfo.h>
 #include <assert.h>
 
 namespace remus{
@@ -82,7 +82,7 @@ remus::client::ServerConnection make_ServerConnection(const std::string& dest)
       //determine if we are tcp
       //we can protocalll_end_pos as a distance currently since we are starting
       //at zero
-      const std::string protocall = dest.substr(0,protocall_end_pos-1);
+      const std::string protocall = dest.substr(0,protocall_end_pos);
       if(protocall == zmq::proto::scheme_name(zmq::proto::tcp()))
         {
         //we need to extract the host name and port
@@ -90,12 +90,14 @@ remus::client::ServerConnection make_ServerConnection(const std::string& dest)
         if(host_end_pos!=protocall_end_pos)
           {
           //extract the host_name and port
-          std::string host_name = dest.substr(protocall_end_pos+3,
-                                              host_end_pos);
-
+          const std::string::size_type host_len = host_end_pos -
+                                                       (protocall_end_pos+3);
           const std::string::size_type port_len = dest.size() - host_end_pos;
+
+          const std::string host_name(dest, protocall_end_pos+3, host_len);
           const std::string temp_port(dest, host_end_pos+1, port_len );
           int port = boost::lexical_cast<int>(temp_port);
+
 
           zmq::socketInfo<zmq::proto::tcp> socket(host_name,port);
           connection = remus::client::ServerConnection(socket);
@@ -123,4 +125,4 @@ remus::client::ServerConnection make_ServerConnection(const std::string& dest)
 }
 }
 
-#endif // __remus_serverConnection_h
+#endif // remus_serverConnection_h

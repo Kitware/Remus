@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_SignalCatcher_h
-#define __remus_common_SignalCatcher_h
+#ifndef remus_common_SignalCatcher_h
+#define remus_common_SignalCatcher_h
 
 #include <csignal>
 

@@ -2,34 +2,35 @@ project(Remus_Client)
 
 set(headers
     Client.h
-    Job.h
-    JobRequest.h
-    JobResult.h
-    JobStatus.h
     ServerConnection.h
     )
 
-set(client_srcs
+set(srcs
     Client.cxx
     )
 
-add_library(RemusClient ${client_srcs} ${headers})
+#setup the client side api library which uses the protocol library
+add_library(RemusClient ${srcs} ${headers})
 target_link_libraries(RemusClient
-                      LINK_PUBLIC RemusCommon
+                      LINK_PUBLIC RemusProto
                       )
 
 #create the export header symbol exporting
 remus_export_header(RemusClient ClientExports.h)
 
-#install the library
+#install the client library
 remus_install_library(RemusClient)
 
 #install the headers
-remus_public_headers(${headers})
+remus_public_headers(${headers} ${protocol_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusClient)
-export(TARGETS RemusClient RemusCommon sysTools FILE RemusClient-exports.cmake)
+export(TARGETS RemusClient
+               RemusProto
+               RemusCommon
+               sysTools
+               FILE RemusClient-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
   add_subdirectory(testing)

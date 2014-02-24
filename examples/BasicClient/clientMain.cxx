@@ -72,27 +72,53 @@ int main ()
   remus::Client c(conn);
 
   Timer time;
-  //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request(remus::meshtypes::Edges(),
-                                    remus::meshtypes::Mesh2D(),
-                                    "TEST THE APPLICATION BY PASSING SPACES");
-  if(c.canMesh(request))
+
+
+  remus::common::MeshIOType requestIOType( (remus::meshtypes::Edges()),
+                                           (remus::meshtypes::Mesh2D()) );
+
+  bool valid_mesher_found = false;
+  remus::proto::JobSubmission sub;
+  if(c.canMesh(requestIOType))
+    {
+    remus::proto::JobRequirementsSet reqSet =
+                                  c.retrieveRequirements(requestIOType);
+    //i wish this was easier
+    for(remus::proto::JobRequirementsSet::const_iterator i=reqSet.begin();
+        i != reqSet.end();
+        ++i)
+      {
+      if(i->workerName() == "BasicWorker" ||
+         i->workerName() == "InfiniteWorker" )
+        {
+        valid_mesher_found = true;
+        sub = remus::proto::JobSubmission(*i);
+        sub["data"] = remus::proto::make_MemoryJobContent( "Hello Worker" );
+        }
+      }
+    }
+
+  //we create a basic job submission for a mesh2d job, with the data contents of "TEST"
+  if(valid_mesher_found)
     {
     time.Reset();
-    //if we can mesh 2D mesh jobs, we are going to submit 8 jobs to the server
+    //if we can mesh 2D mesh jobs, we are going to submit 18 jobs to the server
     //for meshing
-    std::vector<remus::client::Job> jobs;
+
+    std::vector<remus::proto::Job> jobs;
     for(std::size_t i=0; i < 18; ++i, ++queries)
       {
-      remus::client::Job job = c.submitJob(request);
+      remus::proto::Job job = c.submitJob(sub);
       jobs.push_back(job);
       }
 
     //get the initial status of all the jobs that we have
-    std::vector<remus::client::JobStatus> js;
+    std::vector<remus::proto::JobStatus> js;
     for(std::size_t i=0; i < jobs.size(); ++i, ++queries)
       {
-      js.push_back(c.jobStatus(jobs.at(i)));
+      remus::proto::JobStatus s = c.jobStatus(jobs.at(i));
+      std::cout << jobs.at(i).id() << " status is: " << remus::to_string(s.status()) << std::endl;
+      js.push_back(s);
       }
 
     //While we have jobs still running on the server report back
@@ -103,22 +129,22 @@ int main ()
         {
         //update the status with the latest status and compare it too
         //the previously held status
-        remus::client::JobStatus newStatus = c.jobStatus(jobs.at(i));
-        remus::client::JobStatus oldStatus = js.at(i);
+        remus::proto::JobStatus newStatus = c.jobStatus(jobs.at(i));
+        remus::proto::JobStatus oldStatus = js.at(i);
         js[i]=newStatus;
 
         //if the status or progress value has changed report it to the cout stream
-        if(newStatus.Status != oldStatus.Status ||
-           newStatus.Progress != oldStatus.Progress)
+        if(newStatus.status() != oldStatus.status() ||
+           newStatus.progress() != oldStatus.progress())
           {
           std::cout << "job id " << jobs.at(i).id() << std::endl;
-          if( newStatus.Status == remus::IN_PROGRESS)
+          if( newStatus.status() == remus::IN_PROGRESS)
             {
-            std::cout << newStatus.Progress << std::endl;
+            std::cout << newStatus.progress() << std::endl;
             }
           else
             {
-            std::cout << " status of job is: " << newStatus.Status << " " << remus::to_string(newStatus.Status)  << std::endl;
+            std::cout << " status of job is: " << newStatus.status() << " " << remus::to_string(newStatus.status())  << std::endl;
             }
           }
 
@@ -126,6 +152,11 @@ int main ()
         //from the jobs we are checking
         if( !newStatus.good() )
           {
+          if(newStatus.finished())
+            {
+            remus::proto::JobResult r = c.retrieveResults(jobs.at(i));
+            std::cout << r.data() << std::endl;
+            }
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);
 

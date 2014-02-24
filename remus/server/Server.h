@@ -10,11 +10,11 @@
 //
 //=============================================================================
 
-#ifndef __remus_server_Server_h
-#define __remus_server_Server_h
+#ifndef remus_server_Server_h
+#define remus_server_Server_h
 
 #include <remus/common/SignalCatcher.h>
-#include <remus/common/zmqHelper.h>
+#include <remus/proto/zmqHelper.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
@@ -22,12 +22,12 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/server/ServerPorts.h>
 
-//included for symbol exports
+//included for export symbols
 #include <remus/server/ServerExports.h>
 
 namespace remus {
   //forward declaration of classes only the implementation needs
-  namespace common {
+  namespace proto {
   class Message;
   }
 
@@ -44,7 +44,8 @@ namespace server{
     class ActiveJobs;
     class JobQueue;
     class WorkerPool;
-    struct ThreadImpl;
+    struct ThreadManagement;
+    struct ZmqManagement;
     }
 
 
@@ -56,7 +57,7 @@ namespace server{
 class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 {
 public:
-  friend struct remus::server::detail::ThreadImpl;
+  friend struct remus::server::detail::ThreadManagement;
   enum SignalHandling {NONE, CAPTURE};
   //construct a new server using the default worker factory
   //and default loopback ports
@@ -83,7 +84,9 @@ public:
   bool startBrokering(SignalHandling sh = CAPTURE);
 
   //when you call stop brokering, the server will stop accepting worker
-  //or client requests
+  //and client requests. This will also tell all active workers that we
+  //are shutting down, so they themselves will terminate. You can't stop
+  //the server and expect 'good' things to happen.
   void stopBrokering();
 
   //Waits until the thread is up and running
@@ -105,20 +108,21 @@ protected:
   virtual bool brokering(SignalHandling sh = CAPTURE);
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
-                                 const remus::common::Message& msg);
+                                 const remus::proto::Message& msg);
 
   //These methods are all to do with send responses to job messages
-  bool canMesh(const remus::common::Message& msg);
-  std::string meshStatus(const remus::common::Message& msg);
-  std::string queueJob(const remus::common::Message& msg);
-  std::string retrieveMesh(const remus::common::Message& msg);
-  std::string terminateJob(const remus::common::Message& msg);
+  bool canMesh(const remus::proto::Message& msg);
+  std::string meshRequirements(const remus::proto::Message& msg);
+  std::string meshStatus(const remus::proto::Message& msg);
+  std::string queueJob(const remus::proto::Message& msg);
+  std::string retrieveMesh(const remus::proto::Message& msg);
+  std::string terminateJob(const remus::proto::Message& msg);
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
-                              const remus::common::Message& msg);
-  void storeMeshStatus(const remus::common::Message& msg);
-  void storeMesh(const remus::common::Message& msg);
+                              const remus::proto::Message& msg);
+  void storeMeshStatus(const remus::proto::Message& msg);
+  void storeMesh(const remus::proto::Message& msg);
   void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
                          const remus::worker::Job& job);
 
@@ -133,17 +137,20 @@ protected:
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers();
 
+private:
+  //explicitly state the server doesn't support copy or move semantics
+  Server(const Server&);
+  void operator=(const Server&);
+
+  boost::scoped_ptr<detail::ZmqManagement> Zmq;
+
 protected:
   //allow subclasses to override these detail containers
-  zmq::context_t Context;
-  zmq::socket_t ClientQueries;
-  zmq::socket_t WorkerQueries;
-
   boost::uuids::random_generator UUIDGenerator;
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
-  boost::scoped_ptr<detail::ThreadImpl> Thread;
+  boost::scoped_ptr<detail::ThreadManagement> Thread;
 
   remus::server::WorkerFactory WorkerFactory;
   remus::server::ServerPorts PortInfo;

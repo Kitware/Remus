@@ -43,16 +43,24 @@ int main (int argc, char* argv[])
   input_data.setPoint(6, 5, 3);
 
   input_data.setHole(0, 4, 4); //hole in the middle of triangle
+  remus::proto::JobContent content =
+                          remus::proto::make_MemoryJobContent(input_data);
 
-  //we create a basic job request for a mesh2d job, with the data contents of "TEST"
-  remus::client::JobRequest request( (remus::meshtypes::Edges()),
-                                     (remus::meshtypes::Mesh2D()),
-                                     input_data);
+  //we create a basic job request for a mesh2d job
+  remus::common::MeshIOType mtype( (remus::meshtypes::Edges()),
+                                    (remus::meshtypes::Mesh2D()) );
+  remus::proto::JobRequirements request =
+                          remus::proto::make_MemoryJobRequirements( mtype,
+                                                               "TriangleWorker",
+                                                               "");
 
-  if(c.canMesh(request))
+  if(c.canMesh(mtype))
     {
-    remus::client::Job job = c.submitJob(request);
-    remus::client::JobStatus jobState = c.jobStatus(job);
+    remus::proto::JobSubmission sub(request);
+    sub["data"]=content;
+
+    remus::proto::Job job = c.submitJob(sub);
+    remus::proto::JobStatus jobState = c.jobStatus(job);
 
     //wait while the job is running
     while(jobState.good())
@@ -62,14 +70,12 @@ int main (int argc, char* argv[])
 
     if(jobState.finished())
       {
-      remus::client::JobResult result = c.retrieveResults(job);
+      remus::proto::JobResult result = c.retrieveResults(job);
       TriangleResult triangle_data(result);
 
       std::cout << triangle_data.points.size() << std::endl;
       std::cout << triangle_data.lines.size() << std::endl;
       std::cout << triangle_data.triangles.size() << std::endl;
-
-      //todo rip out the data and verify we have the correct resulting mesh
       }
     }
   return 0;

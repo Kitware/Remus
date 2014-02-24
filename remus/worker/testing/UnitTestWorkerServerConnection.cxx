@@ -40,7 +40,7 @@ int UnitTestWorkerServerConnection(int, char *[])
 {
 
   remus::worker::ServerConnection sc;
-  REMUS_ASSERT((sc.endpoint().size() > 0));
+  REMUS_ASSERT( (sc.endpoint().size() > 0) );
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
@@ -56,11 +56,13 @@ int UnitTestWorkerServerConnection(int, char *[])
   REMUS_ASSERT( (test_socket_sc.endpoint() == default_endpoint) );
   REMUS_ASSERT( (test_socket_sc2.endpoint() != default_endpoint) );
 
-
-  remus::worker::ServerConnection test_full_sc("foo",82);
+  remus::worker::ServerConnection test_full_sc("74.125.30.106",82);
+  remus::worker::ServerConnection test_full_sc2 =
+              remus::worker::make_ServerConnection("tcp://74.125.30.106:82");
 
   REMUS_ASSERT( (test_full_sc.endpoint() ==
-                        make_tcp_socket("foo",82).endpoint()) );
+                        make_tcp_socket("74.125.30.106",82).endpoint()) );
+  REMUS_ASSERT( (test_full_sc.endpoint() == test_full_sc2.endpoint()) );
   REMUS_ASSERT( (test_full_sc.endpoint() != default_endpoint) );
 
   //test local host bool with tcp ip
@@ -74,8 +76,18 @@ int UnitTestWorkerServerConnection(int, char *[])
   REMUS_ASSERT( (sc_inproc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (sc_inproc.endpoint() == std::string("inproc://worker")) );
 
+  remus::worker::ServerConnection sc_inproc2 =
+                      remus::worker::make_ServerConnection("inproc://worker");
+  REMUS_ASSERT( (sc_inproc2.isLocalEndpoint()==true) );
+  REMUS_ASSERT( (sc_inproc2.endpoint() == std::string("inproc://worker")) );
+
   //test ipc
   remus::worker::ServerConnection sc_ipc( make_ipc_socket("task_pool") );
+  REMUS_ASSERT( (sc_ipc.isLocalEndpoint()==true) );
+  REMUS_ASSERT( (sc_ipc.endpoint() == std::string("ipc://task_pool")) );
+
+  remus::worker::ServerConnection sc_ipc2 =
+                      remus::worker::make_ServerConnection("ipc://task_pool");
   REMUS_ASSERT( (sc_ipc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (sc_ipc.endpoint() == std::string("ipc://task_pool")) );
 

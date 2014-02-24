@@ -128,8 +128,11 @@ triangleParameters::~triangleParameters()
 TriangleWorker::TriangleWorker(
                      remus::worker::ServerConnection const& connection):
 remus::worker::Worker(
-  remus::common::make_MeshIOType( remus::meshtypes::Edges(),
-                                  remus::meshtypes::Mesh2D()),
+    remus::proto::make_MemoryJobRequirements(
+      remus::common::make_MeshIOType(remus::meshtypes::Edges(),
+                                     remus::meshtypes::Mesh2D()),
+      "TriangleWorker",
+      ""),
   connection)
 {
 }
@@ -228,7 +231,7 @@ void TriangleWorker::meshJob()
   //we are going template the triangle io parameter
   //so we don't need to link to triangle on the client
   //when we transform the string back to the TriangleResult class
-  remus::worker::JobResult results(j.id(),
+  remus::proto::JobResult results(j.id(),
                        TriangleResult::ToString(parms.meshing_data,parms.out));
   this->returnMeshResults(results);
 
@@ -238,7 +241,7 @@ void TriangleWorker::meshJob()
 //----------------------------------------------------------------------------
 void TriangleWorker::jobFailed(const remus::worker::Job& job)
 {
-  remus::worker::JobStatus status(job.id(),remus::FAILED);
+  remus::proto::JobStatus status(job.id(),remus::FAILED);
   this->updateStatus(status);
 
   return;

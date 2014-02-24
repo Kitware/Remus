@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_zeroTraits_h
-#define __remus_common_zeroTraits_h
+#ifndef remus_proto_zmqTraits_h
+#define remus_proto_zmqTraits_h
 
 #include <string>
 
@@ -67,4 +67,4 @@ inline std::string scheme_and_separator(zmq::proto::inproc)
 
 }
 
-#endif // __remus_common_zeroTraits_h
+#endif // remus_proto_zmqTraits_h

@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_common_JobProgress_h
-#define remus_common_JobProgress_h
+#ifndef remus_proto_JobProgress_h
+#define remus_proto_JobProgress_h
 
 #include <string>
 #include <sstream>
@@ -20,31 +20,23 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
 
 namespace remus {
-namespace client {
+namespace proto {
 
   //forward class declare for friend
   class JobStatus;
 
   //forward function declare for friend
-  remus::client::JobStatus to_JobStatus(const std::string& status);
-}
-
-namespace worker {
-
-  //forward class declare for friend
-  class JobStatus;
-
-  //forward function declare for friend
-  remus::worker::JobStatus to_JobStatus(const std::string& status);
+  remus::proto::JobStatus to_JobStatus(const std::string& status);
 }
 
 }
 
 
 namespace remus {
-namespace common {
+namespace proto {
 
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.

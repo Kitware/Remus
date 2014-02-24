@@ -14,18 +14,19 @@
 #define remus_client_Client_h
 
 #include <string>
+#include <set>
 
-#include <remus/client/Job.h>
-#include <remus/client/JobResult.h>
-#include <remus/client/JobRequest.h>
-#include <remus/client/JobStatus.h>
+#include <boost/scoped_ptr.hpp>
 
-#include <remus/common/Message.h>
-#include <remus/common/Response.h>
-#include <remus/common/zmqHelper.h>
 #include <remus/client/ServerConnection.h>
 
-//included for symbol exports
+#include <remus/proto/Job.h>
+#include <remus/proto/JobRequirements.h>
+#include <remus/proto/JobResult.h>
+#include <remus/proto/JobStatus.h>
+#include <remus/proto/JobSubmission.h>
+
+//included for export symbols
 #include <remus/client/ClientExports.h>
 
 //The client class is used to submit meshing jobs to a remus server.
@@ -33,34 +34,59 @@
 //to retrieve the results of the job when it is finished.
 namespace remus{
 namespace client{
+
+//forward declare ZmqManagement so when linking to the client library
+//you don't also need to link to zmq
+namespace detail { struct ZmqManagement; }
+
 class REMUSCLIENT_EXPORT Client
 {
 public:
   //connect to a given host on a given port with tcp
   explicit Client(const remus::client::ServerConnection& conn);
 
-  //Submit a request to the server to see if it support the requirements
-  //of a given job request
-  bool canMesh(const remus::client::JobRequest& request);
+  //explicit destructor since we use the pimpl idiom, and
+  //forward declare ZmqManagement so the destructor needs
+  //to know the full type information to properly delete it
+  ~Client();
 
-  //Submit a job to the server.
-  remus::client::Job submitJob(const remus::client::JobRequest& request);
+  //return the connection info that was used to connect to the
+  //remus server
+  const remus::client::ServerConnection& connection() const;
+
+  //Submit a request to the server to see if the server supports
+  //the requested input and output mesh types
+  bool canMesh(const remus::common::MeshIOType& meshtypes);
+
+  //submit a request to the server to see if the server supports
+  //the request input and output mesh types. If the server does support
+  //the given types, return a collection of JobRequirements
+  remus::proto::JobRequirementsSet
+  retrieveRequirements( const remus::common::MeshIOType& meshtypes );
+
+  //Submit a job to the server. The job submission has a JobData and
+  //a JobRequirements component
+  remus::proto::Job submitJob(const remus::proto::JobSubmission& submission);
 
   //Given a remus Job object returns the status of the job
-  remus::client::JobStatus jobStatus(const remus::client::Job& job);
+  remus::proto::JobStatus jobStatus(const remus::proto::Job& job);
 
   //Return job result of of a give job
-  remus::client::JobResult retrieveResults(const remus::client::Job& job);
+  remus::proto::JobResult retrieveResults(const remus::proto::Job& job);
 
   //attempts to terminate a given job, will kill the worker of a job
   //if the job is still pending. If the job has been finished and the results
   //are on the server the results will be deleted.
-  remus::client::JobStatus terminate(const remus::client::Job& job);
+  remus::proto::JobStatus terminate(const remus::proto::Job& job);
 
+protected:
+  remus::client::ServerConnection ConnectionInfo;
 private:
-  zmq::context_t Context;
-  zmq::socket_t Server;
-  bool ConnectedToLocalServer;
+  //explicitly state the client doesn't support copy or move semantics
+  Client(const Client&);
+  void operator=(const Client&);
+
+  boost::scoped_ptr<detail::ZmqManagement> Zmq;
 };
 
 }

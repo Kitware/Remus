@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef __remus_common__ExecuteProcess_h
-#define __remus_common__ExecuteProcess_h
+#ifndef remus_common__ExecuteProcess_h
+#define remus_common__ExecuteProcess_h
 
 #include <set>
 #include <string>

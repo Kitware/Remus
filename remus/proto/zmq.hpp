@@ -36,8 +36,8 @@
     IN THE SOFTWARE.
 */
 
-#ifndef __remus_common__zmq_h_
-#define __remus_common__zmq_h_
+#ifndef remus_proto_zmq_h_
+#define remus_proto_zmq_h_
 
 #include <zmq.h>
 

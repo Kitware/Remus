@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_client_JobStatus_h
-#define remus_client_JobStatus_h
+#ifndef remus_proto_JobStatus_h
+#define remus_proto_JobStatus_h
 
 #include <algorithm>
 #include <string>
@@ -20,22 +20,16 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <remus/common/JobProgress.h>
 #include <remus/common/remusGlobals.h>
+#include <remus/proto/conversionHelpers.h>
+#include <remus/proto/JobProgress.h>
 
 namespace remus {
-namespace client {
-
-//bring JobProgress into the client namespace
-using remus::common::JobProgress;
+namespace proto {
 
 class JobStatus
 {
 public:
-  boost::uuids::uuid JobId;
-  remus::STATUS_TYPE Status;
-  remus::client::JobProgress Progress;
-
   //Construct a job status that has no form of progress value or message
   JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
     JobId(id),
@@ -46,18 +40,25 @@ public:
 
   //will make sure that the progress value is between 1 and 100 inclusive
   //on both ends. Progress value of zero is used when the status type is not progress
-  JobStatus(const boost::uuids::uuid& id, const remus::client::JobProgress& progress):
+  JobStatus(const boost::uuids::uuid& id, const remus::proto::JobProgress& progress):
     JobId(id),
     Status(remus::IN_PROGRESS),
     Progress(progress)
     {
     }
 
-  //returns true if the job is waiting for a worker
-  bool queued() const
+  //returns the current progress object
+  const remus::proto::JobProgress& progress() const
   {
-    return this->Status == remus::QUEUED;
+    return this->Progress;
   }
+
+  //update the progress values of the status object
+  void updateProgress( const remus::proto::JobProgress& progress )
+    {
+    this->Status = remus::IN_PROGRESS;
+    this->Progress = progress;
+    }
 
   //returns true if the job is still running on the worker
   bool inProgress() const
@@ -65,10 +66,10 @@ public:
     return this->Status == remus::IN_PROGRESS;
   }
 
-  //returns the current progress object
-  const remus::client::JobProgress& progress() const
+  //returns true if the job is waiting for a worker
+  bool queued() const
   {
-    return this->Progress;
+    return this->Status == remus::QUEUED;
   }
 
   //returns true if the job is in progress or queued
@@ -85,35 +86,57 @@ public:
            (this->Status == remus::EXPIRED);
   }
 
+  //marks the job as being failing to finish
+  void markAsFailed()
+  {
+    this->Status = remus::FAILED;
+  }
+
   //returns true if the job is finished and you can get the results from the server.
   bool finished() const
   {
     return this->Status == remus::FINISHED;
   }
 
+  //marks the job as being successfully finished
+  void markAsFinished()
+  {
+    this->Status = remus::FINISHED;
+  }
+
+  //returns the uuid for the job that this status is for
+  const boost::uuids::uuid& id() const { return JobId; }
+
+  //get back the status flag type for this job
+  remus::STATUS_TYPE status() const { return Status; }
+
+private:
+  boost::uuids::uuid JobId;
+  remus::STATUS_TYPE Status;
+  remus::proto::JobProgress Progress;
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::client::JobStatus& status)
+inline std::string to_string(const remus::proto::JobStatus& status)
 {
   //convert a job status to a string, used as a hack to serialize
   std::stringstream buffer;
-  buffer << status.JobId << std::endl;
-  buffer << status.Status << std::endl;
+  buffer << status.id() << std::endl;
+  buffer << status.status() << std::endl;
 
   //only send progress info, if we are actually a status message that
   //cares about that information
-  if(status.Status == remus::IN_PROGRESS)
+  if(status.status() == remus::IN_PROGRESS)
     {
-    buffer << status.Progress.value() << std::endl;
-    buffer << status.Progress.message().size() << std::endl;
-    remus::internal::writeString(buffer,status.Progress.message());
+    buffer << status.progress().value() << std::endl;
+    buffer << status.progress().message().size() << std::endl;
+    remus::internal::writeString(buffer,status.progress().message());
     }
   return buffer.str();
 }
 
 //------------------------------------------------------------------------------
-inline remus::client::JobStatus to_JobStatus(const std::string& status)
+inline remus::proto::JobStatus to_JobStatus(const std::string& status)
 {
   //convert a job status from a string, used as a hack to serialize
   std::stringstream buffer(status);
@@ -124,15 +147,18 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
   buffer >> t;
 
   const remus::STATUS_TYPE type = static_cast<remus::STATUS_TYPE>(t);
-  if(type!=remus::IN_PROGRESS)
+
+  remus::proto::JobStatus jstatus(id,type);
+  if(type == remus::IN_PROGRESS)
     {
-    return remus::client::JobStatus(id,type);
-    }
-  else
-    {
+    remus::proto::JobProgress pr(type);
     //if we are progress status message we have two more pieces of info to decode
     int progressValue;
     buffer >> progressValue;
+    if(progressValue > 0)
+      {
+      pr.setValue(progressValue);
+      }
 
     int progressMessageLen;
     std::string progressMessage;
@@ -143,14 +169,15 @@ inline remus::client::JobStatus to_JobStatus(const std::string& status)
     buffer >>progressMessageLen;
     progressMessage = remus::internal::extractString(buffer,progressMessageLen);
 
-    remus::client::JobProgress pr(progressValue,progressMessage);
-    return remus::client::JobStatus(id,pr);
+    pr.setMessage(progressMessage);
+    jstatus = remus::proto::JobStatus(id,pr);
     }
+  return jstatus;
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::client::JobStatus to_JobStatus(const char* data, int size)
+inline remus::proto::JobStatus to_JobStatus(const char* data, int size)
 {
   //the data might contain null terminators which on windows
   //makes the data,size construct fail, so instead we use std::copy

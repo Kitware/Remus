@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef _TriangleInput_h
-#define _TriangleInput_h
+#ifndef remus_examples_TriangleInput_h
+#define remus_examples_TriangleInput_h
 
 #include <string>
 #include <sstream>
@@ -231,7 +231,8 @@ inline TriangleInput::TriangleInput(int numPoints, int numSegments, int numHoles
 inline TriangleInput::TriangleInput(const remus::worker::Job& job)
 {
   //convert the from a string back into the class
-  std::stringstream buffer(job.details());
+  const remus::proto::JobContent& content = job.submission().find("data")->second;
+  std::stringstream buffer( std::string(content.data(),content.dataSize()) );
 
   buffer >> this->MinAngleOn;
   buffer >> this->MaxAreaOn;

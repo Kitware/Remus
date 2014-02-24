@@ -17,17 +17,19 @@
 #include <string>
 #include <sstream>
 
+#include <remus/common/MeshIOType.h>
+#include <remus/proto/JobSubmission.h>
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
-
-#include <remus/common/MeshIOType.h>
 
 //The remus::worker::Job class.
 // For the server the Job object represents all the information required to
 // start an actual mesh job. Like the client side job object the Id and Type
-// are  filled, but now we also have a JobDetails section will contain the data that
-// was submitted with the JobRequest object. The worker needs the Id and Type
-// information so that it can properly report back status and results to the server
+// are  filled, but now we also have a JobSubmission object which contain the
+// client side submission information. The worker needs the Id and Type
+// information so that it can properly report back status and
+// results to the server
 namespace remus{
 namespace worker{
 class Job
@@ -36,29 +38,25 @@ public:
   enum JobValidity{ INVALID = 0, VALID_JOB, TERMINATE_WORKER};
 
   //construct an invalid job object
-  explicit Job(JobValidity js = INVALID):
+  Job():
     Id(),
-    Type(),
-    JobDetails(),
-    Validity(js)
+    Submission(),
+    Validity(INVALID)
   {
   }
 
-  //construct a valid server side job object with Id, Type, and JobDetails
+  //construct a valid server side job object with Id, Type, and Submission
   Job(const boost::uuids::uuid& id,
-      const remus::common::MeshIOType& type,
-      const std::string& data,
-      JobValidity js = VALID_JOB):
+      const remus::proto::JobSubmission& sub):
   Id(id),
-  Type(type),
-  JobDetails(data),
-  Validity(js)
+  Submission(sub),
+  Validity(VALID_JOB)
   {
 
   }
 
   //get if the current job is a valid job
-  bool valid() const { return Validity != INVALID && Type.valid(); }
+  bool valid() const { return Validity != INVALID && this->type().valid(); }
 
   //Get the status of the message
   JobValidity validityReason() const { return Validity; }
@@ -68,15 +66,30 @@ public:
   const boost::uuids::uuid& id() const { return Id; }
 
   //get the mesh type of the job
-  const remus::common::MeshIOType& type() const { return Type; }
+  const remus::common::MeshIOType& type() const
+    { return this->Submission.type(); }
 
-  //get the details of the job
-  const std::string& details() const { return JobDetails; }
+  //get the submission object that was sent on the client
+  const remus::proto::JobSubmission& submission() const
+    { return Submission; }
+
+  //helper method to easily get the contents of a given key
+  //inside the submission as a std::string.
+  std::string details(const std::string key) const
+   {
+   typedef remus::proto::JobSubmission::const_iterator it;
+   it i = this->Submission.find(key);
+   if( i != this->Submission.end() )
+    {
+    return std::string(i->second.data(),i->second.dataSize());
+    }
+   return std::string();
+   }
 
 private:
   boost::uuids::uuid Id;
-  remus::common::MeshIOType Type;
-  std::string JobDetails;
+  remus::proto::JobSubmission Submission;
+
   JobValidity Validity;
 };
 
@@ -86,10 +99,8 @@ inline std::string to_string(const remus::worker::Job& job)
   //convert a job to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
   std::stringstream buffer;
-  buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
-  buffer << job.details().length() << std::endl;
-  remus::internal::writeString(buffer, job.details());
+  buffer << job.submission() << std::endl;
   return buffer.str();
 }
 
@@ -101,15 +112,11 @@ inline remus::worker::Job to_Job(const std::string& msg)
   std::stringstream buffer(msg);
 
   boost::uuids::uuid id;
-  remus::common::MeshIOType type;
-  int dataLen;
-  std::string data;
+  remus::proto::JobSubmission submission;
 
-  buffer >> type;
   buffer >> id;
-  buffer >> dataLen;
-  data = remus::internal::extractString(buffer,dataLen);
-  return remus::worker::Job(id,type,data);
+  buffer >> submission;
+  return remus::worker::Job(id,submission);
 }
 
 

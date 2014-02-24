@@ -10,14 +10,14 @@
 //
 //=============================================================================
 
-#ifndef __remus_common_Response_h
-#define __remus_common_Response_h
+#ifndef remus_proto_Response_h
+#define remus_proto_Response_h
 
-#include <remus/common/zmqHelper.h>
 #include <remus/common/MeshIOType.h>
+#include <remus/proto/zmqHelper.h>
 
 namespace remus{
-namespace common{
+namespace proto{
 class Response
 {
 public:
@@ -166,4 +166,4 @@ inline bool Response::send(zmq::socket_t& socket) const
 }
 }
 
-#endif // __remus_common_Response_h
+#endif // remus_proto_Response_h

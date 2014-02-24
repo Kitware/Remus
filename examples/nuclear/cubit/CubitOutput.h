@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include <remus/client/JobResult.h>
+#include <remus/proto/JobResult.h>
 
 class CubitOutput
 {
@@ -24,8 +24,8 @@ public:
     :Valid(false)
   {}
 
-  CubitOutput(const remus::client::JobResult& job, bool valid=true)
-    : Prefix(job.Data), Valid(valid)
+  CubitOutput(const remus::proto::JobResult& job, bool valid=true)
+    : Prefix(job.data()), Valid(valid)
   {}
 
   CubitOutput(std::string& prefix, bool valid=true)

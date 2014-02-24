@@ -13,22 +13,30 @@
 #ifndef remus_worker_h
 #define remus_worker_h
 
-#include <remus/common/zmqHelper.h>
-
-#include <remus/worker/Job.h>
-#include <remus/worker/JobResult.h>
-#include <remus/worker/JobStatus.h>
-
 #include <remus/common/MeshIOType.h>
 
-#include <remus/worker/ServerConnection.h>
-#include <remus/worker/detail/JobQueue.h>
+#include <remus/proto/JobRequirements.h>
+#include <remus/proto/JobResult.h>
+#include <remus/proto/JobStatus.h>
+#include <remus/proto/zmqHelper.h>
 
-//included for symbol exports
+#include <remus/worker/Job.h>
+#include <remus/worker/ServerConnection.h>
+
+
+//included for export symbols
 #include <remus/worker/WorkerExports.h>
+
+#include <boost/scoped_ptr.hpp>
 
 namespace remus{
 namespace worker{
+  namespace detail
+  {
+  //forward declaration of classes only the implementation needs
+  class MessageRouter;
+  class JobQueue;
+  }
 
 //The worker class is the interface for accepting jobs to process from a
 // remus server. Once you get a job from the server you process the given
@@ -39,9 +47,16 @@ class REMUSWORKER_EXPORT Worker
 public:
   //construct a worker that can mesh a single type
   //it uses the server connection object to determine what server
-  //to connect too
+  //to connect too. The requirements of this worker are extremely simple
+  //in that it only demands a given mesh input and output type.
   explicit Worker(remus::common::MeshIOType mtype,
-                  remus::worker::ServerConnection const& conn);
+                  const remus::worker::ServerConnection& conn);
+
+  //construct a worker that can mesh only an exact set of requirements.
+  //it uses the server connection object to determine what server
+  //to connect too
+  explicit Worker(const remus::proto::JobRequirements& requirements,
+                  const remus::worker::ServerConnection& conn);
 
   virtual ~Worker();
 
@@ -59,38 +74,30 @@ public:
   virtual remus::worker::Job getJob();
 
   //update the status of the worker
-  virtual void updateStatus(const remus::worker::JobStatus& info);
+  virtual void updateStatus(const remus::proto::JobStatus& info);
 
   //send to the server the mesh results.
-  virtual void returnMeshResults(const remus::worker::JobResult& result);
+  virtual void returnMeshResults(const remus::proto::JobResult& result);
 
-protected:
-  //start communication. Currently is called by
-  //the constructor
-  bool startCommunicationThread(const std::string &serverEndpoint,
-                                const std::string &commEndpoint,
-                                const std::string &jobQueueEndpoint);
-
-  //currently called by the destructor
-  bool stopCommunicationThread();
 private:
-
   //holds the type of mesh we support
-  const remus::common::MeshIOType MeshIOType;
+  const remus::proto::JobRequirements MeshRequirements;
+
+  remus::worker::ServerConnection ConnectionInfo;
 
   zmq::context_t Context;
 
   //this socket is used to talk to server
-  zmq::socket_t ServerComm;
+  zmq::socket_t ServerSocket;
 
   //this is the thread that handles talking with the server
   //and dealing with heartbeats
-  class ServerCommunicator;
-  ServerCommunicator *BComm;
+  boost::scoped_ptr<remus::worker::detail::MessageRouter> MessageRouter;
+  boost::scoped_ptr<remus::worker::detail::JobQueue> JobQueue;
 
-  remus::worker::detail::JobQueue JobQueue;
-
-  bool ConnectedToLocalServer;
+  //explicitly state the worker doesn't support copy or move semantics
+  Worker(const Worker&);
+  void operator=(const Worker&);
 };
 
 }

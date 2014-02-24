@@ -26,7 +26,7 @@ class CubitInput
 public:
   CubitInput(const remus::worker::Job& job)
   {
-    std::stringstream ss(job.details());
+    std::stringstream ss(job.details("default"));
     getline(ss, InFile, ';');
     boost::algorithm::trim_if(InFile,boost::algorithm::is_cntrl());
     getline(ss, ExecutablePath, ';');
@@ -42,10 +42,10 @@ public:
   }
   void setInputFile(std::string p)
   { InFile = p; }
-  
+
   std::string const& getExecutablePath() const
   { return ExecutablePath; }
-  
+
   operator std::string(void) const
   {
     std::stringstream ss;
