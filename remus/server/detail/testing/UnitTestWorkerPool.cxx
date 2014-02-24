@@ -15,9 +15,7 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
-
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/uuid/random_generator.hpp>
 
 namespace {
 
@@ -34,12 +32,11 @@ const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
                                                   "", "" );
 
 
-boost::uuids::random_generator generator;
 
 //makes a random socket identity
 zmq::socketIdentity make_socketId()
 {
-  boost::uuids::uuid new_uid = generator();
+  boost::uuids::uuid new_uid = remus::testing::UUIDGenerator();
   const std::string str_id = boost::lexical_cast<std::string>(new_uid);
   return zmq::socketIdentity(str_id.c_str(),str_id.size());
 }

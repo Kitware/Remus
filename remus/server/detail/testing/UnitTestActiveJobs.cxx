@@ -15,23 +15,14 @@
 #include <remus/server/detail/ActiveJobs.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/uuid/random_generator.hpp>
 
 
 namespace {
 
-boost::uuids::random_generator generator;
-
-//makes a random uuid
-boost::uuids::uuid make_id()
-{
-  return generator();
-}
-
 //makes a random socket identity
 zmq::socketIdentity make_socketId()
 {
-  boost::uuids::uuid new_uid = make_id();
+  boost::uuids::uuid new_uid = remus::testing::UUIDGenerator();
   const std::string str_id = boost::lexical_cast<std::string>(new_uid);
   return zmq::socketIdentity(str_id.c_str(),str_id.size());
 }
@@ -40,7 +31,8 @@ zmq::socketIdentity make_socketId()
 void verify_add_remove_jobs()
 {
   std::vector< boost::uuids::uuid > uuids_used;
-  for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
+  for(int i=0; i < 5; ++i)
+    { uuids_used.push_back(remus::testing::UUIDGenerator()); }
 
   remus::server::detail::ActiveJobs jobs;
 
@@ -58,7 +50,7 @@ void verify_add_remove_jobs()
     REMUS_ASSERT( (jobs.status(uuids_used[i]).failed() == false) );
     }
 
-  REMUS_ASSERT( (jobs.remove(make_id()) == false));
+  REMUS_ASSERT( (jobs.remove(remus::testing::UUIDGenerator()) == false));
   REMUS_ASSERT( (jobs.remove(uuids_used[0]) == true));
   REMUS_ASSERT( (jobs.remove(uuids_used[0]) == false));
 
@@ -91,7 +83,8 @@ void verify_add_remove_jobs()
 void verify_updating_status()
 {
   std::vector< boost::uuids::uuid > uuids_used;
-  for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
+  for(int i=0; i < 5; ++i)
+    { uuids_used.push_back(remus::testing::UUIDGenerator()); }
 
   remus::server::detail::ActiveJobs jobs;
 
@@ -205,7 +198,7 @@ void verify_updating_status()
 
 void verify_updating_progress()
 {
-  boost::uuids::uuid uuid_used = make_id();
+  boost::uuids::uuid uuid_used = remus::testing::UUIDGenerator();
   remus::server::detail::ActiveJobs jobs;
 
   REMUS_ASSERT( (jobs.add(make_socketId(), uuid_used) == true) );
@@ -257,7 +250,8 @@ void verify_refresh_jobs()
   const ptime current = second_clock::local_time();
 
   std::vector< boost::uuids::uuid > uuids_used;
-  for(int i=0; i < 5; ++i) { uuids_used.push_back(make_id()); }
+  for(int i=0; i < 5; ++i)
+    { uuids_used.push_back(remus::testing::UUIDGenerator()); }
 
   remus::server::detail::ActiveJobs jobs;
 
@@ -281,7 +275,7 @@ void verify_refresh_jobs()
     { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
 
   //verify that jobs marked as finished can't be marked as expired
-  boost::uuids::uuid finished_job_uuid = make_id();
+  boost::uuids::uuid finished_job_uuid = remus::testing::UUIDGenerator();
   remus::proto::JobResult result_with_data(finished_job_uuid,"data");
   jobs.add(make_socketId(), finished_job_uuid);
   jobs.updateResult(result_with_data);

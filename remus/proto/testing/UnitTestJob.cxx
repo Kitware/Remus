@@ -11,7 +11,6 @@
 //=============================================================================
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
 #include <remus/proto/Job.h>
 
 #include <remus/testing/Testing.h>
@@ -19,7 +18,11 @@
 namespace
 {
 using namespace remus::proto;
-boost::uuids::random_generator generator;
+
+boost::uuids::uuid make_id()
+{
+  return remus::testing::UUIDGenerator();
+}
 
 void validate_serialization(Job s)
 {
@@ -38,10 +41,10 @@ int UnitTestJob(int, char *[])
   remus::meshtypes::Model model;
   remus::meshtypes::Mesh3D m3d;
 
-  Job modelToMesh(generator(), remus::common::MeshIOType(model,m3d) );
+  Job modelToMesh(make_id(), remus::common::MeshIOType(model,m3d) );
   Job modelToMesh2(modelToMesh.id(), remus::common::MeshIOType(model,m3d) );
 
-  Job meshToModel(generator(), remus::common::MeshIOType(m3d,model) );
+  Job meshToModel(make_id(), remus::common::MeshIOType(m3d,model) );
   Job meshToModel2(meshToModel.id(), remus::common::MeshIOType(m3d,model) );
 
 

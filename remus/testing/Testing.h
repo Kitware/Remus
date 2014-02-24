@@ -24,6 +24,11 @@
 #include <string>
 #include <vector>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 namespace remus {
 namespace testing {
 
@@ -126,6 +131,19 @@ inline std::string AsciiStringGenerator(std::size_t length)
   std::string characters(start,char_set_length);
   std::string result = CharacterGenerator(characters,length);
   return result;
+}
+
+inline boost::uuids::uuid UUIDGenerator()
+{
+  static boost::mt19937 ran;
+  static boost::uuids::basic_random_generator<boost::mt19937> generator(&ran);
+  return generator();
+}
+
+inline std::string UniqueString()
+{
+  boost::uuids::uuid i = UUIDGenerator();
+  return boost::lexical_cast<std::string>(i);
 }
 
 }

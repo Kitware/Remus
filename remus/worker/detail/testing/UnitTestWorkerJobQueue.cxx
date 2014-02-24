@@ -21,7 +21,6 @@
 #include <remus/testing/Testing.h>
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -33,11 +32,10 @@ using namespace remus::worker::detail;
 
 namespace {
 
-boost::uuids::random_generator generator;
-
 void verify_basic_comms(zmq::context_t& context)
 {
-  zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(
+                                                remus::testing::UniqueString());
   JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
 
   //create the socket to send info to the job queue
@@ -49,7 +47,7 @@ void verify_basic_comms(zmq::context_t& context)
   //now send it a terminate message over the server channel
   remus::proto::Response response(sid);
 
-  boost::uuids::uuid jobId = generator();
+  boost::uuids::uuid jobId = remus::testing::UUIDGenerator();
   remus::worker::Job fakeJob(jobId,
                              remus::proto::JobSubmission());
   response.setServiceType(remus::MAKE_MESH);
@@ -71,12 +69,12 @@ void verify_basic_comms(zmq::context_t& context)
           );
   remus::proto::JobSubmission sub(reqs);
 
-  remus::worker::Job fakeJob2(generator(), sub);
+  remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
   response.send(jobSocket);
 
-  remus::worker::Job fakeJob3(generator(), sub);
+  remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
   response.send(jobSocket);
@@ -118,7 +116,8 @@ void verify_basic_comms(zmq::context_t& context)
 
 void verify_term(zmq::context_t& context)
 {
-  zmq::socketInfo<zmq::proto::inproc> queue_channel("jobs");
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(
+                                                remus::testing::UniqueString());
   JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
 
   //create the socket to send info to the job queue
