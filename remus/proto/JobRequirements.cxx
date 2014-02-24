@@ -15,6 +15,8 @@
 #include <remus/common/ConditionalStorage.h>
 #include <remus/proto/conversionHelpers.h>
 
+#include <boost/make_shared.hpp>
+
 namespace remus{
 namespace proto{
 
@@ -57,7 +59,8 @@ JobRequirements::JobRequirements():
   MeshType(),
   WorkerName(),
   Tag(),
-  Implementation(new InternalImpl(NULL,0))
+  Implementation(boost::make_shared<InternalImpl>(
+                 static_cast<char*>(NULL),std::size_t(0)))
 {
 }
 
@@ -72,7 +75,7 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
   MeshType(mtype),
   WorkerName(wname),
   Tag(),
-  Implementation(new InternalImpl(reqs))
+  Implementation(boost::make_shared<InternalImpl>(reqs))
 {
 }
 
@@ -88,7 +91,7 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
   MeshType(mtype),
   WorkerName(wname),
   Tag(),
-  Implementation(new InternalImpl(reqs,reqs_size))
+  Implementation(boost::make_shared<InternalImpl>(reqs,reqs_size))
 {
 }
 
@@ -104,7 +107,7 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
   MeshType(mtype),
   WorkerName(wname),
   Tag(tag),
-  Implementation(new InternalImpl(reqs))
+  Implementation(boost::make_shared<InternalImpl>(reqs))
 {
 }
 
@@ -121,7 +124,7 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
   MeshType(mtype),
   WorkerName(wname),
   Tag(tag),
-  Implementation(new InternalImpl(reqs,reqs_size))
+  Implementation(boost::make_shared<InternalImpl>(reqs,reqs_size))
 {
 }
 
@@ -229,8 +232,7 @@ JobRequirements::JobRequirements(std::istream& buffer)
   //enables us to use less copies for faster read of large data
   remus::internal::extractVector(buffer,contents);
 
-  this->Implementation =
-    boost::shared_ptr< InternalImpl >(new InternalImpl(contents));
+  this->Implementation = boost::make_shared<InternalImpl>(contents);
 }
 
 //------------------------------------------------------------------------------

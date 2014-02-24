@@ -16,6 +16,8 @@
 #include <remus/common/MD5Hash.h>
 #include <remus/proto/conversionHelpers.h>
 
+#include <boost/make_shared.hpp>
+
 #include <algorithm>
 
 namespace remus{
@@ -106,7 +108,9 @@ JobContent::JobContent():
   SourceType(),
   FormatType(),
   Tag(),
-  Implementation( new InternalImpl(NULL,0) )
+  Implementation( boost::make_shared<InternalImpl>(
+                 static_cast<char*>(NULL),std::size_t(0)) )
+  //make_shared is significantly faster than using manual new
 {
 }
 
@@ -117,7 +121,8 @@ JobContent::JobContent(remus::common::ContentSource::Type source,
   SourceType(source),
   FormatType(format),
   Tag(),
-  Implementation( new InternalImpl(contents) )
+  Implementation( boost::make_shared<InternalImpl>(contents) )
+  //make_shared is significantly faster than using manual new
 {
 
 }
@@ -129,7 +134,8 @@ JobContent::JobContent(remus::common::ContentFormat::Type format,
   SourceType(remus::common::ContentSource::Memory),
   FormatType(format),
   Tag(),
-  Implementation( new InternalImpl(contents,size) )
+  Implementation( boost::make_shared<InternalImpl>(contents,size) )
+  //make_shared is significantly faster than using manual new
 {
 
 }
@@ -218,8 +224,8 @@ JobContent::JobContent(std::istream& buffer)
   //enables us to use less copies for faster read of large data
   remus::internal::extractVector(buffer,contents);
 
-  this->Implementation =
-    boost::shared_ptr< InternalImpl >(new InternalImpl(contents));
+  //make_shared is significantly faster than using manual new
+  this->Implementation = boost::make_shared<InternalImpl>(contents);
 }
 
 
