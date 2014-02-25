@@ -395,6 +395,9 @@ void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity
     case remus::CAN_MESH:
       response.setData(this->canMesh(msg));
       break;
+    case remus::CAN_MESH_REQUIREMENTS:
+      response.setData(this->canMeshRequirements(msg));
+      break;
     case remus::MESH_REQUIREMENTS:
       response.setData(this->meshRequirements(msg));
       break;
@@ -425,6 +428,23 @@ bool Server::canMesh(const remus::proto::Message& msg)
   bool poolSupport =
     (this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType()).size() > 0);
 
+
+  return workerSupport || poolSupport;
+}
+
+//------------------------------------------------------------------------------
+bool Server::canMeshRequirements(const remus::proto::Message& msg)
+{
+  //we state that the factory can support a mesh type by having a worker
+  //registered to it that supports the mesh type.
+  remus::proto::JobRequirements reqs =
+                              remus::proto::to_JobRequirements(msg.data());
+  bool workerSupport = this->WorkerFactory.haveSupport(reqs) &&
+                      (this->WorkerFactory.maxWorkerCount() > 0);
+
+  //Query the worker pool to get the set of requirements for waiting
+  //workers that support the given mesh type info
+  bool poolSupport = this->WorkerPool->haveWaitingWorker(reqs);
 
   return workerSupport || poolSupport;
 }

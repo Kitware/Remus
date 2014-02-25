@@ -112,6 +112,7 @@ protected:
 
   //These methods are all to do with send responses to job messages
   bool canMesh(const remus::proto::Message& msg);
+  bool canMeshRequirements(const remus::proto::Message& msg);
   std::string meshRequirements(const remus::proto::Message& msg);
   std::string meshStatus(const remus::proto::Message& msg);
   std::string queueJob(const remus::proto::Message& msg);

@@ -63,6 +63,19 @@ bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 }
 
 //------------------------------------------------------------------------------
+bool Client::canMesh(const remus::proto::JobRequirements& reqs)
+{
+  const std::string stringRequest(remus::proto::to_string(reqs));
+  remus::proto::Message j(reqs.meshTypes(),
+                          remus::CAN_MESH_REQUIREMENTS,
+                          stringRequest);
+  j.send(this->Zmq->Server);
+
+  remus::proto::Response response(this->Zmq->Server);
+  return response.dataAs<remus::STATUS_TYPE>() != remus::INVALID_STATUS;
+}
+
+//------------------------------------------------------------------------------
 remus::proto::JobRequirementsSet
 Client::retrieveRequirements( const remus::common::MeshIOType& meshtypes)
 {

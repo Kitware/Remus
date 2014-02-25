@@ -27,10 +27,10 @@ AssygenOutput client::getOutput(AssygenInput const& in)
 
   remus::Client c(Connection);
   remus::common::MeshIOType mesh_types(in_type,out_type);
-  if(c.canMesh(mesh_types))
-    {
-    remus::proto::JobRequirements reqs =
+  remus::proto::JobRequirements reqs =
       remus::proto::make_MemoryJobRequirements(mesh_types,"AssyGenWorker","");
+  if(c.canMesh(reqs))
+    {
     remus::proto::JobContent content =
       remus::proto::make_MemoryJobContent(in);
 
