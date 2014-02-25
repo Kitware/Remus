@@ -27,8 +27,11 @@
 //----------------------------------------------------------------------------
 worker::worker( remus::worker::ServerConnection const& connection )
   :remus::worker::Worker(
-    remus::common::make_MeshIOType(remus::meshtypes::SceneFile(),
-                                   remus::meshtypes::Model()),
+    remus::proto::make_MemoryJobRequirements(
+      remus::common::make_MeshIOType(remus::meshtypes::SceneFile(),
+                                     remus::meshtypes::Model()),
+      "AssyGenWorker",
+      ""),
     connection),
    Process(NULL)
 {

@@ -27,8 +27,11 @@
 //----------------------------------------------------------------------------
 worker::worker( remus::worker::ServerConnection const& connection )
   :remus::worker::Worker(
-      remus::common::make_MeshIOType( remus::meshtypes::Model(),
-                                      remus::meshtypes::Mesh3D()),
+    remus::proto::make_MemoryJobRequirements(
+      remus::common::make_MeshIOType(remus::meshtypes::Model(),
+                                     remus::meshtypes::Mesh3D()),
+      "CubitWorker",
+      ""),
       connection),
    Process(NULL)
 {
