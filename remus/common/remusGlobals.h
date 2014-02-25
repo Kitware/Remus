@@ -43,7 +43,8 @@ static const std::string INVALID_MSG = "INVALID_MSG";
      ServiceTypeMacro(HEARTBEAT, 5, "HEARTBEAT"), \
      ServiceTypeMacro(TERMINATE_JOB, 6, "TERMINATE JOB"), \
      ServiceTypeMacro(TERMINATE_WORKER, 7, "TERMINATE WORKER"), \
-     ServiceTypeMacro(MESH_REQUIREMENTS, 8, "MESH REQUIREMENTS")
+     ServiceTypeMacro(CAN_MESH_REQUIREMENTS, 8, "CAN MESH REQUIREMENTS"), \
+     ServiceTypeMacro(MESH_REQUIREMENTS, 9, "MESH REQUIREMENTS")
 
 //------------------------------------------------------------------------------
 enum SERVICE_TYPE

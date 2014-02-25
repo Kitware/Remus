@@ -58,6 +58,10 @@ public:
   //the requested input and output mesh types
   bool canMesh(const remus::common::MeshIOType& meshtypes);
 
+  //Submit a request to the server to see if the server supports
+  //the exact requested requirements
+  bool canMesh(const remus::proto::JobRequirements& requirements);
+
   //submit a request to the server to see if the server supports
   //the request input and output mesh types. If the server does support
   //the given types, return a collection of JobRequirements
