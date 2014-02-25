@@ -27,9 +27,12 @@
 //----------------------------------------------------------------------------
 worker::worker( remus::worker::ServerConnection const& connection )
   :remus::worker::Worker(
-    remus::common::make_MeshIOType(remus::meshtypes::Mesh3D(),
-                                   remus::meshtypes::Mesh3D()),
-      connection),
+    remus::proto::make_MemoryJobRequirements(
+      remus::common::make_MeshIOType(remus::meshtypes::Mesh3D(),
+                                     remus::meshtypes::Mesh3D()),
+      "CoreGenWorker",
+      ""),
+    connection),
    Process(NULL)
 {
 }
