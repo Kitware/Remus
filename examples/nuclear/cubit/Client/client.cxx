@@ -31,7 +31,7 @@ CubitOutput client::getOutput(CubitInput const& in)
   if(c.canMesh(mesh_types))
     {
     remus::proto::JobRequirements reqs =
-      remus::proto::make_MemoryJobRequirements(mesh_types,"AssygenWorker","");
+      remus::proto::make_MemoryJobRequirements(mesh_types,"CubitWorker","");
     remus::proto::JobContent content =
       remus::proto::make_MemoryJobContent(in);
     remus::proto::JobSubmission sub(reqs,content);
