@@ -63,7 +63,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
 
   //we need to fetch a heartbeat message from the router
   //so that we get the socket identity to send to
-  zmq::socketIdentity sid = zmq::address_recv(socket);
+  zmq::SocketIdentity sid = zmq::address_recv(socket);
 
   //now send it a terminate message over the server channel
   remus::proto::Response response(sid);
@@ -141,7 +141,7 @@ void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
 
   //we need to fetch a heartbeat message from the router
   //so that we get the socket identity to send to
-  zmq::socketIdentity sid = zmq::address_recv(socket);
+  zmq::SocketIdentity sid = zmq::address_recv(socket);
 
   //now send it a terminate message over the server channel
   remus::proto::Response response(sid);

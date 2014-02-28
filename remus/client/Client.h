@@ -35,8 +35,6 @@
 namespace remus{
 namespace client{
 
-//forward declare ZmqManagement so when linking to the client library
-//you don't also need to link to zmq
 namespace detail { struct ZmqManagement; }
 
 class REMUSCLIENT_EXPORT Client

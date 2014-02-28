@@ -13,14 +13,14 @@
 #include <remus/server/detail/WorkerPool.h>
 
 #include <remus/server/detail/uuidHelper.h>
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 
 namespace remus{
 namespace server{
 namespace detail{
 
 //------------------------------------------------------------------------------
-WorkerPool::WorkerInfo::WorkerInfo(const zmq::socketIdentity& address,
+WorkerPool::WorkerInfo::WorkerInfo(const zmq::SocketIdentity& address,
                                    const remus::proto::JobRequirements& reqs):
   WaitingForWork(false),
   Reqs(reqs),
@@ -45,7 +45,7 @@ WorkerPool::WorkerPool():
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::addWorker(zmq::socketIdentity workerIdentity,
+bool WorkerPool::addWorker(zmq::SocketIdentity workerIdentity,
                            const remus::proto::JobRequirements& reqs)
 {
   this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,reqs) );
@@ -78,7 +78,7 @@ bool WorkerPool::haveWaitingWorker(
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWorker(const zmq::socketIdentity& address) const
+bool WorkerPool::haveWorker(const zmq::SocketIdentity& address) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
@@ -89,7 +89,7 @@ bool WorkerPool::haveWorker(const zmq::socketIdentity& address) const
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
+bool WorkerPool::readyForWork(const zmq::SocketIdentity& address)
 {
   //a worker can be registered multiple times, we need to iterate
   //over the entire vector and find all occurrences of the of the address
@@ -103,7 +103,7 @@ bool WorkerPool::readyForWork(const zmq::socketIdentity& address)
 
 
 //------------------------------------------------------------------------------
-zmq::socketIdentity WorkerPool::takeWorker(
+zmq::SocketIdentity WorkerPool::takeWorker(
                              const remus::proto::JobRequirements& reqs)
 {
 
@@ -122,11 +122,11 @@ zmq::socketIdentity WorkerPool::takeWorker(
 
   if(found)
     {
-    zmq::socketIdentity workerIdentity(info->Address);
+    zmq::SocketIdentity workerIdentity(info->Address);
     this->Pool.erase(this->Pool.begin()+index);
     return workerIdentity;
     }
-  return zmq::socketIdentity();
+  return zmq::SocketIdentity();
 }
 
 //------------------------------------------------------------------------------
@@ -143,15 +143,15 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::refreshWorker(const zmq::socketIdentity& address)
+void WorkerPool::refreshWorker(const zmq::SocketIdentity& address)
 {
   std::for_each(this->Pool.begin(), this->Pool.end(),
                 WorkerPool::RefreshWorkers(address));
 }
 //------------------------------------------------------------------------------
-std::set<zmq::socketIdentity> WorkerPool::livingWorkers() const
+std::set<zmq::SocketIdentity> WorkerPool::livingWorkers() const
 {
-  std::set<zmq::socketIdentity> workerAddresses;
+  std::set<zmq::SocketIdentity> workerAddresses;
   for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {
     workerAddresses.insert(i->Address);

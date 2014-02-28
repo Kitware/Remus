@@ -15,7 +15,7 @@
 
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -31,12 +31,12 @@ class ActiveJobs
   public:
     ActiveJobs():Info(){}
 
-    bool add(const zmq::socketIdentity& workerIdentity,
+    bool add(const zmq::SocketIdentity& workerIdentity,
              const boost::uuids::uuid& id);
 
     bool remove(const boost::uuids::uuid& id);
 
-    zmq::socketIdentity workerAddress(const boost::uuids::uuid& id) const;
+    zmq::SocketIdentity workerAddress(const boost::uuids::uuid& id) const;
 
     bool haveUUID(const boost::uuids::uuid& id) const;
 
@@ -62,20 +62,20 @@ class ActiveJobs
 
     void markExpiredJobs(const boost::posix_time::ptime& time);
 
-    void refreshJobs(const zmq::socketIdentity &workerIdentity);
+    void refreshJobs(const zmq::SocketIdentity &workerIdentity);
 
-    std::set<zmq::socketIdentity> activeWorkers() const;
+    std::set<zmq::SocketIdentity> activeWorkers() const;
 
 private:
     struct JobState
     {
-      zmq::socketIdentity WorkerAddress;
+      zmq::SocketIdentity WorkerAddress;
       remus::proto::JobStatus jstatus;
       remus::proto::JobResult jresult;
       boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
-      JobState(const zmq::socketIdentity& workerIdentity,
+      JobState(const zmq::SocketIdentity& workerIdentity,
                const boost::uuids::uuid& id,
                remus::STATUS_TYPE stat);
 

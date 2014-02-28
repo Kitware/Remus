@@ -11,6 +11,7 @@ set(headers
     JobSubmission.h
     zmq.hpp
     zmqHelper.h
+    zmqSocketIdentity.h
     zmqSocketInfo.h
     zmqTraits.h
     )

@@ -20,11 +20,11 @@
 namespace {
 
 //makes a random socket identity
-zmq::socketIdentity make_socketId()
+zmq::SocketIdentity make_socketId()
 {
   boost::uuids::uuid new_uid = remus::testing::UUIDGenerator();
   const std::string str_id = boost::lexical_cast<std::string>(new_uid);
-  return zmq::socketIdentity(str_id.c_str(),str_id.size());
+  return zmq::SocketIdentity(str_id.c_str(),str_id.size());
 }
 
 
@@ -67,15 +67,15 @@ void verify_add_remove_jobs()
     }
 
   //verify the contents of the set returned by activeWorkers is correct
-  std::set< zmq::socketIdentity > valid_workers = jobs.activeWorkers();
+  std::set< zmq::SocketIdentity > valid_workers = jobs.activeWorkers();
   REMUS_ASSERT( (valid_workers.size() == 4) );
   for(int i=1; i < 5; ++i)
     {
-    zmq::socketIdentity workerAddress = jobs.workerAddress(uuids_used[i]);
+    zmq::SocketIdentity workerAddress = jobs.workerAddress(uuids_used[i]);
     REMUS_ASSERT( (valid_workers.count(workerAddress) == 1) );
     }
   //verify that we don't have the removed jobs
-  zmq::socketIdentity workerAddress = jobs.workerAddress(uuids_used[0]);
+  zmq::SocketIdentity workerAddress = jobs.workerAddress(uuids_used[0]);
   REMUS_ASSERT( (valid_workers.count(workerAddress) == 0) );
   REMUS_ASSERT( (jobs.haveUUID(uuids_used[0]) == false) );
 }

@@ -23,7 +23,7 @@
 #include <remus/proto/JobRequirements.h>
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 
 #include <remus/worker/Job.h>
 
@@ -294,7 +294,7 @@ bool Server::brokering(Server::SignalHandling sh)
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
-      zmq::socketIdentity clientIdentity = zmq::address_recv(this->Zmq->ClientQueries);
+      zmq::SocketIdentity clientIdentity = zmq::address_recv(this->Zmq->ClientQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
@@ -305,7 +305,7 @@ bool Server::brokering(Server::SignalHandling sh)
       {
       //a worker is registering
       //we need to strip the worker address from the message
-      zmq::socketIdentity workerIdentity = zmq::address_recv(this->Zmq->WorkerQueries);
+      zmq::SocketIdentity workerIdentity = zmq::address_recv(this->Zmq->WorkerQueries);
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
@@ -367,7 +367,7 @@ void Server::waitForBrokeringToStart()
 }
 
 //------------------------------------------------------------------------------
-void Server::DetermineJobQueryResponse(const zmq::socketIdentity& clientIdentity,
+void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity,
                                   const remus::proto::Message& msg)
 {
   //msg.dump(std::cout);
@@ -528,7 +528,7 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
   bool removed = this->QueuedJobs->remove(job.id());
   if(!removed)
     {
-    zmq::socketIdentity worker = this->ActiveJobs->workerAddress(job.id());
+    zmq::SocketIdentity worker = this->ActiveJobs->workerAddress(job.id());
     removed = this->ActiveJobs->remove(job.id());
 
     //send an out of band message to the worker to kill itself
@@ -547,7 +547,7 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
+void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
                                      const remus::proto::Message& msg)
 {
   //we have a valid job, determine what to do with it
@@ -602,7 +602,7 @@ void Server::storeMesh(const remus::proto::Message& msg)
 }
 
 //------------------------------------------------------------------------------
-void Server::assignJobToWorker(const zmq::socketIdentity &workerIdentity,
+void Server::assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
                                const remus::worker::Job& job )
 {
   this->ActiveJobs->add( workerIdentity, job.id() );
@@ -703,10 +703,10 @@ void Server::TerminateAllWorkers( )
 {
 
   //next we take workers from the worker pool and kill them all off
-  std::set<zmq::socketIdentity> pendingWorkers =
+  std::set<zmq::SocketIdentity> pendingWorkers =
                                               this->WorkerPool->livingWorkers();
 
-  typedef std::set<zmq::socketIdentity>::const_iterator iterator;
+  typedef std::set<zmq::SocketIdentity>::const_iterator iterator;
   for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)
     {
     //make a fake id and send that with the terminate command
@@ -719,7 +719,7 @@ void Server::TerminateAllWorkers( )
     }
 
   //lastly we will kill any still active worker
-  std::set<zmq::socketIdentity> activeWorkers =
+  std::set<zmq::SocketIdentity> activeWorkers =
                                         this->ActiveJobs->activeWorkers();
 
   //only call terminate again on workers that are active

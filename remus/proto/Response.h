@@ -22,7 +22,7 @@ class Response
 {
 public:
   //----------------------------------------------------------------------------
-  explicit Response(const zmq::socketIdentity& client):
+  explicit Response(const zmq::SocketIdentity& client):
     ClientAddress(client),
     SType(remus::INVALID_SERVICE),
     Data(NULL)
@@ -73,7 +73,7 @@ public:
 
 private:
   void clearData();
-  const zmq::socketIdentity ClientAddress;
+  const zmq::SocketIdentity ClientAddress;
   remus::SERVICE_TYPE SType;
   zmq::message_t* Data;
 

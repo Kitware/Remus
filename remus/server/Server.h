@@ -14,7 +14,7 @@
 #define remus_server_Server_h
 
 #include <remus/common/SignalCatcher.h>
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/uuid/random_generator.hpp>
@@ -107,7 +107,7 @@ protected:
   //The main brokering loop, called by thread
   virtual bool brokering(SignalHandling sh = CAPTURE);
   //processes all job queries
-  void DetermineJobQueryResponse(const zmq::socketIdentity &clientIdentity,
+  void DetermineJobQueryResponse(const zmq::SocketIdentity &clientIdentity,
                                  const remus::proto::Message& msg);
 
   //These methods are all to do with send responses to job messages
@@ -120,11 +120,11 @@ protected:
   std::string terminateJob(const remus::proto::Message& msg);
 
   //Methods for processing Worker queries
-  void DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
+  void DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
                               const remus::proto::Message& msg);
   void storeMeshStatus(const remus::proto::Message& msg);
   void storeMesh(const remus::proto::Message& msg);
-  void assignJobToWorker(const zmq::socketIdentity &workerIdentity,
+  void assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
                          const remus::worker::Job& job);
 
   //see if we have a worker in the pool for the next job in the queue,

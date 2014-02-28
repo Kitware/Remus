@@ -143,7 +143,7 @@ void poll()
         {
         //send the terminate worker message to the job queue too
         remus::worker::Job terminateJob;
-        remus::proto::Response termJob( (zmq::socketIdentity()) );
+        remus::proto::Response termJob( (zmq::SocketIdentity()) );
         termJob.setServiceType(remus::TERMINATE_WORKER);
         termJob.setData(remus::worker::to_string(terminateJob));
         termJob.send(this->QueueComm);
