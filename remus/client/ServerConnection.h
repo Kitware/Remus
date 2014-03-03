@@ -22,13 +22,6 @@
 namespace remus{
 namespace client{
 
-
-class ConnectionContext
-{
-  ConnectionContext(std::size_t num_threads=0);
-
-};
-
 class ServerConnection
 {
 public:
