@@ -19,6 +19,8 @@
 
 #include <boost/cstdint.hpp>
 
+#include <remus/testing/Testing.h>
+
 class Timer
 {
 public:
@@ -93,7 +95,8 @@ int main ()
         {
         valid_mesher_found = true;
         sub = remus::proto::JobSubmission(*i);
-        sub["data"] = remus::proto::make_MemoryJobContent( "Hello Worker" );
+        sub["data"] = remus::proto::make_MemoryJobContent(
+                            remus::testing::AsciiStringGenerator(2097152) );
         }
       }
     }
