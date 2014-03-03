@@ -21,28 +21,30 @@ endfunction(ms_get_kit_name)
 # Builds a source file and an executable that does nothing other than
 # compile the given header files.
 function(ms_add_header_test name dir_prefix)
-  set(hfiles ${ARGN})
-  set(suffix ".cxx")
-  set(cxxfiles)
-  foreach (header ${ARGN})
-    string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}" "" header "${header}")
-    get_filename_component(headername ${header} NAME_WE)
-    set(src ${CMAKE_CURRENT_BINARY_DIR}/TestBuild_${name}_${headername}${suffix})
-    configure_file(${Remus_SOURCE_DIR}/CMake/TestBuild.cxx.in ${src} @ONLY)
-    set(cxxfiles ${cxxfiles} ${src})
-  endforeach (header)
+  if(Remus_ENABLE_TESTING)
+    set(hfiles ${ARGN})
+    set(suffix ".cxx")
+    set(cxxfiles)
+    foreach (header ${ARGN})
+      string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}" "" header "${header}")
+      get_filename_component(headername ${header} NAME_WE)
+      set(src ${CMAKE_CURRENT_BINARY_DIR}/TestBuild_${name}_${headername}${suffix})
+      configure_file(${Remus_SOURCE_DIR}/CMake/TestBuild.cxx.in ${src} @ONLY)
+      set(cxxfiles ${cxxfiles} ${src})
+    endforeach (header)
 
-  #include the build directory for the export header
-  #include ZeroMQ and boost for the testing framework
-  add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
-  target_include_directories(TestBuild_${name}
-        PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
-        PRIVATE ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}}
-        )
+    #include the build directory for the export header
+    #include ZeroMQ and boost for the testing framework
+    add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
+    target_include_directories(TestBuild_${name}
+          PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
+          PRIVATE ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}}
+          )
 
-  set_source_files_properties(${hfiles}
-    PROPERTIES HEADER_FILE_ONLY TRUE
-    )
+    set_source_files_properties(${hfiles}
+      PROPERTIES HEADER_FILE_ONLY TRUE
+      )
+  endif()
 endfunction(ms_add_header_test)
 
 # Declare a list of header files.  Will make sure the header files get

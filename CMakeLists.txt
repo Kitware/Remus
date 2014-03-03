@@ -86,6 +86,7 @@ endif()
 if (Remus_ENABLE_TESTING)
   enable_testing()
   include(CTest)
+  mark_as_advanced(BUILD_TESTING)
 endif()
 
 #------------------------------------------------------------------------------
