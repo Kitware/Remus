@@ -22,29 +22,45 @@
 namespace remus{
 namespace worker{
 
+//lightweight struct to hide zmq from leaking into libraries that link
+//to remus client
+namespace detail{
+struct ZmqManagement
+{
+  zmq::context_t Context;
+  zmq::socket_t Server;
+
+  ZmqManagement():
+    Context(1),
+    Server(Context, ZMQ_PAIR)
+  {}
+};
+}
+
+
 //-----------------------------------------------------------------------------
 Worker::Worker(remus::common::MeshIOType mtype,
                remus::worker::ServerConnection const& conn):
   MeshRequirements( remus::proto::make_MemoryJobRequirements(mtype,"","") ),
   ConnectionInfo(conn),
-  Context(1),
-  ServerSocket(Context,ZMQ_PAIR),
-  MessageRouter( new remus::worker::detail::MessageRouter(Context, conn,
+  Zmq( new detail::ZmqManagement() ),
+  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
+                    conn,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(Context,
+  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   //We have to bind to the inproc socket before the MessageRouter class does
   std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
-  this->ServerSocket.bind( ep.c_str() );
+  this->Zmq->Server.bind( ep.c_str() );
 
   this->MessageRouter->start();
 
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
                             remus::proto::to_string(this->MeshRequirements));
-  canMesh.send(this->ServerSocket);
+  canMesh.send(&this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -52,24 +68,24 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
                remus::worker::ServerConnection const& conn):
   MeshRequirements(requirements),
   ConnectionInfo(conn),
-  Context(1),
-  ServerSocket(Context,ZMQ_PAIR),
-  MessageRouter( new remus::worker::detail::MessageRouter(Context, conn,
+  Zmq( new detail::ZmqManagement() ),
+  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
+                    conn,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(Context,
+  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   //We have to bind to the inproc socket before the MessageRouter class does
   std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
-  this->ServerSocket.bind( ep.c_str() );
+  this->Zmq->Server.bind( ep.c_str() );
 
   this->MessageRouter->start();
 
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
                             remus::proto::to_string(this->MeshRequirements));
-  canMesh.send(this->ServerSocket);
+  canMesh.send(&this->Zmq->Server);
 }
 
 
@@ -82,7 +98,7 @@ Worker::~Worker()
     //polling the server
     remus::proto::Message shutdown(this->MeshRequirements.meshTypes(),
                                    remus::TERMINATE_WORKER);
-    shutdown.send(this->ServerSocket);
+    shutdown.send(&this->Zmq->Server);
     }
 }
 
@@ -93,7 +109,7 @@ void Worker::askForJobs( unsigned int numberOfJobs )
                            remus::MAKE_MESH,
                            remus::proto::to_string(this->MeshRequirements));
   for(int i=0; i < numberOfJobs; ++i)
-    { askForMesh.send(this->ServerSocket); }
+    { askForMesh.send(&this->Zmq->Server); }
 }
 
 //-----------------------------------------------------------------------------
@@ -127,7 +143,7 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::MESH_STATUS,
                                 msg.data(),msg.size());
-  message.send(this->ServerSocket);
+  message.send(&this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -138,7 +154,7 @@ void Worker::returnMeshResults(const remus::proto::JobResult& result)
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::RETRIEVE_MESH,
                                 msg.data(),msg.size());
-  message.send(this->ServerSocket);
+  message.send(&this->Zmq->Server);
 }
 
 }

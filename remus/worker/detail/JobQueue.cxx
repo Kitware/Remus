@@ -98,7 +98,7 @@ void pollForJobs()
     zmq::poll(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
-      remus::proto::Response response(this->ServerComm);
+      remus::proto::Response response(&this->ServerComm);
       switch(response.serviceType())
         {
         case remus::TERMINATE_WORKER:
@@ -121,7 +121,7 @@ void pollForJobs()
 void terminateJob(remus::proto::Response& response)
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
-  remus::worker::Job tj = remus::worker::to_Job(response.dataAs<std::string>());
+  remus::worker::Job tj = remus::worker::to_Job(response.data());
   for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
        i != this->Queue.end(); ++i)
     {
@@ -144,7 +144,7 @@ void clearJobs()
 void addItem(remus::proto::Response& response )
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
-  remus::worker::Job j = remus::worker::to_Job(response.dataAs<std::string>());
+  remus::worker::Job j = remus::worker::to_Job(response.data());
   this->Queue.push_back( j );
 }
 

@@ -19,7 +19,7 @@ namespace server{
 namespace detail{
 
 //-----------------------------------------------------------------------------
-ActiveJobs::JobState::JobState(const zmq::socketIdentity& workerIdentity,
+ActiveJobs::JobState::JobState(const zmq::SocketIdentity& workerIdentity,
          const boost::uuids::uuid& id,
          remus::STATUS_TYPE stat):
   WorkerAddress(workerIdentity),
@@ -52,7 +52,7 @@ bool ActiveJobs::JobState::canUpdateStatusTo(remus::proto::JobStatus s) const
 }
 
 //-----------------------------------------------------------------------------
-bool ActiveJobs::add(const zmq::socketIdentity &workerIdentity,
+bool ActiveJobs::add(const zmq::SocketIdentity &workerIdentity,
                      const boost::uuids::uuid& id)
 {
   if(!this->haveUUID(id))
@@ -77,13 +77,13 @@ bool ActiveJobs::remove(const boost::uuids::uuid& id)
 }
 
 //-----------------------------------------------------------------------------
-zmq::socketIdentity ActiveJobs::workerAddress(
+zmq::SocketIdentity ActiveJobs::workerAddress(
                                           const boost::uuids::uuid& id) const
 {
   InfoConstIt item = this->Info.find(id);
   if(item == this->Info.end())
     {
-    return zmq::socketIdentity();
+    return zmq::SocketIdentity();
     }
   return item->second.WorkerAddress;
 }
@@ -175,7 +175,7 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::refreshJobs(const zmq::socketIdentity& workerIdentity)
+void ActiveJobs::refreshJobs(const zmq::SocketIdentity& workerIdentity)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
@@ -187,9 +187,9 @@ void ActiveJobs::refreshJobs(const zmq::socketIdentity& workerIdentity)
 }
 
 //-----------------------------------------------------------------------------
-std::set<zmq::socketIdentity> ActiveJobs::activeWorkers() const
+std::set<zmq::SocketIdentity> ActiveJobs::activeWorkers() const
 {
-  std::set<zmq::socketIdentity> workerAddresses;
+  std::set<zmq::SocketIdentity> workerAddresses;
   for(InfoConstIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
     workerAddresses.insert(item->second.WorkerAddress);

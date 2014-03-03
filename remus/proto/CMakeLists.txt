@@ -9,16 +9,25 @@ set(headers
     JobResult.h
     JobStatus.h
     JobSubmission.h
-    zmq.hpp
-    zmqHelper.h
+    zmqSocketIdentity.h
     zmqSocketInfo.h
     zmqTraits.h
     )
+
+#these are headers that don't need to be installed
+set(private_headers
+  Message.h
+  Response.h
+  zmq.hpp
+  zmqHelper.h
+  )
 
 set(srcs
     JobContent.cxx
     JobRequirements.cxx
     JobSubmission.cxx
+    Message.cxx
+    Response.cxx
     )
 
 #setup the protocol library
@@ -40,6 +49,7 @@ remus_install_library(RemusProto)
 
 #install the headers
 remus_public_headers(${headers})
+remus_private_headers(${private_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusProto)

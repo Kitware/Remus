@@ -11,7 +11,7 @@
 //=============================================================================
 #include <remus/server/detail/WorkerPool.h>
 
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
@@ -34,11 +34,11 @@ const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
 
 
 //makes a random socket identity
-zmq::socketIdentity make_socketId()
+zmq::SocketIdentity make_socketId()
 {
   boost::uuids::uuid new_uid = remus::testing::UUIDGenerator();
   const std::string str_id = boost::lexical_cast<std::string>(new_uid);
-  return zmq::socketIdentity(str_id.c_str(),str_id.size());
+  return zmq::SocketIdentity(str_id.c_str(),str_id.size());
 }
 
 
@@ -50,7 +50,7 @@ void verify_has_workers()
 
   //verify that if we add a worker we only have 1 worker,
   //and we have no workers ready for work
-  zmq::socketIdentity worker1_id = make_socketId();
+  zmq::SocketIdentity worker1_id = make_socketId();
   pool.addWorker(worker1_id, worker_type2D);
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );
   REMUS_ASSERT( (pool.haveWorker(worker1_id) == true) );
@@ -80,7 +80,7 @@ void verify_has_worker_type()
   //verify that we only have workers for the given types
   //that we have added, and no false positives
   remus::server::detail::WorkerPool pool;
-  zmq::socketIdentity worker1_id = make_socketId();
+  zmq::SocketIdentity worker1_id = make_socketId();
   pool.addWorker(worker1_id, worker_type2D);
   pool.readyForWork(worker1_id);
 
@@ -117,7 +117,7 @@ void verify_purge_workers()
   using namespace boost::gregorian;
 
   remus::server::detail::WorkerPool pool;
-  zmq::socketIdentity worker1_id = make_socketId();
+  zmq::SocketIdentity worker1_id = make_socketId();
 
 
   const ptime long_ago = second_clock::local_time() -  days(10);
@@ -161,18 +161,18 @@ void verify_purge_workers()
 void verify_taking_works()
 {
   remus::server::detail::WorkerPool pool;
-  zmq::socketIdentity worker1_id = make_socketId();
+  zmq::SocketIdentity worker1_id = make_socketId();
 
   //try to take a worker before it has been marked as ready for work
   pool.addWorker(worker1_id, worker_type2D);
-  zmq::socketIdentity bad_id = pool.takeWorker(worker_type2D);
-  REMUS_ASSERT( (bad_id == zmq::socketIdentity()) );
+  zmq::SocketIdentity bad_id = pool.takeWorker(worker_type2D);
+  REMUS_ASSERT( (bad_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( !(bad_id == worker1_id) );
 
   //verify that we can take workers for a given job type
   pool.readyForWork(worker1_id);
-  zmq::socketIdentity good_id = pool.takeWorker(worker_type2D);
-  REMUS_ASSERT( !(good_id == zmq::socketIdentity()) );
+  zmq::SocketIdentity good_id = pool.takeWorker(worker_type2D);
+  REMUS_ASSERT( !(good_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( (good_id == worker1_id) );
   REMUS_ASSERT( (pool.livingWorkers().size() == 0) );
 
@@ -185,17 +185,17 @@ void verify_taking_works()
   pool.readyForWork(worker1_id);
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );
 
-  zmq::socketIdentity good_2d_id = pool.takeWorker(worker_type2D);
-  REMUS_ASSERT( !(good_2d_id == zmq::socketIdentity()) );
+  zmq::SocketIdentity good_2d_id = pool.takeWorker(worker_type2D);
+  REMUS_ASSERT( !(good_2d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( (good_2d_id == worker1_id) );
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );
 
-  zmq::socketIdentity bad_2d_id = pool.takeWorker(worker_type2D);
-  zmq::socketIdentity good_3d_id = pool.takeWorker(worker_type3D);
+  zmq::SocketIdentity bad_2d_id = pool.takeWorker(worker_type2D);
+  zmq::SocketIdentity good_3d_id = pool.takeWorker(worker_type3D);
 
-  REMUS_ASSERT( (bad_2d_id == zmq::socketIdentity()) );
+  REMUS_ASSERT( (bad_2d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( !(bad_2d_id == worker1_id) );
-  REMUS_ASSERT( !(good_3d_id == zmq::socketIdentity()) );
+  REMUS_ASSERT( !(good_3d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( (good_3d_id == worker1_id) );
   REMUS_ASSERT( (pool.livingWorkers().size() == 0) );
   }
@@ -209,17 +209,17 @@ void verify_taking_works()
 
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );
 
-  zmq::socketIdentity good_2d_id = pool.takeWorker(worker_type2D);
-  REMUS_ASSERT( !(good_2d_id == zmq::socketIdentity()) );
+  zmq::SocketIdentity good_2d_id = pool.takeWorker(worker_type2D);
+  REMUS_ASSERT( !(good_2d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( (good_2d_id == worker1_id) );
   REMUS_ASSERT( (pool.livingWorkers().size() == 1) );
 
-  zmq::socketIdentity bad_2d_id = pool.takeWorker(worker_type2D);
-  zmq::socketIdentity bad_3d_id = pool.takeWorker(worker_type3D);
+  zmq::SocketIdentity bad_2d_id = pool.takeWorker(worker_type2D);
+  zmq::SocketIdentity bad_3d_id = pool.takeWorker(worker_type3D);
 
-  REMUS_ASSERT( (bad_2d_id == zmq::socketIdentity()) );
+  REMUS_ASSERT( (bad_2d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( !(bad_2d_id == worker1_id) );
-  REMUS_ASSERT( (bad_3d_id == zmq::socketIdentity()) );
+  REMUS_ASSERT( (bad_3d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( !(bad_3d_id == worker1_id) );
 
 

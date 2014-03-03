@@ -96,15 +96,9 @@ inline std::string to_string(remus::SERVICE_TYPE t)
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(remus::STATUS_TYPE t)
-{
-  return std::string(remus::common::stat_types[(int)t]);
-}
-
-//------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 {
-  for(int i=1; i <=6; i++)
+  for(int i=1; i <=9; i++)
     {
     remus::SERVICE_TYPE mt=static_cast<remus::SERVICE_TYPE>(i);
     if (remus::to_string(mt) == t)
@@ -113,6 +107,26 @@ inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
       }
     }
   return remus::INVALID_SERVICE;
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(remus::STATUS_TYPE t)
+{
+  return std::string(remus::common::stat_types[(int)t]);
+}
+
+//------------------------------------------------------------------------------
+inline remus::STATUS_TYPE to_statusType(const std::string& t)
+{
+  for(int i=1; i <=5; i++)
+    {
+    remus::STATUS_TYPE mt=static_cast<remus::STATUS_TYPE>(i);
+    if (remus::to_string(mt) == t)
+      {
+      return mt;
+      }
+    }
+  return remus::INVALID_STATUS;
 }
 
 }

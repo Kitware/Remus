@@ -21,64 +21,14 @@
 //We now provide our own zmq.hpp since it has been removed from zmq 3, and
 //made its own project
 #include <remus/proto/zmq.hpp>
+#include <remus/proto/zmqSocketIdentity.h>
 #include <remus/proto/zmqSocketInfo.h>
 
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq
 {
-//holds the identity of a zero mq socket in a way that is
-//easier to copy around
-struct socketIdentity
-{
-  socketIdentity(const char* data, std::size_t size):
-    Size(size)
-    {
-    std::copy(data,data+size,Data);
-    }
 
-  socketIdentity():
-    Size(0)
-    {}
-
-  bool operator ==(const socketIdentity& b) const
-  {
-    if(this->size() != b.size()) { return false; }
-    return 0 == (memcmp(this->data(),b.data(),this->size()));
-  }
-
-  bool operator<(const socketIdentity& b) const
-  {
-    //sort first on size
-    if(this->Size != b.size()) { return this->Size < b.size(); }
-    //second sort on contents.
-
-    const char* a_data = this->data();
-    const char* b_data = b.data();
-    std::size_t index=0;
-    while(*a_data == *b_data && index++ < this->Size)
-      { ++a_data; ++b_data; }
-
-    if(index < this->Size)
-    { return *a_data < *b_data; }
-
-    return false; //both objects are equal
-  }
-
-  const char* data() const { return &Data[0]; }
-  std::size_t size() const { return Size; }
-
-private:
-  std::size_t Size;
-  char Data[256];
-};
-
-inline std::string to_string(const zmq::socketIdentity& add)
-{
-  return std::string(add.data(),add.size());
-}
-
-
-inline bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& address)
+inline bool address_send(zmq::socket_t & socket, const zmq::SocketIdentity& address)
 {
   zmq::message_t message(address.size());
   std::copy(address.data(),
@@ -87,11 +37,11 @@ inline bool address_send(zmq::socket_t & socket, const zmq::socketIdentity& addr
   return socket.send(message);
 }
 
-inline zmq::socketIdentity address_recv(zmq::socket_t& socket)
+inline zmq::SocketIdentity address_recv(zmq::socket_t& socket)
 {
   zmq::message_t message;
   socket.recv(&message);
-  return zmq::socketIdentity((char*)message.data(),message.size());
+  return zmq::SocketIdentity((char*)message.data(),message.size());
 }
 
 

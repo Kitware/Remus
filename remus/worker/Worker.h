@@ -18,16 +18,15 @@
 #include <remus/proto/JobRequirements.h>
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketIdentity.h>
 
 #include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>
 
+#include <boost/scoped_ptr.hpp>
 
 //included for export symbols
 #include <remus/worker/WorkerExports.h>
-
-#include <boost/scoped_ptr.hpp>
 
 namespace remus{
 namespace worker{
@@ -36,6 +35,7 @@ namespace worker{
   //forward declaration of classes only the implementation needs
   class MessageRouter;
   class JobQueue;
+  struct ZmqManagement;
   }
 
 //The worker class is the interface for accepting jobs to process from a
@@ -85,13 +85,7 @@ private:
 
   remus::worker::ServerConnection ConnectionInfo;
 
-  zmq::context_t Context;
-
-  //this socket is used to talk to server
-  zmq::socket_t ServerSocket;
-
-  //this is the thread that handles talking with the server
-  //and dealing with heartbeats
+  boost::scoped_ptr<detail::ZmqManagement> Zmq;
   boost::scoped_ptr<remus::worker::detail::MessageRouter> MessageRouter;
   boost::scoped_ptr<remus::worker::detail::JobQueue> JobQueue;
 
