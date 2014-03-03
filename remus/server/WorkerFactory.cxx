@@ -18,11 +18,16 @@
 
 #include <algorithm>
 
+//include cjson for parsing the mesh worker file
+#include "cJson.h"
+
 //force to use filesystem version 3
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+
+#include <iostream>
 
 namespace
 {
@@ -189,20 +194,34 @@ public:
     f.open(file);
     if(f.is_open())
       {
-      std::string inputFileType,outputMeshIOType,mesherFilePath;
-      getline(f,inputFileType);
-      getline(f,outputMeshIOType);
-      getline(f,mesherFilePath);
+      //read the file into a std::string
+      std::string json_contents;
+      f.seekg(0, std::ios::end);
+      json_contents.resize( f.tellg() );
+      f.seekg(0, std::ios::beg);
+      f.read(&json_contents[0], json_contents.size());
+      // json_contents[json_contents.size()-1]='\0';
 
-      boost::filesystem::path mesher_path(mesherFilePath);
+      std::cout << json_contents << std::endl;
 
-      //try the mesherFilePath as an absolute path, if that isn't
+      using namespace remus::thirdparty;
+
+      cjson::cJSON *root = cjson::cJSON_Parse(json_contents.c_str());
+
+      std::string inputType(cjson::cJSON_GetObjectItem(root,"InputType")->valuestring);
+      std::string outputType(cjson::cJSON_GetObjectItem(root,"OutputType")->valuestring);
+      std::string executableName(cjson::cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
+      cjson::cJSON_Delete(root);
+
+      boost::filesystem::path mesher_path(executableName);
+
+      //try the executableName as an absolute path, if that isn't
       //a file than fall back to looking based on the file we are parsing
       //path
       if(!boost::filesystem::is_regular_file(mesher_path))
         {
         mesher_path = boost::filesystem::path(file.parent_path());
-        mesher_path /= mesherFilePath;
+        mesher_path /= executableName;
 #ifdef _WIN32
         mesher_path.replace_extension(".exe");
 #endif
@@ -213,8 +232,8 @@ public:
         //convert the mesher_path into an absolute canonical path now
         mesher_path = boost::filesystem::canonical(mesher_path);
         remus::common::MeshIOType combinedType(
-                               remus::meshtypes::to_meshType(inputFileType),
-                               remus::meshtypes::to_meshType(outputMeshIOType)
+                               remus::meshtypes::to_meshType(inputType),
+                               remus::meshtypes::to_meshType(outputType)
                                );
 
         //name the worker with the given name
