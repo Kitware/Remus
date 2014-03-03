@@ -177,12 +177,11 @@ inline remus::proto::JobStatus to_JobStatus(const std::string& status)
 
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobStatus to_JobStatus(const char* data, int size)
+inline remus::proto::JobStatus to_JobStatus(const char* data, std::size_t size)
 {
   //the data might contain null terminators which on windows
   //makes the data,size construct fail, so instead we use std::copy
-  std::string temp(size,char());
-  std::copy( data, data+size, temp.begin() );
+  std::string temp(data,size);
   return to_JobStatus( temp );
 }
 

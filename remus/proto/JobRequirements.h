@@ -255,10 +255,9 @@ to_JobRequirementsSet(const std::string& msg)
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobRequirementsSet
-to_JobRequirementsSet(const char* data, int size)
+to_JobRequirementsSet(const char* data, std::size_t size)
 {
-  std::string temp(size,char());
-  std::copy( data, data+size, temp.begin() );
+  std::string temp(data,size);
   return to_JobRequirementsSet( temp );
 }
 
