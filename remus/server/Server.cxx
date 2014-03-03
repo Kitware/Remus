@@ -440,7 +440,7 @@ std::string Server::canMeshRequirements(const remus::proto::Message& msg)
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
   remus::proto::JobRequirements reqs =
-                              remus::proto::to_JobRequirements(msg.data());
+                              remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
   bool workerSupport = this->WorkerFactory.haveSupport(reqs) &&
                       (this->WorkerFactory.maxWorkerCount() > 0);
 
@@ -475,7 +475,7 @@ std::string Server::meshRequirements(const remus::proto::Message& msg)
 //------------------------------------------------------------------------------
 std::string Server::meshStatus(const remus::proto::Message& msg)
 {
-  remus::proto::Job job = remus::proto::to_Job(msg.data());
+  remus::proto::Job job = remus::proto::to_Job(msg.data(),msg.dataSize());
   remus::proto::JobStatus js(job.id(),remus::INVALID_STATUS);
   if(this->QueuedJobs->haveUUID(job.id()))
     {
@@ -509,7 +509,7 @@ std::string Server::queueJob(const remus::proto::Message& msg)
 std::string Server::retrieveMesh(const remus::proto::Message& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
-  remus::proto::Job job = remus::proto::to_Job(msg.data());
+  remus::proto::Job job = remus::proto::to_Job(msg.data(),msg.dataSize());
 
   remus::proto::JobResult result(job.id());
   if( this->ActiveJobs->haveUUID(job.id()) &&
@@ -527,7 +527,7 @@ std::string Server::retrieveMesh(const remus::proto::Message& msg)
 std::string Server::terminateJob(const remus::proto::Message& msg)
 {
 
-  remus::proto::Job job = remus::proto::to_Job(msg.data());
+  remus::proto::Job job = remus::proto::to_Job(msg.data(),msg.dataSize());
 
   bool removed = this->QueuedJobs->remove(job.id());
   if(!removed)

@@ -98,7 +98,7 @@ inline std::string to_string(const remus::worker::Job& job)
 {
   //convert a job to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
-  std::stringstream buffer;
+  std::ostringstream buffer;
   buffer << job.id() << std::endl;
   buffer << job.submission() << std::endl;
   return buffer.str();
@@ -109,7 +109,7 @@ inline std::string to_string(const remus::worker::Job& job)
 inline remus::worker::Job to_Job(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
-  std::stringstream buffer(msg);
+  std::istringstream buffer(msg);
 
   boost::uuids::uuid id;
   remus::proto::JobSubmission submission;

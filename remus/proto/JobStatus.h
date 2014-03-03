@@ -120,7 +120,7 @@ private:
 inline std::string to_string(const remus::proto::JobStatus& status)
 {
   //convert a job status to a string, used as a hack to serialize
-  std::stringstream buffer;
+  std::ostringstream buffer;
   buffer << status.id() << std::endl;
   buffer << status.status() << std::endl;
 
@@ -139,7 +139,7 @@ inline std::string to_string(const remus::proto::JobStatus& status)
 inline remus::proto::JobStatus to_JobStatus(const std::string& status)
 {
   //convert a job status from a string, used as a hack to serialize
-  std::stringstream buffer(status);
+  std::istringstream buffer(status);
 
   boost::uuids::uuid id;
   int t;
@@ -177,12 +177,11 @@ inline remus::proto::JobStatus to_JobStatus(const std::string& status)
 
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobStatus to_JobStatus(const char* data, int size)
+inline remus::proto::JobStatus to_JobStatus(const char* data, std::size_t size)
 {
   //the data might contain null terminators which on windows
   //makes the data,size construct fail, so instead we use std::copy
-  std::string temp(size,char());
-  std::copy( data, data+size, temp.begin() );
+  std::string temp(data,size);
   return to_JobStatus( temp );
 }
 
