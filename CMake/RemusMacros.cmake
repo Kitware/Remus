@@ -58,7 +58,7 @@ endfunction(remus_public_headers)
 # compiled and show up in an IDE.
 function(remus_private_headers)
   ms_get_kit_name(name dir_prefix)
-  ms_add_header_test("${name}" "${dir_prefix}" ${ARGN})
+  ms_add_header_test("${name}_private" "${dir_prefix}" ${ARGN})
 endfunction(remus_private_headers)
 
 # Declare a library as needed to be installed
