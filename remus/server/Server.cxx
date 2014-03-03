@@ -24,6 +24,7 @@
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
 #include <remus/proto/zmqSocketIdentity.h>
+#include <remus/proto/zmqHelper.h>
 
 #include <remus/worker/Job.h>
 
@@ -198,8 +199,8 @@ Server::Server():
   PortInfo() //use default loopback ports
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  this->PortInfo.bindClient(this->Zmq->ClientQueries);
-  this->PortInfo.bindWorker(this->Zmq->WorkerQueries);
+  this->PortInfo.bindClient(&this->Zmq->ClientQueries);
+  this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
   this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
@@ -216,8 +217,8 @@ Server::Server(const remus::server::WorkerFactory& factory):
   PortInfo()
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  this->PortInfo.bindClient(this->Zmq->ClientQueries);
-  this->PortInfo.bindWorker(this->Zmq->WorkerQueries);
+  this->PortInfo.bindClient(&this->Zmq->ClientQueries);
+  this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
   this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
@@ -234,8 +235,8 @@ Server::Server(remus::server::ServerPorts ports):
   PortInfo(ports)
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  this->PortInfo.bindClient(this->Zmq->ClientQueries);
-  this->PortInfo.bindWorker(this->Zmq->WorkerQueries);
+  this->PortInfo.bindClient(&this->Zmq->ClientQueries);
+  this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
   this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
@@ -253,8 +254,8 @@ Server::Server(remus::server::ServerPorts ports,
   PortInfo(ports)
   {
   //attempts to bind to a tcp socket, with a prefered port number
-  this->PortInfo.bindClient(this->Zmq->ClientQueries);
-  this->PortInfo.bindWorker(this->Zmq->WorkerQueries);
+  this->PortInfo.bindClient(&this->Zmq->ClientQueries);
+  this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
   this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
@@ -298,7 +299,7 @@ bool Server::brokering(Server::SignalHandling sh)
 
       //Note the contents of the message isn't valid
       //after the DetermineJobQueryResponse call
-      remus::proto::Message message(this->Zmq->ClientQueries);
+      remus::proto::Message message(&this->Zmq->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
       }
     if (items[1].revents & ZMQ_POLLIN)
@@ -309,7 +310,7 @@ bool Server::brokering(Server::SignalHandling sh)
 
       //Note the contents of the message isn't valid
       //after the DetermineWorkerResponse call
-      remus::proto::Message message(this->Zmq->WorkerQueries);
+      remus::proto::Message message(&this->Zmq->WorkerQueries);
       this->DetermineWorkerResponse(workerIdentity,message);
 
       //refresh all jobs for a given worker with a new expiry time
@@ -377,8 +378,8 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   if(!msg.isValid())
     {
     response.setServiceType(remus::INVALID_SERVICE);
-    response.setData(remus::INVALID_MSG);
-    response.send(this->Zmq->ClientQueries);
+    response.setData( remus::INVALID_MSG );
+    response.send(&this->Zmq->ClientQueries);
     return; //no need to continue
     }
   response.setServiceType(msg.serviceType());
@@ -408,14 +409,14 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
       response.setData(this->terminateJob(msg));
       break;
     default:
-      response.setData(remus::INVALID_STATUS);
+      response.setData( remus::to_string(remus::INVALID_STATUS) );
     }
-  response.send(this->Zmq->ClientQueries);
+  response.send(&this->Zmq->ClientQueries);
   return;
 }
 
 //------------------------------------------------------------------------------
-bool Server::canMesh(const remus::proto::Message& msg)
+std::string Server::canMesh(const remus::proto::Message& msg)
 {
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
@@ -428,12 +429,13 @@ bool Server::canMesh(const remus::proto::Message& msg)
   bool poolSupport =
     (this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType()).size() > 0);
 
-
-  return workerSupport || poolSupport;
+  std::ostringstream buffer;
+  buffer << (workerSupport || poolSupport);
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------
-bool Server::canMeshRequirements(const remus::proto::Message& msg)
+std::string Server::canMeshRequirements(const remus::proto::Message& msg)
 {
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
@@ -446,7 +448,9 @@ bool Server::canMeshRequirements(const remus::proto::Message& msg)
   //workers that support the given mesh type info
   bool poolSupport = this->WorkerPool->haveWaitingWorker(reqs);
 
-  return workerSupport || poolSupport;
+  std::ostringstream buffer;
+  buffer << (workerSupport || poolSupport);
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------
@@ -538,7 +542,7 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
       {
       remus::proto::Response response(worker);
       detail::make_terminateJob(response,job.id());
-      response.send(this->Zmq->WorkerQueries);
+      response.send(&this->Zmq->WorkerQueries);
       }
     }
 
@@ -612,7 +616,7 @@ void Server::assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
 
   std::string tmp = remus::worker::to_string(job);
   response.setData(tmp);
-  response.send(this->Zmq->WorkerQueries);
+  response.send(&this->Zmq->WorkerQueries);
 }
 
 //see if we have a worker in the pool for the next job in the queue,
@@ -715,7 +719,7 @@ void Server::TerminateAllWorkers( )
     remus::proto::Response response(*i);
     detail::make_terminateWorker(response,jobId);
 
-    response.send(this->Zmq->WorkerQueries);
+    response.send(&this->Zmq->WorkerQueries);
     }
 
   //lastly we will kill any still active worker
@@ -731,7 +735,7 @@ void Server::TerminateAllWorkers( )
     remus::proto::Response response(*i);
     detail::make_terminateWorker(response,jobId);
 
-    response.send(this->Zmq->WorkerQueries);
+    response.send(&this->Zmq->WorkerQueries);
     }
 
 }

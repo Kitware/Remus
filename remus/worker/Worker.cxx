@@ -13,12 +13,11 @@
 #include <remus/worker/Worker.h>
 
 #include <remus/proto/Message.h>
-#include <remus/proto/zmqSocketIdentity.h>
+#include <remus/proto/zmqHelper.h>
 #include <remus/worker/detail/JobQueue.h>
 #include <remus/worker/detail/MessageRouter.h>
 
 #include <string>
-
 
 namespace remus{
 namespace worker{
@@ -61,7 +60,7 @@ Worker::Worker(remus::common::MeshIOType mtype,
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
                             remus::proto::to_string(this->MeshRequirements));
-  canMesh.send(this->Zmq->Server);
+  canMesh.send(&this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -86,7 +85,7 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
                             remus::proto::to_string(this->MeshRequirements));
-  canMesh.send(this->Zmq->Server);
+  canMesh.send(&this->Zmq->Server);
 }
 
 
@@ -99,7 +98,7 @@ Worker::~Worker()
     //polling the server
     remus::proto::Message shutdown(this->MeshRequirements.meshTypes(),
                                    remus::TERMINATE_WORKER);
-    shutdown.send(this->Zmq->Server);
+    shutdown.send(&this->Zmq->Server);
     }
 }
 
@@ -110,7 +109,7 @@ void Worker::askForJobs( unsigned int numberOfJobs )
                            remus::MAKE_MESH,
                            remus::proto::to_string(this->MeshRequirements));
   for(int i=0; i < numberOfJobs; ++i)
-    { askForMesh.send(this->Zmq->Server); }
+    { askForMesh.send(&this->Zmq->Server); }
 }
 
 //-----------------------------------------------------------------------------
@@ -144,7 +143,7 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::MESH_STATUS,
                                 msg.data(),msg.size());
-  message.send(this->Zmq->Server);
+  message.send(&this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -155,7 +154,7 @@ void Worker::returnMeshResults(const remus::proto::JobResult& result)
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::RETRIEVE_MESH,
                                 msg.data(),msg.size());
-  message.send(this->Zmq->Server);
+  message.send(&this->Zmq->Server);
 }
 
 }

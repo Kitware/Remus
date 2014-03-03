@@ -23,10 +23,10 @@
 #include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>
 
+#include <boost/scoped_ptr.hpp>
+
 //included for export symbols
 #include <remus/worker/WorkerExports.h>
-
-#include <boost/scoped_ptr.hpp>
 
 namespace remus{
 namespace worker{

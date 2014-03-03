@@ -136,7 +136,7 @@ void poll()
     if(items[0].revents & ZMQ_POLLIN)
       {
       sentToServer = true;
-      remus::proto::Message message(this->WorkerComm);
+      remus::proto::Message message(&this->WorkerComm);
 
       //special case is that TERMINATE_WORKER means we stop looping
       if(message.serviceType()==remus::TERMINATE_WORKER)
@@ -146,33 +146,33 @@ void poll()
         remus::proto::Response termJob( (zmq::SocketIdentity()) );
         termJob.setServiceType(remus::TERMINATE_WORKER);
         termJob.setData(remus::worker::to_string(terminateJob));
-        termJob.send(this->QueueComm);
+        termJob.send(&this->QueueComm);
 
         this->setIsTalking(false);
         }
       else
         {
         //just pass the message on to the server
-        message.send(this->ServerComm);
+        message.send(&this->ServerComm);
         }
       }
     if(items[1].revents & ZMQ_POLLIN)
       {
-      remus::proto::Response response(this->ServerComm);
+      remus::proto::Response response(&this->ServerComm);
       switch(response.serviceType())
           {
           case remus::TERMINATE_WORKER:
-            response.send(this->QueueComm);
+            response.send(&this->QueueComm);
             this->setIsTalking(false);
             break;
           case remus::TERMINATE_JOB:
             //send the terminate to the job queue since it holds the jobs
           case remus::MAKE_MESH:
             //send the job to the queue so that somebody can take it later
-            response.send(this->QueueComm);
+            response.send(&this->QueueComm);
             break;
           default:
-            response.send(this->WorkerComm);
+            response.send(&this->WorkerComm);
           }
       }
     if(!sentToServer)
@@ -180,7 +180,7 @@ void poll()
       //send a heartbeat to the server
       remus::proto::Message message(remus::common::MeshIOType(),
                                     remus::HEARTBEAT);
-      message.send(this->ServerComm);
+      message.send(&this->ServerComm);
       }
     }
 }

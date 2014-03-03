@@ -73,7 +73,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
                              remus::proto::JobSubmission());
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob));
-  response.send(socket);
+  response.send(&socket);
 
   while(jq.size()<1){}
   REMUS_ASSERT( (jq.size()>0) );
@@ -93,12 +93,12 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
-  response.send(socket);
+  response.send(&socket);
 
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
-  response.send(socket);
+  response.send(&socket);
 
   //now send a terminate job command for the first job
   //and verify that the correct job was terminated by pulling
@@ -106,7 +106,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   remus::worker::Job terminateJob(jobId, sub);
   response.setServiceType(remus::TERMINATE_JOB);
   response.setData(remus::worker::to_string(terminateJob));
-  response.send(socket);
+  response.send(&socket);
 
   //gotta wait for all three messages to come in
   while(jq.size()<3){}
@@ -150,7 +150,7 @@ void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
                                   remus::proto::JobSubmission());
   response.setServiceType(remus::TERMINATE_WORKER);
   response.setData(remus::worker::to_string(terminateJob));
-  response.send(socket);
+  response.send(&socket);
 
   //cheap block while we wait for the router thread to get the message
   while(jq.size()<1){}
@@ -173,7 +173,7 @@ void test_worker_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
   //now send it a terminate message over the worker channel
   remus::proto::Message shutdown(remus::common::MeshIOType(),
                                  remus::TERMINATE_WORKER);
-  shutdown.send(socket);
+  shutdown.send(&socket);
 
   //cheap block while we wait for the router thread to get the message
   while(jq.size()<1){}

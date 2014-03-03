@@ -62,8 +62,8 @@ bool verify_bindings(remus::server::ServerPorts ports)
   zmq::socket_t client_socket(context,ZMQ_REP);
   zmq::socket_t worker_socket(context,ZMQ_REP);
 
-  ports.bindClient(client_socket);
-  ports.bindWorker(worker_socket);
+  ports.bindClient(&client_socket);
+  ports.bindWorker(&worker_socket);
 
 
   //verify that we are bound by trying to manually bind again

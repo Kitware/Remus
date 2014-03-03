@@ -15,10 +15,11 @@
 
 #include <string>
 #include <remus/common/remusGlobals.h>
-#include <remus/proto/zmq.hpp>
 
 //included for export symbols
 #include <remus/server/ServerExports.h>
+
+namespace zmq { class socket_t; }
 
 namespace remus{
 namespace server{
@@ -86,12 +87,12 @@ public:
   //will attempt to bind the passed in socket to client tcp-ip port we hold
   //if the bind fails, we will continue increasing the port number intill we find
   //a valid port. We will update our client socket info with the new valid information
-  void bindClient(zmq::socket_t& socket);
+  void bindClient(zmq::socket_t* socket);
 
   //will attempt to bind the passed in socket to worker tcp-ip port we hold
   //if the bind fails, we will continue increasing the port number intill we find
   //a valid port. We will update our worker socket info with the new valid information
-  void bindWorker(zmq::socket_t& socket);
+  void bindWorker(zmq::socket_t* socket);
 
   const PortConnection& client() const
     { return this->Client; }

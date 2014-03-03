@@ -52,7 +52,7 @@ void verify_basic_comms(zmq::context_t& context)
                              remus::proto::JobSubmission());
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob));
-  response.send(jobSocket);
+  response.send(&jobSocket);
 
   while(jq.size()<1){}
   REMUS_ASSERT( (jq.size()>0) );
@@ -72,12 +72,12 @@ void verify_basic_comms(zmq::context_t& context)
   remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
-  response.send(jobSocket);
+  response.send(&jobSocket);
 
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
   response.setServiceType(remus::MAKE_MESH);
   response.setData(remus::worker::to_string(fakeJob2));
-  response.send(jobSocket);
+  response.send(&jobSocket);
 
   //now send a terminate job command for the first job
   //and verify that the correct job was terminated by pulling
@@ -86,7 +86,7 @@ void verify_basic_comms(zmq::context_t& context)
                                   remus::proto::JobSubmission());
   response.setServiceType(remus::TERMINATE_JOB);
   response.setData(remus::worker::to_string(terminateJob));
-  response.send(jobSocket);
+  response.send(&jobSocket);
 
   //gotta wait for all three messages to come in
 #ifdef _WIN32
@@ -131,7 +131,7 @@ void verify_term(zmq::context_t& context)
   remus::worker::Job terminateJob;
   response.setServiceType(remus::TERMINATE_WORKER);
   response.setData(remus::worker::to_string(terminateJob));
-  response.send(jobSocket);
+  response.send(&jobSocket);
 
   //cheap block while we wait for the router thread to get the message
   while(jq.size()<1){}

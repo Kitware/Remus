@@ -71,28 +71,28 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
 }
 
 //------------------------------------------------------------------------------
-void ServerPorts::bindClient(zmq::socket_t& socket)
+void ServerPorts::bindClient(zmq::socket_t* socket)
 {
   if(this->Client.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
     {
-    this->Client = bindToTCPSocket(socket,this->Client);
+    this->Client = bindToTCPSocket(*socket,this->Client);
     }
   else
     {
-    socket.bind(this->Client.endpoint().c_str());
+    socket->bind(this->Client.endpoint().c_str());
     }
 }
 
 //------------------------------------------------------------------------------
-void ServerPorts::bindWorker(zmq::socket_t& socket)
+void ServerPorts::bindWorker(zmq::socket_t* socket)
 {
   if(this->Worker.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
     {
-    this->Worker = bindToTCPSocket(socket,this->Worker);
+    this->Worker = bindToTCPSocket(*socket,this->Worker);
     }
   else
     {
-    socket.bind(this->Worker.endpoint().c_str());
+    socket->bind(this->Worker.endpoint().c_str());
     }
 }
 
