@@ -59,7 +59,7 @@ inline std::string to_string(const remus::proto::JobResult& status)
 {
   //convert a job detail to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
-  std::stringstream buffer;
+  std::ostringstream buffer;
   buffer << status.id() << std::endl;
   buffer << status.data().length() << std::endl;
   remus::internal::writeString(buffer, status.data());
@@ -71,7 +71,7 @@ inline remus::proto::JobResult to_JobResult(const std::string& status)
 {
   //convert a job detail from a string, used as a hack to serialize
 
-  std::stringstream buffer(status);
+  std::istringstream buffer(status);
 
   boost::uuids::uuid id;
   int dataLen;

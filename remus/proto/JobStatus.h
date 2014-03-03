@@ -120,7 +120,7 @@ private:
 inline std::string to_string(const remus::proto::JobStatus& status)
 {
   //convert a job status to a string, used as a hack to serialize
-  std::stringstream buffer;
+  std::ostringstream buffer;
   buffer << status.id() << std::endl;
   buffer << status.status() << std::endl;
 
@@ -139,7 +139,7 @@ inline std::string to_string(const remus::proto::JobStatus& status)
 inline remus::proto::JobStatus to_JobStatus(const std::string& status)
 {
   //convert a job status from a string, used as a hack to serialize
-  std::stringstream buffer(status);
+  std::istringstream buffer(status);
 
   boost::uuids::uuid id;
   int t;
