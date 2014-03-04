@@ -134,6 +134,101 @@ namespace
       }
     return validWorkers;
   }
+
+  //----------------------------------------------------------------------------
+  std::string read_file(const boost::filesystem::path& file)
+  {
+    std::string file_contents;
+    boost::filesystem::ifstream f;
+    f.open(file);
+    if(f.is_open())
+      {
+      //read the file into a std::string
+      f.seekg(0, std::ios::end);
+      file_contents.resize( f.tellg() );
+      f.seekg(0, std::ios::beg);
+      f.read(&file_contents[0], file_contents.size());
+      }
+    f.close();
+    return file_contents;
+  }
+
+  //----------------------------------------------------------------------------
+  std::pair< boost::filesystem::path, remus::proto::JobRequirements >
+  parse_json_reqs( const boost::filesystem::path& file )
+  {
+    std::string json_contents = read_file(file);
+    using namespace remus::thirdparty;
+    using namespace remus::common;
+
+    cjson::cJSON *root = cjson::cJSON_Parse(json_contents.c_str());
+
+    std::string inputType(cjson::cJSON_GetObjectItem(root,"InputType")->valuestring);
+    std::string outputType(cjson::cJSON_GetObjectItem(root,"OutputType")->valuestring);
+    std::string executableName(cjson::cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
+
+    //by default we select memory and user
+    ContentSource::Type source_type = ContentSource::Memory;
+    ContentFormat::Type format_type = ContentFormat::User;
+    MeshIOType mesh_type( remus::meshtypes::to_meshType(inputType),
+                          remus::meshtypes::to_meshType(outputType)
+                          );
+    std::string data; //default data is empty
+
+    //executableName can be a path, so figure it out
+    boost::filesystem::path mesher_path(executableName);
+    if(boost::filesystem::is_regular_file(mesher_path))
+      {
+      executableName = mesher_path.filename().string();
+      }
+
+
+    //check if we have a specific file requirements
+    cjson::cJSON *req_file = cjson::cJSON_GetObjectItem(root,"File");
+    cjson::cJSON *req_file_format = cjson::cJSON_GetObjectItem(root,"FileFormat");
+    if(req_file)
+      {
+      //we have a file source type, now determine the format type, and
+      //read in the data from the file
+      source_type = ContentSource::File;
+      if(req_file_format)
+        {
+        if(strncmp(req_file_format->valuestring,"XML",3) == 0)
+          { format_type = ContentFormat::XML; }
+        else if(strncmp(req_file_format->valuestring,"JSON",4) == 0)
+          { format_type = ContentFormat::JSON; }
+        else if(strncmp(req_file_format->valuestring,"BSON",4) == 0)
+          { format_type = ContentFormat::BSON; }
+        }
+
+      //now try to read the file
+      boost::filesystem::path req_file_path(req_file->valuestring);
+      if(!boost::filesystem::is_regular_file(req_file_path))
+        {
+        req_file_path = boost::filesystem::path(file.parent_path());
+        req_file_path /= req_file->valuestring;
+        }
+
+      if(boost::filesystem::is_regular_file(req_file_path))
+        {
+        //load the contents of the file into a string to be given to the
+        //requirements
+        data = read_file(req_file_path);
+        }
+      }
+
+    cjson::cJSON_Delete(root);
+
+    //name the worker with the given name
+    remus::proto::JobRequirements reqs(source_type,
+                                         format_type,
+                                         mesh_type,
+                                         executableName,
+                                         data);
+    typedef std::pair< boost::filesystem::path,
+                       remus::proto::JobRequirements > ReturnType;
+    return std::make_pair( mesher_path, reqs);
+  }
 }
 
 
@@ -187,67 +282,32 @@ public:
     }
 
   //----------------------------------------------------------------------------
-  void parseFile(const boost::filesystem::path& file)
+  void parseFile(const boost::filesystem::path& file )
   {
-    //open the file, parse two lines and close file
-    boost::filesystem::ifstream f;
-    f.open(file);
-    if(f.is_open())
+    typedef std::pair< boost::filesystem::path,
+                       remus::proto::JobRequirements > ReturnType;
+    ReturnType info = parse_json_reqs( file );
+
+    //try the executableName as an absolute path, if that isn't
+    //a file than fall back to looking based on the file we are parsing
+    //path
+    boost::filesystem::path mesher_path(info.first);
+    if(!boost::filesystem::is_regular_file(mesher_path))
       {
-      //read the file into a std::string
-      std::string json_contents;
-      f.seekg(0, std::ios::end);
-      json_contents.resize( f.tellg() );
-      f.seekg(0, std::ios::beg);
-      f.read(&json_contents[0], json_contents.size());
-      // json_contents[json_contents.size()-1]='\0';
-
-      std::cout << json_contents << std::endl;
-
-      using namespace remus::thirdparty;
-
-      cjson::cJSON *root = cjson::cJSON_Parse(json_contents.c_str());
-
-      std::string inputType(cjson::cJSON_GetObjectItem(root,"InputType")->valuestring);
-      std::string outputType(cjson::cJSON_GetObjectItem(root,"OutputType")->valuestring);
-      std::string executableName(cjson::cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
-      cjson::cJSON_Delete(root);
-
-      boost::filesystem::path mesher_path(executableName);
-
-      //try the executableName as an absolute path, if that isn't
-      //a file than fall back to looking based on the file we are parsing
-      //path
-      if(!boost::filesystem::is_regular_file(mesher_path))
-        {
-        mesher_path = boost::filesystem::path(file.parent_path());
-        mesher_path /= executableName;
+      boost::filesystem::path new_path(file.parent_path());
+      new_path /= info.first;
 #ifdef _WIN32
-        mesher_path.replace_extension(".exe");
+      new_path.replace_extension(".exe");
 #endif
-        }
-
-      if(boost::filesystem::is_regular_file(mesher_path))
-        {
-        //convert the mesher_path into an absolute canonical path now
-        mesher_path = boost::filesystem::canonical(mesher_path);
-        remus::common::MeshIOType combinedType(
-                               remus::meshtypes::to_meshType(inputType),
-                               remus::meshtypes::to_meshType(outputType)
-                               );
-
-        //name the worker with the given name
-        remus::proto::JobRequirements reqs(remus::common::ContentSource::Memory,
-                                           remus::common::ContentFormat::User,
-                                           combinedType,
-                                           mesher_path.filename().string(),
-                                           std::string());
-
-        this->Info.push_back(MeshWorkerInfo(reqs,mesher_path.string()));
-        }
+      mesher_path = new_path;
       }
-    f.close();
 
+    if(boost::filesystem::is_regular_file(mesher_path))
+      {
+      //convert the mesher_path into an absolute canonical path now
+      mesher_path = boost::filesystem::canonical(mesher_path);
+      this->Info.push_back(MeshWorkerInfo(info.second,mesher_path.string()));
+      }
   }
 
   const std::vector<MeshWorkerInfo>& results() const {return Info;}
