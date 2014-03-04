@@ -27,7 +27,6 @@ target_link_libraries(RemusServer
                                    ${CMAKE_THREAD_LIBS_INIT}
                                    )
 
-
 #create the export header symbol exporting
 remus_export_header(RemusServer ServerExports.h)
 
