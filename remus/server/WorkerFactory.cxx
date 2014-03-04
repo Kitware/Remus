@@ -19,7 +19,7 @@
 #include <algorithm>
 
 //include cjson for parsing the mesh worker file
-#include "cJson.h"
+#include "cJSON.h"
 
 //force to use filesystem version 3
 #define BOOST_FILESYSTEM_VERSION 3
