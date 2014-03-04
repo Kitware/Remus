@@ -1,16 +1,12 @@
 project(cJSON)
 
-add_library(cJSON STATIC cJSON.c)
-if (BUILD_SHARED_LIBS)
-  # Set position-independent flag when other project libs are shared.
-  set_target_properties(cJSON PROPERTIES POSITION_INDEPENDENT_CODE True)
-endif()
+add_library(cJSON STATIC cJSON.cpp)
 
-#we need to setup a user defined why of specifying a namespace around cjson
-target_compile_definitions(cJson PRIVATE CJSON_NAMESPACE=${cJSON_Namespace} )
+set_target_properties(cJSON PROPERTIES
+                      POSITION_INDEPENDENT_CODE True
+                      CXX_VISIBILITY_PRESET     FALSE
+                      )
 
-
-#setup install rules for json
-
-
-#setup export rules for json
+#if you are using this object library, you will need this source dir, so
+#that you can include cJson.h
+target_include_directories(cJSON INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

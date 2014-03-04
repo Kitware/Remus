@@ -136,6 +136,9 @@ set(KWSYS_INSTALL_LIB_DIR "lib")
 set(KWSYS_INSTALL_EXPORT_NAME Remus-targets)
 add_subdirectory(thirdparty/kwsys)
 
+#setup cJson as an object library
+add_subdirectory(thirdparty/cJson)
+
 
 #------------------------------------------------------------------------------
 #------------------------------- Build Remus ----------------------------------
