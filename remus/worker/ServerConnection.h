@@ -10,116 +10,78 @@
 //
 //=============================================================================
 
-#ifndef remus_worker_serverConnection_h
-#define remus_worker_serverConnection_h
+#ifndef remus_worker_ServerConnection_h
+#define remus_worker_ServerConnection_h
 
-#include <remus/common/remusGlobals.h>
 #include <remus/proto/zmqSocketInfo.h>
-#include <assert.h>
+
+#include <boost/shared_ptr.hpp>
+
+//included for export symbols
+#include <remus/worker/WorkerExports.h>
+
+
+//forward declare the context
+namespace zmq { class context_t; }
 
 namespace remus{
 namespace worker{
 
-class ServerConnection
+class REMUSWORKER_EXPORT ServerConnection
 {
 public:
   //create a connection object that represents connecting to
   //the default local host remus server.
-  ServerConnection():
-    Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                  remus::SERVER_WORKER_PORT).endpoint()),
-    IsLocalEndpoint(true) //no need to call zmq::isLocalEndpoint
-    {
-    assert(Endpoint.size() > 0);
-    }
+  ServerConnection();
 
   //create a connection object that connects to the server specified by the
   //zmq::socketInfo. This is best way to connect to a non default server
   //with a custom protocol
   template<typename T>
-  explicit ServerConnection(zmq::socketInfo<T> const& socket):
-    Endpoint(socket.endpoint()),
-    IsLocalEndpoint(zmq::isLocalEndpoint(socket))
-    {
-    }
+  explicit ServerConnection(zmq::socketInfo<T> const& socket);
 
   //create a connection object that represent connection to a
   //standard tcp-ip remus server on a custom port
-  explicit ServerConnection(std::string const& hostName, int port):
-    Endpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port).endpoint()),
-    IsLocalEndpoint( zmq::isLocalEndpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port)) )
-    {
-    assert(hostName.size() > 0);
-    assert(port > 0 && port < 65536);
-    }
+  ServerConnection(std::string const& hostName, int port);
 
   inline std::string const& endpoint() const{ return Endpoint; }
   inline bool isLocalEndpoint() const{ return IsLocalEndpoint; }
 
+  //we have to leak some details to support inproc communication
+  boost::shared_ptr<zmq::context_t> context() const { return this->Context; }
+
+  //don't overwrite the context of a server connection once the server
+  //connection is passed to the worker, as that will cause undefined behavior
+  //and most likely will crash the program
+  void context(boost::shared_ptr<zmq::context_t> c) { this->Context = c; }
+
 private:
+  boost::shared_ptr<zmq::context_t> Context;
   std::string Endpoint;
   bool IsLocalEndpoint;
 };
-
 
 //convert a string in the form of proto://hostname:port where :port
 //is optional into a server connection class
 //if we fail to parse the string we will return an instance of
 //the default server connection
-inline
-remus::worker::ServerConnection make_ServerConnection(const std::string& dest)
+REMUSWORKER_EXPORT
+remus::worker::ServerConnection make_ServerConnection(const std::string& dest);
+
+//construct a server context that can be shared between many server connections
+REMUSWORKER_EXPORT
+boost::shared_ptr<zmq::context_t> make_ServerContext(std::size_t num_threads=1);
+
+//------------------------------------------------------------------------------
+template<typename T>
+ServerConnection::ServerConnection(zmq::socketInfo<T> const& socket):
+  Context( remus::worker::make_ServerContext() ),
+  Endpoint(socket.endpoint()),
+  IsLocalEndpoint( zmq::isLocalEndpoint(socket) )
 {
-  remus::worker::ServerConnection connection;
-
-  //tcp:// and ipc:// + 1 character are the minimum size
-  if(dest.size() > 6)
-    {
-    const std::string::size_type protocall_end_pos = dest.find("://");
-    if(protocall_end_pos != std::string::npos)
-      {
-      //determine if we are tcp
-      //we can protocalll_end_pos as a distance currently since we are starting
-      //at zero
-      const std::string protocall = dest.substr(0,protocall_end_pos);
-      if(protocall == zmq::proto::scheme_name(zmq::proto::tcp()))
-        {
-        //we need to extract the host name and port
-        const std::string::size_type host_end_pos = dest.rfind(":");
-        if(host_end_pos!=protocall_end_pos)
-          {
-          //extract the host_name and port
-          const std::string::size_type host_len = host_end_pos -
-                                                       (protocall_end_pos+3);
-          const std::string::size_type port_len = dest.size() - host_end_pos;
-
-          const std::string host_name(dest, protocall_end_pos+3, host_len);
-          const std::string temp_port(dest, host_end_pos+1, port_len );
-          int port = boost::lexical_cast<int>(temp_port);
-
-          zmq::socketInfo<zmq::proto::tcp> socket(host_name,port);
-          connection = remus::worker::ServerConnection(socket);
-          }
-        }
-      else if(protocall == zmq::proto::scheme_name(zmq::proto::ipc()))
-        {
-        //3 equals size of "://"
-        const std::string host_name = dest.substr(protocall_end_pos+3);
-        zmq::socketInfo<zmq::proto::ipc> socket(host_name);
-        connection = remus::worker::ServerConnection(socket);
-        }
-      else if(protocall == zmq::proto::scheme_name(zmq::proto::inproc()))
-        {
-        //3 equals size of "://"
-        const std::string host_name = dest.substr(protocall_end_pos+3);
-        zmq::socketInfo<zmq::proto::inproc> socket(host_name);
-        connection = remus::worker::ServerConnection(socket);
-        }
-      }
-    }
-  return connection;
 }
 
 }
 }
 
-#endif // remus_serverConnection_h
+#endif // remus_ServerConnection_h

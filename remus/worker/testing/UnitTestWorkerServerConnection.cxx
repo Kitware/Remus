@@ -11,6 +11,7 @@
 //=============================================================================
 
 #include <remus/worker/ServerConnection.h>
+#include <remus/common/remusGlobals.h>
 #include <remus/testing/Testing.h>
 
 #include <string>
@@ -91,6 +92,21 @@ int UnitTestWorkerServerConnection(int, char *[])
   REMUS_ASSERT( (sc_ipc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (sc_ipc.endpoint() == std::string("ipc://task_pool")) );
 
+  //test sharing a context.
+  remus::worker::ServerConnection share_context;
+  share_context.context(sc.context());
+  REMUS_ASSERT( (share_context.context() == sc.context()) )
+
+  remus::worker::ServerConnection share_context2;
+  share_context2.context( remus::worker::make_ServerContext(4) );
+  REMUS_ASSERT( (share_context.context() != share_context2.context()) );
+
+  boost::shared_ptr<zmq::context_t> old_context = share_context2.context();
+  share_context2.context( remus::worker::make_ServerContext(4) );
+  REMUS_ASSERT( (old_context != share_context2.context()) );
+
+  share_context.context( share_context2.context() );
+  REMUS_ASSERT( (share_context.context() == share_context2.context()) );
 
   return 0;
 }

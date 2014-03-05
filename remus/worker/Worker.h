@@ -60,6 +60,10 @@ public:
 
   virtual ~Worker();
 
+  //return the connection info that was used to connect to the
+  //remus server
+  const remus::worker::ServerConnection& connection() const;
+
   //send a message to the server stating how many jobs
   //that we want to be sent to process
   virtual void askForJobs( unsigned int numberOfJobs = 1 );

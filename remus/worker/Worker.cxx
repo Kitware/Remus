@@ -27,12 +27,9 @@ namespace worker{
 namespace detail{
 struct ZmqManagement
 {
-  zmq::context_t Context;
   zmq::socket_t Server;
-
-  ZmqManagement():
-    Context(1),
-    Server(Context, ZMQ_PAIR)
+  ZmqManagement(remus::worker::ServerConnection const& conn):
+    Server(*(conn.context()), ZMQ_PAIR)
   {}
 };
 }
@@ -43,12 +40,11 @@ Worker::Worker(remus::common::MeshIOType mtype,
                remus::worker::ServerConnection const& conn):
   MeshRequirements( remus::proto::make_MemoryJobRequirements(mtype,"","") ),
   ConnectionInfo(conn),
-  Zmq( new detail::ZmqManagement() ),
-  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
-                    conn,
+  Zmq( new detail::ZmqManagement(conn) ),
+  MessageRouter( new remus::worker::detail::MessageRouter(conn,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
+  JobQueue( new remus::worker::detail::JobQueue( *(conn.context()),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   //We have to bind to the inproc socket before the MessageRouter class does
@@ -68,12 +64,11 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
                remus::worker::ServerConnection const& conn):
   MeshRequirements(requirements),
   ConnectionInfo(conn),
-  Zmq( new detail::ZmqManagement() ),
-  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
-                    conn,
+  Zmq( new detail::ZmqManagement(conn) ),
+  MessageRouter( new remus::worker::detail::MessageRouter(conn,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
+  JobQueue( new remus::worker::detail::JobQueue(*(conn.context()),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   //We have to bind to the inproc socket before the MessageRouter class does
@@ -100,6 +95,12 @@ Worker::~Worker()
                                    remus::TERMINATE_WORKER);
     shutdown.send(&this->Zmq->Server);
     }
+}
+
+//-----------------------------------------------------------------------------
+const remus::worker::ServerConnection& Worker::connection() const
+{
+  return this->ConnectionInfo;
 }
 
 //-----------------------------------------------------------------------------
