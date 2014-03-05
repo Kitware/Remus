@@ -167,15 +167,13 @@ private:
 //------------------------------------------------------------------------------
 struct ZmqManagement
 {
-  zmq::context_t Context;
   zmq::socket_t ClientQueries;
   zmq::socket_t WorkerQueries;
 
   //----------------------------------------------------------------------------
-  ZmqManagement():
-    Context(2),
-    ClientQueries(Context,ZMQ_ROUTER),
-    WorkerQueries(Context,ZMQ_ROUTER)
+  ZmqManagement( const remus::server::ServerPorts& ports ):
+    ClientQueries(*(ports.context()),ZMQ_ROUTER),
+    WorkerQueries(*(ports.context()),ZMQ_ROUTER)
   {}
 };
 
@@ -189,14 +187,14 @@ namespace server{
 
 //------------------------------------------------------------------------------
 Server::Server():
-  Zmq(new detail::ZmqManagement() ),
+  PortInfo(),
+  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
   Thread(new detail::ThreadManagement() ),
-  WorkerFactory(),
-  PortInfo() //use default loopback ports
+  WorkerFactory()
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
@@ -207,14 +205,14 @@ Server::Server():
 
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::WorkerFactory& factory):
-  Zmq(new detail::ZmqManagement() ),
+  PortInfo(),
+  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
   Thread(new detail::ThreadManagement() ),
-  WorkerFactory(factory),
-  PortInfo()
+  WorkerFactory(factory)
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
@@ -224,15 +222,15 @@ Server::Server(const remus::server::WorkerFactory& factory):
   }
 
 //------------------------------------------------------------------------------
-Server::Server(remus::server::ServerPorts ports):
-  Zmq(new detail::ZmqManagement() ),
+Server::Server(const remus::server::ServerPorts& ports):
+  PortInfo(ports),
+  Zmq(new detail::ZmqManagement(ports) ),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
   Thread(new detail::ThreadManagement() ),
-  WorkerFactory(),
-  PortInfo(ports)
+  WorkerFactory()
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
@@ -242,16 +240,16 @@ Server::Server(remus::server::ServerPorts ports):
   }
 
 //------------------------------------------------------------------------------
-Server::Server(remus::server::ServerPorts ports,
+Server::Server(const remus::server::ServerPorts& ports,
                const remus::server::WorkerFactory& factory):
-  Zmq(new detail::ZmqManagement() ),
+  PortInfo(ports),
+  Zmq(new detail::ZmqManagement(ports) ),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   WorkerPool(new remus::server::detail::WorkerPool() ),
   ActiveJobs(new remus::server::detail::ActiveJobs () ),
   Thread(new detail::ThreadManagement() ),
-  WorkerFactory(factory),
-  PortInfo(ports)
+  WorkerFactory(factory)
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);

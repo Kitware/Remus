@@ -69,11 +69,11 @@ public:
 
   //construct a new server using the given loop back ports
   //and the default factory
-  explicit Server(remus::server::ServerPorts ports);
+  explicit Server(const remus::server::ServerPorts& ports);
 
   //construct a new server using the given loop back ports
   //and the default factory
-  Server(remus::server::ServerPorts ports,
+  Server(const remus::server::ServerPorts& ports,
          const remus::server::WorkerFactory& factory);
 
   //cleanup the server
@@ -143,6 +143,7 @@ private:
   Server(const Server&);
   void operator=(const Server&);
 
+  remus::server::ServerPorts PortInfo;
   boost::scoped_ptr<detail::ZmqManagement> Zmq;
 
 protected:
@@ -152,11 +153,7 @@ protected:
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
   boost::scoped_ptr<detail::ThreadManagement> Thread;
-
   remus::server::WorkerFactory WorkerFactory;
-  remus::server::ServerPorts PortInfo;
-
-
 };
 
 }
