@@ -27,13 +27,19 @@ namespace worker{
 namespace detail{
 struct ZmqManagement
 {
-  zmq::context_t Context;
+  //use a custom context just for inter process communication, this allows
+  //multiple workers to share the same context to the server, as you can't
+  //have multiple pairs of ZMQ_PAIR connections on the same named pipe.
+  zmq::context_t InterWorkerContext;
   zmq::socket_t Server;
-
   ZmqManagement():
-    Context(1),
-    Server(Context, ZMQ_PAIR)
-  {}
+    InterWorkerContext(1),
+    Server(InterWorkerContext, ZMQ_PAIR)
+  {
+  //We have to bind to the inproc socket before the MessageRouter class does
+  std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
+  this->Server.bind( ep.c_str() );
+  }
 };
 }
 
@@ -44,17 +50,13 @@ Worker::Worker(remus::common::MeshIOType mtype,
   MeshRequirements( remus::proto::make_MemoryJobRequirements(mtype,"","") ),
   ConnectionInfo(conn),
   Zmq( new detail::ZmqManagement() ),
-  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
-                    conn,
+  MessageRouter( new remus::worker::detail::MessageRouter(conn,
+                    this->Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
+  JobQueue( new remus::worker::detail::JobQueue( this->Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
-  //We have to bind to the inproc socket before the MessageRouter class does
-  std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
-  this->Zmq->Server.bind( ep.c_str() );
-
   this->MessageRouter->start();
 
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
@@ -67,19 +69,15 @@ Worker::Worker(remus::common::MeshIOType mtype,
 Worker::Worker(const remus::proto::JobRequirements& requirements,
                remus::worker::ServerConnection const& conn):
   MeshRequirements(requirements),
-  ConnectionInfo(conn),
+  ConnectionInfo(),
   Zmq( new detail::ZmqManagement() ),
-  MessageRouter( new remus::worker::detail::MessageRouter(this->Zmq->Context,
-                    conn,
+  MessageRouter( new remus::worker::detail::MessageRouter(conn,
+                    this->Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue(this->Zmq->Context,
+  JobQueue( new remus::worker::detail::JobQueue( this->Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
-  //We have to bind to the inproc socket before the MessageRouter class does
-  std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
-  this->Zmq->Server.bind( ep.c_str() );
-
   this->MessageRouter->start();
 
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
@@ -100,6 +98,12 @@ Worker::~Worker()
                                    remus::TERMINATE_WORKER);
     shutdown.send(&this->Zmq->Server);
     }
+}
+
+//-----------------------------------------------------------------------------
+const remus::worker::ServerConnection& Worker::connection() const
+{
+  return this->ConnectionInfo;
 }
 
 //-----------------------------------------------------------------------------

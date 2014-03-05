@@ -14,6 +14,7 @@
 
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
+#include <remus/proto/zmqHelper.h>
 #include <remus/worker/Job.h>
 
 #include <boost/thread.hpp>
@@ -42,13 +43,16 @@ class MessageRouter::MessageRouterImplementation
   bool ContinueTalking;
 public:
 //-----------------------------------------------------------------------------
-MessageRouterImplementation(zmq::context_t& context,
+MessageRouterImplementation(
+                      zmq::context_t& internal_inproc_context,
                       const remus::worker::ServerConnection& server_info,
                       const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                       const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-  WorkerComm(context,ZMQ_PAIR),
-  QueueComm(context,ZMQ_PAIR),
-  ServerComm(context,ZMQ_DEALER),
+  //use a custom context just for inter process communication, this allows
+  //multiple workers to share the same context to the server
+  WorkerComm(internal_inproc_context,ZMQ_PAIR),
+  QueueComm(internal_inproc_context,ZMQ_PAIR),
+  ServerComm(*(server_info.context()),ZMQ_DEALER),
   WorkerEndpoint(worker_info.endpoint()),
   QueueEndpoint(queue_info.endpoint()),
   ServerEndpoint(server_info.endpoint()),
@@ -198,12 +202,15 @@ void stopTalking()
 
 
 //-----------------------------------------------------------------------------
-MessageRouter::MessageRouter(zmq::context_t& context,
+MessageRouter::MessageRouter(
                 const remus::worker::ServerConnection& server_info,
+                zmq::context_t& internal_inproc_context,
                 const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-Implementation( new MessageRouterImplementation(context, server_info,
-                                                worker_info, queue_info) )
+Implementation( new MessageRouterImplementation(internal_inproc_context,
+                                                server_info,
+                                                worker_info,
+                                                queue_info) )
 {
 
 }

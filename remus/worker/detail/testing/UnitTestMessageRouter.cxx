@@ -187,27 +187,31 @@ void test_worker_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
                  remus::worker::Job::TERMINATE_WORKER) )
 }
 
-void verify_basic_comms(zmq::context_t& context)
+void verify_basic_comms()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
   zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
-  zmq::socket_t serverSocket(context, ZMQ_ROUTER);
+  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
+  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
   remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
+  //set the context on the server connection to the one we just created
+  serverConn.context(context);
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
-  zmq::socket_t worker_socket(context, ZMQ_PAIR);
+  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
   worker_socket.bind(worker_channel.endpoint().c_str());
 
-  JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
+  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
   //now we can construct the message router, and verify that it can
   //be destroyed before starting
   {
-  MessageRouter mr(context, serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   REMUS_ASSERT( (!mr.valid()) )
   }
 
@@ -215,7 +219,8 @@ void verify_basic_comms(zmq::context_t& context)
   //noted that since MessageRouter uses ZMQ_PAIR connections we can't have
   //multiple MessageRouters connecting to the same socket, you have to bind
   //and unbind those socket classes.
-  MessageRouter mr(context, serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   {
   REMUS_ASSERT( (!mr.valid()) )
   mr.start();
@@ -231,54 +236,63 @@ void verify_basic_comms(zmq::context_t& context)
   test_job_routing(mr,serverSocket,jq);
 }
 
-void verify_server_term(zmq::context_t& context)
+void verify_server_term()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
   zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
-  zmq::socket_t serverSocket(context, ZMQ_ROUTER);
+  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
+  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
   remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
+  //set the context on the server connection to the one we just created
+  serverConn.context(context);
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
-  zmq::socket_t worker_socket(context, ZMQ_PAIR);
+  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
   worker_socket.bind(worker_channel.endpoint().c_str());
 
-  JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
+  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
   //It should be noted that once you send a terminate call to a JobQueue
   //or MessageRouter it can't be started again
 
   //verify that we can send a TERMINATE_WORKER call from the server properly
-  MessageRouter mr(context, serverConn, worker_channel, queue_channel);
+    MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   test_server_stop_routing_call(mr,serverSocket,jq);
 
   REMUS_ASSERT( (mr.start() == false) )
   REMUS_ASSERT( (mr.valid() == false) )
 }
 
-void verify_worker_term(zmq::context_t& context)
+void verify_worker_term()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
   zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
 
   //bind the serverSocket
-  zmq::socket_t serverSocket(context, ZMQ_ROUTER);
+  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
+  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
   remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
+  //set the context on the server connection to the one we just created
+  serverConn.context(context);
+
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
-  zmq::socket_t worker_socket(context, ZMQ_PAIR);
+  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
   worker_socket.bind(worker_channel.endpoint().c_str());
 
-  JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
+  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
   //It should be noted that once you send a terminate call to a JobQueue
   //or MessageRouter it can't be started again
-  MessageRouter mr(context, serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   test_worker_stop_routing_call(mr,worker_socket,jq);
 
   REMUS_ASSERT( (mr.start() == false) )
@@ -289,16 +303,14 @@ void verify_worker_term(zmq::context_t& context)
 
 int UnitTestMessageRouter(int, char *[])
 {
-  zmq::context_t context(1);
-
   std::cout << "verify_basic_comms" << std::endl;
-  verify_basic_comms(context);
+  verify_basic_comms();
 
   std::cout << "verify_server_term" << std::endl;
-  verify_server_term(context);
+  verify_server_term();
 
   std::cout << "verify_worker_term" << std::endl;
-  verify_worker_term(context);
+  verify_worker_term();
 
   return 0;
 }

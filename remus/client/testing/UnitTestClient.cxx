@@ -65,15 +65,35 @@ void verify_server_connection()
   REMUS_ASSERT( (remote_tcp_client.connection().endpoint() ==
                  make_tcp_socket("74.125.30.106",83).endpoint()) );
 
-  //We currently don't test with inproc since for inproc to work correctly
-  //we need to share the same context between the client and calling code,
-  //this would require a change on who holds the clients context
+
+  remus::client::ServerConnection inproc_conn =
+         remus::client::make_ServerConnection("inproc://foo_inproc");
+
+  //to properly connect to an inproc_socket you first have something
+  //bind to the name, otherwise the connecting socket just hangs. Also
+  //the same zmq context needs to be shared between the binding and connecting
+  //socket.
+  zmq::socket_t inproc_bound_socket( *(inproc_conn.context()), ZMQ_REP );
+  inproc_bound_socket.bind(inproc_conn.endpoint().c_str());
+
+  remus::client::Client inproc_client(inproc_conn);
+
+  REMUS_ASSERT( (inproc_client.connection().endpoint() ==
+                 make_inproc_socket("foo_inproc").endpoint()) );
+
+  //share a context and connection info between two client
+  remus::client::Client inproc_client2(inproc_client.connection());
+
+  REMUS_ASSERT( (inproc_client2.connection().endpoint() ==
+                 make_inproc_socket("foo_inproc").endpoint()) );
+  REMUS_ASSERT( (inproc_client.connection().context() ==
+                 inproc_client2.connection().context()) );
 
   //test local host bool with tcp ip
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (ipc_client.connection().isLocalEndpoint()==true) );
+  REMUS_ASSERT( (inproc_client.connection().isLocalEndpoint()==true) );
   REMUS_ASSERT( (remote_tcp_client.connection().isLocalEndpoint()==false) );
-
 }
 
 } //namespace

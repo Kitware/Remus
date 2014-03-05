@@ -13,6 +13,8 @@
 #include <remus/server/ServerPorts.h>
 #include <remus/proto/zmqHelper.h>
 
+#include <boost/make_shared.hpp>
+
 namespace
 {
 remus::server::PortConnection bindToTCPSocket(zmq::socket_t &socket,
@@ -43,6 +45,7 @@ namespace server{
 
 //------------------------------------------------------------------------------
 ServerPorts::ServerPorts():
+  Context( boost::make_shared<zmq::context_t>(2) ),
   Client(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
                                           remus::SERVER_CLIENT_PORT)),
   Worker(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
@@ -58,6 +61,7 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
                          unsigned int clientPort,
                          const std::string& workerHostName,
                          unsigned int workerPort):
+  Context( boost::make_shared<zmq::context_t>(2) ),
   Client(zmq::socketInfo<zmq::proto::tcp>(clientHostName,clientPort)),
   Worker(zmq::socketInfo<zmq::proto::tcp>(workerHostName,workerPort))
 {

@@ -16,10 +16,12 @@
 #include <string>
 #include <remus/common/remusGlobals.h>
 
+#include <boost/shared_ptr.hpp>
+
 //included for export symbols
 #include <remus/server/ServerExports.h>
 
-namespace zmq { class socket_t; }
+namespace zmq { class context_t; class socket_t; }
 
 namespace remus{
 namespace server{
@@ -99,7 +101,15 @@ public:
   const PortConnection& worker() const
     { return this->Worker; }
 
+  //we have to leak some details to support inproc communication
+  boost::shared_ptr<zmq::context_t> context() const { return this->Context; }
+
+  //don't overwrite the context of a server once you start brokering.
+  //As that will cause undefined behavior and most likely will crash the program
+  void context(boost::shared_ptr<zmq::context_t> c) { this->Context = c; }
+
 private:
+  boost::shared_ptr<zmq::context_t> Context;
   PortConnection Client;
   PortConnection Worker;
 };

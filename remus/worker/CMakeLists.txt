@@ -9,6 +9,7 @@ set(headers
     )
 
 set(worker_srcs
+   ServerConnection.cxx
    Worker.cxx
    detail/JobQueue.cxx
    detail/MessageRouter.cxx

@@ -11,8 +11,11 @@
 #=============================================================================
 
 set(unit_tests
+  UnitTestWorker.cxx
   UnitTestWorkerServerConnection.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusCommon)
+                 LIBRARIES RemusWorker
+                           ${Boost_LIBRARIES}
+                           ${CMAKE_THREAD_LIBS_INIT})

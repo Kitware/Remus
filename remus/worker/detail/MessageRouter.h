@@ -13,7 +13,7 @@
 #ifndef remus_worker_detail_MessageRouter_h
 #define remus_worker_detail_MessageRouter_h
 
-#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmqSocketInfo.h>
 #include <remus/worker/ServerConnection.h>
 
 #include <boost/scoped_ptr.hpp>
@@ -32,8 +32,8 @@ namespace detail{
 class MessageRouter
 {
 public:
-  MessageRouter(zmq::context_t& context,
-                const remus::worker::ServerConnection& server_info,
+  MessageRouter(const remus::worker::ServerConnection& server_info,
+                zmq::context_t& internal_inproc_context,
                 const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info);
 
