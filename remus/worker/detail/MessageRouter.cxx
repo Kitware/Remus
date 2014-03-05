@@ -44,11 +44,14 @@ class MessageRouter::MessageRouterImplementation
 public:
 //-----------------------------------------------------------------------------
 MessageRouterImplementation(
+                      zmq::context_t& internal_inproc_context,
                       const remus::worker::ServerConnection& server_info,
                       const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                       const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-  WorkerComm(*(server_info.context()),ZMQ_PAIR),
-  QueueComm(*(server_info.context()),ZMQ_PAIR),
+  //use a custom context just for inter process communication, this allows
+  //multiple workers to share the same context to the server
+  WorkerComm(internal_inproc_context,ZMQ_PAIR),
+  QueueComm(internal_inproc_context,ZMQ_PAIR),
   ServerComm(*(server_info.context()),ZMQ_DEALER),
   WorkerEndpoint(worker_info.endpoint()),
   QueueEndpoint(queue_info.endpoint()),
@@ -201,9 +204,11 @@ void stopTalking()
 //-----------------------------------------------------------------------------
 MessageRouter::MessageRouter(
                 const remus::worker::ServerConnection& server_info,
+                zmq::context_t& internal_inproc_context,
                 const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-Implementation( new MessageRouterImplementation(server_info,
+Implementation( new MessageRouterImplementation(internal_inproc_context,
+                                                server_info,
                                                 worker_info,
                                                 queue_info) )
 {

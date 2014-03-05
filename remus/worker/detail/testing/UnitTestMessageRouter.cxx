@@ -210,7 +210,8 @@ void verify_basic_comms()
   //now we can construct the message router, and verify that it can
   //be destroyed before starting
   {
-  MessageRouter mr(serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   REMUS_ASSERT( (!mr.valid()) )
   }
 
@@ -218,7 +219,8 @@ void verify_basic_comms()
   //noted that since MessageRouter uses ZMQ_PAIR connections we can't have
   //multiple MessageRouters connecting to the same socket, you have to bind
   //and unbind those socket classes.
-  MessageRouter mr(serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   {
   REMUS_ASSERT( (!mr.valid()) )
   mr.start();
@@ -258,7 +260,8 @@ void verify_server_term()
   //or MessageRouter it can't be started again
 
   //verify that we can send a TERMINATE_WORKER call from the server properly
-  MessageRouter mr(serverConn, worker_channel, queue_channel);
+    MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   test_server_stop_routing_call(mr,serverSocket,jq);
 
   REMUS_ASSERT( (mr.start() == false) )
@@ -288,7 +291,8 @@ void verify_worker_term()
 
   //It should be noted that once you send a terminate call to a JobQueue
   //or MessageRouter it can't be started again
-  MessageRouter mr(serverConn, worker_channel, queue_channel);
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
   test_worker_stop_routing_call(mr,worker_socket,jq);
 
   REMUS_ASSERT( (mr.start() == false) )

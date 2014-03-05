@@ -33,6 +33,7 @@ class MessageRouter
 {
 public:
   MessageRouter(const remus::worker::ServerConnection& server_info,
+                zmq::context_t& internal_inproc_context,
                 const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info);
 

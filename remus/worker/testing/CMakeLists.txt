@@ -16,4 +16,6 @@ set(unit_tests
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusWorker)
+                 LIBRARIES RemusWorker
+                           ${Boost_LIBRARIES}
+                           ${CMAKE_THREAD_LIBS_INIT})
