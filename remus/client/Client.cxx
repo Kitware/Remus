@@ -25,12 +25,10 @@ namespace client{
 namespace detail{
 struct ZmqManagement
 {
-  zmq::context_t Context;
   zmq::socket_t Server;
 
-  ZmqManagement():
-    Context(1),
-    Server(Context, ZMQ_REQ)
+  ZmqManagement(const remus::client::ServerConnection &conn):
+    Server(*(conn.context()), ZMQ_REQ)
   {}
 };
 }
@@ -38,7 +36,7 @@ struct ZmqManagement
 //------------------------------------------------------------------------------
 Client::Client(const remus::client::ServerConnection &conn):
   ConnectionInfo(conn),
-  Zmq( new detail::ZmqManagement() )
+  Zmq( new detail::ZmqManagement(conn) )
 {
   zmq::connectToAddress(this->Zmq->Server,conn.endpoint());
 }

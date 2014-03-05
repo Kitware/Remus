@@ -7,6 +7,7 @@ set(headers
 
 set(srcs
     Client.cxx
+    ServerConnection.cxx
     )
 
 #setup the client side api library which uses the protocol library
