@@ -12,6 +12,7 @@
 
 #include <string>
 #include <remus/common/ConditionalStorage.h>
+#include <remus/common/FileHandle.h>
 
 #include <remus/testing/Testing.h>
 
@@ -71,10 +72,18 @@ int UnitTestConditionalStorage(int, char *[])
   REMUS_ASSERT( ( ss.get() == s.get() ) );
 
   c.swap(ss);
-    REMUS_ASSERT( (ss.size() == 27) )
+  REMUS_ASSERT( (ss.size() == 27) )
   REMUS_ASSERT( ( *(ss.get()) == 'C' ) )
   REMUS_ASSERT( ( ss.get() == c.get() ) );
   REMUS_ASSERT( ( ss.get() == s.get() ) );
+
+  //how test File Handle
+  remus::common::FileHandle fh(content);
+  remus::common::ConditionalStorage fhcs(fh);
+  REMUS_ASSERT( (fhcs.size() == 27) );
+  REMUS_ASSERT( ( *(fhcs.get()) == 'C' ) );
+  REMUS_ASSERT( ( fhcs.get() != t.get() ) );
+
 
   return 0;
 }
