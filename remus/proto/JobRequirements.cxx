@@ -65,12 +65,26 @@ JobRequirements::JobRequirements():
 }
 
 //------------------------------------------------------------------------------
-JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
-                                 remus::common::ContentFormat::Type ftype,
+JobRequirements::JobRequirements(remus::common::ContentFormat::Type ftype,
+                                 remus::common::MeshIOType mtype,
+                                 const std::string& wname,
+                                 const remus::common::FileHandle& reqs_file ):
+  SourceType(remus::common::ContentSource::File),
+  FormatType(ftype),
+  MeshType(mtype),
+  WorkerName(wname),
+  Tag(),
+  Implementation(boost::make_shared<InternalImpl>(reqs_file))
+{
+}
+
+
+//------------------------------------------------------------------------------
+JobRequirements::JobRequirements(remus::common::ContentFormat::Type ftype,
                                  remus::common::MeshIOType mtype,
                                  const std::string& wname,
                                  const std::string& reqs ):
-  SourceType(stype),
+  SourceType(remus::common::ContentSource::Memory),
   FormatType(ftype),
   MeshType(mtype),
   WorkerName(wname),
@@ -80,13 +94,12 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
 }
 
 //------------------------------------------------------------------------------
-JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
-                                 remus::common::ContentFormat::Type ftype,
+JobRequirements::JobRequirements(remus::common::ContentFormat::Type ftype,
                                  remus::common::MeshIOType mtype,
                                  const std::string& wname,
                                  const char* reqs,
                                  std::size_t reqs_size ):
-  SourceType(stype),
+  SourceType(remus::common::ContentSource::Memory),
   FormatType(ftype),
   MeshType(mtype),
   WorkerName(wname),
@@ -95,38 +108,6 @@ JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
 {
 }
 
-//------------------------------------------------------------------------------
-JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
-                                 remus::common::ContentFormat::Type ftype,
-                                 remus::common::MeshIOType mtype,
-                                 const std::string& wname,
-                                 const std::string& tag,
-                                 const std::string& reqs ):
-  SourceType(stype),
-  FormatType(ftype),
-  MeshType(mtype),
-  WorkerName(wname),
-  Tag(tag),
-  Implementation(boost::make_shared<InternalImpl>(reqs))
-{
-}
-
-//------------------------------------------------------------------------------
-JobRequirements::JobRequirements(remus::common::ContentSource::Type stype,
-                                 remus::common::ContentFormat::Type ftype,
-                                 remus::common::MeshIOType mtype,
-                                 const std::string& wname,
-                                 const std::string& tag,
-                                 const char* reqs,
-                                 std::size_t reqs_size ):
-  SourceType(stype),
-  FormatType(ftype),
-  MeshType(mtype),
-  WorkerName(wname),
-  Tag(tag),
-  Implementation(boost::make_shared<InternalImpl>(reqs,reqs_size))
-{
-}
 
 //------------------------------------------------------------------------------
 bool JobRequirements::hasRequirements() const

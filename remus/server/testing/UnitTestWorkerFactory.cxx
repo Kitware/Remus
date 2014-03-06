@@ -25,11 +25,9 @@ using namespace remus::meshtypes;
 template<typename In, typename Out>
 remus::proto::JobRequirements make_Reqs(In in, Out out)
 {
-  return remus::proto::JobRequirements( ContentSource::Memory,
-                                        ContentFormat::User,
-                                        MeshIOType(in,out),
-                                        std::string("TestWorker"),
-                                        std::string());
+  return remus::proto::make_JobRequirements( MeshIOType(in,out),
+                                             std::string("TestWorker"),
+                                             std::string());
 }
 
 void test_factory_constructors()

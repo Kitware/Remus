@@ -20,6 +20,7 @@
 
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
+#include <remus/common/FileHandle.h>
 #include <remus/common/MeshIOType.h>
 
 //for export symbols
@@ -35,10 +36,20 @@ public:
   //to allows this class to be stored in containers.
   JobRequirements();
 
-  //Make a valid JobRequirements which creates a copy of the of the requirements
-  //data and stores it.
-  JobRequirements(remus::common::ContentSource::Type stype,
-                  remus::common::ContentFormat::Type ftype,
+  //Make a valid file source type JobRequirements which reads in the contents
+  //of the file stream into the job requirement on construction
+  // SourceType: File
+  // FormatType: set by user
+  JobRequirements(remus::common::ContentFormat::Type ftype,
+                  remus::common::MeshIOType mtype,
+                  const std::string& wname,
+                  const remus::common::FileHandle& rfile );
+
+  //Make a valid memory souce type JobRequirements which creates a copy of the
+  //of the requirements data and stores it.
+  // SourceType: Memory
+  // FormatType: set by user
+  JobRequirements(remus::common::ContentFormat::Type ftype,
                   remus::common::MeshIOType mtype,
                   const std::string& wname,
                   const std::string& reqs );
@@ -48,32 +59,11 @@ public:
   //manage the lifespan of the data. This is best used when you have really
   //large memory footprint for you requirements and want a zero copy interface
   //to it.
-  JobRequirements(remus::common::ContentSource::Type stype,
-                  remus::common::ContentFormat::Type ftype,
+  // SourceType: Memory
+  // FormatType: set by user
+  JobRequirements(remus::common::ContentFormat::Type ftype,
                   remus::common::MeshIOType mtype,
                   const std::string& wname,
-                  const char* reqs,
-                  std::size_t reqs_size );
-
-  //Make a valid JobRequirements which creates a copy of the of the requirements
-  //data and stores it.
-  JobRequirements(remus::common::ContentSource::Type stype,
-                  remus::common::ContentFormat::Type ftype,
-                  remus::common::MeshIOType mtype,
-                  const std::string& wname,
-                  const std::string& tag,
-                  const std::string& reqs );
-
-  //Make a valid JobRequirements which holds a pointer to the requirements data
-  //and will not copy or delete the data, which means the calling code must
-  //manage the lifespan of the data. This is best used when you have really
-  //large memory footprint for you requirements and want a zero copy interface
-  //to it.
-  JobRequirements(remus::common::ContentSource::Type stype,
-                  remus::common::ContentFormat::Type ftype,
-                  remus::common::MeshIOType mtype,
-                  const std::string& wname,
-                  const std::string& tag,
                   const char* reqs,
                   std::size_t reqs_size );
 
@@ -96,9 +86,13 @@ public:
   //get a worker specified tag that holds meta data information
   //about this job mesh requirements
   const std::string& tag() const { return this->Tag; }
+  void tag(const std::string& tag) { this->Tag=tag; }
 
   bool hasRequirements() const;
   std::size_t requirementsSize() const;
+
+  //returns the raw requirements data stream. If the source type is file,
+  //this will be the contents of the file
   const char* requirements() const;
 
   //implement a less than operator and equal operator so you
@@ -180,28 +174,26 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobRequirements make_FileJobRequirements(
+inline remus::proto::JobRequirements make_JobRequirements(
       remus::common::MeshIOType meshtypes,
       const std::string& wname,
-      const std::string& reqs,
+      remus::common::FileHandle& rfile,
       remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
-  return remus::proto::JobRequirements(remus::common::ContentSource::File,
-                                       format,
+  return remus::proto::JobRequirements(format,
                                        meshtypes,
                                        wname,
-                                       reqs);
+                                       rfile);
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobRequirements make_MemoryJobRequirements(
+inline remus::proto::JobRequirements make_JobRequirements(
       remus::common::MeshIOType meshtypes,
       const std::string& wname,
       const std::string& reqs,
       remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
-  return remus::proto::JobRequirements(remus::common::ContentSource::Memory,
-                                       format,
+  return remus::proto::JobRequirements(format,
                                        meshtypes,
                                        wname,
                                        reqs);

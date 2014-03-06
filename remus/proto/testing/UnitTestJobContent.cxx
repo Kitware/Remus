@@ -82,11 +82,12 @@ void verify_source_and_format()
 {
   //validate that all the helpers work
   std::string path="example_data.txt";
+  remus::common::FileHandle fh(path);
 
-  JobContent xml_file_test = make_FileJobContent(  path, ContentFormat::XML  );
-  JobContent json_file_test = make_FileJobContent( path, ContentFormat::JSON );
-  JobContent bson_file_test = make_FileJobContent( path, ContentFormat::BSON );
-  JobContent user_file_test = make_FileJobContent( path );
+  JobContent xml_file_test = make_JobContent(  fh, ContentFormat::XML  );
+  JobContent json_file_test = make_JobContent( fh, ContentFormat::JSON );
+  JobContent bson_file_test = make_JobContent( fh, ContentFormat::BSON );
+  JobContent user_file_test = make_JobContent( fh );
 
   REMUS_ASSERT( (xml_file_test.sourceType() == ContentSource::File ) );
   REMUS_ASSERT( (json_file_test.sourceType() == ContentSource::File ) );
@@ -98,10 +99,10 @@ void verify_source_and_format()
   REMUS_ASSERT( (bson_file_test.formatType() == ContentFormat::BSON ) );
   REMUS_ASSERT( (user_file_test.formatType() == ContentFormat::User ) );
 
-  JobContent xml_mem_test = make_MemoryJobContent( path, ContentFormat::XML );
-  JobContent json_mem_test = make_MemoryJobContent( path, ContentFormat::JSON );
-  JobContent bson_mem_test = make_MemoryJobContent( path, ContentFormat::BSON );
-  JobContent user_mem_test = make_MemoryJobContent( path );
+  JobContent xml_mem_test = make_JobContent( path, ContentFormat::XML );
+  JobContent json_mem_test = make_JobContent( path, ContentFormat::JSON );
+  JobContent bson_mem_test = make_JobContent( path, ContentFormat::BSON );
+  JobContent user_mem_test = make_JobContent( path );
 
   REMUS_ASSERT( (xml_mem_test.sourceType() == ContentSource::Memory ) );
   REMUS_ASSERT( (json_mem_test.sourceType() == ContentSource::Memory ) );
@@ -116,8 +117,8 @@ void verify_source_and_format()
 
 void verify_tag()
 {
-  std::string path="example_data.txt";
-  JobContent test = make_FileJobContent( path );
+  remus::common::FileHandle fh("example_data.txt");
+  JobContent test = make_JobContent( fh );
   test.tag("hello");
   REMUS_ASSERT( (test.tag() == "hello") );
 }
@@ -129,7 +130,7 @@ void verify_container_algorithm_support()
   make_large_string large_str_factory;
   std::vector<JobContent> jc_vec(100);
   for(std::size_t i=0; i < 100; ++i)
-  { jc_vec[i] = make_MemoryJobContent(str_factory(), ContentFormat::XML ); }
+  { jc_vec[i] = make_JobContent(str_factory(), ContentFormat::XML ); }
 
   std::set<JobContent> jc_set(jc_vec.begin(),jc_vec.end());
   REMUS_ASSERT( (jc_set.size() == 1) ) //all the items in the vector are the same
@@ -140,7 +141,7 @@ void verify_container_algorithm_support()
   //resize the array jc_vec is now size 1,
   jc_vec.resize(100);
   for(std::size_t i=0; i < 100; ++i)
-  { jc_vec[i] = make_MemoryJobContent(large_str_factory()); }
+  { jc_vec[i] = make_JobContent(large_str_factory()); }
 
   jc_set = std::set<JobContent>(jc_vec.begin(),jc_vec.end());
 
@@ -152,7 +153,7 @@ void verify_container_algorithm_support()
 template<typename StringFactory>
 void verify_serilization_no_tag(StringFactory factory)
 {
-  JobContent input_content = make_MemoryJobContent(factory() );
+  JobContent input_content = make_JobContent(factory() );
   REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
 
   REMUS_ASSERT( (input_content.tag().size() == 0 ) );
@@ -184,7 +185,7 @@ void verify_serilization_no_tag(StringFactory factory)
 template<typename StringFactory>
 void verify_serilization_with_tag(StringFactory factory)
 {
-  JobContent input_content = make_MemoryJobContent(factory(), ContentFormat::JSON);
+  JobContent input_content = make_JobContent(factory(), ContentFormat::JSON);
   REMUS_ASSERT( (factory.size() == input_content.dataSize()) );
 
   input_content.tag("we have a tag");

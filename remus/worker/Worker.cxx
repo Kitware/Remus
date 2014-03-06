@@ -47,7 +47,7 @@ struct ZmqManagement
 //-----------------------------------------------------------------------------
 Worker::Worker(remus::common::MeshIOType mtype,
                remus::worker::ServerConnection const& conn):
-  MeshRequirements( remus::proto::make_MemoryJobRequirements(mtype,"","") ),
+  MeshRequirements( remus::proto::make_JobRequirements(mtype,"","") ),
   ConnectionInfo(conn),
   Zmq( new detail::ZmqManagement() ),
   MessageRouter( new remus::worker::detail::MessageRouter(conn,

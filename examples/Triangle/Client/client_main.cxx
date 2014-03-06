@@ -44,13 +44,13 @@ int main (int argc, char* argv[])
 
   input_data.setHole(0, 4, 4); //hole in the middle of triangle
   remus::proto::JobContent content =
-                          remus::proto::make_MemoryJobContent(input_data);
+                          remus::proto::make_JobContent(input_data);
 
   //we create a basic job request for a mesh2d job
   remus::common::MeshIOType mtype( (remus::meshtypes::Edges()),
                                     (remus::meshtypes::Mesh2D()) );
   remus::proto::JobRequirements request =
-                          remus::proto::make_MemoryJobRequirements( mtype,
+                          remus::proto::make_JobRequirements( mtype,
                                                                "TriangleWorker",
                                                                "");
 

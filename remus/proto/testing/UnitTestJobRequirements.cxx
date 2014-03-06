@@ -77,14 +77,16 @@ remus::common::MeshIOType randomMeshTypes()
 
 }
 
-JobRequirements make_MeshReqs(ContentSource::Type stype,
-                                  ContentFormat::Type ftype,
-                                  remus::common::MeshIOType mtype,
-                                  std::string name,
-                                  std::string tag,
-                                  std::string reqs)
+template<typename T>
+JobRequirements make_MeshReqs(ContentFormat::Type ftype,
+                              remus::common::MeshIOType mtype,
+                              std::string name,
+                              std::string tag,
+                              T reqs)
 {
-  return JobRequirements(stype,ftype,mtype,name,tag,reqs);
+  JobRequirements jreqs(ftype,mtype,name,reqs);
+  jreqs.tag(tag);
+  return jreqs;
 }
 
 JobRequirements make_random_MeshReqs()
@@ -92,12 +94,24 @@ JobRequirements make_random_MeshReqs()
   //generate a randomly computed meshreqs, will at times not
   //fill in the following optional flags:
   // tag.
-  return make_MeshReqs( randomEnum(ContentSource::File,ContentSource::Memory),
-                        randomEnum(ContentFormat::User,ContentFormat::BSON),
-                        randomMeshTypes(),
-                        randomString(),
-                        randomString(),
-                        randomBinaryData() );
+  ContentSource::Type type =
+                        randomEnum(ContentSource::File,ContentSource::Memory);
+  if(type == ContentSource::File)
+    {
+    return make_MeshReqs( randomEnum(ContentFormat::User,ContentFormat::BSON),
+                           randomMeshTypes(),
+                           randomString(),
+                           randomString(),
+                           remus::common::FileHandle(randomString()) );
+    }
+  else
+    {
+    return make_MeshReqs( randomEnum(ContentFormat::User,ContentFormat::BSON),
+                           randomMeshTypes(),
+                           randomString(),
+                           randomString(),
+                           randomBinaryData() );
+    }
 }
 
 
@@ -108,12 +122,11 @@ void verify_tag()
   remus::common::MeshIOType mtypes((remus::meshtypes::Model()),
                                    (remus::meshtypes::Model()) );
 
-  JobRequirements reqs = make_MeshReqs( ContentSource::Memory,
-                                            ContentFormat::User,
-                                            mtypes,
-                                            "worker_name",
-                                            tag_data,
-                                            "");
+  JobRequirements reqs = make_MeshReqs( ContentFormat::User,
+                                        mtypes,
+                                        "worker_name",
+                                        tag_data,
+                                        "");
   REMUS_ASSERT( (reqs.tag() == tag_data) );
 
   //serialize and deserialize and verify it is valid
@@ -128,12 +141,11 @@ void verify_worker_name()
   remus::common::MeshIOType mtypes((remus::meshtypes::Model()),
                                    (remus::meshtypes::Model()) );
 
-  JobRequirements reqs = make_MeshReqs( ContentSource::Memory,
-                                            ContentFormat::User,
-                                            mtypes,
-                                            workerName,
-                                            "example tag data",
-                                            "");
+  JobRequirements reqs = make_MeshReqs( ContentFormat::User,
+                                        mtypes,
+                                        workerName,
+                                        "example tag data",
+                                        "");
 
   REMUS_ASSERT( (reqs.workerName() == workerName) );
   JobRequirements reqs2 = to_JobRequirements( to_string(reqs) );

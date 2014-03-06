@@ -22,12 +22,10 @@ namespace {
 using namespace remus::common;
 using namespace remus::meshtypes;
 
-const remus::proto::JobRequirements worker_type2D(ContentSource::Memory,
-                                                  ContentFormat::User,
+const remus::proto::JobRequirements worker_type2D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh2D()),
                                                   "", "" );
-const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
-                                                  ContentFormat::User,
+const remus::proto::JobRequirements worker_type3D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh3D()),
                                                   "", "" );
 
@@ -95,8 +93,7 @@ void verify_has_worker_type()
       remus::common::MeshIOType io_type(
           remus::meshtypes::to_meshType(input_type),
           remus::meshtypes::to_meshType(output_type));
-      remus::proto::JobRequirements reqs( worker_type2D.sourceType(),
-                                          worker_type2D.formatType(),
+      remus::proto::JobRequirements reqs( worker_type2D.formatType(),
                                           io_type,
                                           worker_type2D.workerName(),
                                           worker_type2D.requirements(),

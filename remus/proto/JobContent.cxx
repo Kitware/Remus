@@ -115,10 +115,22 @@ JobContent::JobContent():
 }
 
 //------------------------------------------------------------------------------
-JobContent::JobContent(remus::common::ContentSource::Type source,
-                       remus::common::ContentFormat::Type format,
+JobContent::JobContent(remus::common::ContentFormat::Type format,
+                       const remus::common::FileHandle& handle):
+  SourceType(remus::common::ContentSource::File),
+  FormatType(format),
+  Tag(),
+  Implementation( boost::make_shared<InternalImpl>(handle) )
+  //make_shared is significantly faster than using manual new
+{
+
+}
+
+
+//------------------------------------------------------------------------------
+JobContent::JobContent(remus::common::ContentFormat::Type format,
                        const std::string& contents):
-  SourceType(source),
+  SourceType(remus::common::ContentSource::Memory),
   FormatType(format),
   Tag(),
   Implementation( boost::make_shared<InternalImpl>(contents) )

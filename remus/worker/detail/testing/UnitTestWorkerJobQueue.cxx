@@ -60,7 +60,6 @@ void verify_basic_comms(zmq::context_t& context)
 
   //now add multiple more jobs to the queue
   remus::proto::JobRequirements reqs(
-          remus::common::ContentSource::Memory,
           remus::common::ContentFormat::User,
           remus::common::MeshIOType( (remus::meshtypes::Mesh2D()),
                                      (remus::meshtypes::Mesh2D()) ),
