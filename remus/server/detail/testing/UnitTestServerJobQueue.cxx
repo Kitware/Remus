@@ -21,16 +21,13 @@ namespace {
 using namespace remus::common;
 using namespace remus::meshtypes;
 
-const remus::proto::JobRequirements worker_type1D(ContentSource::Memory,
-                                                  ContentFormat::User,
+const remus::proto::JobRequirements worker_type1D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh1D()),
                                                   "", "" );
-const remus::proto::JobRequirements worker_type2D(ContentSource::Memory,
-                                                  ContentFormat::User,
+const remus::proto::JobRequirements worker_type2D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh2D()),
                                                   "", "" );
-const remus::proto::JobRequirements worker_type3D(ContentSource::Memory,
-                                                  ContentFormat::User,
+const remus::proto::JobRequirements worker_type3D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh3D()),
                                                   "", "" );
 
@@ -44,12 +41,10 @@ boost::uuids::uuid make_id()
 template<typename T, typename U>
 remus::proto::JobSubmission make_jobSubmission(const T& t, const U& u)
 {
-  ContentSource::Type stype(ContentSource::Memory);
   ContentFormat::Type ftype(ContentFormat::User);
   MeshIOType mtype(t,u);
   std::string name;
-  remus::proto::JobRequirements requirements(stype,
-                                             ftype,
+  remus::proto::JobRequirements requirements(ftype,
                                              mtype,
                                              name,
                                              std::string());

@@ -22,12 +22,12 @@ int main (int argc, char* argv[])
 
   TetGenInput input_data("pmdc.poly");
   remus::proto::JobContent content =
-      remus::proto::make_MemoryJobContent(input_data);
+      remus::proto::make_JobContent(input_data);
 
   remus::common::MeshIOType mtype( (remus::meshtypes::PiecewiseLinearComplex()),
                                    (remus::meshtypes::Mesh2D()) );
   remus::proto::JobRequirements request =
-      remus::proto::make_MemoryJobRequirements( mtype, "TetGenWorker", "");
+      remus::proto::make_JobRequirements( mtype, "TetGenWorker", "");
 
   if(c.canMesh(mtype))
     {

@@ -70,37 +70,65 @@ remus::common::MeshIOType randomMeshTypes()
 
 }
 
-JobRequirements make_MeshReqs(ContentSource::Type stype,
-                                  ContentFormat::Type ftype,
-                                  remus::common::MeshIOType mtype,
-                                  std::string name,
-                                  std::string tag,
-                                  std::string reqs)
+template<typename T>
+JobRequirements make_MeshReqs(ContentFormat::Type ftype,
+                              remus::common::MeshIOType mtype,
+                              std::string name,
+                              std::string tag,
+                              T reqs)
 {
-  return JobRequirements(stype,ftype,mtype,name,tag,reqs);
+  JobRequirements r(ftype,mtype,name,reqs); r.tag(tag);
+  return r;
 }
 
 JobRequirements make_random_MeshReqs()
 {
-  //generate a randomly computed meshreqs, will at times not
-  //fill in the following optional flags:
-  // tag.
-  return make_MeshReqs( randomEnum(ContentSource::File,ContentSource::Memory),
-                        randomEnum(ContentFormat::User,ContentFormat::BSON),
+  if(randomEnum(ContentSource::File,ContentSource::Memory) ==
+                ContentSource::File)
+    {
+    return JobRequirements( randomEnum(ContentFormat::User,ContentFormat::BSON),
+                            randomMeshTypes(),
+                            randomString(),
+                            remus::common::FileHandle(randomString()) );
+    }
+  else
+    {
+    return JobRequirements( randomEnum(ContentFormat::User,ContentFormat::BSON),
                         randomMeshTypes(),
                         randomString(),
-                        randomString(),
                         randomBinaryData() );
+    }
+}
+
+JobContent make_random_Content()
+{
+  if(randomEnum(ContentSource::File,ContentSource::Memory) ==
+                ContentSource::File)
+    {
+    return JobContent( randomEnum(ContentFormat::User,ContentFormat::BSON),
+                       remus::common::FileHandle(randomString()) );
+    }
+  else
+    {
+    return JobContent( randomEnum(ContentFormat::User,ContentFormat::BSON),
+                       randomBinaryData() );
+    }
 }
 
 
 std::pair<std::string,JobContent> make_random_MapPairs()
 {
+  if(randomEnum(ContentSource::File,ContentSource::Memory) ==
+                 ContentSource::File)
+    {
+    return std::pair<std::string,JobContent>( randomString(),
+        JobContent(randomEnum(ContentFormat::User,ContentFormat::BSON),
+                   remus::common::FileHandle(randomString()) ) );
+    }
+
   return std::pair<std::string,JobContent>( randomString(),
-        JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                      randomEnum(ContentFormat::User,ContentFormat::BSON),
-                      randomBinaryData() )
-        );
+        JobContent(randomEnum(ContentFormat::User,ContentFormat::BSON),
+                   randomBinaryData() ) );
 }
 
 
@@ -116,10 +144,8 @@ void constructor_test()
   REMUS_ASSERT( (invalid_sub == randomReqs) );
 
 
-  JobSubmission single_content(make_random_MeshReqs(),
-     JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                 randomEnum(ContentFormat::User,ContentFormat::BSON),
-                 randomBinaryData() ));
+  JobSubmission single_content(make_random_MeshReqs(),make_random_Content());
+
 
   REMUS_ASSERT( (single_content.size() == 1) );
   REMUS_ASSERT( (single_content.find("default") != single_content.end()) );
@@ -130,11 +156,8 @@ void constructor_test()
   //try to override the default content, which should faild
   single_content.insert(
       std::pair<std::string,JobContent>(
-      "default",
-      JobContent( randomEnum(ContentSource::File,ContentSource::Memory),
-                  randomEnum(ContentFormat::User,ContentFormat::BSON),
-                  randomBinaryData() )
-        )
+        "default",
+        make_random_Content())
       );
   REMUS_ASSERT( (single_content.find("default")->second == default_content_old) );
 

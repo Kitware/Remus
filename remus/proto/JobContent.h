@@ -20,6 +20,7 @@
 
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
+#include <remus/common/FileHandle.h>
 
 //included for export symbols
 #include <remus/proto/ProtoExports.h>
@@ -34,12 +35,15 @@ public:
   //to allows this class to be stored in containers.
   JobContent();
 
+  //pass in some data to send to the worker. The path to the file
+  //will passed to the worker. In the future we plan to extend remus
+  //to support automatic file reading.
+  JobContent(remus::common::ContentFormat::Type format,
+             const remus::common::FileHandle& fileHandle);
+
   //pass in some data to send to the worker. The
-  //contents of the string will be copied into a local memory if the
-  //data type is Memory. If the data type is file we will read the contents
-  //of the file
-  JobContent(remus::common::ContentSource::Type source,
-             remus::common::ContentFormat::Type format,
+  //contents of the string will be copied into a local memory
+  JobContent(remus::common::ContentFormat::Type format,
              const std::string& contents);
 
   //pass in some Memory data to send to the worker. A pointer
@@ -94,23 +98,19 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobContent make_FileJobContent(
-      const std::string& path,
+inline remus::proto::JobContent make_JobContent(
+      const remus::common::FileHandle& handle,
       remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
-  return remus::proto::JobContent(remus::common::ContentSource::File,
-                                   format,
-                                   path);
+  return remus::proto::JobContent(format,handle);
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobContent make_MemoryJobContent(
+inline remus::proto::JobContent make_JobContent(
       const std::string& content,
       remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
-  return remus::proto::JobContent(remus::common::ContentSource::Memory,
-                                   format,
-                                   content);
+  return remus::proto::JobContent(format,content);
 }
 
 //------------------------------------------------------------------------------

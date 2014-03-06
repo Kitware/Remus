@@ -31,7 +31,7 @@ int main (int argc, char* argv[])
 
   remus::common::MeshIOType io_type =
                           remus::common::make_MeshIOType(Edges(),Mesh2D());
-  JobRequirements requirements = make_MemoryJobRequirements(io_type,
+  JobRequirements requirements = make_JobRequirements(io_type,
                                                             "BasicWorker",
                                                             "");
   remus::Worker w(requirements,connection);

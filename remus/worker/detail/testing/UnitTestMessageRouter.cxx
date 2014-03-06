@@ -81,7 +81,6 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
 
   //now add multiple more jobs to the queue
   remus::proto::JobRequirements reqs(
-          remus::common::ContentSource::Memory,
           remus::common::ContentFormat::User,
           remus::common::MeshIOType( (remus::meshtypes::Mesh2D()),
                                      (remus::meshtypes::Mesh2D()) ),

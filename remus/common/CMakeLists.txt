@@ -4,6 +4,7 @@ set(headers
     ConditionalStorage.h
     ContentTypes.h
     ExecuteProcess.h
+    FileHandle.h
     MD5Hash.h
     MeshIOType.h
     MeshRegistrar.h

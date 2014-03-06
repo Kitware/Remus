@@ -139,8 +139,9 @@ namespace
   std::string read_file(const boost::filesystem::path& file)
   {
     std::string file_contents;
-    boost::filesystem::ifstream f;
-    f.open(file);
+    std::string path = boost::filesystem::canonical(file).string();
+    std::ifstream f(path.c_str(),
+                    std::ios_base::in | std::ios::binary);
     if(f.is_open())
       {
       //read the file into a std::string
@@ -168,12 +169,10 @@ namespace
     std::string executableName(cjson::cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
 
     //by default we select memory and user
-    ContentSource::Type source_type = ContentSource::Memory;
     ContentFormat::Type format_type = ContentFormat::User;
     MeshIOType mesh_type( remus::meshtypes::to_meshType(inputType),
                           remus::meshtypes::to_meshType(outputType)
                           );
-    std::string data; //default data is empty
 
     //executableName can be a path, so figure it out
     boost::filesystem::path mesher_path(executableName);
@@ -183,6 +182,12 @@ namespace
       }
 
 
+    //make the basic memory type reqs
+    remus::proto::JobRequirements reqs(format_type,
+                                       mesh_type,
+                                       executableName,
+                                       std::string());
+
     //check if we have a specific file requirements
     cjson::cJSON *req_file = cjson::cJSON_GetObjectItem(root,"File");
     cjson::cJSON *req_file_format = cjson::cJSON_GetObjectItem(root,"FileFormat");
@@ -190,7 +195,6 @@ namespace
       {
       //we have a file source type, now determine the format type, and
       //read in the data from the file
-      source_type = ContentSource::File;
       if(req_file_format)
         {
         if(strncmp(req_file_format->valuestring,"XML",3) == 0)
@@ -213,21 +217,20 @@ namespace
         {
         //load the contents of the file into a string to be given to the
         //requirements
-        data = read_file(req_file_path);
+        remus::common::FileHandle rfile(
+                        boost::filesystem::canonical(req_file_path).string());
+        remus::proto::JobRequirements reqs(format_type,
+                        mesh_type,
+                        executableName,
+                        rfile);
+
         }
       }
-
     cjson::cJSON_Delete(root);
 
-    //name the worker with the given name
-    remus::proto::JobRequirements reqs(source_type,
-                                         format_type,
-                                         mesh_type,
-                                         executableName,
-                                         data);
     typedef std::pair< boost::filesystem::path,
                        remus::proto::JobRequirements > ReturnType;
-    return std::make_pair( mesher_path, reqs);
+    return std::make_pair( mesher_path, reqs );
   }
 }
 

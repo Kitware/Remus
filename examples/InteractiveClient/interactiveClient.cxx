@@ -124,7 +124,7 @@ void submitJob(remus::Client& client)
                                      *(out.get()) );
 
   remus::proto::JobRequirements request =
-    remus::proto::make_MemoryJobRequirements(mtypes,"",data);
+    remus::proto::make_JobRequirements(mtypes,"",data);
 
   remus::proto::Job job = client.submitJob(request);
 

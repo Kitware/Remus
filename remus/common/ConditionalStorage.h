@@ -19,7 +19,6 @@
 namespace remus {
 namespace common {
 
-
 //a special struct that will copy the data passed in, only if the item
 //coming in has a size greater than zero.
 struct ConditionalStorage

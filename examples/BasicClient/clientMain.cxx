@@ -95,7 +95,7 @@ int main ()
         {
         valid_mesher_found = true;
         sub = remus::proto::JobSubmission(*i);
-        sub["data"] = remus::proto::make_MemoryJobContent(
+        sub["data"] = remus::proto::make_JobContent(
                             remus::testing::AsciiStringGenerator(2097152) );
         }
       }
