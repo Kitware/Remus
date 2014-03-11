@@ -241,6 +241,7 @@ specify it like so:
 #valid options are JSON, BSON, XML and USER
 "FileFormat" : "JSON"
 }
+```
 
 ## Register a New Mesh Type ##
 
@@ -248,6 +249,11 @@ Remus can be extended to support custom defined mesh types, if the default
 one are insufficient. Lets say that you have a meshing process whose input
 is actually an AMR dataset and whose output is collection of Voxels. You can
 do the following to have Remus support those new types.
+
+Remus reserves the id space 0 to 100 for provided mesh types. User defined
+mesh types should start at 100. If you are working with multiple plugins that
+define mesh types, I would ask the registrar for all registered types and verify
+the id spaces don't collide before adding new ids.
 
 ```cpp
   #include <remus/common/MeshTypes.h>

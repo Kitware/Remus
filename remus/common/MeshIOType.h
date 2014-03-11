@@ -62,8 +62,8 @@ struct MeshIOType
     return (this->CombinedType & (0xFFFF << 16)) >> 16;
     }
 
-  //since zero for input and out is invalid a combined value of
-  //zero for the full int32 is also invalid
+  //If either the input or output is invalid we need say we are invalid.
+  //If we just check the combined type we only see if both are invalid.
   bool valid() const { return inputType() != 0 && outputType() !=0; }
 
   //needed to see if a client request type and a workers type are equal
