@@ -89,18 +89,12 @@ public:
 
   friend std::ostream& operator<<(std::ostream &os,
                                   const JobSubmission &submission)
-    {
-    submission.serialize(os);
-    return os;
-    }
+    { submission.serialize(os); return os; }
 
   //needed to decode the object from the wire
   friend std::istream& operator>>(std::istream &is,
                                   JobSubmission &submission)
-    {
-    submission = JobSubmission(is);
-    return is;
-    }
+    { submission = JobSubmission(is); return is; }
 
 private:
   //serialize function

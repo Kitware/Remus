@@ -25,6 +25,7 @@ set(private_headers
 set(srcs
     JobContent.cxx
     JobRequirements.cxx
+    JobResult.cxx
     JobSubmission.cxx
     Message.cxx
     Response.cxx

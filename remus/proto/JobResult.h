@@ -13,75 +13,110 @@
 #ifndef remus_proto_JobResult_h
 #define remus_proto_JobResult_h
 
-#include <algorithm>
 #include <string>
 #include <sstream>
 
-#include <remus/proto/conversionHelpers.h>
+//for ContentFormat and ContentSource
+#include <remus/common/ContentTypes.h>
+#include <remus/common/FileHandle.h>
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
+
+//included for export symbols
+#include <remus/proto/ProtoExports.h>
 
 //Job result holds the result that the worker generated for a given job.
 //The Data string will hold the actual job result, be it a file path or a custom
 //serialized data structure.
-
 namespace remus {
 namespace proto {
-class JobResult
+class REMUSPROTO_EXPORT JobResult
 {
 public:
-  //construct am invalid JobResult
-  JobResult(const boost::uuids::uuid& id):
-    JobId(id),
-    Data()
-    {}
+  //construct an invalid JobResult
+  JobResult(const boost::uuids::uuid& id);
 
-  //construct a JobResult. The result should be considered invalid if the
-  //data length is zero
-  JobResult(const boost::uuids::uuid& id, const std::string& d):
-    JobId(id),
-    Data(d)
-    {}
+  //pass in some data to send back to the client. The path to the file
+  //will passed to the client. In the future we plan to extend remus
+  //to support automatic file reading.
+  //The result should be considered invalid if the file names length is zero
+  JobResult(const boost::uuids::uuid& id,
+            remus::common::ContentFormat::Type format,
+            const remus::common::FileHandle& fileHandle);
+
+  //pass in some data back to the client. The
+  //contents of the string will be copied into a local memory
+  //The result should be considered invalid if the contents length is zero
+  JobResult(const boost::uuids::uuid& id,
+            remus::common::ContentFormat::Type format,
+            const std::string& contents);
+
+  //get the storage format that we currently have setup for the source
+  remus::common::ContentFormat::Type formatType() const
+    { return this->FormatType; }
 
   bool valid() const { return Data.size() > 0; }
 
   const boost::uuids::uuid& id() const { return JobId; }
   const std::string& data() const { return Data; }
 
+  //implement a less than operator and equal operator so you
+  //can use the class in containers and algorithms
+  bool operator<(const JobResult& other) const;
+  bool operator==(const JobResult& other) const;
+
+  friend std::ostream& operator<<(std::ostream &os,
+                                  const JobResult &submission)
+    { submission.serialize(os); return os; }
+
+  //needed to decode the object from the wire
+  friend std::istream& operator>>(std::istream &is,
+                                  JobResult &submission)
+    { submission = JobResult(is); return is; }
+
 private:
+  friend remus::proto::JobResult to_JobResult(const std::string& msg);
+  //serialize function
+  void serialize(std::ostream& buffer) const;
+
+  //deserialize constructor function
+  explicit JobResult(std::istream& buffer);
+
   boost::uuids::uuid JobId;
+  remus::common::ContentFormat::Type FormatType;
   std::string Data; //data of the result of a job
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobResult& status)
+inline remus::proto::JobResult make_JobResult(const boost::uuids::uuid& id,
+      const remus::common::FileHandle& handle,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
-  //convert a job detail to a string, used as a hack to serialize
-  //encoding is simple, contents newline separated
+  return remus::proto::JobResult(id,format,handle);
+}
+
+//------------------------------------------------------------------------------
+inline remus::proto::JobResult make_JobResult(const boost::uuids::uuid& id,
+      const std::string& content,
+      remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
+{
+  return remus::proto::JobResult(id,format,content);
+}
+
+//------------------------------------------------------------------------------
+inline std::string to_string(const remus::proto::JobResult& result)
+{
   std::ostringstream buffer;
-  buffer << status.id() << std::endl;
-  buffer << status.data().length() << std::endl;
-  remus::internal::writeString(buffer, status.data());
+  buffer << result;
   return buffer.str();
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobResult to_JobResult(const std::string& status)
+inline remus::proto::JobResult to_JobResult(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
-
-  std::istringstream buffer(status);
-
-  boost::uuids::uuid id;
-  int dataLen;
-  std::string data;
-
-  buffer >> id;
-  buffer >> dataLen;
-  data = remus::internal::extractString(buffer,dataLen);
-
-  return remus::proto::JobResult(id,data);
+  std::istringstream buffer(msg);
+  return remus::proto::JobResult(buffer);
 }
 
 
