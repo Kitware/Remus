@@ -162,7 +162,8 @@ void TetGenWorker::meshJob()
     static_cast<TetGenResult::OutputFileType>(parms.behavior.object);
   TetGenResult tetResults(parms.behavior.outfilename, fileType);
 
-  remus::worker::JobResult results(j.id(), tetResults);
+  remus::worker::JobResult results = remus::proto::make_JobResult(j.id(),
+                                                                  tetResults);
   this->returnMeshResults(results);
   return;
 }

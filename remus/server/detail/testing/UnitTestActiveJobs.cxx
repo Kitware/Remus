@@ -111,7 +111,8 @@ void verify_updating_status()
       REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == false) );
 
-      remus::proto::JobResult result_with_data(uuids_used[0],"data");
+      remus::proto::JobResult result_with_data =
+                        remus::proto::make_JobResult(uuids_used[0],"data");
       jobs.updateResult(result_with_data);
       REMUS_ASSERT( (jobs.status(uuids_used[0]).status() == status_type) );
       REMUS_ASSERT( (jobs.result(uuids_used[0]).valid() == true) );
@@ -276,7 +277,8 @@ void verify_refresh_jobs()
 
   //verify that jobs marked as finished can't be marked as expired
   boost::uuids::uuid finished_job_uuid = remus::testing::UUIDGenerator();
-  remus::proto::JobResult result_with_data(finished_job_uuid,"data");
+  remus::proto::JobResult result_with_data =
+                        remus::proto::make_JobResult(finished_job_uuid,"data");
   jobs.add(make_socketId(), finished_job_uuid);
   jobs.updateResult(result_with_data);
   jobs.markExpiredJobs( future );

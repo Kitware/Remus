@@ -62,7 +62,8 @@ int main (int argc, char* argv[])
   //respond by modifying the job content
   std::string result(content.data(),content.dataSize());
   result += " and Hello Client";
-  remus::proto::JobResult results(jd.id(),result);
+  remus::proto::JobResult results =
+                                  remus::proto::make_JobResult(jd.id(),result);
   w.returnMeshResults(results);
 
   return 1;
