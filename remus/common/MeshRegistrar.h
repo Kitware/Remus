@@ -23,6 +23,8 @@
 namespace remus {
 namespace meshtypes {
 
+//Remus reserves the right to first 100 meshtypes
+//plugin mesh types should start at id 101
 struct REMUSCOMMON_EXPORT MeshTypeBase
 {
   //virtual destructor

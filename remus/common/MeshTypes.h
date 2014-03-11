@@ -16,6 +16,8 @@
 #include <string>
 #include <remus/common/MeshRegistrar.h>
 
+//Remus reserves the right to first 100 meshtypes
+//plugin mesh types should start at id 101
 namespace remus {
 namespace meshtypes {
 
