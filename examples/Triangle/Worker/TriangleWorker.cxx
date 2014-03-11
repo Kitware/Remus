@@ -231,7 +231,7 @@ void TriangleWorker::meshJob()
   //we are going template the triangle io parameter
   //so we don't need to link to triangle on the client
   //when we transform the string back to the TriangleResult class
-  remus::proto::JobResult results(j.id(),
+  remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                        TriangleResult::ToString(parms.meshing_data,parms.out));
   this->returnMeshResults(results);
 
