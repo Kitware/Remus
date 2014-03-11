@@ -23,7 +23,8 @@ boost::uuids::uuid make_id()
   return remus::testing::UUIDGenerator();
 }
 
-void validate_serialization(JobResult s)
+void validate_serialization(JobResult s,
+remus::common::ContentFormat::Type ftype = remus::common::ContentFormat::User)
 {
   std::string temp = to_string(s);
   JobResult from_string = to_JobResult(temp);
@@ -31,6 +32,17 @@ void validate_serialization(JobResult s)
   REMUS_ASSERT( (from_string.id() == s.id()) );
   REMUS_ASSERT( (from_string.data() == s.data()) );
   REMUS_ASSERT( (from_string.valid() == s.valid()) );
+  REMUS_ASSERT( (from_string.formatType() == ftype) );
+
+  std::stringstream buffer;
+  JobResult from_buffer(make_id());
+  buffer << s;
+  buffer >> from_buffer;
+
+  REMUS_ASSERT( (from_buffer.id() == s.id()) );
+  REMUS_ASSERT( (from_buffer.data() == s.data()) );
+  REMUS_ASSERT( (from_buffer.valid() == s.valid()) );
+  REMUS_ASSERT( (from_buffer.formatType() == ftype) );
 }
 
 void serialize_test()
@@ -38,14 +50,44 @@ void serialize_test()
   JobResult a(make_id());
   validate_serialization(a);
 
-  JobResult b(make_id(),std::string());
+  //test the make_JobResult with a string
+  validate_serialization( make_JobResult( make_id(), std::string() ));
+
+  validate_serialization( make_JobResult( make_id(),
+                          remus::testing::UniqueString(),
+                          remus::common::ContentFormat::JSON ),
+                          remus::common::ContentFormat::JSON);
+
+  validate_serialization( make_JobResult( make_id(),
+                          remus::testing::AsciiStringGenerator(1024),
+                          remus::common::ContentFormat::XML ),
+                          remus::common::ContentFormat::XML);
+
+  validate_serialization( make_JobResult( make_id(),
+                          remus::testing::BinaryDataGenerator(10240),
+                          remus::common::ContentFormat::BSON ),
+                          remus::common::ContentFormat::BSON);
+
+  //validate the constructor manually
+  JobResult b(make_id(), remus::common::ContentFormat::User, std::string());
   validate_serialization(b);
 
-  JobResult c(make_id(),std::string("Contents"));
-  validate_serialization(c);
+  //validate the make_JobResult with a file handle
+  validate_serialization( make_JobResult( make_id(),
+                          remus::common::FileHandle( std::string() ),
+                          remus::common::ContentFormat::JSON ),
+                          remus::common::ContentFormat::JSON);
 
-  JobResult d(make_id(), remus::testing::BinaryDataGenerator(10240*10240) );
-  validate_serialization(d);
+  validate_serialization( make_JobResult( make_id(),
+                          remus::common::FileHandle(
+                            remus::testing::AsciiStringGenerator(1024) ),
+                          remus::common::ContentFormat::XML ),
+                          remus::common::ContentFormat::XML);
+
+  //validate the constructor manually
+  JobResult c(make_id(), remus::common::ContentFormat::User,
+              remus::common::FileHandle(std::string()));
+  validate_serialization(c);
 }
 
 }
