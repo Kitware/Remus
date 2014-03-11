@@ -36,6 +36,9 @@ struct REMUSCOMMON_EXPORT MeshTypeBase
   //The name is used to encode the mesh type when creating mesh
   //worker helper files
   virtual std::string name() const { return "Unknown"; }
+
+  bool operator <(boost::shared_ptr<remus::meshtypes::MeshTypeBase> b) const
+    { return this->id() < b->id(); }
 };
 
 }
@@ -60,6 +63,15 @@ public:
 
   static std::size_t numberOfRegisteredTypes() {
     return NameRegistry().size();
+  }
+
+  static std::set<ReturnType> allRegisteredTypes()
+  {
+    std::set<ReturnType> result;
+    boost::unordered_map<std::string, create_function_ptr>::const_iterator it;
+    for(it = NameRegistry().begin(); it != NameRegistry().end(); ++it)
+        { result.insert( (it->second)() ); }
+    return result;
   }
 
   static ReturnType instantiate(std::string const & name)

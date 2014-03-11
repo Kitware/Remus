@@ -35,7 +35,6 @@ namespace
   template<typename T>
   void VerifySame(T t1, T t2)
   {
-    std::cout << t1->name() << " and " << t2->name() << std::endl;
     REMUS_ASSERT( (t1->id() == t2->id()) );
     REMUS_ASSERT( (t1->name() == t2->name()) );
   }
@@ -62,6 +61,19 @@ int UnitTestMeshRegistry(int, char *[])
   VerifySame(base, remus::meshtypes::to_meshType("Mesh3DSurface"));
   VerifySame(remus::meshtypes::Mesh3DSurface::create(),
              remus::meshtypes::to_meshType(base->id()));
+
+  std::set<MeshType> all_types = remus::common::MeshRegistrar::allRegisteredTypes();
+  REMUS_ASSERT( (all_types.size() > 0) );
+  REMUS_ASSERT( (all_types.size() == 9) );
+
+  for(std::set<MeshType>::const_iterator i = all_types.begin();
+      i != all_types.end();
+      ++i)
+    {
+    //verify we don't have two types with the same name or id
+    VerifySame(*i,remus::meshtypes::to_meshType((*i)->name()));
+    VerifySame(*i,remus::meshtypes::to_meshType((*i)->id()));
+    }
 
   return 0;
 }
