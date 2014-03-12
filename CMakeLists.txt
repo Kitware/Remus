@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
 project(Remus)
 
+option(BUILD_SHARED_LIBS "Build Remus using shared libraries" OFF)
+
 # include some cmake code that builds automatic header tests
 # and can targets for unit tests
 include(CMake/RemusMacros.cmake)
