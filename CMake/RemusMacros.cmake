@@ -21,24 +21,26 @@ endfunction(ms_get_kit_name)
 # Builds a source file and an executable that does nothing other than
 # compile the given header files.
 function(ms_add_header_test name dir_prefix)
-  set(hfiles ${ARGN})
-  set(suffix ".cxx")
-  set(cxxfiles)
-  foreach (header ${ARGN})
-    string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}" "" header "${header}")
-    get_filename_component(headername ${header} NAME_WE)
-    set(src ${CMAKE_CURRENT_BINARY_DIR}/TestBuild_${name}_${headername}${suffix})
-    configure_file(${Remus_SOURCE_DIR}/CMake/TestBuild.cxx.in ${src} @ONLY)
-    set(cxxfiles ${cxxfiles} ${src})
-  endforeach (header)
-  include_directories(${sysTools_BINARY_DIR})
-  #include the build directory for the export header
-  include_directories(${CMAKE_CURRENT_BINARY_DIR})
-  add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
-  target_link_libraries(TestBuild_${name} sysTools)
-  set_source_files_properties(${hfiles}
-    PROPERTIES HEADER_FILE_ONLY TRUE
-    )
+  if(Remus_ENABLE_TESTING)
+    set(hfiles ${ARGN})
+    set(suffix ".cxx")
+    set(cxxfiles)
+    foreach (header ${ARGN})
+      string(REPLACE "${CMAKE_CURRENT_BINARY_DIR}" "" header "${header}")
+      get_filename_component(headername ${header} NAME_WE)
+      set(src ${CMAKE_CURRENT_BINARY_DIR}/TestBuild_${name}_${headername}${suffix})
+      configure_file(${Remus_SOURCE_DIR}/CMake/TestBuild.cxx.in ${src} @ONLY)
+      set(cxxfiles ${cxxfiles} ${src})
+    endforeach (header)
+    include_directories(${sysTools_BINARY_DIR})
+    #include the build directory for the export header
+    include_directories(${CMAKE_CURRENT_BINARY_DIR})
+    add_library(TestBuild_${name} ${cxxfiles} ${hfiles})
+    target_link_libraries(TestBuild_${name} sysTools ${ZeroMQ_LIBRARIES})
+    set_source_files_properties(${hfiles}
+      PROPERTIES HEADER_FILE_ONLY TRUE
+      )
+  endif()
 endfunction(ms_add_header_test)
 
 # Declare a list of header files.  Will make sure the header files get

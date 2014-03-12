@@ -22,6 +22,8 @@ set(common_srcs
   ExecuteProcess.cxx
   )
 
+include_directories(${sysTools_BINARY_DIR})
+
 add_library(RemusCommon ${common_srcs} ${headers})
 target_link_libraries(RemusCommon ${ZeroMQ_LIBRARIES} sysTools)
 
