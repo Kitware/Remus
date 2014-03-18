@@ -52,7 +52,7 @@ set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
 # * Unordered map
 # * UUID Generation
 find_package(Boost 1.45.0
-             COMPONENTS thread filesystem system date_time REQUIRED)
+             COMPONENTS thread chrono filesystem system date_time REQUIRED)
 
 #on unix/linux boost uses pthreads, so we need to find that, and link to it
 #explicitly when using the boost thread library
