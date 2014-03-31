@@ -17,6 +17,8 @@ set(server_srcs
    WorkerFactory.cxx
    )
 
+#include cjson
+include_directories("${Remus_SOURCE_DIR}/thirdparty/cJson/")
 
 add_library(RemusServer ${server_srcs} ${headers})
 target_link_libraries(RemusServer

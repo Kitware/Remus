@@ -7,6 +7,4 @@ set_target_properties(cJSON PROPERTIES
                       C_VISIBILITY_PRESET     FALSE
                       )
 
-#if you are using this object library, you will need this source dir, so
-#that you can include cJson.h
-target_include_directories(cJSON INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+remus_install_library(cJSON)
