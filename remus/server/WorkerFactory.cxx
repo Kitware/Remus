@@ -159,14 +159,13 @@ namespace
   parse_json_reqs( const boost::filesystem::path& file )
   {
     std::string json_contents = read_file(file);
-    using namespace remus::thirdparty;
     using namespace remus::common;
 
-    cjson::cJSON *root = cjson::cJSON_Parse(json_contents.c_str());
+    cJSON *root = cJSON_Parse(json_contents.c_str());
 
-    std::string inputType(cjson::cJSON_GetObjectItem(root,"InputType")->valuestring);
-    std::string outputType(cjson::cJSON_GetObjectItem(root,"OutputType")->valuestring);
-    std::string executableName(cjson::cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
+    std::string inputType(cJSON_GetObjectItem(root,"InputType")->valuestring);
+    std::string outputType(cJSON_GetObjectItem(root,"OutputType")->valuestring);
+    std::string executableName(cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
 
     //by default we select memory and user
     ContentFormat::Type format_type = ContentFormat::User;
@@ -189,8 +188,8 @@ namespace
                                        std::string());
 
     //check if we have a specific file requirements
-    cjson::cJSON *req_file = cjson::cJSON_GetObjectItem(root,"File");
-    cjson::cJSON *req_file_format = cjson::cJSON_GetObjectItem(root,"FileFormat");
+    cJSON *req_file = cJSON_GetObjectItem(root,"File");
+    cJSON *req_file_format = cJSON_GetObjectItem(root,"FileFormat");
     if(req_file)
       {
       //we have a file source type, now determine the format type, and
@@ -226,7 +225,7 @@ namespace
 
         }
       }
-    cjson::cJSON_Delete(root);
+    cJSON_Delete(root);
 
     typedef std::pair< boost::filesystem::path,
                        remus::proto::JobRequirements > ReturnType;

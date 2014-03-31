@@ -32,10 +32,6 @@
 #include <ctype.h>
 #include "cJSON.h"
 
-namespace remus {
-namespace thirdparty {
-namespace cjson {
-
 static const char *ep;
 
 const char *cJSON_GetErrorPtr(void) {return ep;}
@@ -597,8 +593,4 @@ void cJSON_Minify(char *json)
 		else *into++=*json++;			// All other characters.
 	}
 	*into=0;	// and null-terminate.
-}
-
-}
-}
 }

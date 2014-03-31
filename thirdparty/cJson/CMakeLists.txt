@@ -1,10 +1,10 @@
 project(cJSON)
 
-add_library(cJSON STATIC cJSON.cpp)
+add_library(cJSON STATIC cJSON.c)
 
 set_target_properties(cJSON PROPERTIES
                       POSITION_INDEPENDENT_CODE True
-                      CXX_VISIBILITY_PRESET     FALSE
+                      C_VISIBILITY_PRESET     FALSE
                       )
 
 #if you are using this object library, you will need this source dir, so
