@@ -148,18 +148,18 @@ void constructor_test()
 
 
   REMUS_ASSERT( (single_content.size() == 1) );
-  REMUS_ASSERT( (single_content.find("default") != single_content.end()) );
-  REMUS_ASSERT( (single_content.find("default") == single_content.begin()) );
+  REMUS_ASSERT( (single_content.find("data") != single_content.end()) );
+  REMUS_ASSERT( (single_content.find("data") == single_content.begin()) );
 
-  JobContent default_content_old = single_content.find("default")->second;
+  JobContent default_content_old = single_content.find("data")->second;
 
-  //try to override the default content, which should faild
+  //try to override the default content, which should failed
   single_content.insert(
       std::pair<std::string,JobContent>(
-        "default",
+        "data",
         make_random_Content())
       );
-  REMUS_ASSERT( (single_content.find("default")->second == default_content_old) );
+  REMUS_ASSERT( (single_content.find("data")->second == default_content_old) );
 
 }
 
