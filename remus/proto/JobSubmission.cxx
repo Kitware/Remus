@@ -42,7 +42,7 @@ JobSubmission::JobSubmission( const remus::proto::JobRequirements& reqs,
   Requirements(reqs),
   Content( )
 {
-  this->Content["default"]=content;
+  this->Content["data"]=content;
 }
 
 //------------------------------------------------------------------------------
