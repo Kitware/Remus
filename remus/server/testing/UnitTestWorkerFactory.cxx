@@ -74,6 +74,8 @@ void test_factory_worker_finder()
   //give our worker factory a unique extension to look for
   remus::server::WorkerFactory f_def(".tst");
 
+  //add invalid paths to search
+
   f_def.addWorkerSearchDirectory(
                   remus::server::testing::worker_factory::locationToSearch() );
 
@@ -104,6 +106,22 @@ void test_factory_worker_finder()
       REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
       }
     }
+}
+
+
+void test_factory_worker_invalid_paths()
+{
+  //give our worker factory a unique extension to look for
+  remus::server::WorkerFactory f_def(".tst_asd");
+
+  //add invalid paths to search
+  f_def.addWorkerSearchDirectory( "/asdaaf/" );
+  f_def.addWorkerSearchDirectory( "/asdzxasd2a" );
+
+  //we should only support raw_edges and mesh2d, otherwise the rest
+  //should return false
+  remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
+  REMUS_ASSERT( (f_def.haveSupport(raw_edges) == 0) );
 }
 
 void test_factory_worker_launching()
@@ -158,6 +176,8 @@ int UnitTestWorkerFactory(int, char *[])
   test_factory_worker_counts();
 
   test_factory_worker_finder();
+
+  test_factory_worker_invalid_paths();
 
   test_factory_worker_launching();
 
