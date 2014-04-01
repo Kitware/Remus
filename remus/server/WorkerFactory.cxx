@@ -267,17 +267,20 @@ public:
   //----------------------------------------------------------------------------
   void parseDirectory(const boost::filesystem::path& dir)
     {
-    boost::filesystem::directory_iterator end_itr;
-    for( boost::filesystem::directory_iterator i( dir ); i != end_itr; ++i )
+    if( boost::filesystem::is_directory(dir) )
       {
-      // Skip if not a file
-      if(boost::filesystem::is_regular_file( i->status() ))
+      boost::filesystem::directory_iterator end_itr;
+      for( boost::filesystem::directory_iterator i( dir ); i != end_itr; ++i )
         {
-        std::string ext = boost::algorithm::to_upper_copy(
-                            i->path().extension().string());
-        if(ext == FileExt)
+        // Skip if not a file
+        if(boost::filesystem::is_regular_file( i->status() ))
           {
-          this->parseFile(i->path());
+          std::string ext = boost::algorithm::to_upper_copy(
+                              i->path().extension().string());
+          if(ext == FileExt)
+            {
+            this->parseFile(i->path());
+            }
           }
         }
       }
