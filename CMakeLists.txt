@@ -79,10 +79,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include(GenerateExportHeader)
 
-#setup windows exception handling so we can compile properly with boost enabled
-if(WIN32 AND MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-endif()
+#-----------------------------------------------------------------------------
+# Add supplemental compiler warnings, and GCC visibility support.
+include(CMake/RemusCompilerExtras.cmake)
 
 #------------------------------------------------------------------------------
 #------------------------------- Setup Testing   ------------------------------
