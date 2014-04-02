@@ -1,4 +1,11 @@
-cmake_minimum_required(VERSION 2.8)
+
+cmake_minimum_required(VERSION 2.8.10)
+
+#setup policy rules for CMake 3.0 while we have a minimum required of 2.8.X
+if(POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)#Clang and AppleClang are different compiler ids
+endif()
+
 project(RemusSuperBuild)
 set (platform)
 if (UNIX)
