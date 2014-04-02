@@ -17,7 +17,12 @@
 #include <remus/proto/zmq.hpp>
 
 #include <boost/scoped_ptr.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/thread.hpp>
+#pragma GCC diagnostic pop
+
 
 #include <string>
 
@@ -93,6 +98,8 @@ void verify_server_connection()
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
                                                   remus::SERVER_WORKER_PORT);
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
+  REMUS_ASSERT( (sc.endpoint() ==
+         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
 
   remus::worker::ServerConnection ipc_conn =
         remus::worker::make_ServerConnection("ipc://foo_ipc");

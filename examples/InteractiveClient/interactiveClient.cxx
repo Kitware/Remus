@@ -27,10 +27,10 @@ void populateJobTypes()
   std::size_t numRegisteredMeshTypes =
                       remus::common::MeshRegistrar::numberOfRegisteredTypes();
 
-  for(int i=1; i < numRegisteredMeshTypes; i++)
+  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
     {
     MeshType outType = remus::meshtypes::to_meshType(i);
-    for(int j=1; j < numRegisteredMeshTypes; j++)
+    for(std::size_t j=1; j < numRegisteredMeshTypes; j++)
       {
       MeshType inType = remus::meshtypes::to_meshType(j);
       AllJobTypeCombinations[outType->name()].push_back(
@@ -95,7 +95,7 @@ void submitJob(remus::Client& client)
 {
   std::size_t numRegisteredMeshTypes =
                       remus::common::MeshRegistrar::numberOfRegisteredTypes();
-  for(int i=1; i < numRegisteredMeshTypes; i++)
+  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
     {
     std::cout << i << " ";
     std::cout << remus::meshtypes::to_meshType(i)->name()<< std::endl;
@@ -104,7 +104,7 @@ void submitJob(remus::Client& client)
   int inType;
   std::cin >> inType;
 
-  for(int i=1; i < numRegisteredMeshTypes; i++)
+  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
     {
     std::cout << i << " ";
     std::cout << remus::meshtypes::to_meshType(i)->name()<< std::endl;

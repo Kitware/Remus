@@ -1,4 +1,10 @@
 cmake_minimum_required (VERSION 2.8.12.1)
+
+#setup policy rules for CMake 3.0 while we have a minimum required of 2.8.X
+if(POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW)#Clang and AppleClang are different compiler ids
+endif()
+
 project(Remus)
 
 #------------------------------------------------------------------------------
@@ -73,10 +79,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include(GenerateExportHeader)
 
-#setup windows exception handling so we can compile properly with boost enabled
-if(WIN32 AND MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-endif()
+#-----------------------------------------------------------------------------
+# Add supplemental compiler warnings, and GCC visibility support.
+include(CMake/RemusCompilerExtras.cmake)
 
 #------------------------------------------------------------------------------
 #------------------------------- Setup Testing   ------------------------------

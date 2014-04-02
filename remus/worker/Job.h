@@ -21,7 +21,11 @@
 #include <remus/proto/JobSubmission.h>
 
 #include <boost/uuid/uuid.hpp>
+//suppress warnings inside boost headers for gcc and clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/uuid/uuid_io.hpp>
+#pragma GCC diagnostic pop
 
 //The remus::worker::Job class.
 // For the server the Job object represents all the information required to

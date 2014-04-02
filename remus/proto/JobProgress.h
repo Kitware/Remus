@@ -16,9 +16,6 @@
 #include <string>
 #include <sstream>
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include <remus/common/remusGlobals.h>
 #include <remus/proto/conversionHelpers.h>
 

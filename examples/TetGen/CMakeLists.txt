@@ -8,8 +8,8 @@ set(runtime_srcs
 add_library(TetGenRuntime STATIC ${runtime_srcs})
 target_link_libraries(TetGenRuntime LINK_PRIVATE ${Boost_LIBRARIES})
 target_include_directories(TetGenRuntime
-                INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
-
+                INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}"
+                PRIVATE "${Boost_INCLUDE_DIRS}")
 add_subdirectory(Client)
 add_subdirectory(Worker)
 

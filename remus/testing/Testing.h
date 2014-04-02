@@ -25,9 +25,14 @@
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
+
+//suppress warnings inside boost headers for gcc and clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/random_generator.hpp>
+#pragma GCC diagnostic pop
 
 namespace remus {
 namespace testing {

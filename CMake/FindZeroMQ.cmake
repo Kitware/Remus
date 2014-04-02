@@ -30,6 +30,7 @@ find_library(ZeroMQ_LIBRARY
 find_path(ZeroMQ_INCLUDE_DIR
     NAMES zmq.hpp
     HINTS ${ZeroMQ_ROOT_DIR}/include
+
 )
 
 include(FindPackageHandleStandardArgs)

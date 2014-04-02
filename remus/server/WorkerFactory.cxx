@@ -218,10 +218,10 @@ namespace
         //requirements
         remus::common::FileHandle rfile(
                         boost::filesystem::canonical(req_file_path).string());
-        remus::proto::JobRequirements reqs(format_type,
-                        mesh_type,
-                        executableName,
-                        rfile);
+        reqs = remus::proto::JobRequirements(format_type,
+                                             mesh_type,
+                                             executableName,
+                                             rfile);
 
         }
       }
