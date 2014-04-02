@@ -17,7 +17,10 @@
 #include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/scoped_ptr.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/uuid/random_generator.hpp>
+#pragma GCC diagnostic pop
 
 #include <remus/server/WorkerFactory.h>
 #include <remus/server/ServerPorts.h>

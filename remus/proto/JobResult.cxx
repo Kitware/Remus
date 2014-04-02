@@ -13,7 +13,12 @@
 #include <remus/proto/JobResult.h>
 
 #include <remus/proto/conversionHelpers.h>
+
+//suppress warnings inside boost headers for gcc and clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/uuid/uuid_io.hpp>
+#pragma GCC diagnostic pop
 
 #include <iostream>
 

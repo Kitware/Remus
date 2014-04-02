@@ -18,7 +18,12 @@
 #include <sstream>
 
 #include <boost/uuid/uuid.hpp>
+
+//suppress warnings inside boost headers for gcc and clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/uuid/uuid_io.hpp>
+#pragma GCC diagnostic pop
 
 #include <remus/common/remusGlobals.h>
 #include <remus/proto/conversionHelpers.h>

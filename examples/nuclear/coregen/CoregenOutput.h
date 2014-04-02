@@ -21,7 +21,7 @@ class CoregenOutput
 {
 public:
   CoregenOutput(bool valid = false)
-    :Valid(false)
+    :Valid(valid)
   {}
 
   CoregenOutput(const remus::proto::JobResult& job, bool valid=true)

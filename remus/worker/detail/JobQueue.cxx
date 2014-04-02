@@ -15,7 +15,12 @@
 #include <remus/proto/Response.h>
 #include <remus/proto/JobSubmission.h>
 
+//suppress warnings inside boost headers for gcc and clang
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/thread.hpp>
+#pragma GCC diagnostic pop
+
 #include <boost/thread/locks.hpp>
 
 #include <deque>
@@ -37,9 +42,6 @@ class JobQueue::JobQueueImplementation
   //used to keep the queue from breaking with threads
   boost::mutex QueueMutex;
   std::deque< remus::worker::Job > Queue;
-
-  //Controls the validity of the job returned
-  remus::worker::Job::JobValidity Validity;
 
   //need to store our endpoint so we can pass it to the worker
   std::string EndPoint;

@@ -14,9 +14,15 @@
 
 #include <string>
 
+//suppress warnings inside boost headers for gcc and clang
+//as clang supports pragma GCC diagnostic
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
 #include <boost/cstdint.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
+#pragma GCC diagnostic pop
+
 
 #include <remus/common/CommonExports.h>
 

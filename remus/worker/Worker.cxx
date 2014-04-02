@@ -112,7 +112,7 @@ void Worker::askForJobs( unsigned int numberOfJobs )
   remus::proto::Message askForMesh(this->MeshRequirements.meshTypes(),
                            remus::MAKE_MESH,
                            remus::proto::to_string(this->MeshRequirements));
-  for(int i=0; i < numberOfJobs; ++i)
+  for(unsigned int i=0; i < numberOfJobs; ++i)
     { askForMesh.send(&this->Zmq->Server); }
 }
 

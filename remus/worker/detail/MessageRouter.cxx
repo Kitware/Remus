@@ -17,7 +17,11 @@
 #include <remus/proto/zmqHelper.h>
 #include <remus/worker/Job.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
 #include <boost/thread.hpp>
+#pragma GCC diagnostic pop
+
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
 
@@ -70,6 +74,7 @@ MessageRouterImplementation(
     {
     this->stopTalking();
     }
+
 }
 
 //-----------------------------------------------------------------------------
