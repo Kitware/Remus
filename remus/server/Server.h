@@ -92,6 +92,9 @@ public:
   //the server and expect 'good' things to happen.
   void stopBrokering();
 
+  //Returns if the server is still brokering client and worker requests
+  bool isBrokering() const;
+
   //Waits until the thread is up and running
   void waitForBrokeringToStart();
 
