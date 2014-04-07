@@ -21,8 +21,8 @@ namespace common {
 struct FileHandle
 {
   //construct a lightweight wrapper to signify that the string is a file path
-  explicit FileHandle(const std::string& path):
-    Path(path)
+  explicit FileHandle(const std::string& p):
+    Path(p)
     { }
 
   std::size_t size() const { return Path.size(); }

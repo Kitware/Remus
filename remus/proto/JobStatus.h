@@ -36,19 +36,19 @@ class JobStatus
 {
 public:
   //Construct a job status that has no form of progress value or message
-  JobStatus(const boost::uuids::uuid& id, remus::STATUS_TYPE stat):
-    JobId(id),
-    Status(stat),
-    Progress(stat)
+  JobStatus(const boost::uuids::uuid& jid, remus::STATUS_TYPE statusType):
+    JobId(jid),
+    Status(statusType),
+    Progress(statusType)
     {
     }
 
   //will make sure that the progress value is between 1 and 100 inclusive
   //on both ends. Progress value of zero is used when the status type is not progress
-  JobStatus(const boost::uuids::uuid& id, const remus::proto::JobProgress& progress):
-    JobId(id),
+  JobStatus(const boost::uuids::uuid& jid, const remus::proto::JobProgress& jprogress):
+    JobId(jid),
     Status(remus::IN_PROGRESS),
-    Progress(progress)
+    Progress(jprogress)
     {
     }
 
@@ -59,10 +59,10 @@ public:
   }
 
   //update the progress values of the status object
-  void updateProgress( const remus::proto::JobProgress& progress )
+  void updateProgress( const remus::proto::JobProgress& prog )
     {
     this->Status = remus::IN_PROGRESS;
-    this->Progress = progress;
+    this->Progress = prog;
     }
 
   //returns true if the job is still running on the worker

@@ -37,10 +37,10 @@ class Job
 public:
 
   //construct a valid job object with an Id and Type
-  Job(const boost::uuids::uuid& id,
-      const remus::common::MeshIOType& type):
-  Id(id),
-  Type(type)
+  Job(const boost::uuids::uuid& my_id,
+      const remus::common::MeshIOType& my_type):
+  Id(my_id),
+  Type(my_type)
   {
   }
 

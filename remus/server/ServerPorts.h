@@ -80,10 +80,10 @@ public:
   //explicitly state the connection type, this can handle inproc, ipc,
   //and tcp connection types
   template<typename ClientSocketType, typename WokerSocketType>
-  ServerPorts(const ClientSocketType& client,
-              const WokerSocketType& worker):
-    Client(client),
-    Worker(worker)
+  ServerPorts(const ClientSocketType& c,
+              const WokerSocketType& w):
+    Client(c),
+    Worker(w)
   { }
 
   //will attempt to bind the passed in socket to client tcp-ip port we hold

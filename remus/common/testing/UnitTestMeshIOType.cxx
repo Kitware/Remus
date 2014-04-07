@@ -50,8 +50,6 @@ int UnitTestMeshIOType(int, char *[])
 {
   RegisterTextMeshType();
 
-  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-
   remus::meshtypes::Model m;
   TextMeshType text;
 

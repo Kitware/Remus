@@ -50,9 +50,9 @@ public:
   }
 
   //construct a valid server side job object with Id, Type, and Submission
-  Job(const boost::uuids::uuid& id,
+  Job(const boost::uuids::uuid& jid,
       const remus::proto::JobSubmission& sub):
-  Id(id),
+  Id(jid),
   Submission(sub),
   Validity(VALID_JOB)
   {

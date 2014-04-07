@@ -87,7 +87,7 @@ public:
   //get a worker specified tag that holds meta data information
   //about this job mesh requirements
   const std::string& tag() const { return this->Tag; }
-  void tag(const std::string& tag) { this->Tag=tag; }
+  void tag(const std::string& t) { this->Tag=t; }
 
   bool hasRequirements() const;
   std::size_t requirementsSize() const;
