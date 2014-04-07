@@ -15,6 +15,7 @@
 
 #include <string>
 #include <sstream>
+#include <set>
 
 #include <boost/shared_ptr.hpp>
 
