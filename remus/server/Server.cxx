@@ -339,7 +339,13 @@ bool Server::startBrokering(SignalHandling sh)
 //------------------------------------------------------------------------------
 void Server::stopBrokering()
 {
-  this->Thread->stop();
+  return this->Thread->stop();
+}
+
+//------------------------------------------------------------------------------
+bool Server::isBrokering() const
+{
+  this->Thread->isBrokering();
 }
 
 //------------------------------------------------------------------------------
