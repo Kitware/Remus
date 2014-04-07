@@ -71,13 +71,15 @@ private:
         expiry(boost::posix_time::second_clock::local_time())
         {
           //we give it two heartbeat cycles of lifetime to start
-          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
+          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
 
         void refresh()
         {
+          //we give it two heartbeat cycles to handle packet delay,
+          //and workers and server heart-beating on the exact same second
           expiry = boost::posix_time::second_clock::local_time() +
-            boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
+            boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
     };
 
