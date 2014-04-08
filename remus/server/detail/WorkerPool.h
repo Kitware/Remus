@@ -127,6 +127,7 @@ private:
       {
       if(worker.Address == this->Address)
         {
+        std::cout << "refreshing worker " << worker.MType<< " at time " << boost::posix_time::second_clock::local_time() << std::endl;
         worker.refresh();
         }
       }
@@ -216,6 +217,16 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
   //remove if moves all bad items to end of the vector and returns
   //an iterator to the new end
   It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
+
+  // if(std::distance(newEnd,this->Pool.end()) > 0 )
+  //   {
+  //   std::cout << "Expired DeadWorkers " << std::endl;
+    for(It i=newEnd; i != this->Pool.end(); ++i)
+      {
+      std::cout << "Expire workers with heartbeat less than " << time << std::endl;
+      std::cout << "expired workers time was " << (*i).expiry << std::endl;
+      }
+  //   }
 
   //erase all the elements that remove_if moved to the end
   this->Pool.erase(newEnd,this->Pool.end());

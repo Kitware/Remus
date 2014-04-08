@@ -275,8 +275,6 @@ bool Server::brokering(Server::SignalHandling sh)
     {
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
     // std::cout << "p" << std::endl;
-    const boost::posix_time::ptime hbTime =
-                            boost::posix_time::second_clock::local_time();
     if (items[0].revents & ZMQ_POLLIN)
       {
       //we need to strip the client address from the message
@@ -303,11 +301,13 @@ bool Server::brokering(Server::SignalHandling sh)
       //refresh all jobs for a given worker with a new expiry time
       this->ActiveJobs->refreshJobs(workerIdentity);
 
-      //refresh the worker if it is actuall in the pool instead of doing a job
+      //refresh the worker if it is actually in the pool instead of doing a job
       this->WorkerPool->refreshWorker(workerIdentity);
-
       // std::cout << "w" << std::endl;
       }
+
+    const boost::posix_time::ptime hbTime =
+                            boost::posix_time::second_clock::local_time();
 
     //mark all jobs whose worker haven't sent a heartbeat in time
     //as a job that failed.
@@ -591,7 +591,6 @@ void Server::FindWorkerForQueuedJob()
                               this->QueuedJobs->takeJob(*type));
       }
     }
-
 
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
