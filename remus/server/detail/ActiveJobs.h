@@ -73,6 +73,9 @@ class ActiveJobs
     //remus server thread to sleep
     inline void refreshAllJobs();
 
+    //Return if the given worker identity is working on an active job
+    inline bool haveWorker(const zmq::socketIdentity &workerIdentity);
+
     inline std::set<zmq::socketIdentity> activeWorkers() const;
 
 private:
@@ -269,6 +272,18 @@ void ActiveJobs::refreshAllJobs()
     }
 }
 
+//-----------------------------------------------------------------------------
+bool ActiveJobs::haveWorker(const zmq::socketIdentity &workerIdentity)
+{
+  for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
+    {
+    if(item->second.WorkerAddress == workerIdentity)
+      {
+      return true;
+      }
+    }
+  return false;
+}
 
 //-----------------------------------------------------------------------------
 std::set<zmq::socketIdentity> ActiveJobs::activeWorkers() const

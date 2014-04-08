@@ -562,6 +562,14 @@ void Server::DetermineWorkerResponse(const zmq::socketIdentity &workerIdentity,
       //we need to store the mesh result, no response needed
       this->storeMesh(msg);
       break;
+    case remus::HEARTBEAT:
+      //on mavericks the worker might not be there because of the evil app nap.
+      if(!this->WorkerPool->haveWorker(workerIdentity) && !this->ActiveJobs->haveWorker(workerIdentity))
+        {
+        this->WorkerPool->addWorker(workerIdentity,msg.MeshIOType());
+        this->WorkerPool->readyForWork(workerIdentity);
+        break;
+        }
     default:
       break;
     }

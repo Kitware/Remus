@@ -116,11 +116,13 @@ public:
         {
         //std::cout << "send heartbeat to server" << std::endl;
         //send a heartbeat to the server
-        remus::common::Message message(remus::common::MeshIOType(),remus::HEARTBEAT);
+        remus::common::Message message(this->MeshIOType, remus::HEARTBEAT);
         message.send(Server);
         }
       }
   }
+
+  remus::common::MeshIOType MeshIOType;
 
   boost::thread* ServerCommThread;
 
@@ -170,6 +172,7 @@ bool Worker::startCommunicationThread(const std::string &serverEndpoint,
     this->BComm = new Worker::ServerCommunicator(serverEndpoint,
                                                  commEndpoint,
                                                  jobQueueEndpoint);
+    this->BComm->MeshIOType = this->MeshIOType;
     this->BComm->ServerCommThread =
              new boost::thread(&Worker::ServerCommunicator::run,
                                this->BComm,
