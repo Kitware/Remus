@@ -50,9 +50,9 @@ template<> struct socketInfo<zmq::proto::tcp>
   typedef zmq::proto::tcp Protocall;
 
   socketInfo():Host(),Port(-1){}
-  explicit socketInfo(const std::string& hostName, int port):
+  explicit socketInfo(const std::string& hostName, int portNum):
     Host(hostName),
-    Port(port)
+    Port(portNum)
   {
   }
 

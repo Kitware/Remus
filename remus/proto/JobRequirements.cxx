@@ -31,9 +31,9 @@ struct JobRequirements::InternalImpl
     this->Data = this->Storage.data();
   }
 
-  InternalImpl(const char* data, std::size_t size):
-    Size(size),
-    Data(data),
+  InternalImpl(const char* d, std::size_t s):
+    Size(s),
+    Data(d),
     Storage()
   {
   }

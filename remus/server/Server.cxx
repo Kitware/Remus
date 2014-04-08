@@ -360,7 +360,7 @@ void Server::stopBrokering()
 //------------------------------------------------------------------------------
 bool Server::isBrokering() const
 {
-  this->Thread->isBrokering();
+  return this->Thread->isBrokering();
 }
 
 //------------------------------------------------------------------------------

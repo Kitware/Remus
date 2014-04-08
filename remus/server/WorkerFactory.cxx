@@ -227,8 +227,6 @@ namespace
       }
     cJSON_Delete(root);
 
-    typedef std::pair< boost::filesystem::path,
-                       remus::proto::JobRequirements > ReturnType;
     return std::make_pair( mesher_path, reqs );
   }
 }

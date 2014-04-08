@@ -26,18 +26,18 @@ namespace remus {
 namespace proto {
 
 //------------------------------------------------------------------------------
-JobResult::JobResult(const boost::uuids::uuid& id):
-  JobId(id),
+JobResult::JobResult(const boost::uuids::uuid& jid):
+  JobId(jid),
   FormatType(),
   Data()
 {
 }
 
 //------------------------------------------------------------------------------
-JobResult::JobResult(const boost::uuids::uuid& id,
+JobResult::JobResult(const boost::uuids::uuid& jid,
             remus::common::ContentFormat::Type format,
             const remus::common::FileHandle& fileHandle):
-  JobId(id),
+  JobId(jid),
   FormatType(format),
   Data(fileHandle.path())
 {
@@ -45,10 +45,10 @@ JobResult::JobResult(const boost::uuids::uuid& id,
 
 
 //------------------------------------------------------------------------------
-JobResult::JobResult(const boost::uuids::uuid& id,
+JobResult::JobResult(const boost::uuids::uuid& jid,
             remus::common::ContentFormat::Type format,
             const std::string& contents):
-  JobId(id),
+  JobId(jid),
   FormatType(format),
   Data(contents)
 {

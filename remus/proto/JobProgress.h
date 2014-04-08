@@ -56,19 +56,19 @@ struct JobProgress
       }
     }
 
-  explicit JobProgress(int value):
-    Value(valid_progress_value(value)),
+  explicit JobProgress(int v):
+    Value(valid_progress_value(v)),
     Message()
     {}
 
-  explicit JobProgress(const std::string& message):
+  explicit JobProgress(const std::string& msg):
     Value(0),
-    Message(message)
+    Message(msg)
     {}
 
-  JobProgress(int value, const std::string& message):
-    Value(valid_progress_value(value)),
-    Message(message)
+  JobProgress(int v, const std::string& msg):
+    Value(valid_progress_value(v)),
+    Message(msg)
     {}
 
   //overload on the progress object to make it easier to detect when
@@ -88,7 +88,7 @@ struct JobProgress
   int value() const { return Value; }
   const std::string message() const { return Message; }
 
-  void setValue(int value) { Value = JobProgress::valid_progress_value(value); }
+  void setValue(int v) { Value = JobProgress::valid_progress_value(v); }
   void setMessage(const std::string& msg) { Message = msg; }
 
 

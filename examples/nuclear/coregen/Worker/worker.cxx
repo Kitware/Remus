@@ -25,14 +25,14 @@
 #include <boost/algorithm/string.hpp>
 
 //----------------------------------------------------------------------------
-worker::worker( remus::worker::ServerConnection const& connection )
+worker::worker( remus::worker::ServerConnection const& conn )
   :remus::worker::Worker(
     remus::proto::make_JobRequirements(
       remus::common::make_MeshIOType(remus::meshtypes::Mesh3D(),
                                      remus::meshtypes::Mesh3D()),
       "CoreGenWorker",
       ""),
-    connection),
+    conn),
    Process(NULL)
 {
 }

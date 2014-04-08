@@ -34,20 +34,20 @@ class REMUSPROTO_EXPORT JobResult
 {
 public:
   //construct an invalid JobResult
-  JobResult(const boost::uuids::uuid& id);
+  JobResult(const boost::uuids::uuid& jid);
 
   //pass in some data to send back to the client. The path to the file
   //will passed to the client. In the future we plan to extend remus
   //to support automatic file reading.
   //The result should be considered invalid if the file names length is zero
-  JobResult(const boost::uuids::uuid& id,
+  JobResult(const boost::uuids::uuid& jid,
             remus::common::ContentFormat::Type format,
             const remus::common::FileHandle& fileHandle);
 
   //pass in some data back to the client. The
   //contents of the string will be copied into a local memory
   //The result should be considered invalid if the contents length is zero
-  JobResult(const boost::uuids::uuid& id,
+  JobResult(const boost::uuids::uuid& jid,
             remus::common::ContentFormat::Type format,
             const std::string& contents);
 

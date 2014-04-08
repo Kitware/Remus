@@ -172,11 +172,11 @@ remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
 {
   //The timeout's unit of time is SECONDS.
 
-  typedef remus::common::ProcessPipe ProcessPipe;
+  typedef remus::common::ProcessPipe PPipe;
 
   if(!this->ExternalProcess->Created)
     {
-    return ProcessPipe(ProcessPipe::None);
+    return PPipe(PPipe::None);
     }
 
   //convert our syntax for timout to the systools version
@@ -193,9 +193,9 @@ remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
   char* data;
   int pipe = sysToolsProcess_WaitForData(this->ExternalProcess->Proc,
                                           &data,&length,&realTimeOut);
-  ProcessPipe::PipeType type = typeToType(pipe);
+  PPipe::PipeType type = typeToType(pipe);
 
-  ProcessPipe result(type);
+  PPipe result(type);
   if(result.valid())
     {
     result.text = std::string(data,length);

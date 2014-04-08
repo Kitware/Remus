@@ -22,26 +22,26 @@ namespace proto{
 
 //----------------------------------------------------------------------------
 Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
-                 const std::string& data):
+                 const std::string& mdata):
   MType(mtype),
   SType(stype),
   ValidMsg(true),
-  Storage( boost::make_shared<zmq::message_t>(data.size()) )
+  Storage( boost::make_shared<zmq::message_t>(mdata.size()) )
 {
-  memcpy(Storage->data(),data.data(),data.size());
+  memcpy(Storage->data(),mdata.data(),mdata.size());
 }
 
 //----------------------------------------------------------------------------
 //pass in a data pointer that the message will use when sending
 //the pointer data can't become invalid before you call send.
 Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
-                 const char* data, int size):
+                 const char* mdata, int size):
   MType(mtype),
   SType(stype),
   ValidMsg(true),
   Storage( boost::make_shared<zmq::message_t>(size) )
 {
-  memcpy(this->Storage->data(),data,size);
+  memcpy(this->Storage->data(),mdata,size);
 }
 
 //----------------------------------------------------------------------------
@@ -70,9 +70,9 @@ Message::Message(zmq::socket_t* socket)
   //construct a job message from the socket
   zmq::removeReqHeader(*socket);
 
-  zmq::message_t MeshIOType;
-  zmq::recv_harder(*socket,&MeshIOType);
-  this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(MeshIOType.data()));
+  zmq::message_t meshIOType;
+  zmq::recv_harder(*socket,&meshIOType);
+  this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(meshIOType.data()));
 
   zmq::message_t servType;
   zmq::recv_harder(*socket,&servType);
@@ -132,9 +132,9 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
   zmq::attachReqHeader(*socket);
 
   bool valid = true;
-  zmq::message_t MeshIOType(sizeof(this->MType));
-  memcpy(MeshIOType.data(),&this->MType,sizeof(this->MType));
-  valid = valid && zmq::send_harder(*socket,MeshIOType,flags|ZMQ_SNDMORE);
+  zmq::message_t meshIOType(sizeof(this->MType));
+  memcpy(meshIOType.data(),&this->MType,sizeof(this->MType));
+  valid = valid && zmq::send_harder(*socket,meshIOType,flags|ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
   memcpy(service.data(),&this->SType,sizeof(this->SType));
