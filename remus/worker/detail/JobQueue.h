@@ -37,8 +37,13 @@ public:
 
   std::string endpoint() const;
 
-  //Removes the first job from the queue
+  //Removes the first job from the queue, If no job
+  //in the queue will return an invalid job
   remus::worker::Job take();
+
+  //Removes the first job from the queue, If no
+  //job is present, it waits for a job to enter the queue
+  remus::worker::Job waitAndTakeJob();
 
   //return the number of jobs waiting for work
   std::size_t size() const;
