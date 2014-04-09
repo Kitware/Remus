@@ -41,6 +41,7 @@ class JobQueue::JobQueueImplementation
 
   //used to keep the queue from breaking with threads
   boost::mutex QueueMutex;
+  boost::condition_variable QueueChanged;
   std::deque< remus::worker::Job > Queue;
 
   //need to store our endpoint so we can pass it to the worker
@@ -56,6 +57,7 @@ JobQueueImplementation(zmq::context_t& context,
   ServerComm(context,ZMQ_PAIR),
   PollingThread(NULL),
   QueueMutex(),
+  QueueChanged(),
   Queue(),
   EndPoint(queue_info.endpoint()),
   ContinuePolling(true)
@@ -130,6 +132,7 @@ void terminateJob(remus::proto::Response& response)
     if(i->id() == tj.id())
       i->updateValidityReason(remus::worker::Job::INVALID);
     }
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
@@ -137,9 +140,12 @@ void clearJobs()
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   this->Queue.clear();
+
   remus::worker::Job j;
   j.updateValidityReason(remus::worker::Job::TERMINATE_WORKER);
   this->Queue.push_back(j);
+
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
@@ -148,6 +154,8 @@ void addItem(remus::proto::Response& response )
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   remus::worker::Job j = remus::worker::to_Job(response.data());
   this->Queue.push_back( j );
+
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
@@ -162,6 +170,7 @@ remus::worker::Job take()
       {
       boost::unique_lock<boost::mutex> lock(this->QueueMutex);
       msg = this->Queue[0];
+
       this->Queue.pop_front();
       }
     }
@@ -169,9 +178,21 @@ remus::worker::Job take()
 }
 
 //------------------------------------------------------------------------------
-std::size_t size()
+remus::worker::Job waitAndTakeJob()
 {
   boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  while(this->Queue.size() == 0)
+    {
+    QueueChanged.wait(lock);
+    }
+  lock.unlock();
+  return take();
+}
+
+//------------------------------------------------------------------------------
+std::size_t size()
+{
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   return this->Queue.size();
 }
 
@@ -199,6 +220,12 @@ std::string JobQueue::endpoint() const
 remus::worker::Job JobQueue::take()
 {
   return this->Implementation->take();
+}
+
+//------------------------------------------------------------------------------
+remus::worker::Job JobQueue::waitAndTakeJob()
+{
+  return this->Implementation->waitAndTakeJob();
 }
 
 //------------------------------------------------------------------------------

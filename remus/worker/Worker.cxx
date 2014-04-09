@@ -134,9 +134,8 @@ remus::worker::Job Worker::getJob()
   if(this->pendingJobCount() == 0)
     {
     this->askForJobs(1);
-    while(this->pendingJobCount() == 0) {}
     }
-  return this->JobQueue->take();
+  return this->JobQueue->waitAndTakeJob();
 }
 
 //-----------------------------------------------------------------------------
