@@ -104,6 +104,8 @@ void pollForJobs()
           break;
         case remus::TERMINATE_JOB:
           this->terminateJob(response);
+        default:
+          break;
         }
       }
     }
@@ -153,10 +155,12 @@ remus::worker::Job take()
     switch(msg.validityReason())
       {
       case remus::worker::Job::INVALID:
-        continue;
+        break;
       case remus::worker::Job::TERMINATE_WORKER:
       case remus::worker::Job::VALID_JOB:
         return msg;
+      default:
+        break;
       }
     }
   return remus::worker::Job();
