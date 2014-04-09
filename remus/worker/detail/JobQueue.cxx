@@ -37,11 +37,9 @@ class JobQueue::JobQueueImplementation
 
   //used to keep the queue from breaking with threads
   boost::mutex QueueMutex;
+  boost::condition_variable QueueChanged;
+
   std::deque< remus::worker::Job > Queue;
-
-  //Controls the validity of the job returned
-  remus::worker::Job::JobValidity Validity;
-
 
   //state to tell when we should stop polling
   bool ContinuePolling;
@@ -56,7 +54,6 @@ JobQueueImplementation(zmq::context_t& context):
   QueueMutex(),
   Queue(),
   EndPoint(),
-  Validity(remus::worker::Job::VALID_JOB),
   ContinuePolling(true)
 {
   //bind to the work_jobs communication channel first
@@ -92,7 +89,7 @@ void pollForJobs()
   zmq::pollitem_t item  = { this->ServerComm,  0, ZMQ_POLLIN, 0 };
   while( this->ContinuePolling )
     {
-    zmq::poll(&item,1,remus::HEARTBEAT_INTERVAL);
+    zmq::poll(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
       remus::common::Response response(this->ServerComm);
@@ -100,7 +97,6 @@ void pollForJobs()
         {
         case remus::TERMINATE_WORKER:
           this->stop();
-          Validity = remus::worker::Job::TERMINATE_WORKER;
           this->clearJobs();
           break;
         case remus::MAKE_MESH:
@@ -115,7 +111,7 @@ void pollForJobs()
 
 void terminateJob(remus::common::Response& response)
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   remus::worker::Job tj = remus::worker::to_Job(response.dataAs<std::string>());
   for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
        i != this->Queue.end(); ++i)
@@ -123,21 +119,24 @@ void terminateJob(remus::common::Response& response)
     if(i->id() == tj.id())
       i->updateValidityReason(remus::worker::Job::INVALID);
     }
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
 void clearJobs()
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   this->Queue.clear();
   this->Queue.push_back(remus::worker::Job(remus::worker::Job::TERMINATE_WORKER));
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
 void addItem(remus::common::Response& response )
 {
-  boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   this->Queue.push_back( remus::worker::to_Job(response.dataAs<std::string>()) );
+  this->QueueChanged.notify_all();
 }
 
 //------------------------------------------------------------------------------
@@ -147,7 +146,7 @@ remus::worker::Job take()
     {
     remus::worker::Job msg;
       {
-      boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+      boost::lock_guard<boost::mutex> lock(this->QueueMutex);
       msg = this->Queue.front();
       this->Queue.pop_front();
       }
@@ -164,9 +163,21 @@ remus::worker::Job take()
 }
 
 //------------------------------------------------------------------------------
-std::size_t size()
+remus::worker::Job waitAndTakeJob()
 {
   boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+    while(this->size() == 0)
+      {
+      QueueChanged.wait(lock);
+      }
+  lock.unlock();
+  return take();
+}
+
+//------------------------------------------------------------------------------
+std::size_t size()
+{
+  boost::lock_guard<boost::mutex> lock(this->QueueMutex);
   return this->Queue.size();
 }
 
@@ -195,6 +206,12 @@ std::string JobQueue::endpoint() const
 remus::worker::Job JobQueue::take()
 {
   return this->Implementation->take();
+}
+
+//------------------------------------------------------------------------------
+remus::worker::Job JobQueue::waitAndTakeJob()
+{
+  return this->Implementation->waitAndTakeJob();
 }
 
 //------------------------------------------------------------------------------
