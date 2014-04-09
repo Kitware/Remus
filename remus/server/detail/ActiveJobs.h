@@ -68,6 +68,11 @@ class ActiveJobs
 
     inline void refreshJobs(const zmq::socketIdentity &workerIdentity);
 
+    //refresh all jobs no matter what the heartbeat time is, this
+    //is used to help adjust for clock skew and machines putting the
+    //remus server thread to sleep
+    inline void refreshAllJobs();
+
     inline std::set<zmq::socketIdentity> activeWorkers() const;
 
 private:
@@ -85,7 +90,7 @@ private:
         WorkerAddress(workerIdentity),
         jstatus(id,stat),
         jresult(id),
-        expiry(boost::posix_time::second_clock::local_time()),
+        expiry(boost::posix_time::microsec_clock::local_time()),
         haveResult(false)
         {
           //we give it two heartbeat cycles of lifetime to start
@@ -96,7 +101,7 @@ private:
         {
           //we give it two heartbeat cycles to handle packet delay,
           //and workers and server heart-beating on the exact same second
-          expiry = boost::posix_time::second_clock::local_time() +
+          expiry = boost::posix_time::microsec_clock::local_time() +
             boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
         }
 
@@ -231,8 +236,9 @@ void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
     //FINISHED is more important than failed
+    const boost::posix_time::time_duration td = time - item->second.expiry;
     if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
-           item->second.expiry < time)
+          (td.seconds() > HEARTBEAT_INTERVAL_IN_SEC) )
       {
       item->second.jstatus.Status = remus::EXPIRED;
       item->second.jstatus.Progress =
@@ -253,6 +259,16 @@ void ActiveJobs::refreshJobs(const zmq::socketIdentity& workerIdentity)
       }
     }
 }
+
+//-----------------------------------------------------------------------------
+void ActiveJobs::refreshAllJobs()
+{
+  for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
+    {
+    item->second.refresh();
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 std::set<zmq::socketIdentity> ActiveJobs::activeWorkers() const

@@ -86,7 +86,7 @@ private:
               const remus::client::JobRequest& request):
               Id(id),
               Request(request),
-              WorkerDispatchTime(boost::posix_time::second_clock::local_time())
+              WorkerDispatchTime(boost::posix_time::microsec_clock::local_time())
               {}
 
     boost::uuids::uuid Id;
@@ -239,7 +239,7 @@ bool JobQueue::workerDispatched(remus::common::MeshIOType type)
   const bool found = this->QueuedJobs.end() != item;
   if(found)
     {
-    item->WorkerDispatchTime = boost::posix_time::second_clock::local_time();
+    item->WorkerDispatchTime = boost::posix_time::microsec_clock::local_time();
     this->QueuedJobsForWorkers.push_back(*item);
     this->QueuedJobs.erase(item);
     }

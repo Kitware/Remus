@@ -66,6 +66,19 @@ void make_terminateJob(remus::common::Response& response,
   response.setData(remus::worker::to_string(terminateJob));
 }
 
+//on a machine that has gone to sleep, or has had threads
+//paused ( AppNap on OSX, low priority level linux ) we can actually
+//heartbeat at a slower rate than HEARTBEAT_INTERVAL. So we need
+//to adjust for that.
+ boost::posix_time::ptime adjustHeartbeats( const boost::posix_time::ptime& previous,
+                                            const boost::posix_time::ptime& current,
+                                            bool& is_skewed)
+ {
+  const boost::posix_time::time_duration td = current - previous;
+  is_skewed = td.seconds() >= (HEARTBEAT_INTERVAL_IN_SEC-1);
+  return is_skewed ? previous : current;
+ }
+
 struct ThreadImpl
 {
   ThreadImpl():
@@ -82,7 +95,7 @@ struct ThreadImpl
 
   bool isBrokering()
   {
-  boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+  boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
   return this->BrokerIsRunning;
   }
 
@@ -93,7 +106,7 @@ struct ThreadImpl
 
     //lock the construction of thread as a critical section
     {
-    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
     launchThread = !this->BrokerIsRunning;
     if(launchThread)
       {
@@ -148,7 +161,7 @@ private:
   void setIsBrokering(bool t)
   {
     {
-    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
     this->BrokerIsRunning = t;
     }
   this->BrokerStatusChanged.notify_all();
@@ -270,10 +283,36 @@ bool Server::brokering(Server::SignalHandling sh)
       { this->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
 
+
+  boost::posix_time::ptime heartbeat;
+  boost::posix_time::ptime previous_heartbeat;
+  boost::posix_time::ptime current_heartbeat =
+                            boost::posix_time::microsec_clock::local_time();
+
   //  Process messages from both sockets
   while (Thread->isBrokering())
     {
+    previous_heartbeat = current_heartbeat;
     zmq::poll(&items[0], 2, remus::HEARTBEAT_INTERVAL);
+    current_heartbeat = boost::posix_time::microsec_clock::local_time();
+
+    //on a machine that has gone to sleep, or has had threads
+    //paused ( AppNap on OSX, low priority level linux ) we can actually
+    //heartbeat at a slower rate than HEARTBEAT_INTERVAL. So we need
+    //to adjust for that.
+    bool heartbeat_skewed = false;
+    heartbeat = detail::adjustHeartbeats(previous_heartbeat,
+                                         current_heartbeat,
+                                         heartbeat_skewed);
+    if(heartbeat_skewed)
+      {
+      //because the heartbeats are skewed we need to fix the stored
+      //times inside the job and worker pools
+      this->ActiveJobs->refreshAllJobs();
+      this->WorkerPool->refreshAllWorkers();
+      }
+
+
     // std::cout << "p" << std::endl;
     if (items[0].revents & ZMQ_POLLIN)
       {
@@ -306,15 +345,12 @@ bool Server::brokering(Server::SignalHandling sh)
       // std::cout << "w" << std::endl;
       }
 
-    const boost::posix_time::ptime hbTime =
-                            boost::posix_time::second_clock::local_time();
-
     //mark all jobs whose worker haven't sent a heartbeat in time
     //as a job that failed.
-    this->ActiveJobs->markExpiredJobs(hbTime);
+    this->ActiveJobs->markExpiredJobs(heartbeat);
 
     //purge all pending workers with jobs that haven't sent a heartbeat
-    this->WorkerPool->purgeDeadWorkers(hbTime);
+    this->WorkerPool->purgeDeadWorkers(heartbeat);
 
     //see if we have a worker in the pool for the next job in the queue,
     //otherwise as the factory to generat a new worker to handle that job
@@ -633,7 +669,7 @@ void Server::SignalCaught( SignalCatcher::SignalType )
   //the last time we polled. Because just maybe they also died
   //so no point in sending them a kill message now
   const boost::posix_time::ptime hbTime =
-                          boost::posix_time::second_clock::local_time();
+                          boost::posix_time::microsec_clock::local_time();
   this->ActiveJobs->markExpiredJobs(hbTime);
   this->WorkerPool->purgeDeadWorkers(hbTime);
 

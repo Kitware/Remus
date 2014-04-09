@@ -53,6 +53,11 @@ class WorkerPool
     //keep all workers alive that responded inside the heartbeat time
     inline void refreshWorker(const zmq::socketIdentity& address);
 
+    //refresh all workers no matter what the heartbeat time is, this
+    //is used to help adjust for clock skew and machines putting the
+    //remus server thread to sleep
+    inline void refreshAllWorkers();
+
     //return the socket identity of all living workers
     inline std::set<zmq::socketIdentity> livingWorkers() const;
 
@@ -68,18 +73,18 @@ private:
         WaitingForWork(false),
         MType(type),
         Address(address),
-        expiry(boost::posix_time::second_clock::local_time())
+        expiry(boost::posix_time::microsec_clock::local_time())
         {
           //we give it two heartbeat cycles of lifetime to start
-          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
+          expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
         }
 
         void refresh()
         {
           //we give it two heartbeat cycles to handle packet delay,
           //and workers and server heart-beating on the exact same second
-          expiry = boost::posix_time::second_clock::local_time() +
-            boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
+          expiry = boost::posix_time::microsec_clock::local_time() +
+            boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC);
         }
     };
 
@@ -92,7 +97,8 @@ private:
        heartbeat(t){}
      inline bool operator()(const WorkerInfo& worker) const
      {
-       return worker.expiry < heartbeat;
+       const boost::posix_time::time_duration td = heartbeat - worker.expiry;
+       return td.seconds() > HEARTBEAT_INTERVAL_IN_SEC;
      }
     };
 
@@ -127,11 +133,16 @@ private:
       {
       if(worker.Address == this->Address)
         {
-        std::cout << "refreshing worker " << worker.MType<< " at time " << boost::posix_time::second_clock::local_time() << std::endl;
         worker.refresh();
         }
       }
     zmq::socketIdentity Address;
+    };
+
+    struct refreshAllWorkerFunctor
+    {
+    inline void operator()(WorkerInfo& worker)
+      { worker.refresh(); }
     };
 
     typedef std::vector<WorkerInfo>::const_iterator ConstIt;
@@ -218,16 +229,6 @@ void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
   //an iterator to the new end
   It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
 
-  // if(std::distance(newEnd,this->Pool.end()) > 0 )
-  //   {
-  //   std::cout << "Expired DeadWorkers " << std::endl;
-    for(It i=newEnd; i != this->Pool.end(); ++i)
-      {
-      std::cout << "Expire workers with heartbeat less than " << time << std::endl;
-      std::cout << "expired workers time was " << (*i).expiry << std::endl;
-      }
-  //   }
-
   //erase all the elements that remove_if moved to the end
   this->Pool.erase(newEnd,this->Pool.end());
 }
@@ -238,6 +239,14 @@ void WorkerPool::refreshWorker(const zmq::socketIdentity& address)
   std::for_each(this->Pool.begin(), this->Pool.end(),
               WorkerPool::refreshWorkerFunctor(address));
 }
+
+//------------------------------------------------------------------------------
+void WorkerPool::refreshAllWorkers()
+{
+  std::for_each(this->Pool.begin(), this->Pool.end(),
+              WorkerPool::refreshAllWorkerFunctor());
+}
+
 //------------------------------------------------------------------------------
 std::set<zmq::socketIdentity> WorkerPool::livingWorkers() const
 {
