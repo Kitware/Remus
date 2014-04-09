@@ -170,10 +170,10 @@ remus::worker::Job take()
 remus::worker::Job waitAndTakeJob()
 {
   boost::unique_lock<boost::mutex> lock(this->QueueMutex);
-    while(this->size() == 0)
-      {
-      QueueChanged.wait(lock);
-      }
+  while(this->Queue.size() == 0)
+    {
+    QueueChanged.wait(lock);
+    }
   lock.unlock();
   return take();
 }
