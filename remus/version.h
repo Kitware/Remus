@@ -20,6 +20,6 @@
 //  REMUS_VERSION / 100 % 1000 is the minor version
 //  REMUS_VERSION / 100000 is the major version
 
-#define REMUS_VERSION 000201
+#define REMUS_VERSION 000202
 
 #endif
