@@ -15,6 +15,8 @@
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
 #include <remus/proto/zmqHelper.h>
+
+#include <remus/common/PollingMonitor.h>
 #include <remus/worker/Job.h>
 
 #pragma GCC diagnostic push
@@ -138,13 +140,18 @@ void poll()
                                 { this->WorkerComm,  0, ZMQ_POLLIN, 0 },
                                 { this->ServerComm,  0, ZMQ_POLLIN, 0 }
                               };
+
+  bool sentToServer=false;
+  remus::common::PollingMonitor monitor;
   while( this->isTalking() )
     {
-    bool sentToServer=false;
-    zmq::poll(&items[0],2,remus::HEARTBEAT_INTERVAL);
+    zmq::poll(&items[0],2,monitor.current());
+    monitor.pollOccurred();
+
     if(items[0].revents & ZMQ_POLLIN)
       {
       sentToServer = true;
+
       remus::proto::Message message(&this->WorkerComm);
 
       //special case is that TERMINATE_WORKER means we stop looping
