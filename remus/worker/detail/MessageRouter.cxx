@@ -193,9 +193,15 @@ void poll()
       }
     if(!sentToServer)
       {
-      //send a heartbeat to the server
+      //send the server how soon in seconds we will send our next heartbeat
+      //message. This way we are telling the server itself when it should
+      //expect a message, rather than it guessing.
+      const boost::int64_t polldur = monitor.hasAbnormalEvent() ?
+                                     monitor.maxTimeOut() : monitor.current();
+      //send the heartbeat to the server
       remus::proto::Message message(remus::common::MeshIOType(),
-                                    remus::HEARTBEAT);
+                                    remus::HEARTBEAT,
+                                    boost::lexical_cast<std::string>(polldur));
       message.send(&this->ServerComm);
       }
     }
