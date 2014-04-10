@@ -9,6 +9,7 @@ set(headers
     MeshIOType.h
     MeshRegistrar.h
     MeshTypes.h
+    PollingMonitor.h
     remusGlobals.h
     SignalCatcher.h
     )
@@ -17,6 +18,7 @@ set(srcs
     ExecuteProcess.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
+    PollingMonitor.cxx
     )
 
 #setup the common library
