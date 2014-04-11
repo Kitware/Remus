@@ -299,7 +299,7 @@ bool Server::brokering(Server::SignalHandling sh)
   //  Process messages from both sockets
   while (Thread->isBrokering())
     {
-    zmq::poll(&items[0], 2, monitor.current());
+    zmq::poll(&items[0], 2, monitor.current()*1000);
     monitor.pollOccurred();
 
     if (items[0].revents & ZMQ_POLLIN)

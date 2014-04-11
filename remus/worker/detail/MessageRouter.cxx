@@ -141,11 +141,11 @@ void poll()
                                 { this->ServerComm,  0, ZMQ_POLLIN, 0 }
                               };
 
-  bool sentToServer=false;
   remus::common::PollingMonitor monitor;
   while( this->isTalking() )
     {
-    zmq::poll(&items[0],2,monitor.current());
+    bool sentToServer=false;
+    zmq::poll(&items[0],2,monitor.current()*1000);
     monitor.pollOccurred();
 
     if(items[0].revents & ZMQ_POLLIN)
