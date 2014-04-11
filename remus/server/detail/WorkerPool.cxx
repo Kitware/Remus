@@ -127,6 +127,11 @@ zmq::SocketIdentity WorkerPool::takeWorker(
     //take the worker id as it matches the reqs
     workerIdentity = zmq::SocketIdentity(i->Address);
     i->takesJob();
+
+    //now that the worker has taken the job, we move him to the back of
+    //the vector so he is the last worker to take a job of that type again,
+    //this allows us to handle multiple workers taking jobs
+    std::rotate(this->Pool.begin(), this->Pool.begin() + 1,this->Pool.end());
     }
 
   return workerIdentity;
