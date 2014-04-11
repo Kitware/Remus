@@ -716,7 +716,7 @@ void Server::TerminateAllWorkers( )
 
   //next we take workers from the worker pool and kill them all off
   std::set<zmq::SocketIdentity> pendingWorkers =
-                                              this->WorkerPool->livingWorkers();
+                                              this->WorkerPool->allWorkers();
 
   typedef std::set<zmq::SocketIdentity>::const_iterator iterator;
   for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)
