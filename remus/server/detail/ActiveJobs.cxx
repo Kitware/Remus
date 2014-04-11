@@ -25,20 +25,9 @@ ActiveJobs::JobState::JobState(const zmq::SocketIdentity& workerIdentity,
   WorkerAddress(workerIdentity),
   jstatus(id,stat),
   jresult(id),
-  expiry(boost::posix_time::second_clock::local_time()),
   haveResult(false)
 {
-  //we give it two heartbeat cycles of lifetime to start
-  expiry += boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
-}
 
-//-----------------------------------------------------------------------------
-void ActiveJobs::JobState::refresh()
-{
-  //we give it two heartbeat cycles to handle packet delay,
-  //and workers and server heart-beating on the exact same second
-  expiry = boost::posix_time::second_clock::local_time() +
-    boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
 }
 
 //-----------------------------------------------------------------------------
@@ -135,7 +124,6 @@ void ActiveJobs::updateStatus(const remus::proto::JobStatus& s)
     //we are moving too
     item->second.jstatus = s;
     }
-  item->second.refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -154,36 +142,22 @@ void ActiveJobs::updateResult(const remus::proto::JobResult& r)
     //update the client result data to equal the server data
     item->second.jresult = r;
     item->second.haveResult = true;
-    item->second.refresh();
     }
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::markExpiredJobs(const boost::posix_time::ptime& time)
+void ActiveJobs::markExpiredJobs(remus::server::detail::SocketMonitor monitor)
 {
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
     //FINISHED is more important than failed
     if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
-           item->second.expiry < time)
+          (monitor.isUnresponsive(item->second.WorkerAddress) ) )
       {
-
+      //if a worker comes
       item->second.jstatus =
           remus::proto::JobStatus( item->second.jstatus.id(),remus::EXPIRED);
-      //std::cout << "Marking job id: " << item->first << " as EXPIRED" << std::endl;
-      }
-    }
-}
-
-//-----------------------------------------------------------------------------
-void ActiveJobs::refreshJobs(const zmq::SocketIdentity& workerIdentity)
-{
-  for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
-    {
-    if(item->second.WorkerAddress == workerIdentity)
-      {
-      item->second.refresh();
       }
     }
 }
