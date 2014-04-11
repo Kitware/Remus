@@ -1,7 +1,8 @@
 
 set(headers
   ActiveJobs.h
-	JobQueue.h
+  JobQueue.h
+  SocketMonitor.h
   WorkerPool.h
   uuidHelper.h
 	)

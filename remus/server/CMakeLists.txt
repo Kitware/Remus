@@ -12,6 +12,7 @@ set(server_srcs
    detail/ActiveJobs.cxx
    detail/JobQueue.cxx
    detail/WorkerPool.cxx
+   detail/SocketMonitor.cxx
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx
