@@ -102,7 +102,7 @@ struct ThreadManagement
 
     //lock the construction of thread as a critical section
     {
-    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
     launchThread = !this->BrokerIsRunning;
     if(launchThread)
       {
@@ -161,7 +161,7 @@ private:
   void setIsBrokering(bool t)
   {
     {
-    boost::unique_lock<boost::mutex> lock(this->BrokeringStatus);
+    boost::lock_guard<boost::mutex> lock(this->BrokeringStatus);
     this->BrokerIsRunning = t;
     }
   this->BrokerStatusChanged.notify_all();
