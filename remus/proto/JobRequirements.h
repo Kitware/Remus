@@ -27,6 +27,8 @@
 //for export symbols
 #include <remus/proto/ProtoExports.h>
 
+namespace  remus { namespace worker { class Worker; } }
+
 namespace remus{
 namespace proto{
 
@@ -110,6 +112,11 @@ public:
     { reqs = JobRequirements(is); return is; }
 
 private:
+  //The worker needs to be a friend to send lightweight representations
+  //of the full requirements to the server. This is the easiest way to do so.
+  friend class remus::worker::Worker;
+
+
   //serialize function
   void serialize(std::ostream& buffer) const;
 
