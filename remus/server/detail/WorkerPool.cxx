@@ -115,7 +115,7 @@ zmq::SocketIdentity WorkerPool::takeWorker(
 {
   bool found = false;
   It i;
-  for(It i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
+  for(i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
     found = (i->Reqs == reqs) && (i->isWaitingForWork());
     }
@@ -124,6 +124,9 @@ zmq::SocketIdentity WorkerPool::takeWorker(
 
   if(found)
     {
+    --i; //we have to decrement the iterator, as the forloop increments it one
+    //past the found position.
+
     //take the worker id as it matches the reqs
     workerIdentity = zmq::SocketIdentity(i->Address);
     i->takesJob();
