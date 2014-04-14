@@ -58,6 +58,9 @@ public:
   //return the socket identity of all workers
   std::set<zmq::SocketIdentity> allWorkers() const;
 
+  //return the socket identity of all workers that want to work on a job
+  std::set<zmq::SocketIdentity> allWorkersWantingWork() const;
+
 private:
   struct WorkerInfo
   {
