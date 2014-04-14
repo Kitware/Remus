@@ -19,6 +19,8 @@
 #include <boost/shared_ptr.hpp>
 #pragma GCC diagnostic pop
 
+#include <remus/common/CommonExports.h>
+
 namespace boost { namespace posix_time {  class ptime;  } }
 
 namespace remus{
@@ -28,7 +30,7 @@ namespace common{
 // the frequency of the polling rate based on the amount of traffic
 // it receives. If the amount of traffic starts to decrease we increase
 // the polling timeout.
-class PollingMonitor
+class REMUSCOMMON_EXPORT PollingMonitor
 {
 public:
   //Create a PollingMonitor with the default min and max time out values of

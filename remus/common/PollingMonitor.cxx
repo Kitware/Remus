@@ -59,8 +59,8 @@ public:
   //----------------------------------------------------------------------------
   void pollOccurred()
   {
-    const ptime current = boost::posix_time::microsec_clock::local_time();
-    this->pollOccurred(current);
+    const ptime currentTime = boost::posix_time::microsec_clock::local_time();
+    this->pollOccurred(currentTime);
   }
 
   //----------------------------------------------------------------------------
@@ -104,8 +104,8 @@ public:
   //----------------------------------------------------------------------------
   time_duration durationFromLastPoll() const
   {
-    const ptime current = boost::posix_time::microsec_clock::local_time();
-    return current - this->LastPollTime;
+    const ptime currentTime = boost::posix_time::microsec_clock::local_time();
+    return currentTime - this->LastPollTime;
   }
 
   //----------------------------------------------------------------------------
