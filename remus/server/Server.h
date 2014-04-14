@@ -46,6 +46,7 @@ namespace server{
     //forward declaration of classes only the implementation needs
     class ActiveJobs;
     class JobQueue;
+    class SocketMonitor;
     class WorkerPool;
     struct ThreadManagement;
     struct ZmqManagement;
@@ -127,7 +128,7 @@ protected:
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
-                              const remus::proto::Message& msg);
+                               const remus::proto::Message& msg);
   void storeMeshStatus(const remus::proto::Message& msg);
   void storeMesh(const remus::proto::Message& msg);
   void assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
@@ -156,6 +157,7 @@ protected:
   //allow subclasses to override these detail containers
   boost::uuids::random_generator UUIDGenerator;
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
+  boost::scoped_ptr<remus::server::detail::SocketMonitor> SocketMonitor;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
   boost::scoped_ptr<detail::ThreadManagement> Thread;

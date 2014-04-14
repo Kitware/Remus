@@ -106,7 +106,6 @@ bool JobQueue::workerDispatched(const remus::proto::JobRequirements& reqs)
   const bool found = this->QueuedJobs.end() != item;
   if(found)
     {
-    item->WorkerDispatchTime = boost::posix_time::second_clock::local_time();
     this->QueuedJobsForWorkers.push_back(*item);
     this->QueuedJobs.erase(item);
     }

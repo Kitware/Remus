@@ -21,7 +21,6 @@
 #include <remus/worker/Job.h>
 
 #include <boost/uuid/uuid.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <algorithm>
 #include <set>
@@ -87,15 +86,11 @@ private:
     QueuedJob(const boost::uuids::uuid& id,
               const remus::proto::JobSubmission& submission):
               Id(id),
-              Submission(submission),
-              WorkerDispatchTime(boost::posix_time::second_clock::local_time())
+              Submission(submission)
               {}
 
     boost::uuids::uuid Id;
     remus::proto::JobSubmission Submission;
-
-    //information on when the job was marked as scheduled
-    boost::posix_time::ptime WorkerDispatchTime;
 
     bool operator<(const QueuedJob& other) const
       { return this->Id < other.Id; }

@@ -62,19 +62,22 @@ public:
   }
 };
 
-int main ()
+int main(int argc, char* argv[])
 {
-  //keep track of the number of queries to do a rough test
-  int queries = 0;
-
   //create a default server connection
   remus::client::ServerConnection conn;
-
-  //create a client object that will connect to the default remus server
+  if(argc>=2)
+    {
+    //let the server connection handle parsing the command arguments
+    conn = remus::client::make_ServerConnection(std::string(argv[1]));
+    }
+  //create a client object that will connect to the remus server
   remus::Client c(conn);
 
-  Timer time;
 
+  //keep track of the number of queries to do a rough test
+  int queries = 0;
+  Timer time;
 
   remus::common::MeshIOType requestIOType( (remus::meshtypes::Edges()),
                                            (remus::meshtypes::Mesh2D()) );

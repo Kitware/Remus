@@ -15,6 +15,8 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/proto/zmqSocketIdentity.h>
 
+#include <algorithm>
+
 namespace remus{
 namespace server{
 namespace detail{
@@ -22,21 +24,11 @@ namespace detail{
 //------------------------------------------------------------------------------
 WorkerPool::WorkerInfo::WorkerInfo(const zmq::SocketIdentity& address,
                                    const remus::proto::JobRequirements& reqs):
-  WaitingForWork(false),
+  NumberOfDesiredJobs(0),
   Reqs(reqs),
   Address(address),
-  expiry(boost::posix_time::second_clock::local_time())
+  IsAlive(true)
 {
-  //we give it two heartbeat cycles of lifetime to start
-  expiry = expiry + boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
-}
-
-void WorkerPool::WorkerInfo::refresh()
-{
-  //we give it two heartbeat cycles to handle packet delay,
-  //and workers and server heart-beating on the exact same second
-  expiry = boost::posix_time::second_clock::local_time() +
-    boost::posix_time::seconds(HEARTBEAT_INTERVAL_IN_SEC*2);
 }
 
 //------------------------------------------------------------------------------
@@ -50,7 +42,10 @@ WorkerPool::WorkerPool():
 bool WorkerPool::addWorker(zmq::SocketIdentity workerIdentity,
                            const remus::proto::JobRequirements& reqs)
 {
-  this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,reqs) );
+  if(!this->haveWorker(workerIdentity,reqs))
+    {
+    this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,reqs) );
+    }
   return true;
 }
 
@@ -61,7 +56,7 @@ remus::proto::JobRequirementsSet WorkerPool::waitingWorkerRequirements(
   remus::proto::JobRequirementsSet validWorkers;
   for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
     {
-    if( i->Reqs.meshTypes() == type && i->WaitingForWork)
+    if( i->Reqs.meshTypes() == type && i->isWaitingForWork() )
       { validWorkers.insert(i->Reqs); }
     }
   return validWorkers;
@@ -74,33 +69,43 @@ bool WorkerPool::haveWaitingWorker(
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( i->Reqs == reqs && i->WaitingForWork );
+    found = ( i->Reqs == reqs && i->isWaitingForWork() );
     }
   return found;
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::haveWorker(const zmq::SocketIdentity& address) const
+bool WorkerPool::haveWorker(const zmq::SocketIdentity& address,
+                            const remus::proto::JobRequirements& reqs) const
 {
   bool found = false;
   for(ConstIt i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    found = ( i->Address == address );
+    found = ( i->Address == address && i->Reqs == reqs );
     }
   return found;
 }
 
 //------------------------------------------------------------------------------
-bool WorkerPool::readyForWork(const zmq::SocketIdentity& address)
+bool WorkerPool::readyForWork(const zmq::SocketIdentity& address,
+                              const remus::proto::JobRequirements& reqs)
 {
   //a worker can be registered multiple times, we need to iterate
-  //over the entire vector and find all occurrences of the of the address
-  WorkerPool::ReadyForWork pred(address);
-
-  //transform every element that matches the address to be waiting for work
-  //need to use the resulting predicate to get the correct result.
-  pred = std::for_each(this->Pool.begin(),this->Pool.end(), pred);
-  return pred.Count > 0;
+  //over the entire vector and find the correct address and reqs that match
+  //transform every element that matches the address and reqs to be
+  //waiting for work, If the worker is already waiting for work we increase
+  //the number of jobs it is waiting to take.
+  int count = 0;
+   for(It i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    if(i->Address == address && i->Reqs == reqs)
+      {
+      i->IsAlive = true; //mark the worker alive if it wasn't already
+      i->addJob();
+      ++count;
+      }
+    }
+  return (count > 0);
 }
 
 
@@ -108,50 +113,54 @@ bool WorkerPool::readyForWork(const zmq::SocketIdentity& address)
 zmq::SocketIdentity WorkerPool::takeWorker(
                              const remus::proto::JobRequirements& reqs)
 {
-
   bool found = false;
-  std::size_t index = 0;
-  WorkerPool::WorkerInfo* info;
-  for(index=0; index < this->Pool.size(); ++index)
+  It i;
+  for(i=this->Pool.begin(); !found && i != this->Pool.end(); ++i)
     {
-    info = &this->Pool[index];
-    found = (info->Reqs == reqs) && (info->WaitingForWork);
-    if(found)
-      {
-      break;
-      }
+    found = (i->Reqs == reqs) && (i->isWaitingForWork());
     }
+
+  zmq::SocketIdentity workerIdentity;
 
   if(found)
     {
-    zmq::SocketIdentity workerIdentity(info->Address);
-    this->Pool.erase(this->Pool.begin()+index);
-    return workerIdentity;
+    --i; //we have to decrement the iterator, as the forloop increments it one
+    //past the found position.
+
+    //take the worker id as it matches the reqs
+    workerIdentity = zmq::SocketIdentity(i->Address);
+    i->takesJob();
+
+    //now that the worker has taken the job, we move him to the back of
+    //the vector so he is the last worker to take a job of that type again,
+    //this allows us to handle multiple workers taking jobs
+    std::rotate(this->Pool.begin(), this->Pool.begin() + 1,this->Pool.end());
     }
-  return zmq::SocketIdentity();
+
+  return workerIdentity;
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::purgeDeadWorkers(const boost::posix_time::ptime& time)
+void WorkerPool::purgeDeadWorkers(remus::server::detail::SocketMonitor monitor)
 {
-  WorkerPool::ExpireWorkers pred(time);
+  //Remove all workers that we know are really dead
+  WorkerPool::DeadWorkers dead(monitor);
 
   //remove if moves all bad items to end of the vector and returns
-  //an iterator to the new end
-  It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),pred);
+  //an iterator to the new end. Remove if is easiest way to remove from middle
+  It newEnd = std::remove_if(this->Pool.begin(),this->Pool.end(),dead);
 
-  //erase all the elements that remove_if moved to the end
+  for(It i=this->Pool.begin(); i != newEnd; ++i)
+    {
+    i->IsAlive = !monitor.isUnresponsive(i->Address);
+    }
+
+  //erase all the dead workers to free up space
   this->Pool.erase(newEnd,this->Pool.end());
 }
 
 //------------------------------------------------------------------------------
-void WorkerPool::refreshWorker(const zmq::SocketIdentity& address)
-{
-  std::for_each(this->Pool.begin(), this->Pool.end(),
-                WorkerPool::RefreshWorkers(address));
-}
-//------------------------------------------------------------------------------
-std::set<zmq::SocketIdentity> WorkerPool::livingWorkers() const
+std::set<zmq::SocketIdentity> WorkerPool::allWorkers() const
 {
   std::set<zmq::SocketIdentity> workerAddresses;
   for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
@@ -160,6 +169,23 @@ std::set<zmq::SocketIdentity> WorkerPool::livingWorkers() const
     }
   return workerAddresses;
 }
+
+//------------------------------------------------------------------------------
+std::set<zmq::SocketIdentity> WorkerPool::allWorkersWantingWork() const
+{
+  std::set<zmq::SocketIdentity> workerAddresses;
+  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    if(i->isWaitingForWork())
+      {
+      workerAddresses.insert(i->Address);
+      }
+    }
+  return workerAddresses;
+}
+
+
+
 
 }
 }

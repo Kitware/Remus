@@ -17,7 +17,7 @@
 #include <remus/proto/JobStatus.h>
 #include <remus/proto/zmqSocketIdentity.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <remus/server/detail/SocketMonitor.h>
 
 #include <map>
 #include <set>
@@ -60,9 +60,7 @@ class ActiveJobs
 
     void updateResult(const remus::proto::JobResult& r);
 
-    void markExpiredJobs(const boost::posix_time::ptime& time);
-
-    void refreshJobs(const zmq::SocketIdentity &workerIdentity);
+    void markExpiredJobs(remus::server::detail::SocketMonitor monitor);
 
     std::set<zmq::SocketIdentity> activeWorkers() const;
 
@@ -72,14 +70,11 @@ private:
       zmq::SocketIdentity WorkerAddress;
       remus::proto::JobStatus jstatus;
       remus::proto::JobResult jresult;
-      boost::posix_time::ptime expiry; //after this time the job should be purged
       bool haveResult;
 
       JobState(const zmq::SocketIdentity& workerIdentity,
                const boost::uuids::uuid& id,
                remus::STATUS_TYPE stat);
-
-      void refresh();
 
       bool canUpdateStatusTo(remus::proto::JobStatus s) const;
     };

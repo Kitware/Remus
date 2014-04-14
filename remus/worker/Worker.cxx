@@ -41,6 +41,8 @@ struct ZmqManagement
   this->Server.bind( ep.c_str() );
   }
 };
+
+
 }
 
 
@@ -109,9 +111,21 @@ const remus::worker::ServerConnection& Worker::connection() const
 //-----------------------------------------------------------------------------
 void Worker::askForJobs( unsigned int numberOfJobs )
 {
-  remus::proto::Message askForMesh(this->MeshRequirements.meshTypes(),
-                           remus::MAKE_MESH,
-                           remus::proto::to_string(this->MeshRequirements));
+
+  //next we send the MAKE_MESH call with the shorter version of the reqs,
+  //which have none of the heavy data.
+  proto::JobRequirements lightReqs(this->MeshRequirements.formatType(),
+                                   this->MeshRequirements.meshTypes(),
+                                   this->MeshRequirements.workerName(),
+                                   "");
+  //override the source type
+  lightReqs.SourceType = this->MeshRequirements.sourceType();
+  lightReqs.Tag = this->MeshRequirements.tag();
+
+  proto::Message askForMesh(this->MeshRequirements.meshTypes(),
+                            remus::MAKE_MESH,
+                            proto::to_string(lightReqs));
+
   for(unsigned int i=0; i < numberOfJobs; ++i)
     { askForMesh.send(&this->Zmq->Server); }
 }

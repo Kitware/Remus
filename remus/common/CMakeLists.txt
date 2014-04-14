@@ -13,10 +13,18 @@ set(headers
     SignalCatcher.h
     )
 
+#private common files that don't need
+#be given to the users of remus, but 
+#are needed by other remus libraries
+set(private_headers
+    PollingMonitor.h
+    )
+
 set(srcs
     ExecuteProcess.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
+    PollingMonitor.cxx
     )
 
 #setup the common library
@@ -37,6 +45,7 @@ remus_install_library(RemusCommon)
 
 #install the headers
 remus_public_headers(${headers})
+remus_private_headers(${private_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusCommon)

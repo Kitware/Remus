@@ -10,15 +10,24 @@
 #include <remus/server/WorkerFactory.h>
 
 #include <iostream>
-int main ()
+int main (int argc, char* argv[])
 {
+  remus::server::ServerPorts ports;
+  //check if we have a hostname to bind too.
+  if(argc>=2)
+    {
+    std::string hostname(argv[1]);
+    ports = remus::server::ServerPorts(hostname,remus::SERVER_CLIENT_PORT,
+                                       hostname,remus::SERVER_WORKER_PORT);
+    }
+
   //create a custom worker factory that creates children processes
   //we cap it at having only 3 children at any time
   remus::server::WorkerFactory factory;
   factory.setMaxWorkerCount(3);
 
   //create a default server with the factory
-  remus::server::Server b(factory);
+  remus::server::Server b(ports,factory);
 
   //start accepting connections for clients and workers
   bool valid = b.startBrokering();

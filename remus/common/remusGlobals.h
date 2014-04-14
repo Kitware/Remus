@@ -24,11 +24,8 @@ static const int SERVER_CLIENT_PORT = 50505;
 
 //SERVER_WORKER_PORT is used by workers to fetch jobs,
 //and send back the status and result of the job
-//Workers also use the SERVER_WORKER_PORT for heartbeating
+//Workers also use the SERVER_WORKER_PORT for heart beating
 static const int SERVER_WORKER_PORT = 50510;
-
-static const int HEARTBEAT_INTERVAL_IN_SEC = 5;
-static const int HEARTBEAT_INTERVAL = 1000 * HEARTBEAT_INTERVAL_IN_SEC;
 
 static const std::string INVALID_MSG = "INVALID_MSG";
 

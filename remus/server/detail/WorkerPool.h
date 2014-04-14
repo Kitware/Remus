@@ -13,10 +13,10 @@
 #ifndef remus_server_detail_WorkerPool_h
 #define remus_server_detail_WorkerPool_h
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 #include <remus/proto/JobRequirements.h>
 #include <remus/proto/zmqSocketIdentity.h>
+
+#include <remus/server/detail/SocketMonitor.h>
 
 #include <set>
 #include <vector>
@@ -41,87 +41,51 @@ public:
   bool haveWaitingWorker(const remus::proto::JobRequirements& reqs) const;
 
   //do we have a worker with this address?
-  bool haveWorker(const zmq::SocketIdentity& address) const;
+  bool haveWorker(const zmq::SocketIdentity& address,
+                  const remus::proto::JobRequirements& reqs) const;
 
   //mark a worker with the given address ready to take a job.
   //returns false if a worker with that address wasn't found
-  bool readyForWork(const zmq::SocketIdentity& address);
+  bool readyForWork(const zmq::SocketIdentity& address,
+                    const remus::proto::JobRequirements& reqs);
 
-  //returns the worker address and removes the worker from the pool
+  //returns the worker address and marks that the worker has taken a job
   zmq::SocketIdentity takeWorker(const remus::proto::JobRequirements& reqs);
 
-  //remove all workers that haven't responded inside the heartbeat time
-  void purgeDeadWorkers(const boost::posix_time::ptime& time);
+  //remove all workers that haven't responded based on the passed in monitor
+  void purgeDeadWorkers(remus::server::detail::SocketMonitor monitor);
 
-  //keep all workers alive that responded inside the heartbeat time
-  void refreshWorker(const zmq::SocketIdentity& address);
+  //return the socket identity of all workers
+  std::set<zmq::SocketIdentity> allWorkers() const;
 
-  //return the socket identity of all living workers
-  std::set<zmq::SocketIdentity> livingWorkers() const;
+  //return the socket identity of all workers that want to work on a job
+  std::set<zmq::SocketIdentity> allWorkersWantingWork() const;
 
 private:
   struct WorkerInfo
   {
-    bool WaitingForWork;
+    int NumberOfDesiredJobs;
     remus::proto::JobRequirements Reqs;
     zmq::SocketIdentity Address;
-    //after this time the job should be purged
-    boost::posix_time::ptime expiry;
+    bool IsAlive; //alive as heartbeating, not alive as actively wanting jobs
 
     WorkerInfo(const zmq::SocketIdentity& address,
                const remus::proto::JobRequirements& type);
 
-    void refresh();
+    bool isWaitingForWork() const { return NumberOfDesiredJobs > 0 && IsAlive; }
+    void addJob() { ++NumberOfDesiredJobs; }
+    void takesJob() { --NumberOfDesiredJobs; }
   };
 
-  struct waitingTypes
+  struct DeadWorkers
   {
-    void operator()( const WorkerInfo& winfo )
-      { types.insert(winfo.Reqs); }
-    remus::proto::JobRequirementsSet types;
+   remus::server::detail::SocketMonitor Monitor;
+   DeadWorkers(remus::server::detail::SocketMonitor monitor):
+     Monitor(monitor){}
+   inline bool operator()(const WorkerPool::WorkerInfo& worker)
+    { return Monitor.isDead(worker.Address); }
   };
 
-  struct ExpireWorkers
-  {
-   boost::posix_time::ptime heartbeat;
-   ExpireWorkers(const boost::posix_time::ptime & t):
-     heartbeat(t){}
-   inline bool operator()(const WorkerPool::WorkerInfo& worker) const
-    { return worker.expiry < heartbeat; }
-  };
-
-  struct ReadyForWork
-  {
-  ReadyForWork(zmq::SocketIdentity addr):
-    Address(addr),
-    Count(0)
-    { }
-
-  inline void operator()(WorkerPool::WorkerInfo& worker)
-    {
-    if(worker.Address == this->Address)
-      {
-      worker.WaitingForWork = true;
-      ++this->Count;
-      }
-    }
-  zmq::SocketIdentity Address;
-  unsigned int Count; //number of elements we set to be ready for work
-  };
-
-  struct RefreshWorkers
-  {
-  RefreshWorkers(zmq::SocketIdentity addr):
-    Address(addr)
-    { }
-
-  inline void operator()(WorkerPool::WorkerInfo& worker)
-    {
-    if(worker.Address == this->Address)
-      { worker.refresh(); }
-    }
-  zmq::SocketIdentity Address;
-  };
 
   typedef std::vector<WorkerInfo>::const_iterator ConstIt;
   typedef std::vector<WorkerInfo>::iterator It;
