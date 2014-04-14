@@ -14,10 +14,26 @@
 #include <remus/testing/Testing.h>
 #include <remus/server/detail/ActiveJobs.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
-
 namespace {
+
+
+void SleepForNSecs(int t)
+{
+#ifdef _WIN32
+      Sleep(t*1000);
+#else
+      sleep(t);
+#endif
+}
+
+remus::server::detail::SocketMonitor make_Monitor( )
+{
+  //make the timeouts on the poller to be 1 second for min and max, to make
+  //checking for expiration far easier
+  remus::common::PollingMonitor poller(1,1);
+  remus::server::detail::SocketMonitor sm(poller);
+  return sm;
+}
 
 //makes a random socket identity
 zmq::SocketIdentity make_socketId()
@@ -243,46 +259,107 @@ void verify_updating_progress()
 
 void verify_refresh_jobs()
 {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
   //we need to verify that the refresh and expired functions work properly
-  const ptime long_ago = second_clock::local_time() -  days(10);
-  const ptime future = second_clock::local_time() +  days(10);
-  const ptime current = second_clock::local_time();
+  typedef remus::server::detail::SocketMonitor MonitorType;
+  MonitorType monitor = make_Monitor( );
 
   std::vector< boost::uuids::uuid > uuids_used;
+  std::vector< zmq::SocketIdentity > socketIds_used;
+
   for(int i=0; i < 5; ++i)
-    { uuids_used.push_back(remus::testing::UUIDGenerator()); }
+    {
+    uuids_used.push_back( remus::testing::UUIDGenerator() );
+
+    const zmq::SocketIdentity sId =  make_socketId();
+    monitor.refresh(sId);
+    socketIds_used.push_back( sId );
+    }
 
   remus::server::detail::ActiveJobs jobs;
 
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.add(make_socketId(), uuids_used[i]) == true) ); }
+    { REMUS_ASSERT( (jobs.add(socketIds_used[i], uuids_used[i]) == true) ); }
 
-  jobs.markExpiredJobs( long_ago );
+  jobs.markExpiredJobs( monitor );
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
-  jobs.markExpiredJobs( current);
-  for(int i=0; i < 5; ++i)
-    {  REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
+  SleepForNSecs(1);
 
-  jobs.markExpiredJobs( future);
+  //even after 1 second we aren't expired
+  jobs.markExpiredJobs( monitor );
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
-  jobs.markExpiredJobs( long_ago);
+  for(int i=0; i < 2; ++i)
+    {
+    SleepForNSecs(1);
+    for(int j=0; j < 5; ++j)
+      { monitor.refresh(socketIds_used[j]); }
+    }
+
+  //even after 2 more seconds we aren't expired, since we sent
+  //refresh / heartbeats
+  jobs.markExpiredJobs( monitor );
   for(int i=0; i < 5; ++i)
-    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
+
 
   //verify that jobs marked as finished can't be marked as expired
   boost::uuids::uuid finished_job_uuid = remus::testing::UUIDGenerator();
   remus::proto::JobResult result_with_data =
                         remus::proto::make_JobResult(finished_job_uuid,"data");
-  jobs.add(make_socketId(), finished_job_uuid);
+  const zmq::SocketIdentity finishedJobSocketId =  make_socketId();
+  jobs.add(finishedJobSocketId, finished_job_uuid);
   jobs.updateResult(result_with_data);
-  jobs.markExpiredJobs( future );
+
+  monitor.refresh( finishedJobSocketId );
+  jobs.markExpiredJobs( monitor );
   REMUS_ASSERT( (jobs.status(finished_job_uuid).status() == remus::FINISHED) );
+}
+
+
+void verify_expire_jobs()
+{
+  //we need to verify that the refresh and expired functions work properly
+  typedef remus::server::detail::SocketMonitor MonitorType;
+  MonitorType monitor = make_Monitor( );
+
+  std::vector< boost::uuids::uuid > uuids_used;
+  std::vector< zmq::SocketIdentity > socketIds_used;
+
+  for(int i=0; i < 5; ++i)
+    {
+    uuids_used.push_back( remus::testing::UUIDGenerator() );
+
+    const zmq::SocketIdentity sId =  make_socketId();
+    monitor.refresh(sId);
+    socketIds_used.push_back( sId );
+    }
+
+  remus::server::detail::ActiveJobs jobs;
+
+  for(int i=0; i < 5; ++i)
+    { REMUS_ASSERT( (jobs.add(socketIds_used[i], uuids_used[i]) == true) ); }
+
+  jobs.markExpiredJobs( monitor );
+  for(int i=0; i < 5; ++i)
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
+
+  //wait for 3 second which will cause the jobs 3 and 4 to fail
+  //while jobs 0, 1 and 2 will be refreshed and will be valid
+  for(int i=0; i < 3; ++i)
+    {
+    SleepForNSecs(1);
+    for(int j=0; j < 3; ++j)
+      { monitor.refresh(socketIds_used[j]); }
+    }
+
+  jobs.markExpiredJobs( monitor );
+  for(int i=0; i < 3; ++i)
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
+  for(int i=3; i < 5; ++i)
+    { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::EXPIRED) ); }
 
 }
 
@@ -297,6 +374,8 @@ int UnitTestActiveJobs(int, char *[])
   verify_updating_progress();
 
   verify_refresh_jobs();
+
+  verify_expire_jobs();
 
   return 0;
 }

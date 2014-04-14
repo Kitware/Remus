@@ -16,6 +16,7 @@ set(srcs
   ../ActiveJobs.cxx
   ../JobQueue.cxx
   ../WorkerPool.cxx
+  ../SocketMonitor.cxx
   )
 
 set(unit_tests
