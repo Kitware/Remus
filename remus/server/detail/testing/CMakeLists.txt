@@ -22,6 +22,7 @@ set(srcs
 set(unit_tests
   UnitTestActiveJobs.cxx
   UnitTestServerJobQueue.cxx
+  UnitTestSocketMonitor.cxx
   UnitTestUUIDHelper.cxx
   UnitTestWorkerPool.cxx
   )
