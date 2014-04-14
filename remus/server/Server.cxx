@@ -297,9 +297,11 @@ bool Server::brokering(Server::SignalHandling sh)
   remus::common::PollingMonitor monitor = this->SocketMonitor->pollingMonitor();
 
   //  Process messages from both sockets
+  boost::int64_t timeToCheckForDeadWorkers = 0; //check every 250ms
   while (Thread->isBrokering())
     {
     zmq::poll(&items[0], 2, monitor.current()*1000);
+    timeToCheckForDeadWorkers += monitor.durationOfTheLastPollMilliseconds();
     monitor.pollOccurred();
 
     if (items[0].revents & ZMQ_POLLIN)
@@ -325,12 +327,19 @@ bool Server::brokering(Server::SignalHandling sh)
       // std::cout << "w" << std::endl;
       }
 
-    //mark all jobs whose worker haven't sent a heartbeat in time
-    //as a job that failed.
-    this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
+    //only purge dead workers every 250ms to reduce server load
+    if(timeToCheckForDeadWorkers >=  250)
+      {
+      // std::cout << "checking for dead workers" << std::endl;
+      //mark all jobs whose worker haven't sent a heartbeat in time
+      //as a job that failed.
+      this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
 
-    //purge all pending workers with jobs that haven't sent a heartbeat
-    this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
+      //purge all pending workers with jobs that haven't sent a heartbeat
+      this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
+
+      timeToCheckForDeadWorkers =0;
+      }
 
     //see if we have a worker in the pool for the next job in the queue,
     //otherwise as the factory to generat a new worker to handle that job
@@ -397,15 +406,19 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   switch(msg.serviceType())
     {
     case remus::MAKE_MESH:
+      // std::cout << "c MAKE_MESH" << std::endl;
       response.setData(this->queueJob(msg));
       break;
     case remus::MESH_STATUS:
+      // std::cout << "c MESH_STATUS" << std::endl;
       response.setData(this->meshStatus(msg));
       break;
     case remus::CAN_MESH:
+      // std::cout << "c CAN_MESH" << std::endl;
       response.setData(this->canMesh(msg));
       break;
     case remus::CAN_MESH_REQUIREMENTS:
+      // std::cout << "c CAN_MESH_REQS" << std::endl;
       response.setData(this->canMeshRequirements(msg));
       break;
     case remus::MESH_REQUIREMENTS:
@@ -566,29 +579,33 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
    //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
-    case remus::CAN_MESH:
-      {
-      const remus::proto::JobRequirements reqs =
-            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
-      this->WorkerPool->addWorker(workerIdentity,reqs);
-      }
-      break;
     case remus::MAKE_MESH:
       {
+      // std::cout << "w MAKE_MESH" << std::endl;
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->readyForWork(workerIdentity,reqs);
       }
       break;
     case remus::MESH_STATUS:
+      // std::cout << "w MAKE_STATUS" << std::endl;
       //store the mesh status msg,  no response needed
       this->storeMeshStatus(msg);
+      break;
+    case remus::CAN_MESH:
+      {
+      // std::cout << "w CAN_MESH" << std::endl;
+      const remus::proto::JobRequirements reqs =
+            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
+      this->WorkerPool->addWorker(workerIdentity,reqs);
+      }
       break;
     case remus::RETRIEVE_MESH:
       //we need to store the mesh result, no response needed
       this->storeMesh(msg);
       break;
     case remus::HEARTBEAT:
+      // std::cout << "w HEARTBEAT" << std::endl;
       //pass along to the worker monitor what worker just sent a heartbeat
       //message
       this->SocketMonitor->heartbeat(workerIdentity,msg);
