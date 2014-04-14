@@ -191,9 +191,21 @@ void PollingMonitor::pollOccurredAt( boost::posix_time::ptime* t )
 }
 
 //------------------------------------------------------------------------------
+boost::int64_t PollingMonitor::durationFromLastPollMilliseconds() const
+{
+  return this->Tracker->durationFromLastPoll().total_milliseconds();
+}
+
+//------------------------------------------------------------------------------
 boost::int64_t PollingMonitor::durationFromLastPoll() const
 {
   return this->Tracker->durationFromLastPoll().total_seconds();
+}
+
+//------------------------------------------------------------------------------
+boost::int64_t PollingMonitor::durationOfTheLastPollMilliseconds() const
+{
+  return this->Tracker->durationOfTheLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------

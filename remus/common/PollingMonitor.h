@@ -59,7 +59,15 @@ public:
 
   //returns the amount of time from now to the last time we polled
   //the time is in seconds
+  boost::int64_t durationFromLastPollMilliseconds() const;
+
+  //returns the amount of time from now to the last time we polled
+  //the time is in seconds
   boost::int64_t durationFromLastPoll() const;
+
+  //returns the amount of time from now to the last time we polled
+  //the time is in seconds
+  boost::int64_t  durationOfTheLastPollMilliseconds() const;
 
   //returns the duration of time that between the last two times we polled
   //the time is in seconds
