@@ -13,6 +13,8 @@
 #ifndef TetGenWorker_h
 #define TetGenWorker_h
 
+#include <set>
+
 #include <remus/worker/Job.h>
 #include <remus/worker/Worker.h>
 #include <remus/worker/ServerConnection.h>
@@ -67,7 +69,5 @@ protected:
 
   bool buildTetGenArguments(const tetgenParameters& params,
                             std::string& options) const;
-
-  void jobFailed(const remus::worker::Job& job);
 };
 #endif

@@ -35,7 +35,6 @@ tetgenParameters::tetgenParameters(const remus::worker::Job& job):
   meshing_data(job)
 {
 
-
 }
 
 //----------------------------------------------------------------------------
@@ -131,7 +130,8 @@ void TetGenWorker::meshJob()
                                                                   options);
   if (!canLaunchTetGen)
     {
-    this->jobFailed(j);
+    remus::proto::JobStatus status(j.id(),remus::FAILED);
+    this->updateStatus(status);
     return;
     }
 
@@ -162,16 +162,24 @@ void TetGenWorker::meshJob()
     static_cast<TetGenResult::OutputFileType>(parms.behavior.object);
   TetGenResult tetResults(parms.behavior.outfilename, fileType);
 
-  remus::worker::JobResult results = remus::proto::make_JobResult(j.id(),
+  remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                                                                   tetResults);
   this->returnMeshResults(results);
   return;
 }
 
-//----------------------------------------------------------------------------
-void TetGenWorker::jobFailed(const remus::worker::Job& job)
+
+int main (int argc, char* argv[])
 {
-  remus::worker::JobStatus status(job.id(),remus::FAILED);
-  this->updateStatus(status);
-  return;
+  remus::worker::ServerConnection connection;
+  if(argc>=2)
+    {
+    //let the server connection handle parsing the command arguments
+    connection = remus::worker::make_ServerConnection(std::string(argv[1]));
+    }
+  //the triangle worker is hard-coded to only handle 3D meshes output, and
+  //input of PIECWISE_LINEAR_COMPLEX
+  TetGenWorker worker( connection );
+  worker.meshJob();
+  return 0;
 }
