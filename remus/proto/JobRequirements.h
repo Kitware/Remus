@@ -185,7 +185,7 @@ private:
 inline remus::proto::JobRequirements make_JobRequirements(
       remus::common::MeshIOType meshtypes,
       const std::string& wname,
-      remus::common::FileHandle& rfile,
+      const remus::common::FileHandle& rfile,
       remus::common::ContentFormat::Type format = remus::common::ContentFormat::User)
 {
   return remus::proto::JobRequirements(format,
