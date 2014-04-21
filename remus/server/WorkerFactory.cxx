@@ -163,9 +163,17 @@ namespace
 
     cJSON *root = cJSON_Parse(json_contents.c_str());
 
-    std::string inputType(cJSON_GetObjectItem(root,"InputType")->valuestring);
-    std::string outputType(cJSON_GetObjectItem(root,"OutputType")->valuestring);
-    std::string executableName(cJSON_GetObjectItem(root,"ExecutableName")->valuestring);
+    cJSON *inputT = cJSON_GetObjectItem(root,"InputType ");
+    cJSON *outputT = cJSON_GetObjectItem(root,"OutputType");
+    cJSON *execT = cJSON_GetObjectItem(root,"ExecutableName");
+    if(!inputT || !outputT || !execT)
+      {
+      return std::make_pair( boost::filesystem::path(),
+                             remus::proto::JobRequirements() );
+      }
+    std::string inputType(inputT->valuestring);
+    std::string outputType(outputT->valuestring);
+    std::string executableName(execT->valuestring);
 
     //by default we select memory and user
     ContentFormat::Type format_type = ContentFormat::User;
