@@ -63,7 +63,7 @@ MessageRouterImplementation(
   QueueEndpoint(queue_info.endpoint()),
   ServerEndpoint(server_info.endpoint()),
   ThreadMutex(),
-  PollingThread(NULL),
+  PollingThread(new boost::thread()),
   ContinueTalking(false)
 {
   //we don't connect the sockets until the polling thread starts up
@@ -90,11 +90,16 @@ bool isTalking() const
 bool startTalking()
 {
   bool launchThread = false;
-
+  bool threadIsRunning = false;
     //lock the construction of thread as a critical section
     {
     boost::unique_lock<boost::mutex> lock(ThreadMutex);
-    launchThread = !this->ContinueTalking && !this->PollingThread;
+
+    //if a thread's id is equal to the default thread id, it means that the
+    //thread was never given anything to run, and is actually empty
+    threadIsRunning = this->PollingThread->get_id() != boost::thread::id();
+    launchThread = !this->ContinueTalking && !threadIsRunning;
+
     if(launchThread)
       {
       zmq::connectToAddress(this->ServerComm, this->ServerEndpoint);
