@@ -48,7 +48,7 @@ class fake_server
 public:
   fake_server(remus::worker::ServerConnection& conn):
     WorkerComm((*conn.context()),ZMQ_ROUTER),
-    PollingThread(NULL),
+    PollingThread( new boost::thread() ),
     ContinuePolling(true)
   {
     this->WorkerComm.bind( conn.endpoint().c_str() );
@@ -91,7 +91,6 @@ void verify_server_connection()
   fake_server fake_def_server(default_sc); //start up server to talk to worker
   remus::worker::Worker default_worker(mtype,default_sc);
 
-
   const remus::worker::ServerConnection& sc = default_worker.connection();
 
   REMUS_ASSERT( (sc.endpoint().size() > 0) );
@@ -100,6 +99,7 @@ void verify_server_connection()
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
   REMUS_ASSERT( (sc.endpoint() ==
          make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
+
 
   remus::worker::ServerConnection ipc_conn =
         remus::worker::make_ServerConnection("ipc://foo_ipc");
@@ -114,6 +114,7 @@ void verify_server_connection()
 
   fake_server inproc_server(inproc_conn);
   remus::worker::Worker inproc_worker(mtype,inproc_conn);
+
 
   REMUS_ASSERT( (inproc_worker.connection().endpoint() ==
                  make_inproc_socket("foo_inproc").endpoint()) );

@@ -55,7 +55,7 @@ public:
 JobQueueImplementation(zmq::context_t& context,
                        const zmq::socketInfo<zmq::proto::inproc>& queue_info):
   ServerComm(context,ZMQ_PAIR),
-  PollingThread(NULL),
+  PollingThread(new boost::thread()),
   QueueMutex(),
   QueueChanged(),
   Queue(),
