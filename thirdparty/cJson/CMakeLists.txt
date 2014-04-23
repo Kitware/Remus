@@ -1,10 +1,10 @@
 project(cJSON)
 
-add_library(cJSON STATIC cJSON.c)
+add_library(remuscJSON STATIC cJSON.c)
 
-set_target_properties(cJSON PROPERTIES
+set_target_properties(remuscJSON PROPERTIES
                       POSITION_INDEPENDENT_CODE True
                       C_VISIBILITY_PRESET     FALSE
                       )
 
-remus_install_library(cJSON)
+remus_install_library(remuscJSON)

@@ -68,6 +68,10 @@ function(remus_install_library target)
   install(TARGETS ${target} DESTINATION lib EXPORT Remus-targets)
 endfunction(remus_install_library)
 
+function(remus_install_third_party_library target)
+  install(TARGETS ${target} DESTINATION lib)
+endfunction(remus_install_third_party_library)
+
 #generate an export header and create an install target for it
 function(remus_export_header target file)
   ms_get_kit_name(name dir_prefix)

@@ -25,7 +25,7 @@ add_library(RemusServer ${server_srcs} ${headers})
 target_link_libraries(RemusServer
                       LINK_PUBLIC RemusCommon
                       LINK_PRIVATE RemusProto
-                                   cJSON
+                                   remuscJSON
                                    ${Boost_LIBRARIES}
                                    ${CMAKE_THREAD_LIBS_INIT}
                                    )
