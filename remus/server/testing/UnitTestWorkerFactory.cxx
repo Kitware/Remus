@@ -106,6 +106,61 @@ void test_factory_worker_finder()
       REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
       }
     }
+
+  remus::proto::JobRequirementsSet workerReqs =
+                    f_def.workerRequirements(MeshIOType((Edges()),(Mesh2D())));
+  REMUS_ASSERT(workerReqs.size() == 1);
+
+  remus::proto::JobRequirements w = *(workerReqs.begin());
+  REMUS_ASSERT( (w.formatType() == ContentFormat::User) );
+  REMUS_ASSERT( (w.sourceType() == ContentSource::Memory) );
+  REMUS_ASSERT( (w.hasRequirements() == false) );
+
+}
+
+void test_factory_worker_file_based_requirements()
+{
+  //give our worker factory a unique extension to look for
+  remus::server::WorkerFactory f_def(".fbr");
+
+  //add invalid paths to search
+
+  f_def.addWorkerSearchDirectory(
+                  remus::server::testing::worker_factory::locationToSearch() );
+
+  MeshIOType raw_edges((Edges()),(Mesh2D()));
+  REMUS_ASSERT( (f_def.workerRequirements(raw_edges).size() > 0) )
+
+  //what really we need are iterators to the mesh registrar
+  const std::size_t num_mesh_types =
+                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+
+  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+    {
+    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+      {
+      MeshIOType io_type = MeshIOType(remus::meshtypes::to_meshType(input_type),
+                                      remus::meshtypes::to_meshType(output_type)
+                                      );
+
+      bool should_be_valid = (io_type == raw_edges);
+      bool workerReqs_valid =
+              (f_def.workerRequirements(io_type).size() > 0);
+      //only when io_type equals
+      REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
+      }
+    }
+
+
+  remus::proto::JobRequirementsSet workerReqs =
+                      f_def.workerRequirements(raw_edges);
+  REMUS_ASSERT(workerReqs.size() == 1);
+
+  remus::proto::JobRequirements w = *(workerReqs.begin());
+  REMUS_ASSERT(w.formatType() == ContentFormat::User);
+  REMUS_ASSERT(w.sourceType() == ContentSource::File);
+  REMUS_ASSERT( (w.hasRequirements() == true) );
+  REMUS_ASSERT( (w.requirementsSize() > 1) );
 }
 
 
@@ -176,6 +231,8 @@ int UnitTestWorkerFactory(int, char *[])
   test_factory_worker_counts();
 
   test_factory_worker_finder();
+
+  test_factory_worker_file_based_requirements();
 
   test_factory_worker_invalid_paths();
 

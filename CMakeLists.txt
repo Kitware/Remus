@@ -89,6 +89,7 @@ include(CMake/RemusCompilerExtras.cmake)
 
 #turn on ctest if we want testing
 if (Remus_ENABLE_TESTING)
+  include(CMake/RemusTestingMacros.cmake)
   enable_testing()
   include(CTest)
   mark_as_advanced(BUILD_TESTING)

@@ -28,6 +28,13 @@ remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
                                 FILE_EXT   "tst")
 
+remus_register_unit_test_worker(EXEC_NAME TestWorker
+                                INPUT_TYPE  "Edges"
+                                OUTPUT_TYPE "Mesh2D"
+                                CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
+                                FILE_EXT   "fbr"
+                                IS_FILE_BASED)
+
 #state this executable is required by unit_tests and should be placed
 #in the same location as the unit tests
 remus_unit_test_executable(EXEC_NAME TestWorker SOURCES ${testing_workers})

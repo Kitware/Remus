@@ -152,6 +152,46 @@ void verify_worker_name()
   REMUS_ASSERT( (reqs.workerName() == reqs2.workerName()) );
 }
 
+void verify_reqs_length()
+{
+  const std::string workerName("fake_worker");
+
+  remus::common::MeshIOType mtypes((remus::meshtypes::Model()),
+                                   (remus::meshtypes::Model()) );
+
+  {
+  //test requirements length with raw string
+  JobRequirements reqs = make_MeshReqs( ContentFormat::User,
+                                        mtypes,
+                                        workerName,
+                                        "example tag data",
+                                        "data that is 26 chars long");
+
+  REMUS_ASSERT( (reqs.hasRequirements() == true) );
+  REMUS_ASSERT( (reqs.requirementsSize() == 26) );
+  JobRequirements reqs2 = to_JobRequirements( to_string(reqs) );
+  REMUS_ASSERT( (reqs2.hasRequirements() == true) );
+  REMUS_ASSERT( (reqs2.requirementsSize() == 26) );
+  }
+
+
+  {
+  //test requirements length with FileHandle
+  JobRequirements freqs = make_MeshReqs( ContentFormat::User,
+                                        mtypes,
+                                        workerName,
+                                        "example tag data",
+                                        (FileHandle("path/to/file")));
+
+  REMUS_ASSERT( (freqs.hasRequirements() == true) );
+  REMUS_ASSERT( (freqs.requirementsSize() == 12) );
+  JobRequirements freqs2 = to_JobRequirements( to_string(freqs) );
+  REMUS_ASSERT( (freqs2.hasRequirements() == true) );
+  REMUS_ASSERT( (freqs2.requirementsSize() == 12) );
+  }
+
+}
+
 
 void verify_less_than_op()
 {
@@ -242,6 +282,8 @@ int UnitTestJobRequirements(int, char *[])
 
   verify_tag();
   verify_worker_name();
+  verify_reqs_length();
+
   verify_less_than_op();
 
   verify_serilization();

@@ -95,7 +95,8 @@ public:
   std::size_t requirementsSize() const;
 
   //returns the raw requirements data stream. If the source type is file,
-  //this will be the contents of the file
+  //this will be the path to the file. In the future we plan to extend remus
+  //to support automatic file reading.
   const char* requirements() const;
 
   //implement a less than operator and equal operator so you

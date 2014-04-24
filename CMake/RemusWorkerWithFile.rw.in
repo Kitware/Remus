@@ -1,0 +1,7 @@
+{
+"InputType": "@InputMeshFileType@",
+"OutputType": "@OutputMeshType@",
+"ExecutableName": "@WorkerExecutableName@",
+"File" : "@ReqsFileName@",
+"FileFormat" : "User"
+}

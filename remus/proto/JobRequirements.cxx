@@ -118,7 +118,7 @@ bool JobRequirements::hasRequirements() const
 //------------------------------------------------------------------------------
 std::size_t JobRequirements::requirementsSize() const
 {
-  return this->Implementation->size() > 0;
+  return this->Implementation->size();
 }
 
 //------------------------------------------------------------------------------
