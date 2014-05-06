@@ -38,10 +38,12 @@ find_package(ZeroMQ REQUIRED)
 #building static or shared. We need to match boosts library type to ours so
 #that we handle symbol visibility properly. On windows we really prefer
 #static libraries so take that also into consideration.
-if(${BUILD_SHARED_LIBS} AND NOT MSVC)
-  set(Boost_USE_STATIC_LIBS OFF)
-else()
-  set(Boost_USE_STATIC_LIBS ON)
+if(NOT DEFINED Boost_USE_STATIC_LIBS)
+  if(${BUILD_SHARED_LIBS} AND NOT MSVC)
+    set(Boost_USE_STATIC_LIBS OFF)
+  else()
+    set(Boost_USE_STATIC_LIBS ON)
+  endif()
 endif()
 
 #if boost is installed as a system library on a machine, we will never
