@@ -39,7 +39,7 @@ find_package(ZeroMQ REQUIRED)
 #that we handle symbol visibility properly. On windows we really prefer
 #static libraries so take that also into consideration.
 if(NOT DEFINED Boost_USE_STATIC_LIBS)
-  if(${BUILD_SHARED_LIBS} AND NOT MSVC)
+  if(${BUILD_SHARED_LIBS})
     set(Boost_USE_STATIC_LIBS OFF)
   else()
     set(Boost_USE_STATIC_LIBS ON)
