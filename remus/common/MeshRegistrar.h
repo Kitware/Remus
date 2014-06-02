@@ -13,6 +13,7 @@
 #define remus_common_MeshRegistrar_h
 
 #include <string>
+#include <set>
 
 //suppress warnings inside boost headers for gcc and clang
 //as clang supports pragma GCC diagnostic

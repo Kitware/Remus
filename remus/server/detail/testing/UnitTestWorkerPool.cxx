@@ -15,6 +15,10 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace {
 
 using namespace remus::common;
