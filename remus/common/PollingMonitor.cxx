@@ -90,7 +90,7 @@ public:
       }
     else
       {
-      long mil_secs = avg.total_milliseconds() * 0.25;
+      boost::int64_t mil_secs = static_cast<boost::int64_t>(avg.total_milliseconds() * 0.25);
       this->CurrentPollRate = avg + milliseconds(mil_secs);
       if(this->CurrentPollRate > this->MaxTimeOut)
         {
@@ -167,13 +167,13 @@ PollingMonitor::~PollingMonitor()
 }
 
 //------------------------------------------------------------------------------
-uint32_t PollingMonitor::minTimeOut() const
+boost::uint32_t PollingMonitor::minTimeOut() const
 {
   return this->Tracker->minTimeOut().total_seconds();
 }
 
 //------------------------------------------------------------------------------
-uint32_t PollingMonitor::maxTimeOut() const
+boost::uint32_t PollingMonitor::maxTimeOut() const
 {
   return this->Tracker->maxTimeOut().total_seconds();
 }

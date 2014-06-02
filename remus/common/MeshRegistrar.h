@@ -13,16 +13,20 @@
 #define remus_common_MeshRegistrar_h
 
 #include <string>
+#include <set>
 
 //suppress warnings inside boost headers for gcc and clang
 //as clang supports pragma GCC diagnostic
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wcast-align"
+#endif
 #include <boost/cstdint.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
-#pragma GCC diagnostic pop
-
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <remus/common/CommonExports.h>
 

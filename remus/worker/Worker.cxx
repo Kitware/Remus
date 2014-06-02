@@ -53,11 +53,11 @@ Worker::Worker(remus::common::MeshIOType mtype,
   ConnectionInfo(conn),
   Zmq( new detail::ZmqManagement() ),
   MessageRouter( new remus::worker::detail::MessageRouter(conn,
-                    this->Zmq->InterWorkerContext,
+                    Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue( this->Zmq->InterWorkerContext,
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
+                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs"))),
+  JobQueue( new remus::worker::detail::JobQueue( Zmq->InterWorkerContext,
+                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")))
 {
   this->MessageRouter->start();
 
@@ -74,10 +74,10 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
   ConnectionInfo(),
   Zmq( new detail::ZmqManagement() ),
   MessageRouter( new remus::worker::detail::MessageRouter(conn,
-                    this->Zmq->InterWorkerContext,
+                    Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker"),
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue( this->Zmq->InterWorkerContext,
+  JobQueue( new remus::worker::detail::JobQueue( Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
 {
   this->MessageRouter->start();

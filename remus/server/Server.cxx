@@ -12,10 +12,14 @@
 
 #include <remus/server/Server.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/thread.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -192,7 +196,7 @@ namespace server{
 //------------------------------------------------------------------------------
 Server::Server():
   PortInfo(),
-  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
+  Zmq(new detail::ZmqManagement( PortInfo )),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   SocketMonitor(new remus::server::detail::SocketMonitor() ),
@@ -211,7 +215,7 @@ Server::Server():
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::WorkerFactory& factory):
   PortInfo(),
-  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
+  Zmq(new detail::ZmqManagement( PortInfo )),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   SocketMonitor(new remus::server::detail::SocketMonitor() ),
@@ -300,7 +304,7 @@ bool Server::brokering(Server::SignalHandling sh)
   boost::int64_t timeToCheckForDeadWorkers = 0; //check every 250ms
   while (Thread->isBrokering())
     {
-    zmq::poll(&items[0], 2, monitor.current()*1000);
+    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()*1000));
     timeToCheckForDeadWorkers += monitor.durationOfTheLastPollMilliseconds();
     monitor.pollOccurred();
 

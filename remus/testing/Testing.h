@@ -28,11 +28,15 @@
 #include <boost/uuid/uuid.hpp>
 
 //suppress warnings inside boost headers for gcc and clang
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/random_generator.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 namespace remus {
 namespace testing {
@@ -46,7 +50,7 @@ static char* full_character_set()
     {
     random_setup = true;
     //setup the random number generator
-    std::srand(std::time(0));
+    std::srand(static_cast<unsigned int>(std::time(0)));
     }
 
   static char charSet[256] =

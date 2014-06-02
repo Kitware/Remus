@@ -14,6 +14,10 @@
 #include <remus/testing/Testing.h>
 #include <remus/server/detail/ActiveJobs.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace {
 
 

@@ -16,7 +16,7 @@
 
 #ifdef _WIN32
 #  include "windows.h"
-#  defind usleep(X) Sleep((X))
+#  define usleep(X) Sleep((X))
 #else
 #  include <unistd.h>
 #endif
