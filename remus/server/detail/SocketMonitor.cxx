@@ -61,7 +61,7 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  void heartbeat( const zmq::SocketIdentity& socket, int64_t dur )
+  void heartbeat( const zmq::SocketIdentity& socket, boost::int64_t dur )
   {
     //insert a new item if it doesn't exist, otherwise get the beatInfo already
     //in the map

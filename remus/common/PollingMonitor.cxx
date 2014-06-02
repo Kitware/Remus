@@ -167,13 +167,13 @@ PollingMonitor::~PollingMonitor()
 }
 
 //------------------------------------------------------------------------------
-uint32_t PollingMonitor::minTimeOut() const
+boost::uint32_t PollingMonitor::minTimeOut() const
 {
   return this->Tracker->minTimeOut().total_seconds();
 }
 
 //------------------------------------------------------------------------------
-uint32_t PollingMonitor::maxTimeOut() const
+boost::uint32_t PollingMonitor::maxTimeOut() const
 {
   return this->Tracker->maxTimeOut().total_seconds();
 }
