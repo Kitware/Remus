@@ -90,7 +90,7 @@ public:
       }
     else
       {
-      long mil_secs = avg.total_milliseconds() * 0.25;
+      long mil_secs = static_cast<long>(avg.total_milliseconds() * 0.25);
       this->CurrentPollRate = avg + milliseconds(mil_secs);
       if(this->CurrentPollRate > this->MaxTimeOut)
         {

@@ -21,7 +21,7 @@ int randomInt(int min_v, int max_v)
 {
   const float random = ((float)std::rand()/(float)RAND_MAX);
   const std::size_t diff = (max_v - min_v);
-  return min_v + (random * diff);
+  return static_cast<int>(min_v + (random * diff));
 }
 
 

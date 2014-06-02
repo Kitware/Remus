@@ -50,7 +50,7 @@ static char* full_character_set()
     {
     random_setup = true;
     //setup the random number generator
-    std::srand(std::time(0));
+    std::srand(static_cast<unsigned int>(std::time(0)));
     }
 
   static char charSet[256] =

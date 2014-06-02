@@ -158,7 +158,7 @@ void verify_slow_polling()
   {
   boost::int64_t previous_current = p.current();
   boost::int64_t previous_average = p.average();
-  t += boost::posix_time::seconds(p.current());
+  t += boost::posix_time::seconds(static_cast<long>(p.current()));
   p.pollOccurredAt(&t);
 
   REMUS_ASSERT ( (p.current( ) >= previous_current ) );
