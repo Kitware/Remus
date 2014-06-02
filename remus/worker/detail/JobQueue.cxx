@@ -16,10 +16,14 @@
 #include <remus/proto/JobSubmission.h>
 
 //suppress warnings inside boost headers for gcc and clang
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/thread.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <boost/thread/locks.hpp>
 

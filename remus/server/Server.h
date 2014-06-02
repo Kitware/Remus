@@ -17,10 +17,14 @@
 #include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/scoped_ptr.hpp>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/uuid/random_generator.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <remus/server/WorkerFactory.h>
 #include <remus/server/ServerPorts.h>

@@ -12,10 +12,14 @@
 
 #include <remus/server/Server.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/thread.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>

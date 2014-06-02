@@ -15,10 +15,14 @@
 #include <remus/proto/conversionHelpers.h>
 
 //suppress warnings inside boost headers for gcc and clang
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <boost/uuid/uuid_io.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <iostream>
 
