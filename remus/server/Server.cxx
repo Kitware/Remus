@@ -196,7 +196,7 @@ namespace server{
 //------------------------------------------------------------------------------
 Server::Server():
   PortInfo(),
-  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
+  Zmq(new detail::ZmqManagement( PortInfo )),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   SocketMonitor(new remus::server::detail::SocketMonitor() ),
@@ -215,7 +215,7 @@ Server::Server():
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::WorkerFactory& factory):
   PortInfo(),
-  Zmq(new detail::ZmqManagement( this->PortInfo ) ),
+  Zmq(new detail::ZmqManagement( PortInfo )),
   UUIDGenerator(), //use default random number generator
   QueuedJobs(new remus::server::detail::JobQueue() ),
   SocketMonitor(new remus::server::detail::SocketMonitor() ),
