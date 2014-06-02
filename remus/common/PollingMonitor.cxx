@@ -90,7 +90,7 @@ public:
       }
     else
       {
-      long mil_secs = static_cast<long>(avg.total_milliseconds() * 0.25);
+      boost::int64_t mil_secs = static_cast<boost::int64_t>(avg.total_milliseconds() * 0.25);
       this->CurrentPollRate = avg + milliseconds(mil_secs);
       if(this->CurrentPollRate > this->MaxTimeOut)
         {
