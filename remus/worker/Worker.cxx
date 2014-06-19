@@ -61,9 +61,11 @@ Worker::Worker(remus::common::MeshIOType mtype,
 {
   this->MessageRouter->start();
 
+  std::ostringstream input_buffer;
+  input_buffer << this->MeshRequirements;
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
-                            remus::proto::to_string(this->MeshRequirements));
+                            input_buffer.str());
   canMesh.send(&this->Zmq->Server);
 }
 
@@ -82,9 +84,11 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
 {
   this->MessageRouter->start();
 
+  std::ostringstream input_buffer;
+  input_buffer << this->MeshRequirements;
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH,
-                            remus::proto::to_string(this->MeshRequirements));
+                            input_buffer.str());
   canMesh.send(&this->Zmq->Server);
 }
 
@@ -122,9 +126,12 @@ void Worker::askForJobs( unsigned int numberOfJobs )
   lightReqs.SourceType = this->MeshRequirements.sourceType();
   lightReqs.Tag = this->MeshRequirements.tag();
 
+  std::ostringstream input_buffer;
+  input_buffer << lightReqs;
+
   proto::Message askForMesh(this->MeshRequirements.meshTypes(),
                             remus::MAKE_MESH,
-                            proto::to_string(lightReqs));
+                            input_buffer.str());
 
   for(unsigned int i=0; i < numberOfJobs; ++i)
     { askForMesh.send(&this->Zmq->Server); }
