@@ -50,6 +50,10 @@ public:
   JobSubmission( const remus::proto::JobRequirements& reqs,
                  const ContainerType& content);
 
+  //returns the default key for job content being inserted in the constructor
+  //call
+  std::string default_key( ) const { return "data"; }
+
   //add new content to the job submission. If the key is already in use
   //we will overwrite the job content with
   std::pair<iterator,bool> insert( const value_type& value )

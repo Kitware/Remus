@@ -146,20 +146,22 @@ void constructor_test()
 
   JobSubmission single_content(make_random_MeshReqs(),make_random_Content());
 
+  std::string defaultKey = single_content.default_key();
+
 
   REMUS_ASSERT( (single_content.size() == 1) );
-  REMUS_ASSERT( (single_content.find("data") != single_content.end()) );
-  REMUS_ASSERT( (single_content.find("data") == single_content.begin()) );
+  REMUS_ASSERT( (single_content.find(defaultKey) != single_content.end()) );
+  REMUS_ASSERT( (single_content.find(defaultKey) == single_content.begin()) );
 
-  JobContent default_content_old = single_content.find("data")->second;
+  JobContent default_content_old = single_content.find(defaultKey)->second;
 
   //try to override the default content, which should failed
   single_content.insert(
       std::pair<std::string,JobContent>(
-        "data",
+        defaultKey,
         make_random_Content())
       );
-  REMUS_ASSERT( (single_content.find("data")->second == default_content_old) );
+  REMUS_ASSERT( (single_content.find(defaultKey)->second == default_content_old) );
 
 }
 
