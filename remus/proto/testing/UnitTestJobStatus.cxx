@@ -119,6 +119,30 @@ void state_test()
 
 }
 
+void mark_test()
+{
+  JobStatus j(make_id(),JobProgress());
+  REMUS_ASSERT(!j.failed());
+  REMUS_ASSERT(j.good());
+  REMUS_ASSERT(!j.queued());
+  REMUS_ASSERT(j.inProgress());
+  REMUS_ASSERT(!j.finished());
+
+  j.markAsFinished();
+  REMUS_ASSERT(!j.failed());
+  REMUS_ASSERT(!j.good());
+  REMUS_ASSERT(!j.queued());
+  REMUS_ASSERT(!j.inProgress());
+  REMUS_ASSERT(j.finished());
+
+  j.markAsFailed();
+  REMUS_ASSERT(j.failed());
+  REMUS_ASSERT(!j.good());
+  REMUS_ASSERT(!j.queued());
+  REMUS_ASSERT(!j.inProgress());
+  REMUS_ASSERT(!j.finished());
+}
+
 void progress_test()
 {
   //really simple progress test
@@ -126,10 +150,20 @@ void progress_test()
   JobStatus a(make_id(),value_progress);
   JobStatus b(make_id(),value_progress);
 
-
   REMUS_ASSERT( (a.progress() == b.progress()) );
   REMUS_ASSERT( (a.progress() == value_progress) );
   REMUS_ASSERT( (a.progress() == JobProgress(50)) );
+
+  JobStatus c(make_id(), JobProgress());
+  REMUS_ASSERT( (c.progress() != b.progress()) );
+  REMUS_ASSERT( (c.progress() != value_progress) );
+  REMUS_ASSERT( (c.progress() == JobProgress()) );
+
+  c.updateProgress(value_progress);
+  REMUS_ASSERT( (c.progress() == b.progress()) );
+  REMUS_ASSERT( (c.progress() == value_progress) );
+  REMUS_ASSERT( (c.progress() == JobProgress(50)) );
+
 }
 
 void validate_serialization(JobStatus s)
@@ -177,8 +211,10 @@ void serialize_test()
 int UnitTestJobStatus(int, char *[])
 {
   state_test();
+  mark_test();
   progress_test();
   serialize_test();
+
 
   return 0;
 }
