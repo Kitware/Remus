@@ -561,9 +561,10 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
     zmq::SocketIdentity worker = this->ActiveJobs->workerAddress(job.id());
     removed = this->ActiveJobs->remove(job.id());
 
-    //send an out of band message to the worker to kill itself
-    //the trick is we are going to send a job to the worker which is constructed
-    //to mean that it should die.
+    //send an out of band message to the worker to terminate a job
+    //if the job is in the worker queue it will be removed, if the worker
+    //is currently processing the job, we will just ignore the result
+    //when they are submitted
     if(removed && worker.size() > 0)
       {
       remus::proto::Response response(worker);
