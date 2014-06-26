@@ -21,6 +21,7 @@
   #pragma GCC diagnostic pop
 #endif
 
+#include <boost/make_shared.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
 
@@ -196,78 +197,78 @@ namespace server{
 //------------------------------------------------------------------------------
 Server::Server():
   PortInfo(),
-  Zmq(new detail::ZmqManagement( PortInfo )),
+  Zmq( new detail::ZmqManagement( PortInfo )),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::detail::JobQueue() ),
-  SocketMonitor(new remus::server::detail::SocketMonitor() ),
-  WorkerPool(new remus::server::detail::WorkerPool() ),
-  ActiveJobs(new remus::server::detail::ActiveJobs () ),
-  Thread(new detail::ThreadManagement() ),
-  WorkerFactory()
+  QueuedJobs( new remus::server::detail::JobQueue() ),
+  SocketMonitor( new remus::server::detail::SocketMonitor() ),
+  WorkerPool( new remus::server::detail::WorkerPool() ),
+  ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  Thread( new detail::ThreadManagement() ),
+  WorkerFactory( boost::make_shared<remus::server::WorkerFactory>() )
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
   this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
+  this->WorkerFactory->addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
-Server::Server(const remus::server::WorkerFactory& factory):
+Server::Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory):
   PortInfo(),
-  Zmq(new detail::ZmqManagement( PortInfo )),
+  Zmq( new detail::ZmqManagement( PortInfo ) ),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::detail::JobQueue() ),
-  SocketMonitor(new remus::server::detail::SocketMonitor() ),
-  WorkerPool(new remus::server::detail::WorkerPool() ),
-  ActiveJobs(new remus::server::detail::ActiveJobs () ),
-  Thread(new detail::ThreadManagement() ),
-  WorkerFactory(factory)
+  QueuedJobs( new remus::server::detail::JobQueue() ),
+  SocketMonitor( new remus::server::detail::SocketMonitor() ),
+  WorkerPool( new remus::server::detail::WorkerPool() ),
+  ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  Thread( new detail::ThreadManagement() ),
+  WorkerFactory( factory )
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
   this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
+  this->WorkerFactory->addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::ServerPorts& ports):
-  PortInfo(ports),
-  Zmq(new detail::ZmqManagement(ports) ),
+  PortInfo( ports ),
+  Zmq( new detail::ZmqManagement(ports) ),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::detail::JobQueue() ),
-  SocketMonitor(new remus::server::detail::SocketMonitor() ),
-  WorkerPool(new remus::server::detail::WorkerPool() ),
-  ActiveJobs(new remus::server::detail::ActiveJobs () ),
-  Thread(new detail::ThreadManagement() ),
-  WorkerFactory()
+  QueuedJobs( new remus::server::detail::JobQueue() ),
+  SocketMonitor( new remus::server::detail::SocketMonitor() ),
+  WorkerPool( new remus::server::detail::WorkerPool() ),
+  ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  Thread( new detail::ThreadManagement() ),
+  WorkerFactory( boost::make_shared<remus::server::WorkerFactory>() )
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
   this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
+  this->WorkerFactory->addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::ServerPorts& ports,
-               const remus::server::WorkerFactory& factory):
-  PortInfo(ports),
-  Zmq(new detail::ZmqManagement(ports) ),
+               const boost::shared_ptr<remus::server::WorkerFactory>& factory):
+  PortInfo( ports ),
+  Zmq( new detail::ZmqManagement(ports) ),
   UUIDGenerator(), //use default random number generator
-  QueuedJobs(new remus::server::detail::JobQueue() ),
-  SocketMonitor(new remus::server::detail::SocketMonitor() ),
-  WorkerPool(new remus::server::detail::WorkerPool() ),
-  ActiveJobs(new remus::server::detail::ActiveJobs () ),
-  Thread(new detail::ThreadManagement() ),
-  WorkerFactory(factory)
+  QueuedJobs( new remus::server::detail::JobQueue() ),
+  SocketMonitor( new remus::server::detail::SocketMonitor() ),
+  WorkerPool( new remus::server::detail::WorkerPool() ),
+  ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  Thread( new detail::ThreadManagement() ),
+  WorkerFactory( factory )
   {
   //attempts to bind to a tcp socket, with a prefered port number
   this->PortInfo.bindClient(&this->Zmq->ClientQueries);
   this->PortInfo.bindWorker(&this->Zmq->WorkerQueries);
   //give to the worker factory the endpoint information needed to connect to myself
-  this->WorkerFactory.addCommandLineArgument(this->PortInfo.worker().endpoint());
+  this->WorkerFactory->addCommandLineArgument(this->PortInfo.worker().endpoint());
   }
 
 //------------------------------------------------------------------------------
@@ -447,8 +448,8 @@ std::string Server::canMesh(const remus::proto::Message& msg)
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
   bool workerSupport =
-    (this->WorkerFactory.workerRequirements(msg.MeshIOType()).size() > 0) &&
-    (this->WorkerFactory.maxWorkerCount() > 0);
+    (this->WorkerFactory->workerRequirements(msg.MeshIOType()).size() > 0) &&
+    (this->WorkerFactory->maxWorkerCount() > 0);
 
   //Query the worker pool to get the set of requirements for waiting
   //workers that support the given mesh type info
@@ -467,8 +468,8 @@ std::string Server::canMeshRequirements(const remus::proto::Message& msg)
   //registered to it that supports the mesh type.
   remus::proto::JobRequirements reqs =
                               remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
-  bool workerSupport = this->WorkerFactory.haveSupport(reqs) &&
-                      (this->WorkerFactory.maxWorkerCount() > 0);
+  bool workerSupport = this->WorkerFactory->haveSupport(reqs) &&
+                      (this->WorkerFactory->maxWorkerCount() > 0);
 
   //Query the worker pool to get the set of requirements for waiting
   //workers that support the given mesh type info
@@ -485,7 +486,7 @@ std::string Server::meshRequirements(const remus::proto::Message& msg)
   //we state that the factory can support a mesh type by having a worker
   //registered to it that supports the mesh type.
   remus::proto::JobRequirementsSet reqSet(
-            this->WorkerFactory.workerRequirements(msg.MeshIOType()));
+            this->WorkerFactory->workerRequirements(msg.MeshIOType()));
 
   //Query the worker pool to get the set of requirements for waiting
   //workers that support the given mesh type info
@@ -675,7 +676,7 @@ void Server::FindWorkerForQueuedJob()
   //In order to prevent allocating more workers than needed we use a set instead of a vector.
   //This results in the server only creating one worker per job type.
   //This gives the new workers the opportunity of getting assigned multiple jobs.
-  this->WorkerFactory.updateWorkerCount();
+  this->WorkerFactory->updateWorkerCount();
 
 
   typedef remus::proto::JobRequirementsSet::const_iterator it;
@@ -717,7 +718,7 @@ void Server::FindWorkerForQueuedJob()
     {
     //check if we have a waiting worker, if we don't than try
     //ask the factory to create a worker of that type.
-    if(this->WorkerFactory.createWorker(*type,
+    if(this->WorkerFactory->createWorker(*type,
                            WorkerFactory::KillOnFactoryDeletion))
       {
       this->QueuedJobs->workerDispatched(*type);

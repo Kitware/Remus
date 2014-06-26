@@ -16,6 +16,7 @@
 #include <remus/common/SignalCatcher.h>
 #include <remus/proto/zmqSocketIdentity.h>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic push
@@ -73,7 +74,7 @@ public:
 
   //construct a new server with a custom factory
   //and the default loopback ports
-  explicit Server(const remus::server::WorkerFactory& factory);
+  explicit Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory);
 
   //construct a new server using the given loop back ports
   //and the default factory
@@ -82,7 +83,7 @@ public:
   //construct a new server using the given loop back ports
   //and the default factory
   Server(const remus::server::ServerPorts& ports,
-         const remus::server::WorkerFactory& factory);
+         const boost::shared_ptr<remus::server::WorkerFactory>& factory);
 
   //cleanup the server
   virtual ~Server();
@@ -165,7 +166,9 @@ protected:
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
   boost::scoped_ptr<detail::ThreadManagement> Thread;
-  remus::server::WorkerFactory WorkerFactory;
+
+  //needs to be a shared_ptr since we can be passed in a WorkerFactory
+  boost::shared_ptr<remus::server::WorkerFactory> WorkerFactory;
 };
 
 }
