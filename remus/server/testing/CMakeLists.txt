@@ -11,6 +11,7 @@
 #=============================================================================
 
 set(unit_tests
+  UnitTestCustomWorkerFactory.cxx
   UnitTestServer.cxx
   UnitTestWorkerFactory.cxx
   UnitTestServerPorts.cxx
