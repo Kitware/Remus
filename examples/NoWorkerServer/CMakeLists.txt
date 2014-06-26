@@ -4,4 +4,4 @@ set(SRCS_Server
    )
 
 add_executable(NoWorkerServer ${SRCS_Server})
-target_link_libraries(NoWorkerServer RemusServer)
+target_link_libraries(NoWorkerServer RemusServer RemusProto)

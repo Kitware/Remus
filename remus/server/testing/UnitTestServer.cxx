@@ -45,7 +45,8 @@ void test_server_constructors()
   //or move semantics currently
   remus::server::Server server_def;
 
-  remus::server::WorkerFactory factory;
+  boost::shared_ptr<remus::server::WorkerFactory> factory(
+                new remus::server::WorkerFactory());
   remus::server::Server server_fact( factory );
 
   remus::server::ServerPorts ports;

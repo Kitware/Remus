@@ -109,7 +109,7 @@ void test_factory_worker_finder()
 
   remus::proto::JobRequirementsSet workerReqs =
                     f_def.workerRequirements(MeshIOType((Edges()),(Mesh2D())));
-  REMUS_ASSERT(workerReqs.size() == 1);
+  REMUS_ASSERT( (workerReqs.size() == 1) );
 
   remus::proto::JobRequirements w = *(workerReqs.begin());
   REMUS_ASSERT( (w.formatType() == ContentFormat::User) );
@@ -154,11 +154,11 @@ void test_factory_worker_file_based_requirements()
 
   remus::proto::JobRequirementsSet workerReqs =
                       f_def.workerRequirements(raw_edges);
-  REMUS_ASSERT(workerReqs.size() == 1);
+  REMUS_ASSERT( (workerReqs.size() == 1) );
 
   remus::proto::JobRequirements w = *(workerReqs.begin());
-  REMUS_ASSERT(w.formatType() == ContentFormat::User);
-  REMUS_ASSERT(w.sourceType() == ContentSource::File);
+  REMUS_ASSERT( (w.formatType() == ContentFormat::User) );
+  REMUS_ASSERT( (w.sourceType() == ContentSource::File) );
   REMUS_ASSERT( (w.hasRequirements() == true) );
   REMUS_ASSERT( (w.requirementsSize() > 1) );
 }

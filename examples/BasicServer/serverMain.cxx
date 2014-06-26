@@ -23,8 +23,8 @@ int main (int argc, char* argv[])
 
   //create a custom worker factory that creates children processes
   //we cap it at having only 3 children at any time
-  remus::server::WorkerFactory factory;
-  factory.setMaxWorkerCount(3);
+  boost::shared_ptr<remus::server::WorkerFactory> factory;
+  factory->setMaxWorkerCount(3);
 
   //create a default server with the factory
   remus::server::Server b(ports,factory);
