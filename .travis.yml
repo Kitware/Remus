@@ -1,0 +1,18 @@
+ language: cpp
+
+ compiler:
+  - clang
+  - gcc
+
+ before_script:
+   - mkdir build
+   - cd build
+   - cmake -DRemus_NO_SYSTEM_BOOST:BOOL=OFF ..
+
+ script: make
+
+ notifications:
+   email:
+     - robert.maynard@kitware.com
+   on_success: change
+   on_failure: always
