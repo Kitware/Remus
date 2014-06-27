@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.12.1)
+cmake_minimum_required (VERSION 2.8.11)
 
 #setup policy rules for CMake 3.0 while we have a minimum required of 2.8.X
 if(POLICY CMP0025)
@@ -60,8 +60,14 @@ set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
 # * Threads
 # * Unordered map
 # * UUID Generation
-find_package(Boost 1.45.0
-             COMPONENTS thread chrono filesystem system date_time REQUIRED)
+
+if(WIN32)
+  find_package(Boost 1.48.0
+               COMPONENTS thread chrono filesystem system date_time REQUIRED)
+else()
+  find_package(Boost 1.45.0
+               COMPONENTS thread filesystem system date_time REQUIRED)
+endif()
 
 #on unix/linux boost uses pthreads, so we need to find that, and link to it
 #explicitly when using the boost thread library
