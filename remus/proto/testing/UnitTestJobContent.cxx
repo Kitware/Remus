@@ -48,7 +48,7 @@ struct make_small_string
   }
 };
 
-//makes rougly a 10mb sting
+//makes a 8MB sting
 struct make_large_string
 {
   std::string operator()() const
@@ -58,11 +58,11 @@ struct make_large_string
 
   std::size_t size() const
   {
-    return 10240*1024;
+    return (2 << 23);
   }
 };
 
-//makes roughly a 2GB string
+//makes a 128MB string
 struct make_really_large_string
 {
   std::string operator()() const
@@ -72,8 +72,7 @@ struct make_really_large_string
 
   std::size_t size() const
   {
-    //make the size 1.0GB
-    return (2 << 29);
+    return (2 << 27);
   }
 };
 
