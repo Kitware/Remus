@@ -163,6 +163,18 @@ void constructor_test()
       );
   REMUS_ASSERT( (single_content.find(defaultKey)->second == default_content_old) );
 
+
+  //verify that type and requirements haven't changed
+  JobSubmission js = JobSubmission( make_random_MeshReqs() );
+  JobSubmission copy_js(js);
+  JobSubmission assign_js(js);
+
+  REMUS_ASSERT( (js.type()==copy_js.type()) );
+  REMUS_ASSERT( (js.type()==assign_js.type()) );
+
+  REMUS_ASSERT( (js.requirements()==copy_js.requirements()) );
+  REMUS_ASSERT( (js.requirements()==assign_js.requirements()) );
+
 }
 
 void insert_test()
@@ -189,8 +201,9 @@ void insert_test()
 }
 
 
-void serialize_test()
-{
+void serialize_operator_test()
+{ //first verify the << and >> operators work
+
   std::map< std::string, JobContent > content;
   for(std::size_t i = 0;  i < size_t(10); ++i)
     { content.insert(make_random_MapPairs()); }
@@ -201,9 +214,6 @@ void serialize_test()
   std::stringstream buffer;
   buffer << to_wire;
   buffer >> from_wire;
-
-  std::cout << to_wire.size() << std::endl;
-  std::cout << from_wire.size() << std::endl;
 
   {
   std::map< std::string, JobContent > different;
@@ -217,6 +227,9 @@ void serialize_test()
 
   REMUS_ASSERT( (from_wire == to_wire) );
 
+  //clear from_wire
+  from_wire = JobSubmission(make_random_MeshReqs());
+  REMUS_ASSERT( !(from_wire == to_wire) );
 
   //try one without content
   std::stringstream buffer2;
@@ -224,9 +237,35 @@ void serialize_test()
   buffer2 << to_wire;
   buffer2 >> from_wire;
 
-  std::cout << to_wire.size() << std::endl;
-  std::cout << from_wire.size() << std::endl;
+  REMUS_ASSERT( (from_wire == to_wire) );
+}
 
+void to_from_string_test()
+{ //first verify the << and >> operators work
+
+  std::map< std::string, JobContent > content;
+  for(std::size_t i = 0;  i < size_t(10); ++i)
+    { content.insert(make_random_MapPairs()); }
+  JobSubmission to_wire(make_random_MeshReqs(),content);
+
+  JobSubmission from_wire = to_JobSubmission(to_string(to_wire));
+  {
+  std::map< std::string, JobContent > different;
+  std::set_difference(to_wire.begin(), to_wire.end(),
+                      from_wire.begin(), from_wire.end(),
+                      std::inserter(different,different.begin()));
+  //should be no difference between the two, using set_difference to
+  //test the sorting requirements of the map too
+  REMUS_ASSERT( (different.size()==0) );
+  }
+  REMUS_ASSERT( (from_wire == to_wire) );
+
+
+  //try one without content, and use the c string api
+
+  to_wire = JobSubmission(make_random_MeshReqs());
+  const std::string temp = to_string(to_wire);
+  from_wire = to_JobSubmission(temp.c_str(),temp.size());
 
   REMUS_ASSERT( (from_wire == to_wire) );
 }
@@ -236,7 +275,8 @@ int UnitTestJobSubmission(int, char *[])
 {
   constructor_test();
   insert_test();
-  serialize_test();
+  serialize_operator_test();
+  to_from_string_test();
 
   return 0;
 }
