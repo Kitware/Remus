@@ -1,7 +1,7 @@
 # Remus: A Short Users Guide. #
 
-[![Build Status](https://travis-ci.org/robertmaynard/Remus.svg?branch=master)]
-  (https://travis-ci.org/robertmaynard/Remus)
+[![Imgur](http://i.imgur.com/8zsK3vl.png?2)](http://open.cdash.org/index.php?project=Remus)
+[![Build Status](https://travis-ci.org/robertmaynard/Remus.svg?branch=master)](https://travis-ci.org/robertmaynard/Remus)
 
 Remus goal is to make meshing 2 and 3 dimensional meshes easy.
 This is done by insulating your program from the instability and licenses of the

@@ -22,7 +22,7 @@ script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF ..
-  - ctest -D Experimental
+  - ctest  -D Experimental --schedule-random --track Travis
 
 notifications:
   email:
