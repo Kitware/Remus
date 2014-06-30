@@ -28,10 +28,15 @@ void validate_serialization(Job s)
 {
   std::string temp = to_string(s);
   Job from_string = to_Job(temp);
+  Job from_c_string = to_Job(temp.c_str(), temp.size());
 
   REMUS_ASSERT( (from_string.id() == s.id()) );
   REMUS_ASSERT( (from_string.type() == s.type()) );
   REMUS_ASSERT( (from_string.valid() == s.valid()) );
+
+  REMUS_ASSERT( (from_c_string.id() == s.id()) );
+  REMUS_ASSERT( (from_c_string.type() == s.type()) );
+  REMUS_ASSERT( (from_c_string.valid() == s.valid()) );
 }
 
 }

@@ -35,6 +35,7 @@ set(unit_tests
   UnitTestMeshIOType.cxx
   UnitTestMeshRegistry.cxx
   UnitTestPollingMonitor.cxx
+  UnitTestRemusGlobals.cxx
   UnitTestSignalCatcher.cxx
   )
 
