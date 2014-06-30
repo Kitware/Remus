@@ -250,6 +250,19 @@ void verify_serilization()
     REMUS_ASSERT( (reqs.requirementsSize() == reqs_serialized.requirementsSize()) );
   }
 
+  //verify the c string serialization api
+  JobRequirements reqs = make_random_MeshReqs();
+  const std::string wire = to_string(reqs);
+  JobRequirements reqs_serialized =
+      to_JobRequirements( wire.c_str(), wire.size()  );
+
+  REMUS_ASSERT( (reqs.sourceType() == reqs_serialized.sourceType()) );
+  REMUS_ASSERT( (reqs.formatType() == reqs_serialized.formatType()) );
+  REMUS_ASSERT( (reqs.meshTypes() == reqs_serialized.meshTypes()) );
+  REMUS_ASSERT( (reqs.workerName() == reqs_serialized.workerName()) );
+  REMUS_ASSERT( (reqs.tag() == reqs_serialized.tag()) );
+  REMUS_ASSERT( (reqs.hasRequirements() == reqs_serialized.hasRequirements()) );
+  REMUS_ASSERT( (reqs.requirementsSize() == reqs_serialized.requirementsSize()) );
 }
 
 
@@ -268,8 +281,23 @@ void verify_req_set()
   const bool same = std::equal(to_wire.begin(),
                                to_wire.end(),
                                from_wire.begin());
-
   REMUS_ASSERT( same );
+
+  //verify that to_ string/req_set api work
+  const std::string wire = to_string(to_wire);
+  JobRequirementsSet from_wire2 = to_JobRequirementsSet(wire);
+  JobRequirementsSet from_wire3 = to_JobRequirementsSet(wire.c_str(),
+                                                        wire.size());
+
+  const bool same2 = std::equal(to_wire.begin(),
+                                to_wire.end(),
+                                from_wire2.begin());
+  REMUS_ASSERT( same2 );
+
+  const bool same3 = std::equal(to_wire.begin(),
+                                to_wire.end(),
+                                from_wire3.begin());
+  REMUS_ASSERT( same3 );
 }
 
 
