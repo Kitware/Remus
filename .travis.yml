@@ -3,6 +3,9 @@ language: cpp
 compiler:
   - clang
   - gcc
+env:
+  - BUILD_CONFIG=Debug
+  - BUILD_CONFIG=Release
 
 before_install:
   - echo "yes" | sudo add-apt-repository ppa:kalakris/cmake
@@ -18,7 +21,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake -D Remus_NO_SYSTEM_BOOST:BOOL=OFF ..
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF ..
   - ctest -D Experimental
 
 notifications:
