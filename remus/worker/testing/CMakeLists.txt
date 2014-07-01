@@ -20,3 +20,7 @@ remus_unit_tests(SOURCES ${unit_tests}
                  LIBRARIES RemusWorker
                            ${Boost_LIBRARIES}
                            ${CMAKE_THREAD_LIBS_INIT})
+
+#UnitTestWorker needs to be run serially since it binds to tcp/ip ports
+set_tests_properties(UnitTestWorker
+                     PROPERTIES RUN_SERIAL TRUE)

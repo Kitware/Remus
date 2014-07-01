@@ -28,3 +28,16 @@ remus_unit_tests(SOURCES ${unit_tests}
                            ${ZeroMQ_LIBRARIES}
                            ${Boost_LIBRARIES}
                            ${CMAKE_THREAD_LIBS_INIT})
+
+#both of these tests need to be serially since they bind to ports/channels
+set_tests_properties(UnitTestMessageRouter
+                     UnitTestWorkerJobQueue
+                     PROPERTIES RUN_SERIAL TRUE)
+
+#both of these tests need to be run after UnitTestWorker, because UnitTestWorker
+#dummy server can't currently handle binding to the non default tcp/ip port,
+#and on some OS if these tests are run first, the OS won't release the port
+#for a couple of seconds after the test has finished.
+set_tests_properties(UnitTestMessageRouter
+                     UnitTestWorkerJobQueue
+                     PROPERTIES DEPENDS UnitTestWorker)
