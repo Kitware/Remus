@@ -152,15 +152,17 @@ remus::worker::ServerConnection conn("meshing_host", 8080);
 The communication flow between the worker and server is very simple.
 The process can be broken into 3 major steps. Those steps are:
 
-- Get a Job
-  To get a single job in a blocking manner:
+- Get a Job:
+    - To get a single job in a blocking manner:
     ```remus::worker::Job getJob()```
-  To get a single job in a non blocking manner:
-    ```askForJobs(1)```
-    ```remus::worker::Job takePendingJob()
-- Send Job Status
+    - To get a single job in a non blocking manner:
+    ```cpp
+    askForJobs(1)
+    remus::worker::Job takePendingJob()
+     ```
+- Send Job Status:
   ```void updateStatus(const remus::proto::JobStatus& info)```
-- Send Job Results
+- Send Job Results:
   ```void returnMeshResults(const remus::proto::JobResult& result)```
 
 Let's put this all together and show how to get a job from the server,
