@@ -29,4 +29,4 @@ set(unit_tests
 
 remus_unit_tests( SOURCES ${unit_tests}
                   EXTRA_SOURCES ${srcs}
-                  LIBRARIES RemusProto)
+                  LIBRARIES RemusProto ${Boost_LIBRARIES})
