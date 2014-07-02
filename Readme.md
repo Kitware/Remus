@@ -3,25 +3,25 @@
 [![Imgur](http://i.imgur.com/8zsK3vl.png?2)](http://open.cdash.org/index.php?project=Remus)
 [![Build Status](https://travis-ci.org/robertmaynard/Remus.svg?branch=master)](https://travis-ci.org/robertmaynard/Remus)
 
-Remus goal is to make meshing 2 and 3 dimensional meshes easy.
-This is done by insulating your program from the instability and licenses of the
-current generation of meshers. It does this by providing the ability for
-meshing to happen on remote machines using a basic client, server, worker design.
+Remus' goal is to make meshing 2 and 3 dimensional meshes easy.
+We accomplish this by insulating your program from the instability and licenses
+of the current generation of meshers by providing the ability for
+meshing to happen on remote machines using a basic client, server, and worker design.
 
 ## Remus Layout ##
 
-Remus is split into five distinct groups. These groups are Common, Proto,
+Remus is split into five distinct groups: Common, Proto,
 Client, Server, and Worker.
 
 Common is a collection of helper classes that usable by any of the other groups.
 It contains useful abilities such as MD5 computation, signal catching, process
 launching and monitoring, mesh type registration, and a conditional storage class.
 
-Proto contains all the common classes that are used during serilization.
+Proto contains all the common classes that are used during serialization.
 If an object is being sent from the client to the server, it will be in the
 proto group.
 
-Finally the last three are very self explanatory as they are the interfaces
+Client, Server, and Worker are rather self explanatory; they are the interfaces
 to the client, server and worker components of Remus.
 
 ## Using the Client API ##
@@ -34,7 +34,7 @@ on the client will block while it waits for a response from the server.
 
 ### Server Connection ###
 The first step is to construct a connection to the server. This is done by
-constructing a ```ServerConnection```.
+constructing a ```ServerConnection``` as follows:
 
 ```cpp
 //create a default server connection
@@ -44,17 +44,17 @@ remus::client::ServerConnection conn;
 remus::Client client(conn);
 ```
 
-You can also explicitly state the machine name and port
+You can also explicitly state the machine name and port:
 ```cpp
 remus::client::ServerConnection conn("meshing_host", 8080);
 ```
 
 ### Communication with Server ###
 
-The communication pattern that remus uses between the client and
-server is has a very simple flow. First the client ask
-for the set of available workers that match a set of requirements, from that
-it choses a single worker and crafts a job submission using that workers
+The communication pattern that Remus uses between the client and
+server has a very simple flow. First the client asks
+for the set of available workers that match a set of requirements.  From that,
+it choses a single worker and crafts a job submission using that worker's
 requirements.
 
 - Query for support of a given mesh input and output type
@@ -73,7 +73,7 @@ requirements.
 - Retrieve the results
   ```remus::proto::JobResult retrieveResults( const remus::proto::Job& job )```
 
-Lets put this all together and show to submit a job to the server
+Let's put this all together and show to submit a job to the server
 and retrieve the results.
 
 ```cpp
@@ -114,7 +114,7 @@ if(canMesh)
 The worker interface for remus revolves around the ```remus::Worker``` class.
 The worker uses an asynchronous strategy where the worker pushes information to the
 server and doesn't wait for a response. Between these messages the worker
-is sending heartbeat messages to the server, these allow the server to monitor
+is sends heartbeat messages to the server.  This allows the server to monitor
 workers and be able to inform client when workers crash. The worker supports
 both blocking and non blocking ways of getting jobs. You should check the validity
 of all jobs before processing them, as a client is able to terminate a job after
@@ -152,19 +152,21 @@ remus::worker::ServerConnection conn("meshing_host", 8080);
 The communication flow between the worker and server is very simple.
 The process can be broken into 3 major steps. Those steps are:
 
-- Get a Job
-  To get a single job in a blocking manner:
+- Get a Job:
+    - To get a single job in a blocking manner:
     ```remus::worker::Job getJob()```
-  To get a single job in a non blocking manner:
-    ```askForJobs(1)```
-    ```remus::worker::Job takePendingJob()
-- Send Job Status
+    - To get a single job in a non blocking manner:
+    ```cpp
+    askForJobs(1)
+    remus::worker::Job takePendingJob()
+     ```
+- Send Job Status:
   ```void updateStatus(const remus::proto::JobStatus& info)```
-- Send Job Results
+- Send Job Results:
   ```void returnMeshResults(const remus::proto::JobResult& result)```
 
-Lets put this all together and show how to get a job from the server,
-send back some status, and than a result
+Let's put this all together and show how to get a job from the server,
+send back some status, and then return a result:
 
 ```cpp
 
@@ -201,8 +203,8 @@ worker.returnMeshResults(results);
 
 ## Calling an External Program ##
 
-A common occurrence is a worker needs to call some external
-command line program. Luckily Remus has built in support for executing processes.
+Calling some external command line program is common task for workers.
+Remus has built in support for executing processes.
 
 ```
 using remus::common::ExecuteProcess;
@@ -221,8 +223,8 @@ if(data.type == ProcessPipe::STDOUT)
 ## Constructing a Remus Worker File ##
 
 When you are creating custom workers that you want the default worker factory
-to understand you need to generate a remus worker file. The files is a very
-simple json file that looks like:
+to understand you need to generate a Remus worker file. The files is a very
+simple JSON file that looks like:
 
 ```
 {
@@ -249,14 +251,14 @@ specify it like so:
 ## Register a New Mesh Type ##
 
 Remus can be extended to support custom defined mesh types, if the default
-one are insufficient. Lets say that you have a meshing process whose input
+ones are insufficient. For example, let's say that you have a meshing process whose input
 is actually an AMR dataset and whose output is collection of Voxels. You can
 do the following to have Remus support those new types.
 
-Remus reserves the id space 0 to 100 for provided mesh types. User defined
-mesh types should start at 100. If you are working with multiple plugins that
-define mesh types, I would ask the registrar for all registered types and verify
-the id spaces don't collide before adding new ids.
+> Note that Remus reserves the id space 0 to 100 for provided mesh types. User defined
+> mesh types should start at 100. If you are working with multiple plugins that
+> define mesh types, ask the registrar for all registered types and verify
+> the id spaces don't collide before adding new ids.
 
 ```cpp
   #include <remus/common/MeshTypes.h>
@@ -284,11 +286,11 @@ the id spaces don't collide before adding new ids.
 ```
 
 This will need to be compiled into a custom Server if you need the default
-worker factory to parse these types from a Remus Worker json file. If you just
+worker factory to parse these types from a Remus Worker JSON file. If you just
 need it on the client and worker, you can just define the above in just the
 client and worker implementations.
 
-now you can use the AMRData and Voxel classes in the client and worker, like
+Now you can use the AMRData and Voxel classes in the client and worker, like
 this:
 
 ```
