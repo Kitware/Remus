@@ -28,6 +28,7 @@ function(remus_unit_tests)
       add_test(NAME ${tname}
         COMMAND ${test_prog} ${tname}
         )
+      set_tests_properties(${tname} PROPERTIES TIMEOUT 45)
     endforeach(test)
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_unit_tests)
