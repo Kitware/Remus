@@ -80,7 +80,56 @@ private:
   bool ContinuePolling;
 };
 
-void verify_server_connection()
+void verify_server_connection_inproc()
+{
+  using namespace remus::meshtypes;
+  const remus::common::MeshIOType mtype =
+                          remus::common::make_MeshIOType(Model(),Model());
+
+  remus::worker::ServerConnection default_sc;
+
+  fake_server fake_def_server(default_sc); //start up server to talk to worker
+  remus::worker::Worker default_worker(mtype,default_sc);
+
+  const remus::worker::ServerConnection& sc = default_worker.connection();
+
+  REMUS_ASSERT( (sc.endpoint().size() > 0) );
+  zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
+                                                  remus::SERVER_WORKER_PORT);
+  REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
+  REMUS_ASSERT( (sc.endpoint() ==
+         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
+
+  remus::worker::ServerConnection inproc_conn =
+         remus::worker::make_ServerConnection("inproc://foo_inproc");
+
+  fake_server inproc_server(inproc_conn);
+  remus::worker::Worker inproc_worker(mtype,inproc_conn);
+
+
+  REMUS_ASSERT( (inproc_worker.connection().endpoint() ==
+                 make_inproc_socket("foo_inproc").endpoint()) );
+
+  //share a connection between two workers that share the same context and
+  //channel. This shows that you can have multiple works sharing the same
+  //inproc or ipc context.
+  remus::worker::ServerConnection conn2 =
+    remus::worker::make_ServerConnection(inproc_worker.connection().endpoint());
+  conn2.context(inproc_conn.context());
+
+
+  remus::worker::Worker inproc_worker2(mtype,conn2);
+  REMUS_ASSERT( (inproc_worker2.connection().endpoint() ==
+                 make_inproc_socket("foo_inproc").endpoint()) );
+  REMUS_ASSERT( (inproc_worker.connection().context() ==
+                 inproc_worker2.connection().context() ) );
+
+  //test local host bool with tcp ip
+  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
+  REMUS_ASSERT( (inproc_worker.connection().isLocalEndpoint()==true) );
+}
+
+void verify_server_connection_ipc()
 {
   using namespace remus::meshtypes;
   const remus::common::MeshIOType mtype =
@@ -109,34 +158,10 @@ void verify_server_connection()
   REMUS_ASSERT( (ipc_worker.connection().endpoint() ==
                  make_ipc_socket("foo_ipc").endpoint()) );
 
-  remus::worker::ServerConnection inproc_conn =
-         remus::worker::make_ServerConnection("inproc://foo_inproc");
-
-  fake_server inproc_server(inproc_conn);
-  remus::worker::Worker inproc_worker(mtype,inproc_conn);
-
-
-  REMUS_ASSERT( (inproc_worker.connection().endpoint() ==
-                 make_inproc_socket("foo_inproc").endpoint()) );
-
-  //share a connection between two workers that share the same context and
-  //channel. This shows that you can have multiple works sharing the same
-  //inproc or ipc context.
-  remus::worker::ServerConnection conn2 =
-    remus::worker::make_ServerConnection(inproc_worker.connection().endpoint());
-  conn2.context(inproc_conn.context());
-
-
-  remus::worker::Worker inproc_worker2(mtype,conn2);
-  REMUS_ASSERT( (inproc_worker2.connection().endpoint() ==
-                 make_inproc_socket("foo_inproc").endpoint()) );
-  REMUS_ASSERT( (inproc_worker.connection().context() ==
-                 inproc_worker2.connection().context() ) );
-
   //test local host bool with tcp ip
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (ipc_worker.connection().isLocalEndpoint()==true) );
-  REMUS_ASSERT( (inproc_worker.connection().isLocalEndpoint()==true) );
+
 }
 
 } //namespace
@@ -144,6 +169,9 @@ void verify_server_connection()
 
 int UnitTestWorker(int, char *[])
 {
-  verify_server_connection();
+  #ifndef _WIN32
+  verify_server_connection_ipc();
+  #endif
+  verify_server_connection_inproc();
   return 0;
 }
