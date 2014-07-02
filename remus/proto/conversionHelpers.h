@@ -28,7 +28,10 @@ inline void extractVector(BufferType& buffer, std::vector<char>& msg)
     {
     buffer.get();
     }
-  buffer.rdbuf()->sgetn(&msg[0],msg.size());
+  if(msg.size() > 0)
+    {
+    buffer.rdbuf()->sgetn(&msg[0],msg.size());
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -37,7 +40,15 @@ inline std::string extractString(BufferType& buffer, int size)
 {
   std::vector<char> msg(size);
   extractVector(buffer,msg);
-  return std::string(&msg[0],size);
+  if(size > 0)
+    {
+    return std::string(&msg[0],size);
+    }
+  else
+    {
+    return std::string();
+    }
+
 }
 
 
