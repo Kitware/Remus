@@ -2,6 +2,7 @@
 
 [![Imgur](http://i.imgur.com/8zsK3vl.png?2)](http://open.cdash.org/index.php?project=Remus)
 [![Build Status](https://travis-ci.org/robertmaynard/Remus.svg?branch=master)](https://travis-ci.org/robertmaynard/Remus)
+[![Coverage Status](https://img.shields.io/coveralls/robertmaynard/Remus.svg)](https://coveralls.io/r/robertmaynard/Remus)
 
 Remus' goal is to make meshing 2 and 3 dimensional meshes easy.
 We accomplish this by insulating your program from the instability and licenses
