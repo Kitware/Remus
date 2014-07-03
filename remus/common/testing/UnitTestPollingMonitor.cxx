@@ -99,8 +99,8 @@ void verify_fast_polling()
   TestPoller p(&t);
 
   //verify polling at the min keeps the duration equal to the min
-  const unsigned long minTime = p.minTimeOut();
-  const unsigned long inputTime = (p.minTimeOut() - 1);
+  const boost::int64_t minTime = p.minTimeOut();
+  const boost::int64_t inputTime = (p.minTimeOut() - 1);
   for(int i=0; i < 20; ++i)
   {
   t += boost::posix_time::seconds(inputTime);
