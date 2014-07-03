@@ -35,7 +35,7 @@ zmq::socketInfo<zmq::proto::inproc> make_inproc_socket(std::string host)
   return zmq::socketInfo<zmq::proto::inproc>(host);
 }
 
-void verify_server_connection()
+void verify_server_connection_inproc()
 {
   remus::client::ServerConnection default_sc;
   remus::client::Client default_client(default_sc);
@@ -49,22 +49,6 @@ void verify_server_connection()
 
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
-
-  remus::client::ServerConnection ipc_conn =
-        remus::client::make_ServerConnection("ipc://foo_ipc");
-  remus::client::Client ipc_client(ipc_conn);
-
-  REMUS_ASSERT( (ipc_client.connection().endpoint() ==
-                 make_ipc_socket("foo_ipc").endpoint()) );
-
-
-  remus::client::ServerConnection remote_tcp_conn =
-        remus::client::make_ServerConnection("tcp://74.125.30.106:83");
-  remus::client::Client remote_tcp_client(remote_tcp_conn);
-
-  REMUS_ASSERT( (remote_tcp_client.connection().endpoint() ==
-                 make_tcp_socket("74.125.30.106",83).endpoint()) );
-
 
   remus::client::ServerConnection inproc_conn =
          remus::client::make_ServerConnection("inproc://foo_inproc");
@@ -91,8 +75,60 @@ void verify_server_connection()
 
   //test local host bool with tcp ip
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
-  REMUS_ASSERT( (ipc_client.connection().isLocalEndpoint()==true) );
   REMUS_ASSERT( (inproc_client.connection().isLocalEndpoint()==true) );
+}
+
+void verify_server_connection_ipc()
+{
+  remus::client::ServerConnection default_sc;
+  remus::client::Client default_client(default_sc);
+  const remus::client::ServerConnection& sc = default_client.connection();
+
+  REMUS_ASSERT( (sc.endpoint().size() > 0) );
+  const std::string default_endpoint = sc.endpoint();
+
+  zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
+                                                  remus::SERVER_CLIENT_PORT);
+
+
+  REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
+
+  remus::client::ServerConnection ipc_conn =
+        remus::client::make_ServerConnection("ipc://foo_ipc");
+  remus::client::Client ipc_client(ipc_conn);
+
+  REMUS_ASSERT( (ipc_client.connection().endpoint() ==
+                 make_ipc_socket("foo_ipc").endpoint()) );
+
+  //test local host bool with tcp ip
+  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
+  REMUS_ASSERT( (ipc_client.connection().isLocalEndpoint()==true) );
+}
+
+void verify_server_connection_tcp()
+{
+  remus::client::ServerConnection default_sc;
+  remus::client::Client default_client(default_sc);
+  const remus::client::ServerConnection& sc = default_client.connection();
+
+  REMUS_ASSERT( (sc.endpoint().size() > 0) );
+  const std::string default_endpoint = sc.endpoint();
+
+  zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
+                                                  remus::SERVER_CLIENT_PORT);
+
+
+  REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
+
+  remus::client::ServerConnection remote_tcp_conn =
+        remus::client::make_ServerConnection("tcp://74.125.30.106:83");
+  remus::client::Client remote_tcp_client(remote_tcp_conn);
+
+  REMUS_ASSERT( (remote_tcp_client.connection().endpoint() ==
+                 make_tcp_socket("74.125.30.106",83).endpoint()) );
+
+  //test local host bool with tcp ip
+  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (remote_tcp_client.connection().isLocalEndpoint()==false) );
 }
 
@@ -101,6 +137,10 @@ void verify_server_connection()
 
 int UnitTestClient(int, char *[])
 {
-  verify_server_connection();
+  verify_server_connection_inproc();
+  #ifndef _WIN32
+  verify_server_connection_ipc();
+  #endif
+  verify_server_connection_tcp();
   return 0;
 }

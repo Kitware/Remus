@@ -136,11 +136,6 @@ int UnitTestServerPorts(int, char *[])
   //verify everything works with dual tcp-ip
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts()) );
 
-  //verify everything works with dual ipc
-  zmq::socketInfo<zmq::proto::ipc> c("client_channel");
-  zmq::socketInfo<zmq::proto::ipc> w("worker_channel");
-  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,w)) );
-
   //verify everything works with dual inproc
   zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
   zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
@@ -149,15 +144,21 @@ int UnitTestServerPorts(int, char *[])
   //now mix ipc and tcp-ip
   zmq::socketInfo<zmq::proto::tcp> default_ctcp("127.0.0.1",
                                                remus::SERVER_CLIENT_PORT);
-  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,w)) );
-
-  //now mix inproc and ipc
-  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,wi)) );
 
   //now mix inproc and tcp-ip
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,wi)) );
 
+  #ifndef _WIN32
+  //verify everything works with dual ipc
+  zmq::socketInfo<zmq::proto::ipc> c("client_channel");
+  zmq::socketInfo<zmq::proto::ipc> w("worker_channel");
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,w)) );
 
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,w)) );
+
+  //now mix inproc and ipc
+  REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,wi)) );
+  #endif
 
   //we reach here we have a valid server ports test
   return 0;
