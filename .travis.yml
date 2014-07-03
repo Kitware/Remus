@@ -22,7 +22,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF ..
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
   - ctest -D Experimental -j6 --schedule-random --track Travis
 
 after_success:
