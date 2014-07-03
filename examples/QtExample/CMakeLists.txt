@@ -16,7 +16,6 @@ if(Qt4_FOUND)
    )
 
   qt4_wrap_ui(UI_BUILT_SOURCES UI/qcontrols.ui)
-  qt4_add_resources(RCS_SOURCES UI/Resources.qrc)
 
   list(APPEND srcs ${UI_BUILT_SOURCES} ${RCS_SOURCES})
 
