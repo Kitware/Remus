@@ -46,6 +46,7 @@ public:
 
   bool haveSupport(const remus::proto::JobRequirements& reqs) const
     {
+    (void)reqs;
     //we want to return true here so that the server always queues
     return true;
     }
@@ -53,6 +54,8 @@ public:
   bool createWorker(const remus::proto::JobRequirements& type,
                     WorkerFactory::FactoryDeletionBehavior lifespan)
     {
+    (void) type;
+    (void) lifespan;
     //we want to return false here so that server never thinks we are creating
     //a worker and assigns a job to a worker we didn't create
     return false;
