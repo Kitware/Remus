@@ -39,17 +39,49 @@ class PollingMonitor::PollingTracker
   boost::circular_buffer< time_duration > PollingFrequency;
 
 public:
-  PollingTracker( const boost::int64_t minTimeoutInMillis,
-                  const boost::int64_t maxTimeoutInMillis,
+  PollingTracker( const boost::int64_t minRate,
+                  const boost::int64_t maxRate,
                   const ptime& p ):
-    MinTimeOut( milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
-    MaxTimeOut( milliseconds( std::max(minTimeoutInMillis,maxTimeoutInMillis)) ),
-    AveragePollRate(  milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
-    CurrentPollRate(  milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
+    MinTimeOut(),
+    MaxTimeOut(),
+    AveragePollRate(),
+    CurrentPollRate(),
     LastPollTime(p),
     PollingFrequency(5)
   {
+    //clamp at zero
+    const boost::int64_t tempMin = std::max(boost::int64_t(0),minRate);
+    const boost::int64_t tempMax = std::max(boost::int64_t(0),maxRate);
+
+    const time_duration properMinRate = milliseconds(std::min(tempMin,tempMax));
+    const time_duration properMaxRate = milliseconds(std::max(tempMin,tempMax));
+
+    this->MinTimeOut = properMinRate;
+    this->MaxTimeOut = properMaxRate;
+    this->AveragePollRate = properMinRate;
+    this->CurrentPollRate = properMinRate;
+
     this->PollingFrequency.push_back( this->MinTimeOut );
+  }
+
+  //----------------------------------------------------------------------------
+  void changeTimeOutRates(const boost::int64_t minRate,
+                          const boost::int64_t maxRate)
+  {
+    //clamp at zero
+    const boost::int64_t tempMin = std::max(boost::int64_t(0),minRate);
+    const boost::int64_t tempMax = std::max(boost::int64_t(0),maxRate);
+
+    const time_duration properMinRate = milliseconds(std::min(tempMin,tempMax));
+    const time_duration properMaxRate = milliseconds(std::max(tempMin,tempMax));
+
+
+    this->MinTimeOut = properMinRate;
+    this->MaxTimeOut = properMaxRate;
+
+    //now we need to clamp Current so that it is within the now legal (min,max)
+    this->CurrentPollRate = std::max(this->CurrentPollRate,properMinRate);
+    this->CurrentPollRate = std::min(this->CurrentPollRate,properMaxRate);
   }
 
   const time_duration& minTimeOut() const { return MinTimeOut; }
@@ -163,6 +195,13 @@ PollingMonitor& PollingMonitor::operator= (PollingMonitor other)
 PollingMonitor::~PollingMonitor()
 {
 
+}
+
+//----------------------------------------------------------------------------
+void PollingMonitor::changeTimeOutRates(boost::int64_t minRate,
+                                        boost::int64_t maxRate)
+{
+  this->Tracker->changeTimeOutRates(minRate,maxRate);
 }
 
 //------------------------------------------------------------------------------

@@ -34,6 +34,8 @@ namespace common{
 // the frequency of the polling rate based on the amount of traffic
 // it receives. If the amount of traffic starts to decrease we increase
 // the polling timeout.
+// PollingMonitor stores all objects behind a shared pointer, so make sure
+// you don't need to create a new PollingMonitor before you modify the class
 class REMUSCOMMON_EXPORT PollingMonitor
 {
 public:
@@ -41,8 +43,13 @@ public:
   //5 seconds and 60 seconds
   PollingMonitor();
 
-  //Create a PollingMonitor with user defined min and max time out values
-  //if the max time
+  //Create a PollingMonitor with user defined min and max time out values.
+  //Negative time out values are ignored and replaced with zero values. If
+  //the Max and Min values are inverted we will swap the values.
+  //
+  //If you set Min and Max to both be very small values e.g. 0,2 expect
+  //the server / worker that is consuming this class to be use a high level
+  //of cpu.
   PollingMonitor( boost::int64_t MinTimeOutInMilliSeconds,
                   boost::int64_t MaxTimeOutInMilliSeconds);
 
@@ -51,6 +58,19 @@ public:
   PollingMonitor& operator= (PollingMonitor other);
 
   ~PollingMonitor();
+
+  //Update a PollingMonitor with user defined min and max time out values.
+  //Negative time out values are ignored and replaced with zero values. If
+  //the Max and Min values are inverted we will swap the values.
+  //
+  //If you set Min and Max to both be very small values e.g. 0,2 expect
+  //the server / worker that is consuming this class to be use a high level
+  //of cpu.
+  //
+  //If the current values is currently outside the (min,max) range it
+  //will be clamped to fall with the range.
+  //
+  void changeTimeOutRates(boost::int64_t minRate, boost::int64_t maxRate);
 
   //return the min timeout value as milliseconds
   boost::int64_t minTimeOut() const;
