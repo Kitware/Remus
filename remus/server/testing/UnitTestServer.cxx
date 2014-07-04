@@ -23,8 +23,8 @@ namespace {
 void test_server_ports(const remus::server::Server& a,
                        const remus::server::Server& b)
 {
-  const remus::server::ServerPorts& sa = a.ServerPortInfo();
-  const remus::server::ServerPorts& sb = b.ServerPortInfo();
+  const remus::server::ServerPorts& sa = a.serverPortInfo();
+  const remus::server::ServerPorts& sb = b.serverPortInfo();
 
   //the server ports can't match on two servers since
   //when you create a server it binds the ports at that time

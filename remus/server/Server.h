@@ -141,19 +141,20 @@ public:
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
   //to report which port it bound it self too.
-  const remus::server::ServerPorts& ServerPortInfo() const {return PortInfo;}
+  const remus::server::ServerPorts& serverPortInfo() const {return PortInfo;}
 
   //control how we handle abnormal signals that we catch
-  virtual void SignalCaught( SignalCatcher::SignalType signal );
+  virtual void signalCaught( SignalCatcher::SignalType signal );
 
 protected:
   //The main brokering loop, called by thread
-  virtual bool brokering(SignalHandling sh = CAPTURE);
+  virtual bool Brokering(SignalHandling sh = CAPTURE);
+
   //processes all job queries
   void DetermineJobQueryResponse(const zmq::SocketIdentity &clientIdentity,
                                  const remus::proto::Message& msg);
 
-  //These methods are all to do with send responses to job messages
+  //These methods are all to do with sending responses to clients
   std::string canMesh(const remus::proto::Message& msg);
   std::string canMeshRequirements(const remus::proto::Message& msg);
   std::string meshRequirements(const remus::proto::Message& msg);
@@ -165,6 +166,8 @@ protected:
   //Methods for processing Worker queries
   void DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
                                const remus::proto::Message& msg);
+
+  //These methods are all to do with sending/recving to workers
   void storeMeshStatus(const remus::proto::Message& msg);
   void storeMesh(const remus::proto::Message& msg);
   void assignJobToWorker(const zmq::SocketIdentity &workerIdentity,

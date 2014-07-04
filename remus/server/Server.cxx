@@ -112,7 +112,7 @@ struct ThreadManagement
     if(launchThread)
       {
       boost::scoped_ptr<boost::thread> bthread(
-        new  boost::thread(&Server::brokering, server, sigHandleState) );
+        new  boost::thread(&Server::Brokering, server, sigHandleState) );
       this->BrokerThread.swap(bthread);
       }
     }
@@ -298,7 +298,7 @@ remus::server::PollingRates Server::pollingRates() const
 }
 
 //------------------------------------------------------------------------------
-bool Server::brokering(Server::SignalHandling sh)
+bool Server::Brokering(Server::SignalHandling sh)
   {
   //start up signal catching before we start polling. We do this in the
   //startBrokering method since really the server isn't doing anything before
@@ -749,7 +749,7 @@ void Server::FindWorkerForQueuedJob()
 
 //We are crashing we need to terminate all workers
 //------------------------------------------------------------------------------
-void Server::SignalCaught( SignalCatcher::SignalType )
+void Server::signalCaught( SignalCatcher::SignalType )
 {
   this->Thread->stop();
 
