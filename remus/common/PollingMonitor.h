@@ -43,8 +43,8 @@ public:
 
   //Create a PollingMonitor with user defined min and max time out values
   //if the max time
-  PollingMonitor( boost::uint32_t MinTimeOutInSeconds,
-                  boost::uint32_t MaxTimeOutInSeconds);
+  PollingMonitor( boost::int64_t MinTimeOutInMilliSeconds,
+                  boost::int64_t MaxTimeOutInMilliSeconds);
 
   PollingMonitor( const PollingMonitor& other );
 
@@ -52,35 +52,27 @@ public:
 
   ~PollingMonitor();
 
-  //return the min timeout value as seconds
-  boost::uint32_t minTimeOut() const;
+  //return the min timeout value as milliseconds
+  boost::int64_t minTimeOut() const;
 
-  //return the max timeout value as seconds
-  boost::uint32_t maxTimeOut() const;
+  //return the max timeout value as milliseconds
+  boost::int64_t maxTimeOut() const;
 
   //mark that we just polled
   void pollOccurred( );
 
   //returns the amount of time from now to the last time we polled
-  //the time is in seconds
-  boost::int64_t durationFromLastPollMilliseconds() const;
-
-  //returns the amount of time from now to the last time we polled
-  //the time is in seconds
+  //the time is in milliseconds
   boost::int64_t durationFromLastPoll() const;
 
   //returns the amount of time from now to the last time we polled
-  //the time is in seconds
-  boost::int64_t  durationOfTheLastPollMilliseconds() const;
-
-  //returns the duration of time that between the last two times we polled
-  //the time is in seconds
+  //the time is in milliseconds
   boost::int64_t durationOfTheLastPoll() const;
 
-  //retrieve the current poll rate in seconds
+  //retrieve the current poll rate in milliseconds
   boost::int64_t current() const;
 
-  //retrieve the average poll rate in seconds
+  //retrieve the average poll rate in milliseconds
   boost::int64_t average() const;
 
   //returns true if the polling monitor has logged an abnormal

@@ -150,7 +150,7 @@ void poll()
   while( this->isTalking() )
     {
     bool sentToServer=false;
-    zmq::poll(&items[0],2,monitor.current()*1000);
+    zmq::poll(&items[0],2,monitor.current());
     monitor.pollOccurred();
 
     if(items[0].revents & ZMQ_POLLIN)

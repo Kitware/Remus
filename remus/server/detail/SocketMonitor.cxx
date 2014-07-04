@@ -105,7 +105,7 @@ public:
 
 //------------------------------------------------------------------------------
 SocketMonitor::SocketMonitor():
-  Tracker(new WorkerTracker( (remus::common::PollingMonitor()) ))
+  Tracker(new WorkerTracker( (remus::common::PollingMonitor(25,60000)) ))
 {
 
 }
@@ -157,9 +157,9 @@ void SocketMonitor::heartbeat( const zmq::SocketIdentity& socket,
   //convert the string back into an int64_t which represents seconds to
   //the next heartbeat expected from this socket
   std::string messagePayload(msg.data(),msg.dataSize());
-  boost::int64_t dur_in_secs = boost::lexical_cast<boost::int64_t>(
+  boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
                                                               messagePayload);
-  this->Tracker->heartbeat(socket, dur_in_secs);
+  this->Tracker->heartbeat(socket, dur_in_milli);
 }
 
 //------------------------------------------------------------------------------

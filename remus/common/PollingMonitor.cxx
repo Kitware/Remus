@@ -26,7 +26,6 @@ class PollingMonitor::PollingTracker
 {
   typedef boost::posix_time::time_duration time_duration;
   typedef boost::posix_time::ptime ptime;
-  typedef boost::posix_time::seconds seconds;
   typedef boost::posix_time::milliseconds milliseconds;
 
   time_duration MinTimeOut; //min heartbeat interval
@@ -40,13 +39,13 @@ class PollingMonitor::PollingTracker
   boost::circular_buffer< time_duration > PollingFrequency;
 
 public:
-  PollingTracker( const int minTimeoutInSeconds,
-                  const int maxTimeoutInSeconds,
+  PollingTracker( const boost::int64_t minTimeoutInMillis,
+                  const boost::int64_t maxTimeoutInMillis,
                   const ptime& p ):
-    MinTimeOut( seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    MaxTimeOut( seconds( std::max(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    AveragePollRate(  seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    CurrentPollRate(  seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
+    MinTimeOut( milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
+    MaxTimeOut( milliseconds( std::max(minTimeoutInMillis,maxTimeoutInMillis)) ),
+    AveragePollRate(  milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
+    CurrentPollRate(  milliseconds( std::min(minTimeoutInMillis,maxTimeoutInMillis)) ),
     LastPollTime(p),
     PollingFrequency(5)
   {
@@ -131,17 +130,17 @@ public:
 
 //------------------------------------------------------------------------------
 PollingMonitor::PollingMonitor():
-  Tracker(new PollingMonitor::PollingTracker( 5, 60,
+  Tracker(new PollingMonitor::PollingTracker( (5*1000), (60*1000),
             boost::posix_time::microsec_clock::local_time() ) )
 {
 }
 
 //------------------------------------------------------------------------------
-PollingMonitor::PollingMonitor( boost::uint32_t MinTimeOutInSeconds,
-                                boost::uint32_t MaxTimeOutInSeconds):
+PollingMonitor::PollingMonitor( boost::int64_t MinTimeOutInMilliSeconds,
+                                boost::int64_t MaxTimeOutInMilliSeconds):
   Tracker(new PollingMonitor::PollingTracker(
-            MinTimeOutInSeconds,
-            MaxTimeOutInSeconds,
+            MinTimeOutInMilliSeconds,
+            MaxTimeOutInMilliSeconds,
             boost::posix_time::microsec_clock::local_time() ) )
 {
 
@@ -167,15 +166,15 @@ PollingMonitor::~PollingMonitor()
 }
 
 //------------------------------------------------------------------------------
-boost::uint32_t PollingMonitor::minTimeOut() const
+boost::int64_t PollingMonitor::minTimeOut() const
 {
-  return this->Tracker->minTimeOut().total_seconds();
+  return this->Tracker->minTimeOut().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
-boost::uint32_t PollingMonitor::maxTimeOut() const
+boost::int64_t PollingMonitor::maxTimeOut() const
 {
-  return this->Tracker->maxTimeOut().total_seconds();
+  return this->Tracker->maxTimeOut().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
@@ -191,39 +190,27 @@ void PollingMonitor::pollOccurredAt( boost::posix_time::ptime* t )
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationFromLastPollMilliseconds() const
+boost::int64_t PollingMonitor::durationFromLastPoll() const
 {
   return this->Tracker->durationFromLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationFromLastPoll() const
-{
-  return this->Tracker->durationFromLastPoll().total_seconds();
-}
-
-//------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationOfTheLastPollMilliseconds() const
+boost::int64_t PollingMonitor::durationOfTheLastPoll() const
 {
   return this->Tracker->durationOfTheLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationOfTheLastPoll() const
-{
-  return this->Tracker->durationOfTheLastPoll().total_seconds();
-}
-
-//------------------------------------------------------------------------------
 boost::int64_t PollingMonitor::current() const
 {
-  return this->Tracker->current().total_seconds();
+  return this->Tracker->current().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
 boost::int64_t PollingMonitor::average() const
 {
-  return this->Tracker->average().total_seconds();
+  return this->Tracker->average().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------

@@ -305,8 +305,8 @@ bool Server::brokering(Server::SignalHandling sh)
   boost::int64_t timeToCheckForDeadWorkers = 0; //check every 250ms
   while (Thread->isBrokering())
     {
-    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()*1000));
-    timeToCheckForDeadWorkers += monitor.durationOfTheLastPollMilliseconds();
+    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()) );
+    timeToCheckForDeadWorkers += monitor.durationFromLastPoll();
     monitor.pollOccurred();
 
     if (items[0].revents & ZMQ_POLLIN)

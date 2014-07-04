@@ -27,10 +27,10 @@ class TestPoller : public remus::common::PollingMonitor
       //work around to clear the superclasses default value in the
       //monitoring
       boost::posix_time::ptime start = *t;
-      start -= boost::posix_time::seconds(10 * this->minTimeOut());
+      start -= boost::posix_time::milliseconds( 10 * this->minTimeOut() );
       for(int i=0; i < 10; ++i)
         {
-        start += boost::posix_time::seconds(this->minTimeOut());
+        start += boost::posix_time::milliseconds( this->minTimeOut() );
         PollingMonitor::pollOccurredAt(&start);
         }
     }
@@ -103,7 +103,7 @@ void verify_fast_polling()
   const boost::int64_t inputTime = (p.minTimeOut() - 1);
   for(int i=0; i < 20; ++i)
   {
-  t += boost::posix_time::seconds(inputTime);
+  t += boost::posix_time::milliseconds(inputTime);
   p.pollOccurredAt(&t);
 
   //since we are polling faster than the min, we expect that the
@@ -139,7 +139,7 @@ void verify_slow_polling()
                                       (p.maxTimeOut() - p.minTimeOut())/2;
   for(int i=0; i < 20; ++i)
   {
-  t += boost::posix_time::seconds(pollTimeInSecs);
+  t += boost::posix_time::milliseconds(pollTimeInSecs);
   p.pollOccurredAt(&t);
 
   //we expect that the current will be always greater than min
@@ -158,7 +158,7 @@ void verify_slow_polling()
   {
   boost::int64_t previous_current = p.current();
   boost::int64_t previous_average = p.average();
-  t += boost::posix_time::seconds(static_cast<long>(p.current()));
+  t += boost::posix_time::milliseconds(static_cast<long>(p.current()));
   p.pollOccurredAt(&t);
 
   REMUS_ASSERT ( (p.current( ) >= previous_current ) );
@@ -201,7 +201,7 @@ void verify_handles_resumes()
 
   while(p.current() == p.maxTimeOut())
     {
-    t += boost::posix_time::seconds(10);
+    t += boost::posix_time::milliseconds(10);
     p.pollOccurredAt(&t);
     }
   REMUS_ASSERT ( (p.average( ) < p.maxTimeOut()) );
