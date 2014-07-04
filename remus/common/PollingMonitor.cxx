@@ -26,7 +26,6 @@ class PollingMonitor::PollingTracker
 {
   typedef boost::posix_time::time_duration time_duration;
   typedef boost::posix_time::ptime ptime;
-  typedef boost::posix_time::seconds seconds;
   typedef boost::posix_time::milliseconds milliseconds;
 
   time_duration MinTimeOut; //min heartbeat interval
@@ -40,17 +39,49 @@ class PollingMonitor::PollingTracker
   boost::circular_buffer< time_duration > PollingFrequency;
 
 public:
-  PollingTracker( const int minTimeoutInSeconds,
-                  const int maxTimeoutInSeconds,
+  PollingTracker( const boost::int64_t minRate,
+                  const boost::int64_t maxRate,
                   const ptime& p ):
-    MinTimeOut( seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    MaxTimeOut( seconds( std::max(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    AveragePollRate(  seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
-    CurrentPollRate(  seconds( std::min(minTimeoutInSeconds,maxTimeoutInSeconds)) ),
+    MinTimeOut(),
+    MaxTimeOut(),
+    AveragePollRate(),
+    CurrentPollRate(),
     LastPollTime(p),
     PollingFrequency(5)
   {
+    //clamp at zero
+    const boost::int64_t tempMin = std::max(boost::int64_t(0),minRate);
+    const boost::int64_t tempMax = std::max(boost::int64_t(0),maxRate);
+
+    const time_duration properMinRate = milliseconds(std::min(tempMin,tempMax));
+    const time_duration properMaxRate = milliseconds(std::max(tempMin,tempMax));
+
+    this->MinTimeOut = properMinRate;
+    this->MaxTimeOut = properMaxRate;
+    this->AveragePollRate = properMinRate;
+    this->CurrentPollRate = properMinRate;
+
     this->PollingFrequency.push_back( this->MinTimeOut );
+  }
+
+  //----------------------------------------------------------------------------
+  void changeTimeOutRates(const boost::int64_t minRate,
+                          const boost::int64_t maxRate)
+  {
+    //clamp at zero
+    const boost::int64_t tempMin = std::max(boost::int64_t(0),minRate);
+    const boost::int64_t tempMax = std::max(boost::int64_t(0),maxRate);
+
+    const time_duration properMinRate = milliseconds(std::min(tempMin,tempMax));
+    const time_duration properMaxRate = milliseconds(std::max(tempMin,tempMax));
+
+
+    this->MinTimeOut = properMinRate;
+    this->MaxTimeOut = properMaxRate;
+
+    //now we need to clamp Current so that it is within the now legal (min,max)
+    this->CurrentPollRate = std::max(this->CurrentPollRate,properMinRate);
+    this->CurrentPollRate = std::min(this->CurrentPollRate,properMaxRate);
   }
 
   const time_duration& minTimeOut() const { return MinTimeOut; }
@@ -131,17 +162,17 @@ public:
 
 //------------------------------------------------------------------------------
 PollingMonitor::PollingMonitor():
-  Tracker(new PollingMonitor::PollingTracker( 5, 60,
+  Tracker(new PollingMonitor::PollingTracker( (5*1000), (60*1000),
             boost::posix_time::microsec_clock::local_time() ) )
 {
 }
 
 //------------------------------------------------------------------------------
-PollingMonitor::PollingMonitor( boost::uint32_t MinTimeOutInSeconds,
-                                boost::uint32_t MaxTimeOutInSeconds):
+PollingMonitor::PollingMonitor( boost::int64_t MinTimeOutInMilliSeconds,
+                                boost::int64_t MaxTimeOutInMilliSeconds):
   Tracker(new PollingMonitor::PollingTracker(
-            MinTimeOutInSeconds,
-            MaxTimeOutInSeconds,
+            MinTimeOutInMilliSeconds,
+            MaxTimeOutInMilliSeconds,
             boost::posix_time::microsec_clock::local_time() ) )
 {
 
@@ -166,16 +197,23 @@ PollingMonitor::~PollingMonitor()
 
 }
 
-//------------------------------------------------------------------------------
-boost::uint32_t PollingMonitor::minTimeOut() const
+//----------------------------------------------------------------------------
+void PollingMonitor::changeTimeOutRates(boost::int64_t minRate,
+                                        boost::int64_t maxRate)
 {
-  return this->Tracker->minTimeOut().total_seconds();
+  this->Tracker->changeTimeOutRates(minRate,maxRate);
 }
 
 //------------------------------------------------------------------------------
-boost::uint32_t PollingMonitor::maxTimeOut() const
+boost::int64_t PollingMonitor::minTimeOut() const
 {
-  return this->Tracker->maxTimeOut().total_seconds();
+  return this->Tracker->minTimeOut().total_milliseconds();
+}
+
+//------------------------------------------------------------------------------
+boost::int64_t PollingMonitor::maxTimeOut() const
+{
+  return this->Tracker->maxTimeOut().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
@@ -191,39 +229,27 @@ void PollingMonitor::pollOccurredAt( boost::posix_time::ptime* t )
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationFromLastPollMilliseconds() const
+boost::int64_t PollingMonitor::durationFromLastPoll() const
 {
   return this->Tracker->durationFromLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationFromLastPoll() const
-{
-  return this->Tracker->durationFromLastPoll().total_seconds();
-}
-
-//------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationOfTheLastPollMilliseconds() const
+boost::int64_t PollingMonitor::durationOfTheLastPoll() const
 {
   return this->Tracker->durationOfTheLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationOfTheLastPoll() const
-{
-  return this->Tracker->durationOfTheLastPoll().total_seconds();
-}
-
-//------------------------------------------------------------------------------
 boost::int64_t PollingMonitor::current() const
 {
-  return this->Tracker->current().total_seconds();
+  return this->Tracker->current().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------
 boost::int64_t PollingMonitor::average() const
 {
-  return this->Tracker->average().total_seconds();
+  return this->Tracker->average().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------

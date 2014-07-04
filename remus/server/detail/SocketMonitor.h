@@ -36,6 +36,8 @@ public:
 
   ~SocketMonitor();
 
+  //Returns the polling monitor, modifications of the returned object will
+  //modify the socket monitor instance.
   remus::common::PollingMonitor pollingMonitor() const;
 
   //refresh a socket stating it is alive. Uses the pollingMontior

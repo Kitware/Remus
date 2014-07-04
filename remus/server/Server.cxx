@@ -1,4 +1,4 @@
-  //=============================================================================
+//=============================================================================
 //
 //  Copyright (c) Kitware, Inc.
 //  All rights reserved.
@@ -278,6 +278,26 @@ Server::~Server()
 }
 
 //------------------------------------------------------------------------------
+void Server::pollingRates(const remus::server::PollingRates& rates)
+{
+
+  //setup a new polling monitor. We don't want to change the SocketMonitor!
+  //The SocketMonitor has lots of socket/worker tracking and changing
+  //the SocketMonitor will break all of that.
+  this->SocketMonitor->pollingMonitor().changeTimeOutRates(rates.minRate(),
+                                                           rates.maxRate());
+}
+
+//------------------------------------------------------------------------------
+remus::server::PollingRates Server::pollingRates() const
+{
+  remus::common::PollingMonitor monitor = this->SocketMonitor->pollingMonitor();
+  const boost::int64_t low =  monitor.minTimeOut();
+  const boost::int64_t high = monitor.maxTimeOut();
+  return remus::server::PollingRates(low,high);
+}
+
+//------------------------------------------------------------------------------
 bool Server::brokering(Server::SignalHandling sh)
   {
   //start up signal catching before we start polling. We do this in the
@@ -305,8 +325,8 @@ bool Server::brokering(Server::SignalHandling sh)
   boost::int64_t timeToCheckForDeadWorkers = 0; //check every 250ms
   while (Thread->isBrokering())
     {
-    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()*1000));
-    timeToCheckForDeadWorkers += monitor.durationOfTheLastPollMilliseconds();
+    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()) );
+    timeToCheckForDeadWorkers += monitor.durationFromLastPoll();
     monitor.pollOccurred();
 
     if (items[0].revents & ZMQ_POLLIN)

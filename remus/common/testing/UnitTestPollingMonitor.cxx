@@ -27,10 +27,10 @@ class TestPoller : public remus::common::PollingMonitor
       //work around to clear the superclasses default value in the
       //monitoring
       boost::posix_time::ptime start = *t;
-      start -= boost::posix_time::seconds(10 * this->minTimeOut());
+      start -= boost::posix_time::milliseconds( 10 * this->minTimeOut() );
       for(int i=0; i < 10; ++i)
         {
-        start += boost::posix_time::seconds(this->minTimeOut());
+        start += boost::posix_time::milliseconds( this->minTimeOut() );
         PollingMonitor::pollOccurredAt(&start);
         }
     }
@@ -85,8 +85,105 @@ void verify_min_max()
   REMUS_ASSERT( (p.minTimeOut()  <= p.maxTimeOut()) );
   REMUS_ASSERT( (p2.minTimeOut() <= p2.maxTimeOut()) );
 
+  //verify that negative value are handled properly
+  remus::common::PollingMonitor negative_v(-10,-240);
+  REMUS_ASSERT( (negative_v.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (negative_v.maxTimeOut() == boost::int64_t(0)) );
+
+  remus::common::PollingMonitor negative_low(-10,240);
+  REMUS_ASSERT( (negative_low.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (negative_low.maxTimeOut() == boost::int64_t(240)) );
+
+  //this is the funky one, since -240 becomes 0, the range is 0,10
+  remus::common::PollingMonitor negative_high(10,-240);
+  REMUS_ASSERT( (negative_high.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (negative_high.maxTimeOut() == boost::int64_t(10)) );
+
   remus::common::PollingMonitor defValues;
   REMUS_ASSERT( (defValues.minTimeOut() <= defValues.maxTimeOut()) );
+}
+
+void verify_changing_rates()
+{
+  //start with a default polling monitor
+  remus::common::PollingMonitor defValues;
+  remus::common::PollingMonitor ref_toDef = defValues;
+
+  //now try to change the values to negative values, this should make
+  //the min and max rate to be zero for both ref_toDef and defValues
+  ref_toDef.changeTimeOutRates(-12,-1);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(0)) );
+
+  //verify that defValues has changed
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == defValues.minTimeOut()) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == defValues.maxTimeOut()) );
+
+  ref_toDef.changeTimeOutRates(12,1);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(1)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(12)) );
+
+  ref_toDef.changeTimeOutRates(-12,1);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(1)) );
+
+  ref_toDef.changeTimeOutRates(12,-1);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(0)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(12)) );
+
+  ref_toDef.changeTimeOutRates(12,1);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(1)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(12)) );
+
+  ref_toDef.changeTimeOutRates(100,2500000);
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == boost::int64_t(100)) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == boost::int64_t(2500000)) );
+
+  //verify that defValues has kept up with the changes.
+  REMUS_ASSERT( (ref_toDef.minTimeOut() == defValues.minTimeOut()) );
+  REMUS_ASSERT( (ref_toDef.maxTimeOut() == defValues.maxTimeOut()) );
+}
+
+void verify_changing_rates_and_currents_value()
+{
+  //Test the clamping of Current
+  { //test when current is still valid in the new range
+  remus::common::PollingMonitor monitor(60000,120000); //6sec - 12sec
+  monitor.pollOccurred();
+  boost::int64_t orig_average = monitor.average();
+
+  REMUS_ASSERT( (monitor.current() == boost::int64_t(60000)) );
+  REMUS_ASSERT( (monitor.average() <= boost::int64_t(60000)) );
+  REMUS_ASSERT( (monitor.average() == orig_average) );
+
+  //current shouldn't change since it is within the existing min,max
+  monitor.changeTimeOutRates(10,120000);
+  REMUS_ASSERT( (monitor.current() == boost::int64_t(60000)) );
+  REMUS_ASSERT( (monitor.average() == orig_average) );
+  }
+
+  {//test that we can clamp current to a lower range
+  remus::common::PollingMonitor monitor(60000,120000); //6sec - 12sec
+  monitor.pollOccurred();
+  boost::int64_t orig_average = monitor.average();
+
+  //current should become 12 since that is closed to the old current
+  monitor.changeTimeOutRates(10,12);
+  REMUS_ASSERT( (monitor.current() == boost::int64_t(12)) );
+  REMUS_ASSERT( (monitor.average() == orig_average) );
+  }
+
+  {//test that we can clamp current to a higher range
+  remus::common::PollingMonitor monitor(60000,120000); //6sec - 12sec
+  monitor.pollOccurred();
+  boost::int64_t orig_average = monitor.average();
+
+  //current should become 60001 since that is closed to the old current
+  monitor.changeTimeOutRates(60001,120000);
+  REMUS_ASSERT( (monitor.current() == boost::int64_t(60001)) );
+  REMUS_ASSERT( (monitor.average() == orig_average) );
+  }
+
 }
 
 void verify_fast_polling()
@@ -103,7 +200,7 @@ void verify_fast_polling()
   const boost::int64_t inputTime = (p.minTimeOut() - 1);
   for(int i=0; i < 20; ++i)
   {
-  t += boost::posix_time::seconds(inputTime);
+  t += boost::posix_time::milliseconds(inputTime);
   p.pollOccurredAt(&t);
 
   //since we are polling faster than the min, we expect that the
@@ -139,7 +236,7 @@ void verify_slow_polling()
                                       (p.maxTimeOut() - p.minTimeOut())/2;
   for(int i=0; i < 20; ++i)
   {
-  t += boost::posix_time::seconds(pollTimeInSecs);
+  t += boost::posix_time::milliseconds(pollTimeInSecs);
   p.pollOccurredAt(&t);
 
   //we expect that the current will be always greater than min
@@ -158,7 +255,7 @@ void verify_slow_polling()
   {
   boost::int64_t previous_current = p.current();
   boost::int64_t previous_average = p.average();
-  t += boost::posix_time::seconds(static_cast<long>(p.current()));
+  t += boost::posix_time::milliseconds(static_cast<long>(p.current()));
   p.pollOccurredAt(&t);
 
   REMUS_ASSERT ( (p.current( ) >= previous_current ) );
@@ -201,7 +298,7 @@ void verify_handles_resumes()
 
   while(p.current() == p.maxTimeOut())
     {
-    t += boost::posix_time::seconds(10);
+    t += boost::posix_time::milliseconds(10);
     p.pollOccurredAt(&t);
     }
   REMUS_ASSERT ( (p.average( ) < p.maxTimeOut()) );
@@ -216,6 +313,8 @@ int UnitTestPollingMonitor(int, char *[])
   verify_constructors();
   verify_shared_ptr();
   verify_min_max();
+  verify_changing_rates();
+  verify_changing_rates_and_currents_value();
   verify_fast_polling();
   verify_slow_polling();
 
