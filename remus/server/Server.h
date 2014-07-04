@@ -57,6 +57,25 @@ namespace server{
     struct ZmqManagement;
     }
 
+//helper class that allows users to set and get the polling rates for
+//a server instance
+class REMUSSERVER_EXPORT PollingRates
+{
+public:
+  PollingRates(boost::int64_t min_millisec, boost::int64_t max_mill):
+    MinRateMillisec(min_millisec),
+    MaxRateMillisec(max_mill)
+    {
+    }
+
+  const boost::int64_t& minRate() const { return MinRateMillisec; }
+  const boost::int64_t& maxRate() const { return MaxRateMillisec; }
+
+private:
+  boost::int64_t MinRateMillisec;
+  boost::int64_t MaxRateMillisec;
+};
+
 
 //Server is the broker of Remus. It handles accepting client
 //connections, worker connections, and manages the life cycle of submitted jobs.
@@ -87,6 +106,18 @@ public:
 
   //cleanup the server
   virtual ~Server();
+
+  //Modify the polling interval rates for the server. The server uses a
+  //a dynamic polling monitor that adjusts the frequency of the polling rate
+  //based on the amount of traffic it receives. These controls allow users
+  //to determine what the floor and ceiling are on the polling timeout rates.
+  //If you are creating a server that requires a short lifespan or
+  //needs to be highly responsive, changing these will be required.
+  //
+  //Note: All rates are in milliseconds
+  //Note: will return false if rates are non positive values
+  void pollingRates( const remus::server::PollingRates& rates );
+  remus::server::PollingRates pollingRates() const;
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.

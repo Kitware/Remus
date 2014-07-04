@@ -1,4 +1,4 @@
-  //=============================================================================
+//=============================================================================
 //
 //  Copyright (c) Kitware, Inc.
 //  All rights reserved.
@@ -275,6 +275,26 @@ Server::Server(const remus::server::ServerPorts& ports,
 Server::~Server()
 {
 
+}
+
+//------------------------------------------------------------------------------
+void Server::pollingRates(const remus::server::PollingRates& rates)
+{
+
+  //setup a new polling monitor. We don't want to change the SocketMonitor!
+  //The SocketMonitor has lots of socket/worker tracking and changing
+  //the SocketMonitor will break all of that.
+  this->SocketMonitor->pollingMonitor().changeTimeOutRates(rates.minRate(),
+                                                           rates.maxRate());
+}
+
+//------------------------------------------------------------------------------
+remus::server::PollingRates Server::pollingRates() const
+{
+  remus::common::PollingMonitor monitor = this->SocketMonitor->pollingMonitor();
+  const boost::int64_t low =  monitor.minTimeOut();
+  const boost::int64_t high = monitor.maxTimeOut();
+  return remus::server::PollingRates(low,high);
 }
 
 //------------------------------------------------------------------------------

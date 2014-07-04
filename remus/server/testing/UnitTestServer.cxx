@@ -61,6 +61,35 @@ void test_server_constructors()
   test_server_ports(server_def, server_pf);
 }
 
+void test_server_poll_rates()
+{
+  //verify that we can get and set the polling rates for a server
+  //verify that we can't set negative values for the polling rates
+  remus::server::Server server;
+
+  remus::server::PollingRates original_rates = server.pollingRates();
+  remus::server::PollingRates new_rates(15,25);
+
+  server.pollingRates(new_rates);
+  REMUS_ASSERT( (server.pollingRates().minRate() == 15) );
+  REMUS_ASSERT( (server.pollingRates().maxRate() == 25) );
+
+  server.pollingRates(original_rates);
+  REMUS_ASSERT( (server.pollingRates().minRate() == original_rates.minRate()) );
+  REMUS_ASSERT( (server.pollingRates().maxRate() == original_rates.maxRate()) );
+
+  //now verify that negative values become zeroed
+  remus::server::PollingRates neg_rates(-15,-25);
+  server.pollingRates(neg_rates);
+  REMUS_ASSERT( (server.pollingRates().minRate() == boost::int64_t(0)) );
+  REMUS_ASSERT( (server.pollingRates().maxRate() == boost::int64_t(0)) );
+
+  //now verify we can switch out of zeroed rates
+  server.pollingRates(original_rates);
+  REMUS_ASSERT( (server.pollingRates().minRate() == original_rates.minRate()) );
+  REMUS_ASSERT( (server.pollingRates().maxRate() == original_rates.maxRate()) );
+}
+
 void test_server_sig_catching()
 {
   void (*prev_sig_func)(int);
@@ -236,6 +265,9 @@ int UnitTestServer(int, char *[])
 {
   //Test server construction
   test_server_constructors();
+
+  //Test server rate changes
+  test_server_poll_rates();
 
   //Test server signal catching
   test_server_sig_catching();
