@@ -15,11 +15,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 
   include(CheckCXXCompilerFlag)
 
-  #Add option for enabling gcov coverage
-  option(Remus_ENABLE_COVERAGE "Build with gcov support." OFF)
-  mark_as_advanced(Remus_ENABLE_COVERAGE)
+  #Add option for enabling gcov coverage -- GCC only
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    option(Remus_ENABLE_COVERAGE "Build with gcov support." OFF)
+    mark_as_advanced(Remus_ENABLE_COVERAGE)
+  endif(CMAKE_COMPILER_IS_GNUCXX)
 
-  if(Remus_ENABLE_COVERAGE)
+  #Only enabling coverage if we're GCC
+  if(Remus_ENABLE_COVERAGE AND CMAKE_COMPILER_IS_GNUCXX)
     #We're setting the CXX flags and C flags beacuse they're propogated down
     #independent of build type.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fno-elide-constructors")
