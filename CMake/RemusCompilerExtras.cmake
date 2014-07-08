@@ -15,6 +15,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
 
   include(CheckCXXCompilerFlag)
 
+  #Add option for enabling gcov coverage -- GCC only
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    option(Remus_ENABLE_COVERAGE "Build with gcov support." OFF)
+    mark_as_advanced(Remus_ENABLE_COVERAGE)
+  endif(CMAKE_COMPILER_IS_GNUCXX)
+
+  #Only enabling coverage if we're GCC
+  if(Remus_ENABLE_COVERAGE AND CMAKE_COMPILER_IS_GNUCXX)
+    #We're setting the CXX flags and C flags beacuse they're propogated down
+    #independent of build type.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fno-elide-constructors")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+  endif()
+
   # Standard warning flags we should always have
   set(CMAKE_CXX_FLAGS_WARN " -Wall")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
