@@ -27,7 +27,7 @@ script:
   - cd ..
 
 after_success:
-  - coveralls --root . --build ./build --exclude ./thirdparty --exclude-pattern TestBuild.*|UnitTest.*
+  - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./build --exclude ./examples --exclude-pattern TestBuild.*|UnitTest.*
 
 notifications:
   email:
