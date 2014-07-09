@@ -21,7 +21,7 @@ qserver::qserver():
 {
   //set factory to an extension that is never used so that
   //all the workers come from the controls class threads
-  this->Server->startBrokering(remus::server::Server::NONE);
+  this->Server->startBrokeringWithoutSignalHandling();
   std::cout << "server is launched" << std::endl;
   emit started();
 }
