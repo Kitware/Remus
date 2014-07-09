@@ -29,6 +29,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+
+    #setup custom exclude for Remus, we do this by creating a
+    #CTestCutom.cmake file in the build tree
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
+      "set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+        \"thirdparty\"
+        \"zmq.hpp\"
+        \"UnitTest\"
+        \"TestBuild_remus_\"
+        )
+      ")
+
+
   endif()
 
   # Standard warning flags we should always have

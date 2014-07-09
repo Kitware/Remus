@@ -24,10 +24,10 @@ script:
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
   - ctest -D Experimental -j6 --schedule-random --track Travis
-  - cd ..
 
 after_success:
-  - coveralls --root .. --build . --exclude ./thirdparty --exclude-pattern TestBuild|UnitTest
+  - cd ..
+  - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?'
 
 notifications:
   email:
