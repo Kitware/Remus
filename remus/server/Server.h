@@ -123,6 +123,18 @@ public:
   //worker and client requests.
   bool startBrokering(SignalHandling sh = CAPTURE);
 
+  //when you call start brokering the server will actually start accepting
+  //worker and client requests. This is an easy helper to start with
+  //signal handling enabled
+  bool startBrokeringWithSignalHandling()
+    { return startBrokering(CAPTURE); }
+
+  //when you call start brokering the server will actually start accepting
+  //worker and client requests. This is an easy helper to start without
+  //signal handling enabled
+  bool startBrokeringWithoutSignalHandling()
+    { return startBrokering(NONE); }
+
   //when you call stop brokering, the server will stop accepting worker
   //and client requests. This will also tell all active workers that we
   //are shutting down, so they themselves will terminate. You can't stop

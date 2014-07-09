@@ -63,7 +63,7 @@ int main ()
   remus::server::Server b(factory);
 
   //start accepting connections for clients and workers
-  bool valid = b.startBrokering();
+  bool valid = b.startBrokeringWithoutSignalHandling();
   b.waitForBrokeringToFinish();
   return valid ? 0 : 1;
 }

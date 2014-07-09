@@ -162,7 +162,7 @@ void test_server_sig_catching()
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
 
-  server.startBrokering();
+  server.startBrokeringWithSignalHandling();
   }
 
   //now on destruction without calling stop brokering we should see
@@ -184,9 +184,70 @@ void test_server_sig_catching()
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+}
 
-  //now create a server without signal catching
+void test_server_no_sig_catching()
+{
+  void (*prev_sig_func)(int);
+  //first set all signals back to default, since previous
+  //tests could have been messing with the signal handler
+  signal( SIGABRT, SIG_DFL );
+  signal( SIGFPE,  SIG_DFL );
+  signal( SIGILL,  SIG_DFL );
+  signal( SIGINT,  SIG_DFL );
+  signal( SIGSEGV, SIG_DFL );
+  signal( SIGTERM, SIG_DFL );
 
+  {
+  //construct a server that will not swallow signals since
+  //it hasn't started brokering
+  remus::server::Server server;
+
+  //set all signals to be ignored
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
+
+  //now start the server for brokering without
+  //any signal hooks
+  server.startBrokeringWithoutSignalHandling();
+
+  //now verify that all signals are still set to ignored
+  prev_sig_func = signal( SIGABRT, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+  prev_sig_func = signal( SIGFPE,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+  prev_sig_func = signal( SIGILL,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+  prev_sig_func = signal( SIGINT,  SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+  prev_sig_func = signal( SIGSEGV, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+  prev_sig_func = signal( SIGTERM, SIG_IGN );
+  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
+
+
+
+  }
 }
 
 void test_server_brokering()
@@ -271,6 +332,9 @@ int UnitTestServer(int, char *[])
 
   //Test server signal catching
   test_server_sig_catching();
+
+  //Test server without signal catching enabled
+  test_server_no_sig_catching();
 
   //Test server brokering
   test_server_brokering();

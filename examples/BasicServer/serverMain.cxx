@@ -31,7 +31,7 @@ int main (int argc, char* argv[])
   remus::server::Server b(ports,factory);
 
   //start accepting connections for clients and workers
-  bool valid = b.startBrokering();
+  bool valid = b.startBrokeringWithoutSignalHandling();
   std::cout << "Brokering started, waiting for finishing" << std::endl;
   b.waitForBrokeringToFinish();
   return valid ? 0 : 1;
