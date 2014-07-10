@@ -152,10 +152,13 @@ void ActiveJobs::markExpiredJobs(remus::server::detail::SocketMonitor monitor)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
     //FINISHED is more important than failed
-    if ( !(item->second.jstatus.failed() || item->second.jstatus.finished()) &&
-          (monitor.isUnresponsive(item->second.WorkerAddress) ) )
+    const bool is_status_valid_to_expire = (item->second.jstatus.queued() ||
+                                           item->second.jstatus.inProgress());
+    const bool worker_is_unresponsive = monitor.isUnresponsive(
+                                                  item->second.WorkerAddress);
+    if (is_status_valid_to_expire && worker_is_unresponsive)
       {
-      //if a worker comes
+      //marking the job status as expired
       item->second.jstatus =
           remus::proto::JobStatus( item->second.jstatus.id(),remus::EXPIRED);
       }
