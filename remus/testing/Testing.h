@@ -38,10 +38,26 @@
   #pragma GCC diagnostic pop
 #endif
 
+//for sleeps
+#ifndef _WIN32
+  #include <unistd.h>
+#else
+  #include <windows.h>
+#endif
+
 namespace remus {
 namespace testing {
 
 namespace {
+
+static void sleep(int milliseconds)
+{
+  #ifdef _WIN32
+    Sleep(milliseconds);
+  #else
+    usleep(1000*milliseconds);
+  #endif
+}
 
 static char* full_character_set()
 {
