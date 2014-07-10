@@ -78,6 +78,21 @@ public:
   }
 
   //----------------------------------------------------------------------------
+  boost::int64_t heartbeatInterval(const zmq::SocketIdentity& socket)
+  {
+    //insert a new item if it doesn't exist, otherwise get the beatInfo already
+    //in the map
+    if(exists(socket))
+      {
+      InsertType key_value(socket,BeatInfo());
+      IteratorType iter = (this->HeartBeats.insert(key_value)).first;
+      BeatInfo& beat = iter->second;
+      return beat.Duration;
+      }
+    return boost::int64_t(0);
+  }
+
+  //----------------------------------------------------------------------------
   void markAsDead( const zmq::SocketIdentity& socket )
   {
     this->HeartBeats.erase(socket);
@@ -97,7 +112,7 @@ public:
       const BeatInfo& beat = this->HeartBeats.find(socket)->second;
       const ptime current = boost::posix_time::microsec_clock::local_time();
       const ptime expectedHB = beat.LastOccurrence +
-                               boost::posix_time::seconds(beat.Duration*2);
+                               boost::posix_time::milliseconds(beat.Duration*2);
       return current > expectedHB;
       }
 
@@ -163,6 +178,13 @@ void SocketMonitor::heartbeat( const zmq::SocketIdentity& socket,
   boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
                                                               messagePayload);
   this->Tracker->heartbeat(socket, dur_in_milli);
+}
+
+//------------------------------------------------------------------------------
+boost::int64_t SocketMonitor::heartbeatInterval(
+                                    const zmq::SocketIdentity& socket) const
+{
+  return this->Tracker->heartbeatInterval(socket);
 }
 
 //------------------------------------------------------------------------------

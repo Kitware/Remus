@@ -15,9 +15,23 @@
 
 #include <remus/testing/Testing.h>
 
+#include <boost/lexical_cast.hpp>
+
+#ifdef _WIN32
+#  include "windows.h"
+#  define usleep(X) Sleep((X))
+#else
+#  include <unistd.h>
+#endif
+
 namespace
 {
 typedef remus::server::detail::SocketMonitor SocketMonitor;
+
+void SleepForNMSecs(int t)
+{
+  usleep(t*1000);
+}
 
 //makes a random socket identity
 zmq::SocketIdentity make_socketId()
@@ -25,6 +39,14 @@ zmq::SocketIdentity make_socketId()
   boost::uuids::uuid new_uid = remus::testing::UUIDGenerator();
   const std::string str_id = boost::lexical_cast<std::string>(new_uid);
   return zmq::SocketIdentity(str_id.c_str(),str_id.size());
+}
+
+//make a heartbeat message, duration in milliseconds
+remus::proto::Message make_heartbeat( boost::int64_t dur_in_milli )
+{
+  return remus::proto::Message(remus::common::MeshIOType(),
+                               remus::HEARTBEAT,
+                               boost::lexical_cast<std::string>(dur_in_milli));
 }
 
 
@@ -70,6 +92,11 @@ void verify_existence()
   monitor.refresh(sid);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+
+  zmq::SocketIdentity sid2 = make_socketId();
+  monitor.heartbeat( sid2, make_heartbeat(250) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 }
 
 void verify_markAsDead()
@@ -82,10 +109,24 @@ void verify_markAsDead()
   monitor.markAsDead(sid);
   REMUS_ASSERT( (monitor.isDead(sid) == true) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
+
+  //do the same with heartbeating instead of refresh
+  {
+  zmq::SocketIdentity sid = make_socketId();
+  SocketMonitor monitor;
+  monitor.heartbeat( sid, make_heartbeat(250) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  monitor.markAsDead(sid);
+  REMUS_ASSERT( (monitor.isDead(sid) == true) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
+  }
+
 }
 
 void verify_resurrection()
 {
+  {
   zmq::SocketIdentity sid = make_socketId();
   SocketMonitor monitor;
   monitor.refresh(sid);
@@ -97,16 +138,106 @@ void verify_resurrection()
   monitor.refresh(sid);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  }
 
+  //do the same with heartbeating instead of refresh
+  {
+  zmq::SocketIdentity sid = make_socketId();
+  SocketMonitor monitor;
+  monitor.heartbeat( sid, make_heartbeat(250) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  monitor.markAsDead(sid);
+  REMUS_ASSERT( (monitor.isDead(sid) == true) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
+  monitor.heartbeat( sid, make_heartbeat(250) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  }
 }
+
+void verify_heartbeat_interval()
+{
+  //verify that the interval for unkown sockets is zero
+  {
+  SocketMonitor monitor;
+  zmq::SocketIdentity sid = make_socketId();
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == 0) );
+  }
+
+  //check is to verify that negative heartbeats are properly ignored
+  {
+  zmq::SocketIdentity sid = make_socketId();
+  SocketMonitor monitor;
+  monitor.heartbeat(sid, make_heartbeat(-5) ); //make a heartbeat of -5msec
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) > 0) );
+  }
+
+  //verify that a positive value heartbeat duration is stored correctly
+  //in milliseconds
+  {
+  zmq::SocketIdentity sid = make_socketId();
+  SocketMonitor monitor;
+
+  //change the timeout ranges to be smaller than the heartbeat value
+  //we pass in so that we can very the heartbeat duration is the
+  //interval value that we get back
+  monitor.pollingMonitor().changeTimeOutRates(1,5);
+
+  monitor.heartbeat(sid, make_heartbeat(10) ); //make a heartbeat of 10msec
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (10)) );
+
+
+  //change the timeout ranges to be larger than the heartbeat value
+  //we pass in so that we can very the heartbeat intervals is the min
+  //time of the polling monitor
+  monitor.pollingMonitor().changeTimeOutRates(100,500);
+
+  monitor.heartbeat(sid, make_heartbeat(10) ); //make a heartbeat of 60sec
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (100)) );
+  }
+}
+
+void verify_responiveness()
+{
+  //check is to verify that negative heartbeats are properly ignored
+  {
+  zmq::SocketIdentity sid = make_socketId();
+  SocketMonitor monitor;
+  monitor.heartbeat(sid, make_heartbeat(25) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+
+  SleepForNMSecs(10);
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  SleepForNMSecs(25);
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+
+  //after twice the interval sid's will become unresponsive
+  SleepForNMSecs(25);
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
+
+  //bring the socket back to being responsive
+  monitor.heartbeat(sid, make_heartbeat(25) );
+  REMUS_ASSERT( (monitor.isDead(sid) == false) );
+  REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+  }
+}
+
 
 }
 int UnitTestSocketMonitor(int, char *[])
 {
-  //Doesn't test heartbeating, just refreshing, that is pretty complex
-  //to test, and I currently don't have the time to write a standalone tests
-  //for tat.
-
   //These tests don't really use the poller, but that is mainly verified by
   //the ActiveJobs and WorkerPool unit tests.
   verify_constructors();
@@ -114,7 +245,8 @@ int UnitTestSocketMonitor(int, char *[])
   verify_existence();
   verify_markAsDead();
   verify_resurrection();
-
+  verify_heartbeat_interval();
+  verify_responiveness();
 
   return 0;
 }
