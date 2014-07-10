@@ -313,6 +313,8 @@ bool Server::Brokering(Server::SignalHandling sh)
         break;
     }
 
+  //construct the pollitems to have client and workers so that we process
+  //messages from both sockets.
   zmq::pollitem_t items[2] = {
       { this->Zmq->ClientQueries,  0, ZMQ_POLLIN, 0 },
       { this->Zmq->WorkerQueries, 0, ZMQ_POLLIN, 0 } };
@@ -321,13 +323,23 @@ bool Server::Brokering(Server::SignalHandling sh)
   //handle operating systems that throttle our polling.
   remus::common::PollingMonitor monitor = this->SocketMonitor->pollingMonitor();
 
-  //  Process messages from both sockets
-  boost::int64_t timeToCheckForDeadWorkers = 0; //check every 250ms
+  //keep track of current time since we last purged dead workers
+  //we want to clear every dead workers every 250ms.
+  boost::posix_time::ptime currentTime =
+                            boost::posix_time::microsec_clock::local_time();
+
+  const boost::int64_t deadWorkersCheckInterval(250);
+  boost::posix_time::ptime whenToCheckForDeadWorkers =
+                      boost::posix_time::microsec_clock::local_time() +
+                      boost::posix_time::milliseconds(deadWorkersCheckInterval);
+
   while (Thread->isBrokering())
     {
     zmq::poll(&items[0], 2, static_cast<long>(monitor.current()) );
-    timeToCheckForDeadWorkers += monitor.durationFromLastPoll();
     monitor.pollOccurred();
+
+    //update the current time
+    currentTime = boost::posix_time::microsec_clock::local_time();
 
     if (items[0].revents & ZMQ_POLLIN)
       {
@@ -353,7 +365,7 @@ bool Server::Brokering(Server::SignalHandling sh)
       }
 
     //only purge dead workers every 250ms to reduce server load
-    if(timeToCheckForDeadWorkers >=  250)
+    if(whenToCheckForDeadWorkers <= currentTime)
       {
       // std::cout << "checking for dead workers" << std::endl;
       //mark all jobs whose worker haven't sent a heartbeat in time
@@ -363,7 +375,8 @@ bool Server::Brokering(Server::SignalHandling sh)
       //purge all pending workers with jobs that haven't sent a heartbeat
       this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
 
-      timeToCheckForDeadWorkers =0;
+      whenToCheckForDeadWorkers = currentTime +
+                      boost::posix_time::milliseconds(deadWorkersCheckInterval);
       }
 
     //see if we have a worker in the pool for the next job in the queue,
