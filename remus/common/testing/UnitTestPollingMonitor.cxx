@@ -31,13 +31,9 @@ class TestPoller : public remus::common::PollingMonitor
       for(int i=0; i < 10; ++i)
         {
         start += boost::posix_time::milliseconds( this->minTimeOut() );
-        PollingMonitor::pollOccurredAt(&start);
+        PollingMonitor::fakeAPollOccurringAt(&start);
         }
     }
-
-    void pollOccurredAt( boost::posix_time::ptime* t )
-      { PollingMonitor::pollOccurredAt(t); }
-
 };
 
 void verify_constructors()
@@ -198,7 +194,7 @@ void verify_fast_polling()
   for(int i=0; i < 20; ++i)
   {
   t += boost::posix_time::milliseconds(inputTime);
-  p.pollOccurredAt(&t);
+  p.fakeAPollOccurringAt(&t);
 
   //we expect that the current will be the min
   REMUS_ASSERT ( (p.current( ) == minTime) );
@@ -230,7 +226,7 @@ void verify_slow_polling()
   for(int i=0; i < 20; ++i)
   {
   t += boost::posix_time::milliseconds(pollTimeInSecs);
-  p.pollOccurredAt(&t);
+  p.fakeAPollOccurringAt(&t);
 
   //we expect that the current will be always greater than min
   REMUS_ASSERT ( (p.current( ) > p.minTimeOut()) );
@@ -249,7 +245,7 @@ void verify_slow_polling()
   boost::int64_t previous_current = p.current();
   boost::int64_t previous_average = p.average();
   t += boost::posix_time::milliseconds(static_cast<long>(p.current()));
-  p.pollOccurredAt(&t);
+  p.fakeAPollOccurringAt(&t);
 
   REMUS_ASSERT ( (p.current( ) >= previous_current ) );
   REMUS_ASSERT ( (p.average( ) >= previous_average ) );
@@ -276,14 +272,14 @@ void verify_handles_resumes()
   TestPoller p(&t);
 
   t += boost::posix_time::hours(10);
-  p.pollOccurredAt(&t);
+  p.fakeAPollOccurringAt(&t);
 
   REMUS_ASSERT ( (p.current( ) == p.maxTimeOut()) );
   REMUS_ASSERT ( (p.average( ) > p.maxTimeOut()) );
   REMUS_ASSERT ( (p.hasAbnormalEvent( ) == true) );
 
   t += boost::posix_time::hours(10);
-  p.pollOccurredAt(&t);
+  p.fakeAPollOccurringAt(&t);
 
   REMUS_ASSERT ( (p.current( ) == p.maxTimeOut()) );
   REMUS_ASSERT ( (p.average( ) > p.maxTimeOut()) );
@@ -292,7 +288,7 @@ void verify_handles_resumes()
   while(p.current() == p.maxTimeOut())
     {
     t += boost::posix_time::milliseconds(10);
-    p.pollOccurredAt(&t);
+    p.fakeAPollOccurringAt(&t);
     }
   REMUS_ASSERT ( (p.average( ) < p.maxTimeOut()) );
   REMUS_ASSERT ( (p.hasAbnormalEvent( ) == false) );

@@ -15,26 +15,24 @@
 #include <remus/server/detail/ActiveJobs.h>
 
 #ifdef _WIN32
-#include <windows.h>
+#  include "windows.h"
+#  define usleep(X) Sleep((X))
+#else
+#  include <unistd.h>
 #endif
 
 namespace {
 
-
-void SleepForNSecs(int t)
+void SleepForNMSecs(int t)
 {
-#ifdef _WIN32
-      Sleep(t*1000);
-#else
-      sleep(t);
-#endif
+  usleep(t*1000);
 }
 
 remus::server::detail::SocketMonitor make_Monitor( )
 {
-  //make the timeouts on the poller to be 1 second for min and max, to make
+  //make the timeouts on the poller to be 100 milliseconds for min and max, to make
   //checking for expiration far easier
-  remus::common::PollingMonitor poller(1,1);
+  remus::common::PollingMonitor poller(100,100);
   remus::server::detail::SocketMonitor sm(poller);
   return sm;
 }
@@ -288,16 +286,16 @@ void verify_refresh_jobs()
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
-  SleepForNSecs(1);
+  SleepForNMSecs(100);
 
-  //even after 1 second we aren't expired
+  //even after 100 milliseconds we aren't expired
   jobs.markExpiredJobs( monitor );
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
   for(int i=0; i < 2; ++i)
     {
-    SleepForNSecs(1);
+    SleepForNMSecs(100);
     for(int j=0; j < 5; ++j)
       { monitor.refresh(socketIds_used[j]); }
     }
@@ -354,7 +352,7 @@ void verify_expire_jobs()
   //while jobs 0, 1 and 2 will be refreshed and will be valid
   for(int i=0; i < 3; ++i)
     {
-    SleepForNSecs(1);
+    SleepForNMSecs(100);
     for(int j=0; j < 3; ++j)
       { monitor.refresh(socketIds_used[j]); }
     }

@@ -50,6 +50,10 @@ public:
   void heartbeat( const zmq::SocketIdentity& socket,
                   const remus::proto::Message& msg );
 
+  //returns the interval in milliseconds between heartbeats for a socket.
+  //This should always be a positive value.
+  boost::int64_t heartbeatInterval( const zmq::SocketIdentity& socket) const;
+
   //we have been told by the socket it is shutting down, so we mark
   //the socket as fully dead.
   void markAsDead( const zmq::SocketIdentity& socket );

@@ -210,7 +210,7 @@ void PollingMonitor::pollOccurred()
 }
 
 //------------------------------------------------------------------------------
-void PollingMonitor::pollOccurredAt( boost::posix_time::ptime* t )
+void PollingMonitor::fakeAPollOccurringAt( boost::posix_time::ptime* t )
 {
   this->Tracker->pollOccurred( *t );
 }

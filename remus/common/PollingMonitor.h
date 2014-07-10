@@ -92,12 +92,12 @@ public:
   //be flushed from the system
   bool hasAbnormalEvent() const;
 
-protected:
-  //protected method that is mainly used for derived classes and testers
-  //to verify the polling algorithm without having to actually wait in
-  //real-time
+  //DANGER: Testing Only Method
+  //This method is mainly testers to verify the polling algorithm without
+  //having to actually wait in real-time
   //All times must be forward in time or you will get undefined behavior
-  virtual void pollOccurredAt( boost::posix_time::ptime* t );
+  //
+  void fakeAPollOccurringAt( boost::posix_time::ptime* t );
 
 private:
   class PollingTracker;
