@@ -52,13 +52,15 @@ endif()
 set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
 
 # List of Boost features used:
-# * Date time
+# * Circular Buffers
+# * C Types (uint16_t, int16_t, etc)
+# * Date Time
 # * Filesystem
 # * Scoped Ptr
 # * Shared Ptr
-# * String algorithms
+# * String Algorithms
 # * Threads
-# * Unordered map
+# * Unordered Map
 # * UUID Generation
 
 if(WIN32)
