@@ -133,19 +133,6 @@ public:
   }
 
   //----------------------------------------------------------------------------
-  time_duration durationFromLastPoll() const
-  {
-    const ptime currentTime = boost::posix_time::microsec_clock::local_time();
-    return currentTime - this->LastPollTime;
-  }
-
-  //----------------------------------------------------------------------------
-  const time_duration& durationOfTheLastPoll() const
-  {
-    return this->PollingFrequency.back();
-  }
-
-  //----------------------------------------------------------------------------
   //returns the current poll rate
   const time_duration& current() const
   {
@@ -226,18 +213,6 @@ void PollingMonitor::pollOccurred()
 void PollingMonitor::pollOccurredAt( boost::posix_time::ptime* t )
 {
   this->Tracker->pollOccurred( *t );
-}
-
-//------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationFromLastPoll() const
-{
-  return this->Tracker->durationFromLastPoll().total_milliseconds();
-}
-
-//------------------------------------------------------------------------------
-boost::int64_t PollingMonitor::durationOfTheLastPoll() const
-{
-  return this->Tracker->durationOfTheLastPoll().total_milliseconds();
 }
 
 //------------------------------------------------------------------------------

@@ -81,14 +81,6 @@ public:
   //mark that we just polled
   void pollOccurred( );
 
-  //returns the amount of time from now to the last time we polled
-  //the time is in milliseconds
-  boost::int64_t durationFromLastPoll() const;
-
-  //returns the amount of time from now to the last time we polled
-  //the time is in milliseconds
-  boost::int64_t durationOfTheLastPoll() const;
-
   //retrieve the current poll rate in milliseconds
   boost::int64_t current() const;
 

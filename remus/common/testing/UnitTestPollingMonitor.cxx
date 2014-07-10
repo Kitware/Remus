@@ -68,9 +68,6 @@ void verify_shared_ptr()
   //be different, but average will be
   REMUS_ASSERT( (p2.average() == p.average()) );
   REMUS_ASSERT( (p2.average() != notP.average()) );
-
-  REMUS_ASSERT( (p2.durationOfTheLastPoll() == p.durationOfTheLastPoll()) );
-  REMUS_ASSERT( (p2.durationOfTheLastPoll() != notP.durationOfTheLastPoll()) );
 }
 
 void verify_min_max()
@@ -202,10 +199,6 @@ void verify_fast_polling()
   {
   t += boost::posix_time::milliseconds(inputTime);
   p.pollOccurredAt(&t);
-
-  //since we are polling faster than the min, we expect that the
-  //current poll rate should be equal to the min
-  REMUS_ASSERT ( (p.durationOfTheLastPoll(  ) == inputTime) );
 
   //we expect that the current will be the min
   REMUS_ASSERT ( (p.current( ) == minTime) );
