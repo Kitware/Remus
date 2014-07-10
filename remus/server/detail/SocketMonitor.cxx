@@ -89,7 +89,10 @@ public:
     if(this->exists(socket))
       {
       //polling has been abnormal give it a pass
-      if(PollMonitor.hasAbnormalEvent()) { return false; }
+      if(PollMonitor.hasAbnormalEvent())
+        {
+        return false;
+        }
 
       const BeatInfo& beat = this->HeartBeats.find(socket)->second;
       const ptime current = boost::posix_time::microsec_clock::local_time();
