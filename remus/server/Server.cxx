@@ -303,14 +303,9 @@ bool Server::Brokering(Server::SignalHandling sh)
   //start up signal catching before we start polling. We do this in the
   //startBrokering method since really the server isn't doing anything before
   //this point.
-  switch (sh)
+  if(sh == CAPTURE)
     {
-    case CAPTURE:
-        this->StartCatchingSignals();
-        break;
-    case NONE:
-        //do nothing
-        break;
+    this->StartCatchingSignals();
     }
 
   zmq::pollitem_t items[2] = {
@@ -353,7 +348,7 @@ bool Server::Brokering(Server::SignalHandling sh)
       }
 
     //only purge dead workers every 250ms to reduce server load
-    if(timeToCheckForDeadWorkers >=  250)
+    if(timeToCheckForDeadWorkers >= 250)
       {
       // std::cout << "checking for dead workers" << std::endl;
       //mark all jobs whose worker haven't sent a heartbeat in time
@@ -363,7 +358,7 @@ bool Server::Brokering(Server::SignalHandling sh)
       //purge all pending workers with jobs that haven't sent a heartbeat
       this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
 
-      timeToCheckForDeadWorkers =0;
+      timeToCheckForDeadWorkers = 0;
       }
 
     //see if we have a worker in the pool for the next job in the queue,
@@ -375,7 +370,10 @@ bool Server::Brokering(Server::SignalHandling sh)
   //down all workers.
   this->TerminateAllWorkers();
 
-  this->StopCatchingSignals();
+  if(sh == CAPTURE)
+    {
+    this->StopCatchingSignals();
+    }
 
   return true;
   }
