@@ -153,6 +153,14 @@ set(KWSYS_INSTALL_LIB_DIR "lib")
 set(KWSYS_INSTALL_EXPORT_NAME Remus-targets)
 add_subdirectory(thirdparty/kwsys)
 
+# On Mac OS X, set the directory included as part of the
+# installed library's path. We only do this to libraries that we plan
+# on installing
+if (BUILD_SHARED_LIBS)
+  set_target_properties(sysTools PROPERTIES
+                        INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
+
 #setup cJson as an object library
 add_subdirectory(thirdparty/cJson)
 
