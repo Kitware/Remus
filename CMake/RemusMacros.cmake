@@ -65,7 +65,12 @@ endfunction(remus_private_headers)
 
 # Declare a library as needed to be installed
 function(remus_install_library target)
-  install(TARGETS ${target} DESTINATION lib EXPORT Remus-targets)
+  install(TARGETS ${target}
+          EXPORT Remus-targets
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          )
 
   # On Mac OS X, set the directory included as part of the
   # installed library's path. We only do this to libraries that we plan
