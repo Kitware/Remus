@@ -66,6 +66,15 @@ endfunction(remus_private_headers)
 # Declare a library as needed to be installed
 function(remus_install_library target)
   install(TARGETS ${target} DESTINATION lib EXPORT Remus-targets)
+
+  # On Mac OS X, set the directory included as part of the
+  # installed library's path. We only do this to libraries that we plan
+  # on installing
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(${target} PROPERTIES
+                          INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+  endif()
+
 endfunction(remus_install_library)
 
 function(remus_install_third_party_library target)
