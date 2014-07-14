@@ -15,8 +15,6 @@
 
 #include <csignal>
 
-#include <remus/common/CommonExports.h>
-
 namespace remus{
 namespace common{
 
@@ -31,9 +29,12 @@ namespace common{
 // Since this class is hoisting C Signals you can only have a signal instance
 // of this class in existence per process ever.
 //
-class REMUSCOMMON_EXPORT SignalCatcher
+
+//This class on purpose doesn't export it self with declspec symbols. The
+//reason is that this is a header only class and will be compiled into what
+//ever library uses it
+class SignalCatcher
 {
-  static SignalCatcher* Instance;
 public:
   enum SignalType
   {
@@ -46,6 +47,7 @@ public:
   };
 
 protected:
+  static SignalCatcher* Instance;
 
   //Call this method to start watching csignals
   //
