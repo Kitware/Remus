@@ -14,7 +14,7 @@ set(headers
     )
 
 #private common files that don't need
-#be given to the users of remus, but 
+#be given to the users of remus, but
 #are needed by other remus libraries
 set(private_headers
     PollingMonitor.h
@@ -30,7 +30,7 @@ set(srcs
 #setup the common library
 add_library(RemusCommon ${srcs} ${headers})
 target_link_libraries(RemusCommon
-                      LINK_PRIVATE sysTools
+                      LINK_PRIVATE sysTools ${Boost_LIBRARIES}
                       )
 target_include_directories(RemusCommon
                            PUBLIC  ${Boost_INCLUDE_DIRS}
