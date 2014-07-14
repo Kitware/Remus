@@ -150,15 +150,24 @@ set(KWSYS_NAMESPACE sysTools)
 set(KWSYS_USE_Process 1)
 set(KWSYS_USE_MD5 1)
 set(KWSYS_INSTALL_LIB_DIR "lib")
+set(KWSYS_INSTALL_BIN_DIR "bin")
+set(KWSYS_BUILD_SHARED OFF) #we always want to build KWSYS statically
 set(KWSYS_INSTALL_EXPORT_NAME Remus-targets)
+
 add_subdirectory(thirdparty/kwsys)
 
-# On Mac OS X, set the directory included as part of the
-# installed library's path. We only do this to libraries that we plan
-# on installing
 if (BUILD_SHARED_LIBS)
+  # On Mac OS X, set the directory included as part of the
+  # installed library's path. We only do this to libraries that we plan
+  # on installing
   set_target_properties(sysTools PROPERTIES
                         INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+
+  # When we are building shared we need to mark the static library as having
+  # position independent code enabled so it can be embedded into dynamic libraries
+  set_target_properties(sysTools PROPERTIES
+                        POSITION_INDEPENDENT_CODE True
+                        )
 endif()
 
 #setup cJson as an object library
