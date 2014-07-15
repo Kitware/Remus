@@ -50,7 +50,7 @@ namespace testing {
 
 namespace {
 
-static void sleep(int milliseconds)
+static void sleepForMillisec(int milliseconds)
 {
   #ifdef _WIN32
     Sleep(milliseconds);
