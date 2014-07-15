@@ -612,7 +612,20 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
 void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
                                      const remus::proto::Message& msg)
 {
-   //we have a valid job, determine what to do with it
+  //if we have an invalid message just ignore it
+  if(!msg.isValid())
+    {
+    return;
+    }
+
+  //Everything but TERMINATE_WORKER must have a msg payload
+  if( (msg.serviceType() != TERMINATE_WORKER) &&
+      (msg.dataSize() == 0))
+    {
+    return;
+    }
+
+  //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
     case remus::MAKE_MESH:

@@ -95,7 +95,7 @@ Message::Message(zmq::socket_t* socket)
 //------------------------------------------------------------------------------
 const char* Message::data() const
 {
-  return static_cast<char*>(this->Storage->data());
+  return this->Storage ? static_cast<char*>(this->Storage->data()) : NULL;
 }
 
 //------------------------------------------------------------------------------
