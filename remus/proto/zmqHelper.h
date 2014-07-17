@@ -47,7 +47,7 @@ inline zmq::SocketIdentity address_recv(zmq::socket_t& socket)
 //doesn't exist and we are told to shutdown we don't hang for ever
 inline void set_socket_linger(zmq::socket_t &socket)
 {
-  const int linger_duration = 25;
+  const int linger_duration = 0;
   socket.setsockopt(ZMQ_LINGER, &linger_duration, sizeof(int) );
 }
 
