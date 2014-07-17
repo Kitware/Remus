@@ -17,21 +17,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-#ifdef _WIN32
-#  include "windows.h"
-#  define usleep(X) Sleep((X))
-#else
-#  include <unistd.h>
-#endif
-
 namespace
 {
 typedef remus::server::detail::SocketMonitor SocketMonitor;
-
-void SleepForNMSecs(int t)
-{
-  usleep(t*1000);
-}
 
 //makes a random socket identity
 zmq::SocketIdentity make_socketId()
@@ -215,15 +203,15 @@ void verify_responiveness()
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 
-  SleepForNMSecs(10);
+  remus::testing::sleepForMillisec(10);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
-  SleepForNMSecs(25);
+  remus::testing::sleepForMillisec(25);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 
   //after twice the interval sid's will become unresponsive
-  SleepForNMSecs(25);
+  remus::testing::sleepForMillisec(25);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
 

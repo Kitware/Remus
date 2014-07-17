@@ -15,10 +15,6 @@
 #include <remus/server/detail/uuidHelper.h>
 #include <remus/testing/Testing.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 namespace {
 
 using namespace remus::common;
@@ -30,15 +26,6 @@ const remus::proto::JobRequirements worker_type2D(ContentFormat::User,
 const remus::proto::JobRequirements worker_type3D(ContentFormat::User,
                                                   MeshIOType(Edges(),Mesh3D()),
                                                   "", "" );
-
-void SleepForNSecs(int t)
-{
-#ifdef _WIN32
-      Sleep(t*1000);
-#else
-      sleep(t);
-#endif
-}
 
 remus::server::detail::SocketMonitor make_Monitor( )
 {
@@ -156,7 +143,7 @@ void verify_purge_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == true) );
 
   //mark workers as inactive and not ready for jobs by waiting 3 seconds
-  SleepForNSecs(3);
+  remus::testing::sleepForMillisec(3000);
 
   pool.purgeDeadWorkers(monitor);
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type2D) == false) );
