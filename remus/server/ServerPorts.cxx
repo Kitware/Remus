@@ -15,10 +15,11 @@
 
 #include <boost/make_shared.hpp>
 
-namespace
+namespace detail
 {
+
 remus::server::PortConnection bindToTCPSocket(zmq::socket_t &socket,
-                                          remus::server::PortConnection conn)
+                                    const remus::server::PortConnection& conn)
 {
   //go through all ports, I hope the input port is inside the Ephemeral range
   int rc = -1;
@@ -36,6 +37,27 @@ remus::server::PortConnection bindToTCPSocket(zmq::socket_t &socket,
     }
   return remus::server::PortConnection(socketInfo);
 }
+
+remus::server::PortConnection bind(zmq::socket_t &socket,
+                                   const remus::server::PortConnection& conn)
+{
+  //specify a default linger so that if what we are connecting to
+  //doesn't exist and we are told to shutdown we don't hang for ever
+  const int linger_duration = 100;
+  socket.setsockopt(ZMQ_LINGER,
+          &linger_duration, sizeof(int) );
+
+  if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
+    {
+    return detail::bindToTCPSocket(socket,conn);
+    }
+  else
+    {
+    socket.bind(conn.endpoint().c_str());
+    return conn;
+    }
+}
+
 
 }
 
@@ -77,27 +99,13 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
 //------------------------------------------------------------------------------
 void ServerPorts::bindClient(zmq::socket_t* socket)
 {
-  if(this->Client.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
-    {
-    this->Client = bindToTCPSocket(*socket,this->Client);
-    }
-  else
-    {
-    socket->bind(this->Client.endpoint().c_str());
-    }
+  this->Client = detail::bind(*socket,this->Client);
 }
 
 //------------------------------------------------------------------------------
 void ServerPorts::bindWorker(zmq::socket_t* socket)
 {
-  if(this->Worker.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
-    {
-    this->Worker = bindToTCPSocket(*socket,this->Worker);
-    }
-  else
-    {
-    socket->bind(this->Worker.endpoint().c_str());
-    }
+  this->Worker = detail::bind(*socket,this->Worker);
 }
 
 //end namespaces
