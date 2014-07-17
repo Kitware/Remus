@@ -16,7 +16,7 @@
 #include <remus/proto/Response.h>
 #include <remus/worker/detail/JobQueue.h>
 
-#include <remus/proto/zmq.hpp>
+#include <remus/proto/zmqHelper.h>
 
 #include <remus/testing/Testing.h>
 
@@ -32,20 +32,10 @@ remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
   static int port_offset = 0;
   ++port_offset;
 
-  int rc = -1;
   zmq::socketInfo<zmq::proto::tcp> socketInfo("127.0.0.1",
                                     port_offset + remus::SERVER_WORKER_PORT);
-  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
-    {
-    socketInfo.setPort(i);
-    //using the C syntax to skip having to catch the exception;
-    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
-    }
+  socketInfo = zmq::bindToAddress(socket,socketInfo);
 
-  if(rc!=0)
-    {
-    throw zmq::error_t();
-    }
   return remus::worker::ServerConnection(socketInfo);
 }
 
@@ -194,7 +184,7 @@ void verify_basic_comms()
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
   zmq::socket_t worker_socket(*context, ZMQ_PAIR);
-  worker_socket.bind(worker_channel.endpoint().c_str());
+  zmq::bindToAddress(worker_socket, worker_channel);
 
   JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
@@ -243,7 +233,7 @@ void verify_server_term()
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
   zmq::socket_t worker_socket(*context, ZMQ_PAIR);
-  worker_socket.bind(worker_channel.endpoint().c_str());
+  zmq::bindToAddress(worker_socket, worker_channel);
 
   JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
@@ -276,7 +266,38 @@ void verify_worker_term()
   //this is a required implementation detail caused by zmq design, also we have
   //to share the same zmq context with the inproc protocol
   zmq::socket_t worker_socket(*context, ZMQ_PAIR);
-  worker_socket.bind(worker_channel.endpoint().c_str());
+  zmq::bindToAddress(worker_socket, worker_channel);
+
+  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
+
+  //It should be noted that once you send a terminate call to a JobQueue
+  //or MessageRouter it can't be started again
+  MessageRouter mr(serverConn, *(serverConn.context()),
+                   worker_channel, queue_channel);
+  test_worker_stop_routing_call(mr,worker_socket,jq);
+
+  REMUS_ASSERT( (mr.start() == false) )
+  REMUS_ASSERT( (mr.valid() == false) )
+}
+
+void verify_server_crash_handling()
+{
+  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
+  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
+
+  //bind the serverSocket
+  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
+  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
+  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
+  //set the context on the server connection to the one we just created
+  serverConn.context(context);
+
+
+  //we need to bind to the inproc sockets before constructing the MessageRouter
+  //this is a required implementation detail caused by zmq design, also we have
+  //to share the same zmq context with the inproc protocol
+  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
+  zmq::bindToAddress(worker_socket, worker_channel);
 
   JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
 
@@ -302,6 +323,9 @@ int UnitTestMessageRouter(int, char *[])
 
   std::cout << "verify_worker_term" << std::endl;
   verify_worker_term();
+
+  std::cout << "verify_server_crash_handling" << std::endl;
+  verify_server_crash_handling();
 
   return 0;
 }

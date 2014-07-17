@@ -14,7 +14,7 @@
 #include <remus/client/Client.h>
 #include <remus/testing/Testing.h>
 
-#include <remus/proto/zmq.hpp>
+#include <remus/proto/zmqHelper.h>
 
 #include <string>
 
@@ -50,15 +50,18 @@ void verify_server_connection_inproc()
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
 
+  zmq::socketInfo<zmq::proto::inproc> inproc_info("foo_inproc");
   remus::client::ServerConnection inproc_conn =
-         remus::client::make_ServerConnection("inproc://foo_inproc");
+         remus::client::make_ServerConnection(inproc_info.endpoint());
 
   //to properly connect to an inproc_socket you first have something
   //bind to the name, otherwise the connecting socket just hangs. Also
   //the same zmq context needs to be shared between the binding and connecting
   //socket.
   zmq::socket_t inproc_bound_socket( *(inproc_conn.context()), ZMQ_REP );
-  inproc_bound_socket.bind(inproc_conn.endpoint().c_str());
+
+  //need to use zmq::socketInfo with bindToAddress
+  zmq::bindToAddress(inproc_bound_socket, inproc_info );
 
   remus::client::Client inproc_client(inproc_conn);
 

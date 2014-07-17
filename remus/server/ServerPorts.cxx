@@ -15,46 +15,33 @@
 
 #include <boost/make_shared.hpp>
 
+
+//the one class that doesn't use zmq::bindToAddress as it is the only class
+//that has a use case where it is binding to TCP-IP and need to
 namespace detail
 {
-
-remus::server::PortConnection bindToTCPSocket(zmq::socket_t &socket,
-                                    const remus::server::PortConnection& conn)
-{
-  //go through all ports, I hope the input port is inside the Ephemeral range
-  int rc = -1;
-  zmq::socketInfo<zmq::proto::tcp> socketInfo(conn.host(),conn.port());
-  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
-    {
-    socketInfo.setPort(i);
-    //using the C syntax to skip having to catch the exception;
-    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
-    }
-
-  if(rc!=0)
-    {
-    throw zmq::error_t();
-    }
-  return remus::server::PortConnection(socketInfo);
-}
 
 remus::server::PortConnection bind(zmq::socket_t &socket,
                                    const remus::server::PortConnection& conn)
 {
-  //specify a default linger so that if what we are connecting to
-  //doesn't exist and we are told to shutdown we don't hang for ever
-  const int linger_duration = 100;
-  socket.setsockopt(ZMQ_LINGER,
-          &linger_duration, sizeof(int) );
-
   if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
     {
-    return detail::bindToTCPSocket(socket,conn);
+    zmq::socketInfo<zmq::proto::tcp> sinfo(conn.host(),conn.port());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
+    }
+  else if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::ipc()))
+    {
+    zmq::socketInfo<zmq::proto::ipc> sinfo(conn.host());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
+    }
+  else if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::inproc()))
+    {
+    zmq::socketInfo<zmq::proto::inproc> sinfo(conn.host());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
     }
   else
-    {
-    socket.bind(conn.endpoint().c_str());
-    return conn;
+    { //exceptional case we can't bind to anything.
+    throw zmq::error_t();
     }
 }
 
