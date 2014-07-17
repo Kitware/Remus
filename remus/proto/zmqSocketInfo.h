@@ -36,7 +36,11 @@ struct socketInfo
   typedef _Proto Protocall;
 
   socketInfo():Host(){}
-  explicit socketInfo(const std::string& hostName):Host(hostName){}
+  explicit socketInfo(const std::string& hostName):
+    Host(hostName)
+  {
+  }
+
   std::string endpoint() const {return  zmq::proto::scheme_and_separator(Protocall()) + Host;}
   const std::string& host() const{ return Host; }
   std::string scheme() const { return zmq::proto::scheme_name(Protocall());}
