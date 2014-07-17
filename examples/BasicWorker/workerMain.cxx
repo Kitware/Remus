@@ -7,15 +7,11 @@
 =========================================================================*/
 
 #include <remus/worker/Worker.h>
+#include <remus/testing/Testing.h>
+
 #include <vector>
 #include <string>
 #include <iostream>
-
-#ifndef _WIN32
-# include <unistd.h>
-#else
-#include <windows.h>
-#endif
 
 int main (int argc, char* argv[])
 {
@@ -47,11 +43,8 @@ int main (int argc, char* argv[])
     {
     if(progress%20==0)
       {
-#ifdef _WIN32
-      Sleep(1000);
-#else
-      sleep(1);
-#endif
+      remus::testing::sleepForMillisec(1000);
+
       jprogress.setValue(progress);
       jprogress.setMessage("Example Message With Random Content");
       status.updateProgress(jprogress);

@@ -11,11 +11,8 @@
 //=============================================================================
 
 #include <iostream>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif
+
+#include <remus/testing/Testing.h>
 
 int main(int argc, char** argv)
 {
@@ -37,11 +34,7 @@ int main(int argc, char** argv)
   //determine our behavior
   if(exitNormally == 1)
     {
-#ifdef _WIN32
-      Sleep(2000);
-#else
-      sleep(2);
-#endif
+    remus::testing::sleepForMillisec(2000);
     }
   else if(pollingType == 1)
     {

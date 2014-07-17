@@ -13,12 +13,7 @@
 #include <string>
 #include <iostream>
 
-#ifndef _WIN32
-# include <unistd.h>
-#else
-#include <windows.h>
-#endif
-
+#include <remus/testing/Testing.h>
 #include <remus/worker/Worker.h>
 
 namespace

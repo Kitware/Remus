@@ -22,12 +22,6 @@
 
 #include <boost/uuid/uuid.hpp>
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif
-
 using namespace remus::worker::detail;
 
 namespace {
@@ -109,11 +103,9 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
 
   //gotta wait for all three messages to come in
   while(jq.size()<3){}
-#ifdef _WIN32
-      Sleep(2000);
-#else
-      sleep(2);
-#endif
+
+  remus::testing::sleepForMillisec(2000);
+
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==3) );
 
