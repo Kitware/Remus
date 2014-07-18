@@ -12,6 +12,7 @@
 
 #include <remus/worker/detail/MessageRouter.h>
 
+#include <remus/common/SleepFor.h>
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
 #include <remus/worker/detail/JobQueue.h>
@@ -94,7 +95,7 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   //gotta wait for all three messages to come in
   while(jq.size()<3){}
 
-  remus::testing::sleepForMillisec(2000);
+  remus::common::SleepForMillisec(2000);
 
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==3) );

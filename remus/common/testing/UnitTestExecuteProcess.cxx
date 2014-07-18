@@ -10,11 +10,13 @@
 //
 //=============================================================================
 
-#include <iostream>
 #include <remus/common/ExecuteProcess.h>
-#include <remus/testing/Testing.h>
 
+#include <remus/common/SleepFor.h>
+#include <remus/testing/Testing.h>
 #include "PathToTestExecutable.h"
+
+#include <iostream>
 
 namespace
 {
@@ -140,7 +142,7 @@ int UnitTestExecuteProcess(int, char *[])
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
 
-  remus::testing::sleepForMillisec(1000);
+  remus::common::SleepForMillisec(1000);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
 
@@ -164,7 +166,7 @@ int UnitTestExecuteProcess(int, char *[])
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
 
-  remus::testing::sleepForMillisec(1);
+  remus::common::SleepForMillisec(1);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
 

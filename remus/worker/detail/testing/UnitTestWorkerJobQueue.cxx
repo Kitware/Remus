@@ -12,6 +12,7 @@
 
 #include <remus/worker/detail/MessageRouter.h>
 
+#include <remus/common/SleepFor.h>
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
 #include <remus/worker/detail/JobQueue.h>
@@ -19,6 +20,8 @@
 #include <remus/proto/zmq.hpp>
 
 #include <remus/testing/Testing.h>
+
+
 
 #include <boost/uuid/uuid.hpp>
 
@@ -82,7 +85,7 @@ void verify_basic_comms(zmq::context_t& context)
   response.send(&jobSocket);
 
   //gotta wait for all three messages to come in
-  remus::testing::sleepForMillisec(2000);
+  remus::common::SleepForMillisec(2000);
 
   while(jq.size()<3){}
   REMUS_ASSERT( (jq.size()>0) );

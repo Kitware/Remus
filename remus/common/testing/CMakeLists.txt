@@ -21,6 +21,7 @@ set(testing_execute_process_executable
 remus_unit_test_executable(EXEC_NAME TestExecutable
                            SOURCES ${testing_execute_process_executable}
                           )
+target_link_libraries(TestExecutable LINK_PRIVATE RemusCommon)
 
 #to launch this test executable we need a header that is configured
 #with the correct path

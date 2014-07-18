@@ -39,6 +39,7 @@ remus_register_unit_test_worker(EXEC_NAME TestWorker
 #state this executable is required by unit_tests and should be placed
 #in the same location as the unit tests
 remus_unit_test_executable(EXEC_NAME TestWorker SOURCES ${testing_workers})
+target_link_libraries(TestWorker LINK_PRIVATE RemusCommon )
 
 #generate the factory paths header
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/UnitTestWorkerFactoryPaths.h.in
