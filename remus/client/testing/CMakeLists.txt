@@ -19,4 +19,4 @@ set(unit_tests
 #calls zmq directly to verify that we can properly connect a client
 #to an inproc socket
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES RemusClient  ${ZeroMQ_LIBRARIES})
+                 LIBRARIES RemusClient ${ZeroMQ_LIBRARIES})

@@ -37,8 +37,8 @@ struct ZmqManagement
     Server(InterWorkerContext, ZMQ_PAIR)
   {
   //We have to bind to the inproc socket before the MessageRouter class does
-  std::string ep = zmq::socketInfo<zmq::proto::inproc>("worker").endpoint();
-  this->Server.bind( ep.c_str() );
+  zmq::socketInfo<zmq::proto::inproc> sInfo("worker");
+  zmq::bindToAddress(this->Server, sInfo);
   }
 };
 

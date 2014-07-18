@@ -15,27 +15,36 @@
 
 #include <boost/make_shared.hpp>
 
-namespace
-{
-remus::server::PortConnection bindToTCPSocket(zmq::socket_t &socket,
-                                          remus::server::PortConnection conn)
-{
-  //go through all ports, I hope the input port is inside the Ephemeral range
-  int rc = -1;
-  zmq::socketInfo<zmq::proto::tcp> socketInfo(conn.host(),conn.port());
-  for(int i=socketInfo.port();i < 65535 && rc != 0; ++i)
-    {
-    socketInfo.setPort(i);
-    //using the C syntax to skip having to catch the exception;
-    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
-    }
 
-  if(rc!=0)
+//the one class that doesn't use zmq::bindToAddress as it is the only class
+//that has a use case where it is binding to TCP-IP and need to
+namespace detail
+{
+
+remus::server::PortConnection bind(zmq::socket_t &socket,
+                                   const remus::server::PortConnection& conn)
+{
+  if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
     {
+    zmq::socketInfo<zmq::proto::tcp> sinfo(conn.host(),conn.port());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
+    }
+  else if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::ipc()))
+    {
+    zmq::socketInfo<zmq::proto::ipc> sinfo(conn.host());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
+    }
+  else if(conn.scheme() == zmq::proto::scheme_name(zmq::proto::inproc()))
+    {
+    zmq::socketInfo<zmq::proto::inproc> sinfo(conn.host());
+    return remus::server::PortConnection( zmq::bindToAddress(socket,sinfo) );
+    }
+  else
+    { //exceptional case we can't bind to anything.
     throw zmq::error_t();
     }
-  return remus::server::PortConnection(socketInfo);
 }
+
 
 }
 
@@ -77,27 +86,13 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
 //------------------------------------------------------------------------------
 void ServerPorts::bindClient(zmq::socket_t* socket)
 {
-  if(this->Client.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
-    {
-    this->Client = bindToTCPSocket(*socket,this->Client);
-    }
-  else
-    {
-    socket->bind(this->Client.endpoint().c_str());
-    }
+  this->Client = detail::bind(*socket,this->Client);
 }
 
 //------------------------------------------------------------------------------
 void ServerPorts::bindWorker(zmq::socket_t* socket)
 {
-  if(this->Worker.scheme() == zmq::proto::scheme_name(zmq::proto::tcp()))
-    {
-    this->Worker = bindToTCPSocket(*socket,this->Worker);
-    }
-  else
-    {
-    socket->bind(this->Worker.endpoint().c_str());
-    }
+  this->Worker = detail::bind(*socket,this->Worker);
 }
 
 //end namespaces

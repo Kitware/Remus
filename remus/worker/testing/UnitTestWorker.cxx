@@ -14,7 +14,7 @@
 #include <remus/worker/Worker.h>
 #include <remus/testing/Testing.h>
 
-#include <remus/proto/zmq.hpp>
+#include <remus/proto/zmqHelper.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -46,12 +46,15 @@ zmq::socketInfo<zmq::proto::inproc> make_inproc_socket(std::string host)
 class fake_server
 {
 public:
-  fake_server(remus::worker::ServerConnection& conn):
-    WorkerComm((*conn.context()),ZMQ_ROUTER),
+  template<typename ProtoType>
+  fake_server(zmq::socketInfo<ProtoType>& conn,
+               boost::shared_ptr<zmq::context_t> context):
+    WorkerComm((*context),ZMQ_ROUTER),
     PollingThread( new boost::thread() ),
     ContinuePolling(true)
   {
-    this->WorkerComm.bind( conn.endpoint().c_str() );
+    zmq::bindToAddress(this->WorkerComm, conn);
+
     //start up our thread
     boost::scoped_ptr<boost::thread> pollingThread(
                              new boost::thread( &fake_server::poll, this) );
@@ -80,39 +83,48 @@ private:
   bool ContinuePolling;
 };
 
+void verify_server_connection_tcpip()
+{
+  using namespace remus::meshtypes;
+  const remus::common::MeshIOType mtype =
+                          remus::common::make_MeshIOType(Model(),Model());
+
+  zmq::socketInfo<zmq::proto::tcp> local_socket("127.0.0.1",
+                                                  remus::SERVER_WORKER_PORT);
+  remus::worker::ServerConnection tcp_ip_conn(local_socket);
+
+  //start up server to talk to worker
+  fake_server fake_def_server(local_socket, tcp_ip_conn.context());
+  remus::worker::Worker default_worker(mtype,tcp_ip_conn);
+
+  const remus::worker::ServerConnection& sc = default_worker.connection();
+
+  REMUS_ASSERT( (sc.endpoint().size() > 0) );
+  REMUS_ASSERT( (sc.endpoint() == local_socket.endpoint()) );
+  REMUS_ASSERT( (sc.endpoint() ==
+         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
+
+  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
+}
+
 void verify_server_connection_inproc()
 {
   using namespace remus::meshtypes;
   const remus::common::MeshIOType mtype =
                           remus::common::make_MeshIOType(Model(),Model());
 
-  remus::worker::ServerConnection default_sc;
+  zmq::socketInfo<zmq::proto::inproc> inproc_info("foo_inproc");
+  remus::worker::ServerConnection inproc_conn(inproc_info);
 
-  fake_server fake_def_server(default_sc); //start up server to talk to worker
-  remus::worker::Worker default_worker(mtype,default_sc);
-
-  const remus::worker::ServerConnection& sc = default_worker.connection();
-
-  REMUS_ASSERT( (sc.endpoint().size() > 0) );
-  zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_WORKER_PORT);
-  REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
-  REMUS_ASSERT( (sc.endpoint() ==
-         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
-
-  remus::worker::ServerConnection inproc_conn =
-         remus::worker::make_ServerConnection("inproc://foo_inproc");
-
-  fake_server inproc_server(inproc_conn);
+  fake_server inproc_server(inproc_info, inproc_conn.context());
   remus::worker::Worker inproc_worker(mtype,inproc_conn);
-
 
   REMUS_ASSERT( (inproc_worker.connection().endpoint() ==
                  make_inproc_socket("foo_inproc").endpoint()) );
 
   //share a connection between two workers that share the same context and
   //channel. This shows that you can have multiple works sharing the same
-  //inproc or ipc context.
+  //inproc context.
   remus::worker::ServerConnection conn2 =
     remus::worker::make_ServerConnection(inproc_worker.connection().endpoint());
   conn2.context(inproc_conn.context());
@@ -124,8 +136,6 @@ void verify_server_connection_inproc()
   REMUS_ASSERT( (inproc_worker.connection().context() ==
                  inproc_worker2.connection().context() ) );
 
-  //test local host bool with tcp ip
-  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (inproc_worker.connection().isLocalEndpoint()==true) );
 }
 
@@ -135,32 +145,28 @@ void verify_server_connection_ipc()
   const remus::common::MeshIOType mtype =
                           remus::common::make_MeshIOType(Model(),Model());
 
-  remus::worker::ServerConnection default_sc;
+  zmq::socketInfo<zmq::proto::ipc> ipc_info("foo_ipc");
+  remus::worker::ServerConnection ipc_conn(ipc_info);
 
-  fake_server fake_def_server(default_sc); //start up server to talk to worker
-  remus::worker::Worker default_worker(mtype,default_sc);
-
-  const remus::worker::ServerConnection& sc = default_worker.connection();
-
-  REMUS_ASSERT( (sc.endpoint().size() > 0) );
-  zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_WORKER_PORT);
-  REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
-  REMUS_ASSERT( (sc.endpoint() ==
-         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
-
-
-  remus::worker::ServerConnection ipc_conn =
-        remus::worker::make_ServerConnection("ipc://foo_ipc");
-  fake_server ipc_server(ipc_conn);
+  fake_server ipc_server(ipc_info,ipc_conn.context());
   remus::worker::Worker ipc_worker(mtype,ipc_conn);
 
   REMUS_ASSERT( (ipc_worker.connection().endpoint() ==
                  make_ipc_socket("foo_ipc").endpoint()) );
-
-  //test local host bool with tcp ip
-  REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
   REMUS_ASSERT( (ipc_worker.connection().isLocalEndpoint()==true) );
+
+  //share a connection between two workers that share the same context and
+  //channel. This shows that you can have multiple works sharing the same
+  //ipc context.
+  remus::worker::ServerConnection conn2 =
+    remus::worker::make_ServerConnection(ipc_worker.connection().endpoint());
+  conn2.context(ipc_conn.context());
+  remus::worker::Worker ipc_worker2(mtype,conn2);
+
+  REMUS_ASSERT( (ipc_worker2.connection().endpoint() ==
+                 make_ipc_socket("foo_ipc").endpoint()) );
+  REMUS_ASSERT( (ipc_worker.connection().context() ==
+                 ipc_worker2.connection().context() ) );
 
 }
 
@@ -169,9 +175,10 @@ void verify_server_connection_ipc()
 
 int UnitTestWorker(int, char *[])
 {
-  #ifndef _WIN32
-  verify_server_connection_ipc();
-  #endif
+  verify_server_connection_tcpip();
   verify_server_connection_inproc();
+#ifndef _WIN32
+  verify_server_connection_ipc();
+#endif
   return 0;
 }

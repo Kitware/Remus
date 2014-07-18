@@ -86,14 +86,18 @@ public:
     Worker(w)
   { }
 
-  //will attempt to bind the passed in socket to client tcp-ip port we hold
-  //if the bind fails, we will continue increasing the port number intill we find
+  //will attempt to bind the passed in socket to client port connection endpoint
+  //that we where constructed with. If that is a tcp-ip endpoing and the bind
+  //fails we will continue increasing the port number intill we find
   //a valid port. We will update our client socket info with the new valid information
+  //Requires: socket to be non NULL
   void bindClient(zmq::socket_t* socket);
 
-  //will attempt to bind the passed in socket to worker tcp-ip port we hold
-  //if the bind fails, we will continue increasing the port number intill we find
+  //will attempt to bind the passed in socket to worker port connection endpoint
+  //that we where constructed with. If that is a tcp-ip endpoing and the bind
+  //fails we will continue increasing the port number intill we find
   //a valid port. We will update our worker socket info with the new valid information
+  //Requires: socket to be non NULL
   void bindWorker(zmq::socket_t* socket);
 
   const PortConnection& client() const

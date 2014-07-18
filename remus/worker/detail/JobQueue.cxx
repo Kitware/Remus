@@ -67,7 +67,7 @@ JobQueueImplementation(zmq::context_t& context,
   ContinuePolling(true)
 {
   //bind to the work_jobs communication channel first
-  this->ServerComm.bind( this->EndPoint.c_str() );
+  this->EndPoint = zmq::bindToAddress(this->ServerComm, queue_info).endpoint();
 
   //start up our thread
   boost::scoped_ptr<boost::thread> pollingThread(
