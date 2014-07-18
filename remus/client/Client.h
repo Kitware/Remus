@@ -76,9 +76,10 @@ public:
   //Return job result of of a give job
   remus::proto::JobResult retrieveResults(const remus::proto::Job& job);
 
-  //attempts to terminate a given job, will kill the worker of a job
-  //if the job is still pending. If the job has been finished and the results
-  //are on the server the results will be deleted.
+  //attempts to terminate a given job, will kill the job if the job hasn't
+  //started. If the job has been finished and the results
+  //are on the server the results will be deleted. If the job is in process
+  //this will be unable to kill the job.
   remus::proto::JobStatus terminate(const remus::proto::Job& job);
 
 protected:
