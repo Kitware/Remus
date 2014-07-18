@@ -21,7 +21,7 @@ namespace remus{
 namespace proto{
 
 //----------------------------------------------------------------------------
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
+Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype,
                  const std::string& mdata):
   MType(mtype),
   SType(stype),
@@ -34,8 +34,8 @@ Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
 //----------------------------------------------------------------------------
 //pass in a data pointer that the message will use when sending
 //the pointer data can't become invalid before you call send.
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
-                 const char* mdata, int size):
+Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype,
+                 const char* mdata, std::size_t size):
   MType(mtype),
   SType(stype),
   ValidMsg(true),
@@ -46,7 +46,7 @@ Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
 
 //----------------------------------------------------------------------------
 //creates a job message with no data
-Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype):
+Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
   MType(mtype),
   SType(stype),
   ValidMsg(true),
@@ -125,11 +125,13 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
   //frame 2: Service Type
   //frame 3: Job Data //optional
 
-  if(!this->ValidMsg)
+  //we have to be valid to be sent
+  if(!this->isValid())
     {
     return false;
     }
-  zmq::attachReqHeader(*socket);
+
+  zmq::attachReqHeader(*socket,flags);
 
   bool valid = true;
   zmq::message_t meshIOType(sizeof(this->MType));
