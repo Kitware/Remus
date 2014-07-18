@@ -47,8 +47,13 @@ inline zmq::SocketIdentity address_recv(zmq::socket_t& socket)
 //doesn't exist and we are told to shutdown we don't hang for ever
 inline void set_socket_linger(zmq::socket_t &socket)
 {
-  const int linger_duration = 25;
+  const int linger_duration = 250;
   socket.setsockopt(ZMQ_LINGER, &linger_duration, sizeof(int) );
+
+  socket.setsockopt(ZMQ_RCVTIMEO, &linger_duration, sizeof(int) );
+  socket.setsockopt(ZMQ_SNDTIMEO, &linger_duration, sizeof(int) );
+
+
 }
 
 //bind to initialInfo socket, and return that socket info
@@ -113,7 +118,12 @@ inline bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flag
   short tries = 0;
   while(!sent && tries < 5)
     {
-    try{sent = socket.send(message,flags);}
+    std::cout << "send_harder" << tries << std::endl;
+    try
+      {
+      sent = socket.send(message,flags);
+      if (!sent) { ++tries; }
+      }
     catch(error_t){ ++tries; }
     }
   return sent;
@@ -132,7 +142,12 @@ inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
   short tries = 0;
   while(!recieved && tries < 5)
     {
-    try{recieved = socket.recv(message,flags);}
+    std::cout << "recv_harder" << tries << std::endl;
+    try
+      {
+      recieved = socket.recv(message,flags);
+      if (!recieved) { ++tries; }
+      }
     catch(error_t){ ++tries; }
     }
   return recieved;

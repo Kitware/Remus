@@ -34,23 +34,25 @@ class REMUSPROTO_EXPORT Message
 {
 public:
   //----------------------------------------------------------------------------
-  //pass in a data string the job message will copy and send
+  //pass in a std::string that Message will copy and send
   Message(remus::common::MeshIOType mtype,
-          SERVICE_TYPE stype,
+          remus::common::SERVICE_TYPE stype,
           const std::string& data);
 
   //----------------------------------------------------------------------------
-  //pass in a data pointer that the message will copy and send
-  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
+  //pass in a data pointer that Message will copy and send
+  Message(remus::common::MeshIOType mtype,
+          remus::common::SERVICE_TYPE stype,
           const char* data, int size);
 
   //----------------------------------------------------------------------------
-  //creates a job message with no data
-  Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype);
+  //creates a Message with no data
+  Message(remus::common::MeshIOType mtype,
+          remus::common::SERVICE_TYPE stype);
 
   //----------------------------------------------------------------------------
-  //creates a job message from reading in the socket
-  Message(zmq::socket_t* socket);
+  //creates a Message from reading from the socket
+  explicit Message(zmq::socket_t* socket);
 
   //send a blocking message
   bool send(zmq::socket_t* socket) const;
@@ -72,7 +74,7 @@ private:
 
   remus::common::MeshIOType MType;
   remus::SERVICE_TYPE SType;
-  bool ValidMsg; //tells if the message is valid, mainly used by the server
+  bool ValidMsg; //tells if the message is valid
 
   boost::shared_ptr<zmq::message_t> Storage;
 };

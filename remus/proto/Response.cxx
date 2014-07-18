@@ -40,11 +40,6 @@ Response::Response(zmq::socket_t* socket):
 }
 
 //------------------------------------------------------------------------------
-Response::~Response()
-{
-}
-
-//------------------------------------------------------------------------------
 void Response::setData(const std::string& t)
   {
   this->Storage->rebuild(t.size());
@@ -52,13 +47,31 @@ void Response::setData(const std::string& t)
   }
 
 //------------------------------------------------------------------------------
-std::string Response::data() const
+const char* Response::data() const
 {
-  return std::string(static_cast<char*>(this->Storage->data()),this->Storage->size());
+  return this->Storage ? static_cast<char*>(this->Storage->data()) : NULL;
 }
 
 //------------------------------------------------------------------------------
-bool Response::send(zmq::socket_t* socket) const
+std::size_t Response::dataSize() const
+{
+  return this->Storage ? this->Storage->size() : std::size_t(0);
+}
+
+//------------------------------------------------------------------------------
+bool Response::send(zmq::socket_t *socket) const
+{
+  return this->send_impl(socket);
+}
+
+//------------------------------------------------------------------------------
+bool Response::sendNonBlocking(zmq::socket_t *socket) const
+{
+  return this->send_impl(socket,ZMQ_DONTWAIT);
+}
+
+//------------------------------------------------------------------------------
+bool Response::send_impl(zmq::socket_t* socket) const
   {
   //if we have no data we will return false, since we couldn't send anything
   if(!this->Storage)

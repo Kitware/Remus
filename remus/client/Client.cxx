@@ -56,9 +56,11 @@ const remus::client::ServerConnection& Client::connection() const
 //------------------------------------------------------------------------------
 bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 {
+  std::cout << "canMesh" << std::endl;
   remus::proto::Message j(meshtypes, remus::CAN_MESH);
   j.send(&this->Zmq->Server);
 
+  std::cout << "canMesh" << std::endl;
   remus::proto::Response response(&this->Zmq->Server);
   std::istringstream buffer(response.data());
 
