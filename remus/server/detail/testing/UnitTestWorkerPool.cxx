@@ -11,8 +11,10 @@
 //=============================================================================
 #include <remus/server/detail/WorkerPool.h>
 
+#include <remus/common/SleepFor.h>
 #include <remus/proto/zmqSocketIdentity.h>
 #include <remus/server/detail/uuidHelper.h>
+
 #include <remus/testing/Testing.h>
 
 namespace {
@@ -143,7 +145,7 @@ void verify_purge_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == true) );
 
   //mark workers as inactive and not ready for jobs by waiting 3 seconds
-  remus::testing::sleepForMillisec(3000);
+  remus::common::SleepForMillisec(3000);
 
   pool.purgeDeadWorkers(monitor);
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type2D) == false) );

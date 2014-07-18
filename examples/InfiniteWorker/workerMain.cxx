@@ -7,11 +7,11 @@
 =========================================================================*/
 
 #include <remus/worker/Worker.h>
+#include <remus/common/SleepFor.h>
+
 #include <vector>
 #include <string>
 #include <iostream>
-
-#include <remus/testing/Testing.h>
 
 int main (int argc, char* argv[])
 {
@@ -53,7 +53,7 @@ int main (int argc, char* argv[])
       {
       if(progress%20==0)
         {
-        remus::testing::sleepForMillisec(1000);
+        remus::common::SleepForMillisec(1000);
         jprogress.setValue(progress);
         jprogress.setMessage("Random Content From InfiniteWorker");
         status.updateProgress(jprogress);

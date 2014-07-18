@@ -11,7 +11,7 @@
 //=============================================================================
 
 #include <iostream>
-#include <remus/testing/Testing.h> //for sleep
+#include <remus/common/SleepFor.h>
 
 int main(int argc, char** argv)
 {
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
   //determine our behavior
   if(exitNormally == 1)
     {
-    remus::testing::sleepForMillisec(1000);
+    remus::common::SleepForMillisec(1000);
     }
   else if(pollingType == 1)
     {

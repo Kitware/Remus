@@ -11,8 +11,9 @@
 //=============================================================================
 
 #include <remus/server/detail/SocketMonitor.h>
-#include <remus/proto/zmqSocketIdentity.h>
 
+#include <remus/common/SleepFor.h>
+#include <remus/proto/zmqSocketIdentity.h>
 #include <remus/testing/Testing.h>
 
 #include <boost/lexical_cast.hpp>
@@ -89,6 +90,7 @@ void verify_existence()
 
 void verify_markAsDead()
 {
+  {
   zmq::SocketIdentity sid = make_socketId();
   SocketMonitor monitor;
   monitor.refresh(sid);
@@ -97,6 +99,7 @@ void verify_markAsDead()
   monitor.markAsDead(sid);
   REMUS_ASSERT( (monitor.isDead(sid) == true) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
+  }
 
   //do the same with heartbeating instead of refresh
   {
@@ -203,15 +206,15 @@ void verify_responiveness()
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 
-  remus::testing::sleepForMillisec(10);
+  remus::common::SleepForMillisec(10);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
-  remus::testing::sleepForMillisec(25);
+  remus::common::SleepForMillisec(25);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 
   //after twice the interval sid's will become unresponsive
-  remus::testing::sleepForMillisec(25);
+  remus::common::SleepForMillisec(25);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
 

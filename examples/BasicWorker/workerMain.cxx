@@ -7,7 +7,7 @@
 =========================================================================*/
 
 #include <remus/worker/Worker.h>
-#include <remus/testing/Testing.h>
+#include <remus/common/SleepFor.h>
 
 #include <vector>
 #include <string>
@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
     {
     if(progress%20==0)
       {
-      remus::testing::sleepForMillisec(1000);
+      remus::common::SleepForMillisec(1000);
 
       jprogress.setValue(progress);
       jprogress.setMessage("Example Message With Random Content");

@@ -11,6 +11,7 @@ set(headers
     MeshTypes.h
     remusGlobals.h
     SignalCatcher.h
+    SleepFor.h
     )
 
 #private common files that don't need

@@ -9,10 +9,11 @@
 //  PURPOSE.  See the above copyright notice for more information.
 //
 //=============================================================================
-
-
-#include <remus/testing/Testing.h>
 #include <remus/server/detail/ActiveJobs.h>
+
+#include <remus/common/SleepFor.h>
+#include <remus/testing/Testing.h>
+
 
 namespace {
 
@@ -274,7 +275,7 @@ void verify_refresh_jobs()
   for(int i=0; i < 5; ++i)
     { REMUS_ASSERT( (jobs.status(uuids_used[i]).status() == remus::QUEUED) ); }
 
-  remus::testing::sleepForMillisec(100);
+  remus::common::SleepForMillisec(100);
 
   //even after 100 milliseconds we aren't expired
   jobs.markExpiredJobs( monitor );
@@ -283,7 +284,7 @@ void verify_refresh_jobs()
 
   for(int i=0; i < 2; ++i)
     {
-    remus::testing::sleepForMillisec(100);
+    remus::common::SleepForMillisec(100);
     for(int j=0; j < 5; ++j)
       { monitor.refresh(socketIds_used[j]); }
     }
@@ -340,7 +341,7 @@ void verify_expire_jobs()
   //while jobs 0, 1 and 2 will be refreshed and will be valid
   for(int i=0; i < 3; ++i)
     {
-    remus::testing::sleepForMillisec(100);
+    remus::common::SleepForMillisec(100);
     for(int j=0; j < 3; ++j)
       { monitor.refresh(socketIds_used[j]); }
     }
