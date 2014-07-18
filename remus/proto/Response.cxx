@@ -13,38 +13,60 @@
 
 #include <remus/proto/zmqHelper.h>
 
+#include <boost/make_shared.hpp>
+
 namespace remus{
 namespace proto{
 
 //----------------------------------------------------------------------------
-Response::Response(const zmq::SocketIdentity& client):
-  ClientAddress(client),
+Response::Response():
   SType(remus::INVALID_SERVICE),
-  Storage( new zmq::message_t() )
-  {
-  }
+  ValidResponse(false),
+  Storage( )
+{
+}
+
+//----------------------------------------------------------------------------
+Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
+  SType(stype),
+  ValidResponse(true),
+  Storage( boost::make_shared<zmq::message_t>(rdata.size()) )
+{
+  memcpy(this->Storage->data(),rdata.data(),rdata.size());
+}
+
+//----------------------------------------------------------------------------
+Response::Response(remus::SERVICE_TYPE stype,
+                   const char* rdata, std::size_t size):
+  SType(stype),
+  ValidResponse(true),
+  Storage( boost::make_shared<zmq::message_t>(size) )
+{
+  memcpy(this->Storage->data(),rdata,size);
+}
 
 //----------------------------------------------------------------------------
 Response::Response(zmq::socket_t* socket):
-  ClientAddress(),
   SType(remus::INVALID_SERVICE),
-  Storage( new zmq::message_t() )
+  ValidResponse(false), //false by default in case we failed to recv everything
+  Storage( boost::make_shared<zmq::message_t>() )
 {
-  zmq::removeReqHeader(*socket);
+  const bool removedHeader = zmq::removeReqHeader(*socket);
 
-  zmq::message_t servType;
-  zmq::recv_harder(*socket,&servType);
-  this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
-
-  zmq::recv_harder(*socket,this->Storage.get());
+  if(removedHeader)
+    {
+    zmq::message_t servType;
+    const bool parsedServiceType = zmq::recv_harder(*socket,&servType);
+    if(parsedServiceType)
+      {
+      this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
+      const bool recvStorage = zmq::recv_harder(*socket,this->Storage.get());
+      //if recvStorage is true than we received every chunk of data and we
+      //are valid
+      this->ValidResponse = recvStorage;
+      }
+    }
 }
-
-//------------------------------------------------------------------------------
-void Response::setData(const std::string& t)
-  {
-  this->Storage->rebuild(t.size());
-  memcpy(this->Storage->data(),t.data(),t.size());
-  }
 
 //------------------------------------------------------------------------------
 const char* Response::data() const
@@ -59,46 +81,59 @@ std::size_t Response::dataSize() const
 }
 
 //------------------------------------------------------------------------------
-bool Response::send(zmq::socket_t *socket) const
+bool Response::send(zmq::socket_t *socket,
+                    const zmq::SocketIdentity& client) const
 {
-  return this->send_impl(socket);
+  return this->send_impl(socket,client);
 }
 
 //------------------------------------------------------------------------------
-bool Response::sendNonBlocking(zmq::socket_t *socket) const
+bool Response::sendNonBlocking(zmq::socket_t *socket,
+                               const zmq::SocketIdentity& client) const
 {
-  return this->send_impl(socket,ZMQ_DONTWAIT);
+  return this->send_impl(socket,client,ZMQ_DONTWAIT);
 }
 
 //------------------------------------------------------------------------------
-bool Response::send_impl(zmq::socket_t* socket) const
-  {
-  //if we have no data we will return false, since we couldn't send anything
-  if(!this->Storage)
+bool Response::send_impl(zmq::socket_t* socket,
+                         const zmq::SocketIdentity& client,
+                         int flags) const
+{
+  //we are sending our selves as a multi part message
+  //frame 0: client address we need to route too
+  //frame 1: fake rep spacer
+  //frame 2: Service Type we are responding too
+  //frame 3: data
+
+  //we have to be valid to be sent
+  if(!this->isValid())
     {
     return false;
     }
 
-  //we are sending our selves as a multi part message
-  //frame 0: client address we need to route too [optional]
-  //frame 1: fake rep spacer
-  //frame 2: Service Type we are responding too
-  //frame 3: data
-  if(this->ClientAddress.size()>0)
+  bool responseSent = false;
+  zmq::message_t cAddress(client.size());
+  memcpy(cAddress.data(),client.data(),client.size());
+  const bool sentClientAddress = zmq::send_harder( *socket,
+                                               cAddress, flags|ZMQ_SNDMORE );
+  if(sentClientAddress)
     {
-    zmq::message_t cAddress(this->ClientAddress.size());
-    memcpy(cAddress.data(),this->ClientAddress.data(),this->ClientAddress.size());
-    zmq::send_harder(*socket,cAddress,ZMQ_SNDMORE);
+    const bool sentFakeReq = zmq::attachReqHeader(*socket,flags);
+    if(sentFakeReq)
+      {
+      zmq::message_t service(sizeof(this->SType));
+      memcpy(service.data(),&this->SType,sizeof(this->SType));
+
+      const bool sentServiceType = zmq::send_harder( *socket,
+                                                 service, flags|ZMQ_SNDMORE );
+      if(sentServiceType)
+        {
+        responseSent = zmq::send_harder( *socket, *this->Storage.get(), flags);
+        }
+      }
     }
+  return responseSent;
+}
 
-  zmq::attachReqHeader(*socket);
-
-  zmq::message_t service(sizeof(this->SType));
-  memcpy(service.data(),&this->SType,sizeof(this->SType));
-  zmq::send_harder(*socket,service,ZMQ_SNDMORE);
-
-  zmq::send_harder(*socket,*this->Storage.get());
-  return true;
-  }
 }
 }

@@ -39,16 +39,13 @@ public:
   explicit Response();
 
   //----------------------------------------------------------------------------
-  //construct a response to send, which has no data
-  explicit Response(remus::common::SERVICE_TYPE);
-
-  //----------------------------------------------------------------------------
   //construct a response, the contents of the string will copied and sent.
-  Response(remus::common::SERVICE_TYPE, const std::string& data);
+  Response(remus::SERVICE_TYPE stype, const std::string& data);
 
   //----------------------------------------------------------------------------
   //construct a response, the contents of the data pointer will copied and sent.
-  Response(remus::common::SERVICE_TYPE, const char* data, int size);
+  Response(remus::SERVICE_TYPE stype, const char* data,
+           std::size_t size);
 
   //----------------------------------------------------------------------------
   //create a response from reading from the socket
@@ -63,12 +60,12 @@ public:
   const char* data() const;
   std::size_t dataSize() const;
 
-  bool isValid() const { return ValidMsg; }
+  bool isValid() const { return ValidResponse; }
 
 private:
-  bool send_impl(zmq::socket_t* socket, int flags = 0) const;
+  bool send_impl(zmq::socket_t* socket,  const zmq::SocketIdentity& client,
+                 int flags = 0) const;
 
-  const zmq::SocketIdentity ClientAddress; //which client to send this response too
   remus::SERVICE_TYPE SType;
   bool ValidResponse; //tells if the response is valid
 
