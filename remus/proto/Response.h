@@ -74,10 +74,6 @@ private:
   bool FullyFormed;
 
   boost::shared_ptr<zmq::message_t> Storage;
-
-  //make copying not possible
-  Response (const Response&);
-  void operator = (const Response&);
 };
 
 }
