@@ -164,10 +164,9 @@ void poll()
         {
         //send the terminate worker message to the job queue too
         remus::worker::Job terminateJob;
-        remus::proto::Response termJob( (zmq::SocketIdentity()) );
-        termJob.setServiceType(remus::TERMINATE_WORKER);
-        termJob.setData(remus::worker::to_string(terminateJob));
-        termJob.send(&this->QueueComm);
+        remus::proto::Response termJob( remus::TERMINATE_WORKER,
+                                        remus::worker::to_string(terminateJob));
+        termJob.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()) );
 
         this->setIsTalking(false);
         }
@@ -180,21 +179,29 @@ void poll()
     if(items[1].revents & ZMQ_POLLIN)
       {
       remus::proto::Response response(&this->ServerComm);
-      switch(response.serviceType())
+      const bool goodToForward = response.isFullyFormed() &&
+                                 response.isValidService();
+      if(goodToForward)
+        {
+        switch(response.serviceType())
           {
           case remus::TERMINATE_WORKER:
-            response.send(&this->QueueComm);
+            response.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()));
             this->setIsTalking(false);
             break;
           case remus::TERMINATE_JOB:
             //send the terminate to the job queue since it holds the jobs
           case remus::MAKE_MESH:
             //send the job to the queue so that somebody can take it later
-            response.send(&this->QueueComm);
+            response.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()));
             break;
           default:
-            response.send(&this->WorkerComm);
+            // do nothing if it isn't terminate_job, terminate_worker
+            // or make_mesh.
+            // response.send(&this->WorkerComm);
+            break;
           }
+        }
       }
     if(!sentToServer)
       {
