@@ -23,7 +23,12 @@ class SocketMonitor::WorkerTracker
 {
   typedef boost::posix_time::ptime ptime;
 
-  struct BeatInfo { boost::int64_t Duration; ptime LastOccurrence; };
+  struct BeatInfo
+    {
+    boost::int64_t Duration;
+    ptime LastOccurrence;
+    };
+
 public:
   remus::common::PollingMonitor PollMonitor;
 
@@ -55,9 +60,12 @@ public:
 
     beat.LastOccurrence = boost::posix_time::microsec_clock::local_time();
 
-    //update our duration to be the next timeout for the poller, since if
-    //we are refreshing a socket we are getting regular communication from it
-    beat.Duration  = (PollMonitor.hasAbnormalEvent() ? PollMonitor.maxTimeOut() : PollMonitor.current());
+    //look at the duration we have are currently polling at, and
+    //the current duration that we last polled the worker at, take the slower
+    //of the two. When the server has a really low heartbeat rate and the
+    //and worker has a slow heartbeat we don't want to eliminate living workers
+    const boost::int64_t polldur = (PollMonitor.hasAbnormalEvent() ? PollMonitor.maxTimeOut() : PollMonitor.current());
+    beat.Duration = std::max(beat.Duration,polldur);
   }
 
   //----------------------------------------------------------------------------
