@@ -92,17 +92,22 @@ bool Response::send_impl(zmq::socket_t* socket,
                          int flags) const
 {
   //we are sending our selves as a multi part message
-  //frame 0: client address we need to route too
+  //frame 0: client address we need to route too [Optional]
   //frame 1: fake rep spacer
   //frame 2: Service Type we are responding too
   //frame 3: data
 
   bool responseSent = false;
-  zmq::message_t cAddress(client.size());
-  memcpy(cAddress.data(),client.data(),client.size());
-  const bool sentClientAddress = zmq::send_harder( *socket,
-                                               cAddress, flags|ZMQ_SNDMORE );
-  if(sentClientAddress)
+
+  bool clientSent = true; //true on purpose to handle optional client
+  if(client.size()>0)
+    {
+    zmq::message_t cAddress(client.size());
+    memcpy(cAddress.data(),client.data(),client.size());
+    clientSent = zmq::send_harder( *socket, cAddress, flags|ZMQ_SNDMORE );
+    }
+
+  if(clientSent)
     {
     const bool sentFakeReq = zmq::attachReqHeader(*socket,flags);
     if(sentFakeReq)
