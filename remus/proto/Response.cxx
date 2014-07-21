@@ -19,17 +19,9 @@ namespace remus{
 namespace proto{
 
 //----------------------------------------------------------------------------
-Response::Response():
-  SType(remus::INVALID_SERVICE),
-  ValidResponse(false),
-  Storage( )
-{
-}
-
-//----------------------------------------------------------------------------
 Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
   SType(stype),
-  ValidResponse(true),
+  FullyFormed(true),
   Storage( boost::make_shared<zmq::message_t>(rdata.size()) )
 {
   memcpy(this->Storage->data(),rdata.data(),rdata.size());
@@ -39,7 +31,7 @@ Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
 Response::Response(remus::SERVICE_TYPE stype,
                    const char* rdata, std::size_t size):
   SType(stype),
-  ValidResponse(true),
+  FullyFormed(true),
   Storage( boost::make_shared<zmq::message_t>(size) )
 {
   memcpy(this->Storage->data(),rdata,size);
@@ -48,7 +40,7 @@ Response::Response(remus::SERVICE_TYPE stype,
 //----------------------------------------------------------------------------
 Response::Response(zmq::socket_t* socket):
   SType(remus::INVALID_SERVICE),
-  ValidResponse(false), //false by default in case we failed to recv everything
+  FullyFormed(false), //false by default in case we failed to recv everything
   Storage( boost::make_shared<zmq::message_t>() )
 {
   const bool removedHeader = zmq::removeReqHeader(*socket);
@@ -63,7 +55,7 @@ Response::Response(zmq::socket_t* socket):
       const bool recvStorage = zmq::recv_harder(*socket,this->Storage.get());
       //if recvStorage is true than we received every chunk of data and we
       //are valid
-      this->ValidResponse = recvStorage;
+      this->FullyFormed = recvStorage;
       }
     }
 }
@@ -104,12 +96,6 @@ bool Response::send_impl(zmq::socket_t* socket,
   //frame 1: fake rep spacer
   //frame 2: Service Type we are responding too
   //frame 3: data
-
-  //we have to be valid to be sent
-  if(!this->isValid())
-    {
-    return false;
-    }
 
   bool responseSent = false;
   zmq::message_t cAddress(client.size());

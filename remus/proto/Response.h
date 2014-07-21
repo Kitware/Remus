@@ -34,11 +34,6 @@ class REMUSPROTO_EXPORT Response
 {
 public:
   //----------------------------------------------------------------------------
-  //construct a response to send
-  //The service type will be set to invalid.
-  explicit Response();
-
-  //----------------------------------------------------------------------------
   //construct a response, the contents of the string will copied and sent.
   Response(remus::SERVICE_TYPE stype, const std::string& data);
 
@@ -53,21 +48,30 @@ public:
 
   remus::SERVICE_TYPE serviceType() const { return SType; }
 
+  //returns true if the service for this response is a valid service
+  bool isValidService() const { return SType != remus::INVALID_SERVICE; }
+
   bool send(zmq::socket_t* socket, const zmq::SocketIdentity& client) const;
 
   bool sendNonBlocking(zmq::socket_t* socket, const zmq::SocketIdentity& client) const;
 
+  //the data should never be NULL, but could point to a filler string
+  //you should always check isFullyFormed and isValidService before
+  //trusting the data() and dataSize() methods
   const char* data() const;
   std::size_t dataSize() const;
 
-  bool isValid() const { return ValidResponse; }
+  //Returns true if the message has all its contents. This only
+  //makes sense when we construct a Response from a socket and want
+  //to make sure we have everything
+  bool isFullyFormed() const { return FullyFormed; }
 
 private:
   bool send_impl(zmq::socket_t* socket,  const zmq::SocketIdentity& client,
                  int flags = 0) const;
 
   remus::SERVICE_TYPE SType;
-  bool ValidResponse; //tells if the response is valid
+  bool FullyFormed;
 
   boost::shared_ptr<zmq::message_t> Storage;
 
