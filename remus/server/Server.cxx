@@ -434,7 +434,7 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
     remus::proto::Response response(remus::INVALID_SERVICE,
                                     remus::INVALID_MSG);
     response.sendNonBlocking(&this->Zmq->ClientQueries, clientIdentity);
-    std::cout << "send back INVALID_SERVICE to client " << std::endl;
+    std::cerr << "send back INVALID_SERVICE to client " << std::endl;
     return; //no need to continue
     }
 
@@ -483,9 +483,6 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   //that has disconnected
   remus::proto::Response response(response_service,response_data);
   response.sendNonBlocking(&this->Zmq->ClientQueries, clientIdentity);
-
-  std::cout << "send back " << remus::to_string(response_service)
-            << " to client " << std::endl;
 
   return;
 }
