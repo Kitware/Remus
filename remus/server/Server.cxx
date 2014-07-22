@@ -56,23 +56,22 @@ namespace server{
 namespace detail{
 
 //------------------------------------------------------------------------------
-void make_terminateWorker(remus::proto::Response& response,
-                          boost::uuids::uuid jobId)
+remus::proto::Response make_terminateWorker(boost::uuids::uuid jobId)
 {
   remus::worker::Job terminateJob(jobId,
                                   remus::proto::JobSubmission());
-  response.setServiceType(remus::TERMINATE_WORKER);
-  response.setData(remus::worker::to_string(terminateJob));
+
+  return remus::proto::Response(remus::TERMINATE_WORKER,
+                                remus::worker::to_string(terminateJob));
 }
 
 //------------------------------------------------------------------------------
-void make_terminateJob(remus::proto::Response& response,
-                       boost::uuids::uuid jobId)
+remus::proto::Response make_terminateJob(boost::uuids::uuid jobId)
 {
   remus::worker::Job terminateJob(jobId,
                                   remus::proto::JobSubmission());
-  response.setServiceType(remus::TERMINATE_JOB);
-  response.setData(remus::worker::to_string(terminateJob));
+  return remus::proto::Response(remus::TERMINATE_JOB,
+                                remus::worker::to_string(terminateJob));
 }
 
 //------------------------------------------------------------------------------
@@ -345,6 +344,7 @@ bool Server::Brokering(Server::SignalHandling sh)
       //after the DetermineJobQueryResponse call
       remus::proto::Message message(&this->Zmq->ClientQueries);
       this->DetermineJobQueryResponse(clientIdentity,message); //NOTE: this will queue jobs
+      // std::cout << "c" << std::endl;
       }
     if (items[1].revents & ZMQ_POLLIN)
       {
@@ -428,48 +428,65 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   //msg.dump(std::cout);
   //server response is the general response message type
   //the client can than convert it to the expected type
-  remus::proto::Response response(clientIdentity);
   if(!msg.isValid())
     {
-    response.setServiceType(remus::INVALID_SERVICE);
-    response.setData( remus::INVALID_MSG );
-    response.sendNonBlocking(&this->Zmq->ClientQueries);
+    //send an invalid response.
+    remus::proto::Response response(remus::INVALID_SERVICE,
+                                    remus::INVALID_MSG);
+    response.sendNonBlocking(&this->Zmq->ClientQueries, clientIdentity);
+    std::cout << "send back INVALID_SERVICE to client " << std::endl;
     return; //no need to continue
     }
-  response.setServiceType(msg.serviceType());
+
+
+  //the service and data to return as a response. In case
+  //of not being able to handle the given service types,
+  //we will send back INVALID_SERVICE as the service type
+  remus::SERVICE_TYPE response_service = msg.serviceType();
+  std::string response_data;
 
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
     case remus::MAKE_MESH:
       // std::cout << "c MAKE_MESH" << std::endl;
-      response.setData(this->queueJob(msg));
+      response_data =this->queueJob(msg);
       break;
     case remus::MESH_STATUS:
       // std::cout << "c MESH_STATUS" << std::endl;
-      response.setData(this->meshStatus(msg));
+      response_data =this->meshStatus(msg);
       break;
     case remus::CAN_MESH:
       // std::cout << "c CAN_MESH" << std::endl;
-      response.setData(this->canMesh(msg));
+      response_data =this->canMesh(msg);
       break;
     case remus::CAN_MESH_REQUIREMENTS:
       // std::cout << "c CAN_MESH_REQS" << std::endl;
-      response.setData(this->canMeshRequirements(msg));
+      response_data =this->canMeshRequirements(msg);
       break;
     case remus::MESH_REQUIREMENTS:
-      response.setData(this->meshRequirements(msg));
+      response_data =this->meshRequirements(msg);
       break;
     case remus::RETRIEVE_MESH:
-      response.setData(this->retrieveMesh(msg));
+      response_data =this->retrieveMesh(msg);
       break;
     case remus::TERMINATE_JOB:
-      response.setData(this->terminateJob(msg));
+      response_data =this->terminateJob(msg);
       break;
     default:
-      response.setData( remus::to_string(remus::INVALID_STATUS) );
+      response_service = remus::INVALID_SERVICE;
+      response_data = remus::INVALID_MSG;
     }
-  response.sendNonBlocking(&this->Zmq->ClientQueries);
+
+  //now that we have the proper service_type and data send it in a non
+  //blocking manner so the server doesn't stall out sending to a client
+  //that has disconnected
+  remus::proto::Response response(response_service,response_data);
+  response.sendNonBlocking(&this->Zmq->ClientQueries, clientIdentity);
+
+  std::cout << "send back " << remus::to_string(response_service)
+            << " to client " << std::endl;
+
   return;
 }
 
@@ -599,9 +616,8 @@ std::string Server::terminateJob(const remus::proto::Message& msg)
     //when they are submitted
     if(removed && worker.size() > 0)
       {
-      remus::proto::Response response(worker);
-      detail::make_terminateJob(response,job.id());
-      response.sendNonBlocking(&this->Zmq->WorkerQueries);
+      remus::proto::Response response = detail::make_terminateJob(job.id());
+      response.sendNonBlocking(&this->Zmq->WorkerQueries, worker);
       }
     }
 
@@ -703,12 +719,10 @@ void Server::assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
 {
   this->ActiveJobs->add( workerIdentity, job.id() );
 
-  remus::proto::Response response(workerIdentity);
-  response.setServiceType(remus::MAKE_MESH);
+  remus::proto::Response response(remus::MAKE_MESH,
+                                  remus::worker::to_string(job));
 
-  std::string tmp = remus::worker::to_string(job);
-  response.setData(tmp);
-  response.sendNonBlocking(&this->Zmq->WorkerQueries);
+  response.sendNonBlocking(&this->Zmq->WorkerQueries, workerIdentity);
 }
 
 //see if we have a worker in the pool for the next job in the queue,
@@ -800,10 +814,10 @@ void Server::TerminateAllWorkers( )
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = this->UUIDGenerator();
 
-    remus::proto::Response response(*i);
-    detail::make_terminateWorker(response,jobId);
+    remus::proto::Response response =
+                          detail::make_terminateWorker(jobId);
 
-    response.sendNonBlocking(&this->Zmq->WorkerQueries);
+    response.sendNonBlocking(&this->Zmq->WorkerQueries, (*i));
     }
 
   //lastly we will kill any still active worker
@@ -816,10 +830,10 @@ void Server::TerminateAllWorkers( )
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = this->UUIDGenerator();
 
-    remus::proto::Response response(*i);
-    detail::make_terminateWorker(response,jobId);
+    remus::proto::Response response =
+                          detail::make_terminateWorker(jobId);
 
-    response.sendNonBlocking(&this->Zmq->WorkerQueries);
+    response.sendNonBlocking(&this->Zmq->WorkerQueries, (*i));
     }
 
 }
