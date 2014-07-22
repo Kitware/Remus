@@ -50,15 +50,15 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   //so that we get the socket identity to send to
   zmq::SocketIdentity sid = zmq::address_recv(socket);
 
-  //now send it a terminate message over the server channel
-  remus::proto::Response response(sid);
 
   boost::uuids::uuid jobId = remus::testing::UUIDGenerator();
   remus::worker::Job fakeJob(jobId,
                              remus::proto::JobSubmission());
-  response.setServiceType(remus::MAKE_MESH);
-  response.setData(remus::worker::to_string(fakeJob));
-  response.send(&socket);
+
+  //now send it a terminate message over the server channel
+  remus::proto::Response response(remus::MAKE_MESH,
+                                  remus::worker::to_string(fakeJob));
+  response.sendNonBlocking(&socket,sid);
 
   while(jq.size()<1){}
   REMUS_ASSERT( (jq.size()>0) );
@@ -75,22 +75,22 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
   remus::proto::JobSubmission sub(reqs);
 
   remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
-  response.setServiceType(remus::MAKE_MESH);
-  response.setData(remus::worker::to_string(fakeJob2));
-  response.send(&socket);
+  remus::proto::Response response2(remus::MAKE_MESH,
+                                  remus::worker::to_string(fakeJob2));
+  response2.sendNonBlocking(&socket,sid);
 
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
-  response.setServiceType(remus::MAKE_MESH);
-  response.setData(remus::worker::to_string(fakeJob2));
-  response.send(&socket);
+  remus::proto::Response response3(remus::MAKE_MESH,
+                                  remus::worker::to_string(fakeJob3));
+  response3.sendNonBlocking(&socket,sid);
 
   //now send a terminate job command for the first job
   //and verify that the correct job was terminated by pulling
   //all the jobs off the stack
   remus::worker::Job terminateJob(jobId, sub);
-  response.setServiceType(remus::TERMINATE_JOB);
-  response.setData(remus::worker::to_string(terminateJob));
-  response.send(&socket);
+  remus::proto::Response response4(remus::TERMINATE_JOB,
+                                  remus::worker::to_string(terminateJob));
+  response4.sendNonBlocking(&socket,sid);
 
   //gotta wait for all three messages to come in
   while(jq.size()<3){}
@@ -125,14 +125,13 @@ void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
   //so that we get the socket identity to send to
   zmq::SocketIdentity sid = zmq::address_recv(socket);
 
-  //now send it a terminate message over the server channel
-  remus::proto::Response response(sid);
-
   remus::worker::Job terminateJob(remus::testing::UUIDGenerator(),
                                   remus::proto::JobSubmission());
-  response.setServiceType(remus::TERMINATE_WORKER);
-  response.setData(remus::worker::to_string(terminateJob));
-  response.send(&socket);
+
+  //now send it a terminate message over the server channel
+  remus::proto::Response response (remus::TERMINATE_WORKER,
+                                   remus::worker::to_string(terminateJob));
+  response.send(&socket,sid);
 
   //cheap block while we wait for the router thread to get the message
   while(jq.size()<1){}
