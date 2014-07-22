@@ -159,10 +159,12 @@ inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
 //we presume that every message needs to be stripped
 //as we make everything act like a req/rep and pad
 //a null message on everything
+//Returns true if we removed the ReqHeader, or if no header
+//needs to be removed
 inline bool removeReqHeader(zmq::socket_t& socket,
                             int flags=0)
 {
-  bool removedHeader = false;
+  bool removedHeader = true;
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
@@ -173,16 +175,22 @@ inline bool removeReqHeader(zmq::socket_t& socket,
       {
       removedHeader = socket.recv(&reqHeader,flags);
       }
-    catch(error_t) { return false; }
+    catch(error_t et)
+      {
+      return false;
+      }
     }
   return removedHeader;
 }
 
-//if we are not a req or rep socket make us look like one
+//we presume that every message needs to be treated like a Req/Rep
+//message and we need to pad a null message on everything
+//Returns true if we added the ReqHeader, or if no header
+//needs to be added
  inline bool attachReqHeader(zmq::socket_t& socket,
                              int flags=0)
 {
-  bool attachedHeader = false;
+  bool attachedHeader = true;  //nee
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
