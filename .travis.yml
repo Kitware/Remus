@@ -24,6 +24,8 @@ script:
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
   - ctest -D ExperimentalUpdate -D Experimental -j6 --schedule-random --track Travis
+  - echo ${TRAVIS_PULL_REQUEST}
+  - echo ${TRAVIS_COMMIT}
 
 after_success:
   - cd ..
