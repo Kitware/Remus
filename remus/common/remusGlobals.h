@@ -128,4 +128,10 @@ inline remus::STATUS_TYPE to_statusType(const std::string& t)
 
 }
 
+//Now define some global windows suppressions
+#if defined(_MSC_VER) // Visual studio
+# pragma warning ( disable : 4251 )  //missing DLL-interface
+# pragma warning ( disable : 4514 ) //unreferenced inline function
+#endif
+
 #endif // remus_common_RemusGlobals_h
