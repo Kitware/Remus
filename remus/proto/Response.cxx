@@ -43,8 +43,8 @@ Response::Response(zmq::socket_t* socket):
   FullyFormed(false), //false by default in case we failed to recv everything
   Storage( boost::make_shared<zmq::message_t>() )
 {
-  const bool removedHeader = zmq::removeReqHeader(*socket);
 
+  const bool removedHeader = zmq::removeReqHeader(*socket);
   if(removedHeader)
     {
     zmq::message_t servType;
