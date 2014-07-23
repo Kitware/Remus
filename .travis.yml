@@ -19,17 +19,14 @@ before_install:
   - sudo pip install cpp-coveralls
   - sudo apt-get install curl
 
-
 script:
-  - git commit -m "Travis build commit of ${TRAVIS_COMMIT} for pull request ${TRAVIS_PULL_REQUEST}."
+  - git branch travis
+  - git checkout travis
   - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
-  - ctest -D ExperimentalUpdate -D Experimental -j6 --schedule-random --track Travis
-  - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
+  - ctest -S travis.cmake
 
 after_success:
-  - cd ..
+  - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
   - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?'
 
 notifications:
