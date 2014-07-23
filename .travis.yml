@@ -21,14 +21,11 @@ before_install:
 
 
 script:
-  - git config user.name "Travis CI"
-  - git config user.email "travis@travis-ci.org"
-  - git commit -m "Travis build commit of ${TRAVIS_COMMIT} for pull request ${TRAVIS_PULL_REQUEST}."
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
-  - ctest -D ExperimentalUpdate -D Experimental -j6 --schedule-random --track Travis
+  - ./../build.py
   - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
+
 
 after_success:
   - cd ..
