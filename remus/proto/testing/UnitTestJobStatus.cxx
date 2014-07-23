@@ -205,8 +205,35 @@ void serialize_test()
   validate_serialization(e);
 }
 
+void valid_test()
+{
+  JobStatus a(make_id(), remus::INVALID_STATUS);
+  REMUS_ASSERT( (a.valid() == false) );
+  REMUS_ASSERT( (a.invalid() == true) );
+
+  JobStatus b(make_id(), remus::QUEUED);
+  REMUS_ASSERT( (b.valid() == true) );
+  REMUS_ASSERT( (b.invalid() == false) );
+
+  JobStatus c(make_id(), remus::IN_PROGRESS);
+  REMUS_ASSERT( (c.valid() == true) );
+  REMUS_ASSERT( (c.invalid() == false) );
+
+  JobStatus d(make_id(), remus::FINISHED);
+  REMUS_ASSERT( (d.valid() == true) );
+  REMUS_ASSERT( (d.invalid() == false) );
+
+  JobStatus e(make_id(), remus::FAILED);
+  REMUS_ASSERT( (e.valid() == true) );
+  REMUS_ASSERT( (e.invalid() == false) );
+
+  JobStatus f(make_id(), remus::EXPIRED);
+  REMUS_ASSERT( (f.valid() == true) );
+  REMUS_ASSERT( (f.invalid() == false) );
+}
 
 }
+
 
 int UnitTestJobStatus(int, char *[])
 {
