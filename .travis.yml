@@ -23,7 +23,7 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - ./../build.py
+  - sudo ./../build.py
   - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
 
 
