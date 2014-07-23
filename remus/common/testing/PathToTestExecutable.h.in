@@ -20,10 +20,10 @@ struct ExampleApplication
 
   ExampleApplication():
 #ifndef _WIN32
-    name("@EXECUTABLE_OUTPUT_PATH@/TestExecutable")
+    name("@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/TestExecutable")
 #else
-    name("@EXECUTABLE_OUTPUT_PATH@/@CMAKE_CFG_INTDIR@/TestExecutable.exe")
-#endif    
+    name("@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/@CMAKE_CFG_INTDIR@/TestExecutable.exe")
+#endif
   {
   }
 

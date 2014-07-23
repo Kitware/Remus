@@ -89,7 +89,7 @@ function(remus_register_unit_test_worker)
   #set up variables that the config file is looking for
   set(InputMeshFileType ${R_INPUT_TYPE})
   set(OutputMeshType ${R_OUTPUT_TYPE})
-  set(WorkerExecutableName "${EXECUTABLE_OUTPUT_PATH}/${R_EXEC_NAME}")
+  set(WorkerExecutableName "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${R_EXEC_NAME}")
   set(ReqsFileName ${R_EXEC_NAME}.${R_FILE_EXT})
 
   set(R_ABS_FILE_NAME ${R_CONFIG_DIR}/${R_EXEC_NAME}.${R_FILE_EXT})
