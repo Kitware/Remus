@@ -113,6 +113,12 @@ public:
     this->Status = remus::FINISHED;
   }
 
+  //returns true if the job is valid
+  bool valid() const { return this->Status != remus::INVALID_STATUS; }
+
+  //returns false if the job is valid
+  bool invalid() const { return this->Status == remus::INVALID_STATUS; }
+
   //returns the uuid for the job that this status is for
   const boost::uuids::uuid& id() const { return JobId; }
 
