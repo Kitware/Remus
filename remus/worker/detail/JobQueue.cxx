@@ -107,6 +107,11 @@ void pollForJobs()
     if(item.revents & ZMQ_POLLIN)
       {
       remus::proto::Response response(&this->ServerComm);
+      if(!response.isFullyFormed())
+        { //ignore this response if it isn't fully formed
+        continue;
+        }
+
       switch(response.serviceType())
         {
         case remus::TERMINATE_WORKER:

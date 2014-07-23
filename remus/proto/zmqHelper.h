@@ -47,8 +47,18 @@ inline zmq::SocketIdentity address_recv(zmq::socket_t& socket)
 //doesn't exist and we are told to shutdown we don't hang for ever
 inline void set_socket_linger(zmq::socket_t &socket)
 {
-  const int linger_duration = 25;
+  const int linger_duration = 250;
   socket.setsockopt(ZMQ_LINGER, &linger_duration, sizeof(int) );
+
+  //ToDo we need to determine which sockets we want to set timeouts
+  //on for sending and receiving messages.
+  //I am worried about how this is going to interact with the variable
+  //query / poll rates that happen on OSX 10.9+ when an app starts to be
+  //slowed down
+// #if ZMQ_VERSION_MAJOR >= 3
+//   socket.setsockopt(ZMQ_RCVTIMEO, &linger_duration, sizeof(int) );
+//   socket.setsockopt(ZMQ_SNDTIMEO, &linger_duration, sizeof(int) );
+// #endif
 }
 
 //bind to initialInfo socket, and return that socket info
@@ -113,7 +123,11 @@ inline bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flag
   short tries = 0;
   while(!sent && tries < 5)
     {
-    try{sent = socket.send(message,flags);}
+    try
+      {
+      sent = socket.send(message,flags);
+      if (!sent) { ++tries; }
+      }
     catch(error_t){ ++tries; }
     }
   return sent;
@@ -132,7 +146,11 @@ inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
   short tries = 0;
   while(!recieved && tries < 5)
     {
-    try{recieved = socket.recv(message,flags);}
+    try
+      {
+      recieved = socket.recv(message,flags);
+      if (!recieved) { ++tries; }
+      }
     catch(error_t){ ++tries; }
     }
   return recieved;
@@ -141,29 +159,51 @@ inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
 //we presume that every message needs to be stripped
 //as we make everything act like a req/rep and pad
 //a null message on everything
-inline void removeReqHeader(zmq::socket_t& socket)
+//Returns true if we removed the ReqHeader, or if no header
+//needs to be removed
+inline bool removeReqHeader(zmq::socket_t& socket,
+                            int flags=0)
 {
+  bool removedHeader = true;
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
   if(socketType != ZMQ_REQ && socketType != ZMQ_REP)
     {
     zmq::message_t reqHeader;
-    socket.recv(&reqHeader);
+    try
+      {
+      removedHeader = socket.recv(&reqHeader,flags);
+      }
+    catch(error_t et)
+      {
+      return false;
+      }
     }
+  return removedHeader;
 }
 
-//if we are not a req or rep socket make us look like one
- inline void attachReqHeader(zmq::socket_t& socket)
+//we presume that every message needs to be treated like a Req/Rep
+//message and we need to pad a null message on everything
+//Returns true if we added the ReqHeader, or if no header
+//needs to be added
+ inline bool attachReqHeader(zmq::socket_t& socket,
+                             int flags=0)
 {
+  bool attachedHeader = true;  //nee
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
   if(socketType != ZMQ_REQ && socketType != ZMQ_REP)
     {
     zmq::message_t reqHeader(0);
-    socket.send(reqHeader,ZMQ_SNDMORE);
+    try
+      {
+      attachedHeader = socket.send(reqHeader, flags|ZMQ_SNDMORE);
+      }
+    catch(error_t) { return false; }
     }
+  return attachedHeader;
 }
 
 }
