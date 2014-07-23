@@ -18,10 +18,5 @@ echo "Setting up git aliases..."
 scripts/setup-git-aliases
 echo
 
-echo "Setting up Gerrit..."
-scripts/gitsetup/setup-gerrit ||
-  echo "Failed to setup Gerrit. Run this script again to retry."
-echo
-
 setup_version=1
 git config hooks.setup ${setup_version}
