@@ -15,5 +15,5 @@ add_subdirectory(Worker)
 
 #copy the input testing data to the build directory
 file(COPY data/pmdc.node data/pmdc.poly
-     DESTINATION ${EXECUTABLE_OUTPUT_PATH}
+     DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
      )
