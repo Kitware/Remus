@@ -21,6 +21,8 @@ before_install:
 
 
 script:
+  - git config user.name "Travis CI"
+  - git config user.email "travis@travis-ci.org"
   - git commit -m "Travis build commit of ${TRAVIS_COMMIT} for pull request ${TRAVIS_PULL_REQUEST}."
   - mkdir build
   - cd build
