@@ -21,15 +21,12 @@ before_install:
 
 
 script:
+  - git branch travis
+  - git checkout travis
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
   - ctest -D ExperimentalUpdate
-  - ls
-  - cd Testing
-  - ls
-  - cd ..
-  - sudo python ./../build.py
   - ctest -D Experimental -j6 --schedule-random --track Travis
   - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
 
