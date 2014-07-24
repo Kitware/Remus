@@ -23,7 +23,9 @@ before_install:
 script:
   - mkdir build
   - cd build
+  - ctest -D ExperimentalUpdate
   - sudo python ./../build.py
+  - ctest -D Experimental -j6 --schedule-random --track Travis
   - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
 
 

@@ -10,7 +10,7 @@ import os, sys
 import xml.etree.ElementTree as ET
 
 #Generating Update.xml
-os.system('ctest -D ExperimentalUpdate')
+#os.system('ctest -D ExperimentalUpdate')
 
 #Forcing revision to TRAVIS_COMMIT
 tree = ET.parse('./Testing/Update.xml')
@@ -20,7 +20,7 @@ revision.text = os.enviorn['TRAVIS_COMMIT']
 tree.write('./Testing/Update.xml')
 
 #Proceeding with the rest of the experimental build
-code = os.system('ctest -D Experimental -j6 --schedule-random --track Travis')
+#code = os.system('ctest -D Experimental -j6 --schedule-random --track Travis')
 
 #Exiting with the return code from ctest
-sys.exit(code)
+#sys.exit(code)
