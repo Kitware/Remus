@@ -52,6 +52,9 @@ ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Built.")
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND PARALLEL_LEVEL 6 SCHEDULE_RANDOM ON)
 message("Tested.")
+
+set(CTEST_COVERAGE_COMMAND "gcov")
+
 ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Computed coverage.")
 ctest_submit()
