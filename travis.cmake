@@ -13,7 +13,7 @@ endif()
 
 #Setting our build name and build configuration.
 string(SUBSTRING "$ENV{TRAVIS_COMMIT}" 0 7 SHA)
-set(CTEST_BUILD_NAME "${COMPILER}-$ENV{BUILD_CONFIG}-$ENV{TRAVIS_COMMIT}")
+set(CTEST_BUILD_NAME "${COMPILER}-$ENV{BUILD_CONFIG}-${SHA}")
 set(CTEST_BUILD_CONFIGURATION ${CMAKE_BUILD_TYPE})
 
 #Setting name of dashboard.
@@ -35,7 +35,7 @@ Remus_NO_SYSTEM_BOOST:BOOl=OFF
 Remus_ENABLE_COVERAGE:BOOL=ON
 ")
 
-ctest_start(Experimental . )
+ctest_start(Experimental TRACK "Travis" . )
 
 #Make sure we fetch correctly.
 set(CTEST_GIT_COMMAND "git")
@@ -52,5 +52,7 @@ ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Built.")
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND PARALLEL_LEVEL 6 SCHEDULE_RANDOM ON)
 message("Tested.")
+ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
+message("Computed coverage.")
 ctest_submit()
 message("Submitted.")
