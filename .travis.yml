@@ -27,7 +27,7 @@ script:
 
 after_success:
   - curl http://142.105.147.205/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
-  - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?' --exclude-pattern '\./build/.*\.cmake?'
+  - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?'
 
 notifications:
   email:
