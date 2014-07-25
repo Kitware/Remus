@@ -57,6 +57,19 @@ message("Tested.")
 #For some reason, CTest doesn't automatically figure this out.  Manually set that we want gcov.
 set(CTEST_COVERAGE_COMMAND "gcov")
 
+#Set coverage exclusion
+set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+	"${CTEST_CUSTOM_COVERAGE_EXCLUDE}"
+	"/thirdparty/kwsys"
+	"/thirdparty/cJson"
+	"/remus/testing"
+	"/remus/common/testing"
+	"/remus/client/testing"
+	"/remus/server/testing"
+	"/remus/proto/testing"
+	"/remus/worker/testing"
+)
+
 ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Computed coverage.")
 ctest_submit()
