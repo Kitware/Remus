@@ -21,10 +21,9 @@ set(CTEST_SITE "travis.travis-ci")
 
 #Setting directory paths.
 set (CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}")
-message(${CTEST_SOURCE_DIRECTORY})
 set (CTEST_BINARY_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/build")
-message(${CTEST_BINARY_DIRECTORY})
 
+#Setting release/debug based on environment variable:
 set(CTEST_BUILD_CONFIGURATION $ENV{BUILD_CONFIG})
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
@@ -35,12 +34,14 @@ Remus_NO_SYSTEM_BOOST:BOOl=OFF
 Remus_ENABLE_COVERAGE:BOOL=ON
 ")
 
+#Use Travis track:
 ctest_start(Experimental TRACK "Travis" . )
 
 #Make sure we fetch correctly.
 set(CTEST_GIT_COMMAND "git")
 set(UPDATE_COMMAND ${CTEST_GIT_COMMAND})
 
+#Mirror Travis' checkout process:
 set(CTEST_GIT_UPDATE_OPTIONS "origin +refs/pull/$ENV{TRAVIS_PULL_REQUEST}/merge")
 set(CTEST_UPDATE_OPTIONS ${CTEST_GIT_UPDATE_OPTIONS})
 
@@ -53,6 +54,7 @@ message("Built.")
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND PARALLEL_LEVEL 6 SCHEDULE_RANDOM ON)
 message("Tested.")
 
+#For some reason, CTest doesn't automatically figure this out.  Manually set that we want gcov.
 set(CTEST_COVERAGE_COMMAND "gcov")
 
 ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
