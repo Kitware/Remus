@@ -241,7 +241,7 @@ int UnitTestJobStatus(int, char *[])
   mark_test();
   progress_test();
   serialize_test();
-
+  valid_test();
 
   return 0;
 }
