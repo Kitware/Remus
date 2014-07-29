@@ -17,16 +17,16 @@ before_install:
   - sudo apt-get install -qq libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev
   - sudo apt-get install -qq libzmq3-dev
   - sudo pip install cpp-coveralls
-
+  - sudo apt-get install curl
 
 script:
+  - git branch travis
+  - git checkout travis
   - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_CONFIG -DRemus_NO_SYSTEM_BOOST:BOOL=OFF -DRemus_ENABLE_COVERAGE:BOOL=ON ..
-  - ctest -D ExperimentalUpdate -D Experimental -j6 --schedule-random --track Travis
+  - ctest -S travis.cmake
 
 after_success:
-  - cd ..
+  - curl http://cbadges.com/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
   - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?'
 
 notifications:
