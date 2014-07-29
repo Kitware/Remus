@@ -281,11 +281,15 @@ public:
         // Skip if not a file
         if(boost::filesystem::is_regular_file( i->status() ))
           {
-          std::string ext = boost::algorithm::to_upper_copy(
-                              i->path().extension().string());
-          if(ext == FileExt)
+          const boost::filesystem::path ipath = i->path();
+          if(ipath.has_extension())
             {
-            this->parseFile(i->path());
+            const std::string ext =
+                      boost::algorithm::to_upper_copy(ipath.extension().string());
+            if(ext == FileExt)
+              {
+              this->parseFile(i->path());
+              }
             }
           }
         }
