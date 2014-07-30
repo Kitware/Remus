@@ -82,11 +82,8 @@ void dumpJobInfo(remus::Client& client)
       {
       remus::proto::Job job(rawId,*j);
       remus::proto::JobStatus status = client.jobStatus(job);
-      std::cout << " status of job is: " << status.status() << " " << remus::to_string(status.status())  << std::endl;
-      if(status.inProgress())
-        {
-        std::cout << " progress is " << status.progress() << std::endl;
-        }
+      std::cout << " status of job is: " << std::endl;
+      std::cout << remus::proto::to_string(status);
       }
     }
 }
