@@ -215,8 +215,8 @@ void serialize_test()
   JobStatus d(make_id(),value_progress);
   validate_serialization(d);
 
-  JobProgress value_msg_progress("message"); //progress with just a message
-  JobStatus e(make_id(),msg_progress);
+  JobProgress value_msg_progress(24,"message"); //progress with just a message
+  JobStatus e(make_id(),value_msg_progress);
   validate_serialization(e);
 }
 
