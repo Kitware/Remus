@@ -38,7 +38,7 @@ Remus_ENABLE_COVERAGE:BOOL=ON
 ctest_start(Experimental TRACK "Travis" . )
 
 #Make sure we fetch correctly.
-set(CTEST_GIT_COMMAND "git")
+set(CTEST_GIT_COMMAND "/usr/bin/git")
 set(UPDATE_COMMAND ${CTEST_GIT_COMMAND})
 
 #Mirror Travis' checkout process:
