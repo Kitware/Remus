@@ -17,12 +17,10 @@
 namespace
 {
 using namespace remus::proto;
-}
 
-int UnitTestJobProgress(int, char *[])
+void state_test()
 {
-
- //try out all permutations of constructor
+  //try out all permutations of constructor
   JobProgress invalid;
   REMUS_ASSERT( (invalid.value() == -1) )
   REMUS_ASSERT( (invalid.message() == std::string()) )
@@ -94,6 +92,50 @@ int UnitTestJobProgress(int, char *[])
   JobProgress bb = progress_valid2;
   REMUS_ASSERT( (bb == progress_valid2) );
   REMUS_ASSERT( !(bb != progress_valid2) );
+}
+
+void validate_serialization(JobProgress jp)
+{
+  std::stringstream buffer;
+  JobProgress from_string;
+
+  buffer << jp;
+  buffer >> from_string;
+
+  REMUS_ASSERT( (from_string.value() == jp.value()) );
+  REMUS_ASSERT( (from_string.message() == jp.message()) );
+
+  REMUS_ASSERT( (from_string == jp) );
+  REMUS_ASSERT( (!(from_string != jp)) );
+}
+
+
+void serialize_test()
+  {
+  JobProgress invalid;
+  validate_serialization(invalid);
+
+  JobProgress progress_negative(-1);
+  validate_serialization(progress_negative);
+
+  JobProgress progress_200(200);
+  validate_serialization(progress_200);
+
+  JobProgress progress_valid(50);
+  validate_serialization(progress_valid);
+
+  JobProgress progress_msg("hello");
+  validate_serialization(progress_msg);
+
+  JobProgress progress_msg_200(200,progress_msg.message());
+  validate_serialization(progress_msg_200);
+  }
+}
+
+int UnitTestJobProgress(int, char *[])
+{
+  state_test();
+  serialize_test();
 
   return 0;
 }

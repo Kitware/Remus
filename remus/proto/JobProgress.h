@@ -22,19 +22,6 @@
 namespace remus {
 namespace proto {
 
-  //forward class declare for friend
-  class JobStatus;
-
-  //forward function declare for friend
-  remus::proto::JobStatus to_JobStatus(const std::string& status);
-}
-
-}
-
-
-namespace remus {
-namespace proto {
-
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.
 struct JobProgress
@@ -49,9 +36,7 @@ struct JobProgress
     Message()
     {
     if(status==remus::IN_PROGRESS)
-      {
-      //if this is a valid in_progress job progress struct, than make
-      //value 0
+      {//if in_progress than make value 0
       this->Value = 0;
       }
     }
@@ -100,30 +85,32 @@ struct JobProgress
     return v;
   }
 
-  //make it easy to print out the progress, by overloading the << operator
-  //when using cout, cerr, etc
-  friend std::ostream& operator<< (std::ostream& out, const JobProgress& j)
-  {
-    if(j.Value < 0)
-      {
-      out << "Progress: Invalid";
-      }
-    else if(j.Value > 0 && j.Message.size() > 0)
-      {
-      out << "Progress[" << j.Value << "%]: " << j.Message;
-      }
-    else if(j.Value > 0)
-      {
-      out << "Progress: " << j.Value << "%";
-      }
-    else
-      {
-      out << "Progress: " << j.Message;
-      }
-    return out;
-  }
+  friend std::ostream& operator<<(std::ostream &os, const JobProgress &prog)
+    { prog.serialize(os); return os; }
+  friend std::istream& operator>>(std::istream &is, JobProgress &prog)
+    { prog = JobProgress(is); return is; }
 
 private:
+  //serialize function
+  void serialize(std::ostream& buffer) const
+  {
+    buffer << this->value() << std::endl;
+    buffer << this->message().size() << std::endl;
+    remus::internal::writeString(buffer,this->message());
+  }
+
+  //deserialize constructor function
+  explicit JobProgress(std::istream& buffer)
+  {
+    //this is really important, the progress message can have multiple words and/or
+    //new line characters. so we want all of the left over characters in the
+    //buffer to be the progress message.
+    int progressMessageLen;
+    buffer >> this->Value;
+    buffer >> progressMessageLen;
+    this->Message = remus::internal::extractString(buffer,progressMessageLen);
+  }
+
   int Value;
   std::string Message;
 };

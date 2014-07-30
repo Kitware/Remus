@@ -125,7 +125,49 @@ public:
   //get back the status flag type for this job
   remus::STATUS_TYPE status() const { return Status; }
 
+  //overload on the job status object to make it easier to detect when
+  //job status has been changed.
+  bool operator ==(const JobStatus& b) const
+  {
+    return (this->JobId == b.JobId)   &&
+           (this->Status == b.Status) &&
+           (this->Progress == b.Progress);
+  }
+
+  //overload on the job status object to make it easier to detect when
+  //job status has been changed.
+  bool operator !=(const JobStatus& b) const
+  {
+    return !(this->operator ==(b));
+  }
+
+  friend std::ostream& operator<<(std::ostream &os,
+                                    const JobStatus &status)
+    { status.serialize(os); return os; }
+  friend std::istream& operator>>(std::istream &is,
+                                  JobStatus &status)
+    { status = JobStatus(is); return is; }
+
 private:
+  friend remus::proto::JobStatus to_JobStatus(const std::string& msg);
+  //serialize function
+  void serialize(std::ostream& buffer) const
+  {
+    buffer << this->id() << std::endl;
+    buffer << this->status() << std::endl;
+    buffer << this->progress() << std::endl;
+  }
+
+  //deserialize constructor function
+  explicit JobStatus(std::istream& buffer)
+  {
+    int t;
+    buffer >> this->JobId;
+    buffer >> t;
+    buffer >> this->Progress;
+    this->Status = static_cast<remus::STATUS_TYPE>(t);
+  }
+
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
   remus::proto::JobProgress Progress;
@@ -134,60 +176,17 @@ private:
 //------------------------------------------------------------------------------
 inline std::string to_string(const remus::proto::JobStatus& status)
 {
-  //convert a job status to a string, used as a hack to serialize
+  //convert a job status to a string. We will always send the progress
   std::ostringstream buffer;
-  buffer << status.id() << std::endl;
-  buffer << status.status() << std::endl;
-
-  //only send progress info, if we are actually a status message that
-  //cares about that information
-  if(status.status() == remus::IN_PROGRESS)
-    {
-    buffer << status.progress().value() << std::endl;
-    buffer << status.progress().message().size() << std::endl;
-    remus::internal::writeString(buffer,status.progress().message());
-    }
+  buffer << status;
   return buffer.str();
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobStatus to_JobStatus(const std::string& status)
+inline remus::proto::JobStatus to_JobStatus(const std::string& msg)
 {
-  //convert a job status from a string, used as a hack to serialize
-  std::istringstream buffer(status);
-
-  boost::uuids::uuid id;
-  int t;
-  buffer >> id;
-  buffer >> t;
-
-  const remus::STATUS_TYPE type = static_cast<remus::STATUS_TYPE>(t);
-
-  remus::proto::JobStatus jstatus(id,type);
-  if(type == remus::IN_PROGRESS)
-    {
-    remus::proto::JobProgress pr(type);
-    //if we are progress status message we have two more pieces of info to decode
-    int progressValue;
-    buffer >> progressValue;
-    if(progressValue > 0)
-      {
-      pr.setValue(progressValue);
-      }
-
-    int progressMessageLen;
-    std::string progressMessage;
-
-    //this is really important, the progress message can have multiple words and/or
-    //new line characters. so we want all of the left over characters in the
-    //buffer to be the progress message.
-    buffer >>progressMessageLen;
-    progressMessage = remus::internal::extractString(buffer,progressMessageLen);
-
-    pr.setMessage(progressMessage);
-    jstatus = remus::proto::JobStatus(id,pr);
-    }
-  return jstatus;
+  std::istringstream buffer(msg);
+  return remus::proto::JobStatus(buffer);
 }
 
 

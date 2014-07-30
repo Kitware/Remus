@@ -147,14 +147,15 @@ int main(int argc, char* argv[])
         if(newStatus.status() != oldStatus.status() ||
            newStatus.progress() != oldStatus.progress())
           {
-          std::cout << "job id " << jobs.at(i).id() << std::endl;
-          if( newStatus.status() == remus::IN_PROGRESS)
+          std::cout << "job id " << newStatus.id() << std::endl;
+          std::cout << " status of job is: " << remus::to_string(newStatus.status())  << std::endl;
+          if(!newStatus.progress().message().empty())
             {
-            std::cout << newStatus.progress() << std::endl;
+            std::cout << " Progress Msg: " << newStatus.progress().message() << std::endl;
             }
-          else
+          if(newStatus.progress().value() >= 0)
             {
-            std::cout << " status of job is: " << newStatus.status() << " " << remus::to_string(newStatus.status())  << std::endl;
+            std::cout << " Progress Value: " << newStatus.progress().value() << std::endl;
             }
           }
 
