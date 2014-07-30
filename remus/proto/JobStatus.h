@@ -125,6 +125,22 @@ public:
   //get back the status flag type for this job
   remus::STATUS_TYPE status() const { return Status; }
 
+  //overload on the job status object to make it easier to detect when
+  //job status has been changed.
+  bool operator ==(const JobStatus& b) const
+  {
+    return (this->JobId == b.JobId)   &&
+           (this->Status == b.Status) &&
+           (this->Progress == b.Progress);
+  }
+
+  //overload on the job status object to make it easier to detect when
+  //job status has been changed.
+  bool operator !=(const JobStatus& b) const
+  {
+    return !(this->operator ==(b));
+  }
+
 private:
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;

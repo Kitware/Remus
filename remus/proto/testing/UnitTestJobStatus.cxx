@@ -98,6 +98,8 @@ void state_test()
   REMUS_ASSERT(!aa.queued());
   REMUS_ASSERT(!aa.inProgress());
   REMUS_ASSERT(!aa.finished());
+  REMUS_ASSERT( (aa==a) );
+  REMUS_ASSERT( (!(a!=a)) );
 
   //copy assignment
   JobStatus bb = b;
@@ -106,6 +108,8 @@ void state_test()
   REMUS_ASSERT(bb.queued());
   REMUS_ASSERT(!bb.inProgress());
   REMUS_ASSERT(!bb.finished());
+  REMUS_ASSERT( (bb==b) );
+  REMUS_ASSERT( (!(b!=bb)) );
 
   //reuse ids
   JobStatus cc(c.id(), c.status());
@@ -116,6 +120,17 @@ void state_test()
   REMUS_ASSERT(!cc.queued());
   REMUS_ASSERT(cc.inProgress());
   REMUS_ASSERT(!cc.finished());
+  REMUS_ASSERT( (cc==c) );
+  REMUS_ASSERT( (!(c!=cc)) );
+
+  //make sure 2 not equal jobStatus fail to
+  //compare
+  REMUS_ASSERT( !(cc==bb) );
+
+  //verify that ccc different progress
+  //value makes it non comparable
+  JobStatus ccc(c.id(), value_progress);
+  REMUS_ASSERT( (ccc!=c) );
 
 }
 
@@ -233,7 +248,6 @@ void valid_test()
 }
 
 }
-
 
 int UnitTestJobStatus(int, char *[])
 {
