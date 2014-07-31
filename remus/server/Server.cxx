@@ -274,7 +274,8 @@ Server::Server(const remus::server::ServerPorts& ports,
 //------------------------------------------------------------------------------
 Server::~Server()
 {
-
+  //when we are destrucing the server, we first need to stop brokering
+  this->stopBrokering();
 }
 
 //------------------------------------------------------------------------------
