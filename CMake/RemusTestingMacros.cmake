@@ -33,7 +33,6 @@ function(remus_unit_tests)
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_unit_tests)
 
-
 # Declare unit test executables that are needed by other unit_tests
 # Usage:
 #
@@ -105,3 +104,45 @@ function(remus_register_unit_test_worker)
           @ONLY)
   endif()
 endfunction()
+
+# Declare integration tests Usage:
+#
+# remus_integration_tests(
+#   SOURCES <test_source_list>
+#   EXTRA_SOURCES <helper_source_files>
+#   LIBRARIES <dependent_library_list>
+#   )
+# unlike unit tests, integration tests link to all the remus libraries
+# automatically, as they are verifying the components work properly together
+function(remus_integration_tests)
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs SOURCES EXTRA_SOURCES LIBRARIES)
+  cmake_parse_arguments(Remus_it
+    "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    ${ARGN}
+    )
+
+  if (Remus_ENABLE_TESTING)
+    ms_get_kit_name(kit)
+    #we use IntegrationTests_ so that it is an unique key to exclude from coverage
+    set(test_prog IntegrationTests_${kit})
+    create_test_sourcelist(TestSources ${test_prog}.cxx ${Remus_it_SOURCES})
+
+    add_executable(${test_prog} ${TestSources} ${Remus_it_EXTRA_SOURCES})
+    target_link_libraries(${test_prog}
+                          LINK_PRIVATE
+                          RemusClient
+                          RemusWorker
+                          RemusServer
+                          ${Remus_it_LIBRARIES})
+    target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    foreach (test ${Remus_it_SOURCES})
+      get_filename_component(tname ${test} NAME_WE)
+      add_test(NAME ${tname} COMMAND ${test_prog} ${tname})
+      #we give integration tests a longer timout peroid, since they
+      #have 'real' work
+      set_tests_properties(${tname} PROPERTIES TIMEOUT 240)
+    endforeach(test)
+  endif (Remus_ENABLE_TESTING)
+endfunction(remus_integration_tests)

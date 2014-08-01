@@ -12,13 +12,13 @@ set(headers
     zmqSocketIdentity.h
     zmqSocketInfo.h
     zmqTraits.h
+    zmq.hpp
     )
 
 #these are headers that don't need to be installed
 set(private_headers
   Message.h
   Response.h
-  zmq.hpp
   zmqHelper.h
   )
 
