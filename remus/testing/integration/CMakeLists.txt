@@ -12,6 +12,7 @@
 
 set(unit_tests
   AlwaysAcceptServer.cxx
+  SimpleJobFlow.cxx
   TerminateQueuedJob.cxx
   )
 
