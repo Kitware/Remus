@@ -206,8 +206,11 @@ void verifyt_job_result(const remus::proto::Job& job,
 
 //Constructs a job in the simplist way possible and
 //verifies that it the worker runs and gets results
-int SimpleJobFlow (int argc, char* argv[])
+int SimpleJobFlow(int argc, char* argv[])
 {
+  (void) argc;
+  (void) argv;
+
   //construct a simple worker and client, we need to share the same
   //context between the server, client and worker
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );

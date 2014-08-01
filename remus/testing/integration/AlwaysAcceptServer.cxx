@@ -332,6 +332,9 @@ void verify_job_result(remus::proto::Job  job,
 //------------------------------------------------------------------------------
 int AlwaysAcceptServer(int argc, char* argv[])
 {
+  (void) argc;
+  (void) argv;
+
   //construct a simple worker and client, we need to share the same
   //context between the server, client and worker
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );

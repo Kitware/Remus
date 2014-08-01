@@ -72,20 +72,6 @@ namespace
   }
 
 //------------------------------------------------------------------------------
-bool get_value(const remus::proto::JobSubmission& data, const std::string& key,
-               remus::proto::JobContent& value)
-{
-  typedef remus::proto::JobSubmission::const_iterator IteratorType;
-  IteratorType attIt = data.find(key);
-  if(attIt == data.end())
-    {
-    return false;
-    }
-  value = attIt->second;
-  return true;
-}
-
-//------------------------------------------------------------------------------
 std::vector< remus::common::MeshIOType > make_all_meshTypes()
 {
   using namespace remus::meshtypes;
@@ -126,22 +112,6 @@ boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& 
 
   boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
   return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
 }
 
 //------------------------------------------------------------------------------
@@ -236,6 +206,9 @@ void verify_terminate_job(remus::proto::Job  job,
 
 int TerminateQueuedJob(int argc, char* argv[])
 {
+  (void) argc;
+  (void) argv;
+
   //construct a simple worker and client, we need to share the same
   //context between the server, client and worker
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
