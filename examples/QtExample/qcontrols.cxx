@@ -58,10 +58,10 @@ qcontrols::~qcontrols()
 }
 
 //-----------------------------------------------------------------------------
-void qcontrols::closeEvent(QCloseEvent *event)
+void qcontrols::closeEvent(QCloseEvent *cEvent)
 {
 
-   QMainWindow::closeEvent(event);
+   QMainWindow::closeEvent(cEvent);
    exit(0);
 }
 
