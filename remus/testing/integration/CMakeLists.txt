@@ -11,6 +11,7 @@
 #=============================================================================
 
 set(unit_tests
+  AlwaysAcceptServer.cxx
   TerminateQueuedJob.cxx
   )
 
