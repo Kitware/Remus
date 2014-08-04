@@ -247,6 +247,45 @@ void valid_test()
   REMUS_ASSERT( (f.invalid() == false) );
 }
 
+void make_functions()
+{
+  JobStatus a = make_JobStatus(make_id(), -25);
+  REMUS_ASSERT( (a.progress().value() == 1) );
+  REMUS_ASSERT( (a.inProgress() == true) );
+
+  JobStatus b = make_JobStatus(make_id(), 25);
+  REMUS_ASSERT( (b.progress().value() == 25) );
+  REMUS_ASSERT( (b.inProgress() == true) );
+
+  JobStatus c = make_JobStatus(make_id(), 100);
+  REMUS_ASSERT( (c.progress().value() == 100) );
+  REMUS_ASSERT( (c.inProgress() == true) );
+
+  JobStatus d = make_JobStatus(make_id(), 125);
+  REMUS_ASSERT( (d.progress().value() == 100) );
+  REMUS_ASSERT( (d.inProgress() == true) );
+
+
+  JobStatus e = make_JobStatus(make_id(), "message");
+  REMUS_ASSERT( (e.progress().message() == "message") );
+  REMUS_ASSERT( (e.inProgress() == true) );
+
+  JobStatus f= make_JobStatus(make_id(), "");
+  REMUS_ASSERT( (f.progress().message() == "") );
+  REMUS_ASSERT( (f.inProgress() == true) );
+  REMUS_ASSERT( (f.failed() == false) );
+
+  JobStatus g= make_FailedJobStatus(make_id(), "error");
+  REMUS_ASSERT( (g.progress().message() == "error") );
+  REMUS_ASSERT( (g.inProgress() == false) );
+  REMUS_ASSERT( (g.failed() == true) );
+
+  JobStatus h= make_FailedJobStatus(make_id(), "");
+  REMUS_ASSERT( (h.progress().message() == "") );
+  REMUS_ASSERT( (h.failed() == true) );
+
+}
+
 }
 
 int UnitTestJobStatus(int, char *[])
@@ -256,6 +295,7 @@ int UnitTestJobStatus(int, char *[])
   progress_test();
   serialize_test();
   valid_test();
+  make_functions();
 
   return 0;
 }

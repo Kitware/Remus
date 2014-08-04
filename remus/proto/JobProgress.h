@@ -32,13 +32,9 @@ struct JobProgress
     {}
 
   explicit JobProgress(remus::STATUS_TYPE status):
-    Value(-1),
+    Value( (status==remus::IN_PROGRESS) ? 0 : -1),
     Message()
     {
-    if(status==remus::IN_PROGRESS)
-      {//if in_progress than make value 0
-      this->Value = 0;
-      }
     }
 
   explicit JobProgress(int v):

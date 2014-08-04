@@ -182,6 +182,35 @@ inline std::string to_string(const remus::proto::JobStatus& status)
   return buffer.str();
 }
 
+//----------------------------------------------------------------------------
+inline remus::proto::JobStatus make_JobStatus(const boost::uuids::uuid jid,
+                                              int value)
+{
+  const remus::proto::JobProgress progress(value);
+  return remus::proto::JobStatus(jid,progress);
+}
+
+//----------------------------------------------------------------------------
+inline remus::proto::JobStatus make_JobStatus(const boost::uuids::uuid jid,
+                                              const std::string& message)
+{
+  const remus::proto::JobProgress progress(message);
+  return remus::proto::JobStatus(jid,progress);
+}
+
+//----------------------------------------------------------------------------
+inline remus::proto::JobStatus make_FailedJobStatus(
+                                          const boost::uuids::uuid jid,
+                                          const std::string& failure_message)
+{
+  const remus::proto::JobProgress failure_progress(failure_message);
+  remus::proto::JobStatus jstatus(jid,failure_progress);
+  //create a status with a message marks us as IN_PROGRESS, so we need to move
+  //to a FAILED state.
+  jstatus.markAsFailed();
+  return jstatus;
+}
+
 //------------------------------------------------------------------------------
 inline remus::proto::JobStatus to_JobStatus(const std::string& msg)
 {
