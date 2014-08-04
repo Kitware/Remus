@@ -174,7 +174,9 @@ void verify_submission()
   REMUS_ASSERT( (content.sourceType()==remus::common::ContentSource::Memory) )
   REMUS_ASSERT( (content.formatType()==remus::common::ContentFormat::User) )
   REMUS_ASSERT( (content.dataSize()== std::string("content").size()) )
-  REMUS_ASSERT( (std::string(content.data())== "content") )
+  const std::string content_key_data = std::string(content.data(),
+                                                   content.dataSize());
+  REMUS_ASSERT( (content_key_data== "content") )
   }
 
 }
