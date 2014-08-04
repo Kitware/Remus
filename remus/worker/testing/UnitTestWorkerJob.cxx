@@ -150,15 +150,31 @@ void verify_submission()
   remus::proto::JobSubmission sub_with_data = make_empty_sub();
   sub_with_data["non_default_key"] = remus::proto::make_JobContent("content");
   Job data_job(make_id(),sub_with_data);
+
   {
   const std::string content =
                       data_job.details(data_job.submission().default_key());
   REMUS_ASSERT( (content.size() == 0) );
 
+  //verify details() method works properly
   const std::string real_content = data_job.details("non_default_key");
 
   REMUS_ASSERT( (real_content.size() != 0) );
   REMUS_ASSERT( (real_content == "content") );
+  }
+
+  {
+  //verify details works properly when you extract a job content
+  remus::proto::JobContent content;
+  const bool have_key = data_job.details("foo",content);
+  REMUS_ASSERT( (have_key==false))
+
+  const bool do_have_key = data_job.details("non_default_key",content);
+  REMUS_ASSERT( (do_have_key==true) )
+  REMUS_ASSERT( (content.sourceType()==remus::common::ContentSource::Memory) )
+  REMUS_ASSERT( (content.formatType()==remus::common::ContentFormat::User) )
+  REMUS_ASSERT( (content.dataSize()== std::string("content").size()) )
+  REMUS_ASSERT( (std::string(content.data())== "content") )
   }
 
 }
