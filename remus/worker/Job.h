@@ -85,15 +85,28 @@ public:
   //helper method to easily get the contents of a given key
   //inside the submission as a std::string.
   std::string details(const std::string key) const
-   {
-   typedef remus::proto::JobSubmission::const_iterator it;
-   it i = this->Submission.find(key);
-   if( i != this->Submission.end() )
-    {
-    return std::string(i->second.data(),i->second.dataSize());
-    }
-   return std::string();
-   }
+  {
+    typedef remus::proto::JobSubmission::const_iterator it;
+    it i = this->Submission.find(key);
+    if( i != this->Submission.end() )
+      {
+      return std::string(i->second.data(),i->second.dataSize());
+      }
+    return std::string();
+  }
+
+  //helper method to easily extract a JobContent from the job submission
+  bool details(const std::string& key, remus::proto::JobContent& value)
+  {
+    typedef remus::proto::JobSubmission::const_iterator it;
+    it attIt = this->Submission.find(key);
+    if(attIt == this->Submission.end())
+      {
+      return false;
+      }
+    value = attIt->second;
+    return true;
+  }
 
 private:
   boost::uuids::uuid Id;
