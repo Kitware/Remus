@@ -25,7 +25,7 @@ void state_test()
   REMUS_ASSERT( (invalid.value() == -1) )
   REMUS_ASSERT( (invalid.message() == std::string()) )
 
-  JobProgress progress_queued(remus::FINISHED);
+  JobProgress progress_queued(remus::QUEUED);
   REMUS_ASSERT( (progress_queued == invalid) );
 
   JobProgress progress_finished(remus::FINISHED);
