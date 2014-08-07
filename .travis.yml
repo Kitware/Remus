@@ -16,7 +16,6 @@ before_install:
   - sudo apt-cache policy libboost-dev
   - sudo apt-get install -qq libboost-dev libboost-filesystem-dev libboost-system-dev libboost-thread-dev
   - sudo apt-get install -qq libzmq3-dev
-  - sudo pip install cpp-coveralls
   - sudo apt-get install curl
 
 script:
@@ -27,7 +26,6 @@ script:
 
 after_success:
   - curl http://cbadges.com/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
-  - coveralls --root . --build ./build --exclude ./thirdparty --exclude ./examples --exclude-pattern '\./build/.*\.c(?:xx)?' --exclude-pattern '\./build/.*\.h(?:xx)?'
 
 notifications:
   email:
