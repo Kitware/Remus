@@ -33,7 +33,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
     #setup custom exclude for Remus, we do this by creating a
     #CTestCutom.cmake file in the build tree
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
-      "set(CTEST_CUSTOM_COVERAGE_EXCLUDE
+      #try using "-p" to preserve full paths to handle the fact that we have
+      #to files named Job.h/Job.cxx
+      "
+      set(COVERAGE_EXTRA_FLAGS \"-l -p\")
+      set(CTEST_CUSTOM_COVERAGE_EXCLUDE
         \"thirdparty\"
         \"zmq.hpp\"
         \"UnitTest\"

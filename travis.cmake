@@ -75,6 +75,10 @@ message("Tested.")
 #For some reason, CTest doesn't automatically figure this out.  Manually set that we want gcov.
 set(CTEST_COVERAGE_COMMAND "gcov")
 
+#try using "-p" to preserve full paths to handle the fact that we have
+#to files named Job.h/Job.cxx
+set(COVERAGE_EXTRA_FLAGS "-l -p")
+
 #Set coverage exclusion
 set(CTEST_CUSTOM_COVERAGE_EXCLUDE
 	"${CTEST_CUSTOM_COVERAGE_EXCLUDE}"
