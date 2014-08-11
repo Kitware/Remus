@@ -30,7 +30,7 @@ export(PACKAGE RemusClient)
 export(TARGETS RemusClient
                RemusProto
                RemusCommon
-               sysTools
+               RemusSysTools
                FILE RemusClient-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
