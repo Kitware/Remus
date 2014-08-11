@@ -54,6 +54,7 @@ namespace server{
     class SocketMonitor;
     class WorkerPool;
     struct ThreadManagement;
+    struct UUIDManagement;
     struct ZmqManagement;
     }
 
@@ -206,11 +207,11 @@ private:
 
 protected:
   //allow subclasses to override these detail containers
-  boost::uuids::random_generator UUIDGenerator;
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::detail::SocketMonitor> SocketMonitor;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
+  boost::scoped_ptr<detail::UUIDManagement> UUIDGenerator;
   boost::scoped_ptr<detail::ThreadManagement> Thread;
 
   //needs to be a shared_ptr since we can be passed in a WorkerFactory
