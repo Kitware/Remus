@@ -22,7 +22,7 @@ script:
   - git branch travis
   - git checkout travis
   - mkdir build
-  - ctest -S travis.cmake -VV || true
+  - ctest -S travis.cmake -V
 
 after_success:
   - curl http://cbadges.com/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
