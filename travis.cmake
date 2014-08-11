@@ -14,7 +14,6 @@ endif()
 #Setting our build name and build configuration.
 string(SUBSTRING "$ENV{TRAVIS_COMMIT}" 0 7 SHA)
 set(CTEST_BUILD_NAME "${COMPILER}-$ENV{BUILD_CONFIG}-${SHA}")
-set(CTEST_BUILD_CONFIGURATION ${CMAKE_BUILD_TYPE})
 
 #Setting name of dashboard.
 set(CTEST_SITE "travis.travis-ci")
@@ -27,10 +26,16 @@ set (CTEST_BINARY_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/build")
 set(CTEST_BUILD_CONFIGURATION $ENV{BUILD_CONFIG})
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
+#if the BUILD_CONFIG is debug enable coverage
+set(enable_coverage OFF)
+if(CTEST_BUILD_CONFIGURATION STREQUAL "Debug")
+  set(enable_coverage ON)
+endif()
+
 
 #Write initial cache:
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
-CMAKE_BUILD_TYPE:STRING=$ENV{BUILD_CONFIG}
+CMAKE_BUILD_TYPE:STRING=${enable_coverage}
 Remus_NO_SYSTEM_BOOST:BOOl=OFF
 Remus_ENABLE_COVERAGE:BOOL=ON
 ")
