@@ -128,7 +128,7 @@ Client::submitJob(const remus::proto::JobSubmission& submission)
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
-  const std::string job = response.data();
+  const std::string job(response.data(), response.dataSize());
   return remus::proto::to_Job(job);
 }
 
@@ -141,7 +141,7 @@ remus::proto::JobStatus Client::jobStatus(const remus::proto::Job& job)
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
-  const std::string status = response.data();
+  const std::string status(response.data(), response.dataSize());
   return remus::proto::to_JobStatus(status);
 }
 
@@ -154,7 +154,7 @@ remus::proto::JobResult Client::retrieveResults(const remus::proto::Job& job)
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
-  const std::string result = response.data();
+  const std::string result(response.data(), response.dataSize());
   return remus::proto::to_JobResult(result);
 }
 
@@ -167,7 +167,7 @@ remus::proto::JobStatus Client::terminate(const remus::proto::Job& job)
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
-  const std::string status = response.data();
+  const std::string status(response.data(), response.dataSize());
   return remus::proto::to_JobStatus(status);
 }
 
