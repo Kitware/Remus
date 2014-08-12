@@ -45,6 +45,7 @@
 #include <remus/server/detail/WorkerPool.h>
 
 #include <set>
+#include <ctime>
 
 
 //initialize the static instance variable in signal catcher in the class
@@ -74,6 +75,27 @@ void make_terminateJob(remus::proto::Response& response,
   response.setServiceType(remus::TERMINATE_JOB);
   response.setData(remus::worker::to_string(terminateJob));
 }
+
+//------------------------------------------------------------------------------
+struct UUIDManagement
+{
+  //----------------------------------------------------------------------------
+  UUIDManagement():
+  twister( static_cast<unsigned int>(std::time(0)) ),
+  generator(&this->twister)
+  {
+
+  }
+
+  inline boost::uuids::uuid operator()()
+  {
+    return this->generator();
+  }
+
+private:
+  boost::mt19937 twister;
+  boost::uuids::basic_random_generator<boost::mt19937> generator;
+};
 
 //------------------------------------------------------------------------------
 struct ThreadManagement
@@ -198,11 +220,11 @@ namespace server{
 Server::Server():
   PortInfo(),
   Zmq( new detail::ZmqManagement( PortInfo )),
-  UUIDGenerator(), //use default random number generator
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
   WorkerPool( new remus::server::detail::WorkerPool() ),
   ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  UUIDGenerator( new detail::UUIDManagement() ),
   Thread( new detail::ThreadManagement() ),
   WorkerFactory( boost::make_shared<remus::server::WorkerFactory>() )
   {
@@ -217,11 +239,11 @@ Server::Server():
 Server::Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory):
   PortInfo(),
   Zmq( new detail::ZmqManagement( PortInfo ) ),
-  UUIDGenerator(), //use default random number generator
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
   WorkerPool( new remus::server::detail::WorkerPool() ),
   ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  UUIDGenerator( new detail::UUIDManagement() ),
   Thread( new detail::ThreadManagement() ),
   WorkerFactory( factory )
   {
@@ -236,11 +258,11 @@ Server::Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory):
 Server::Server(const remus::server::ServerPorts& ports):
   PortInfo( ports ),
   Zmq( new detail::ZmqManagement(ports) ),
-  UUIDGenerator(), //use default random number generator
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
   WorkerPool( new remus::server::detail::WorkerPool() ),
   ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  UUIDGenerator( new detail::UUIDManagement() ),
   Thread( new detail::ThreadManagement() ),
   WorkerFactory( boost::make_shared<remus::server::WorkerFactory>() )
   {
@@ -256,11 +278,11 @@ Server::Server(const remus::server::ServerPorts& ports,
                const boost::shared_ptr<remus::server::WorkerFactory>& factory):
   PortInfo( ports ),
   Zmq( new detail::ZmqManagement(ports) ),
-  UUIDGenerator(), //use default random number generator
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
   WorkerPool( new remus::server::detail::WorkerPool() ),
   ActiveJobs( new remus::server::detail::ActiveJobs () ),
+  UUIDGenerator( new detail::UUIDManagement() ),
   Thread( new detail::ThreadManagement() ),
   WorkerFactory( factory )
   {
@@ -551,7 +573,7 @@ std::string Server::meshStatus(const remus::proto::Message& msg)
 std::string Server::queueJob(const remus::proto::Message& msg)
 {
   //generate an UUID
-  const boost::uuids::uuid jobUUID = this->UUIDGenerator();
+  const boost::uuids::uuid jobUUID = (*this->UUIDGenerator)();
 
   //create a new job to place on the queue
   const remus::proto::JobSubmission submission =
@@ -799,7 +821,7 @@ void Server::TerminateAllWorkers( )
   for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)
     {
     //make a fake id and send that with the terminate command
-    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    const boost::uuids::uuid jobId = (*this->UUIDGenerator)();
 
     remus::proto::Response response(*i);
     detail::make_terminateWorker(response,jobId);
@@ -815,7 +837,7 @@ void Server::TerminateAllWorkers( )
   for(iterator i=activeWorkers.begin(); i != activeWorkers.end(); ++i)
     {
     //make a fake id and send that with the terminate command
-    const boost::uuids::uuid jobId = this->UUIDGenerator();
+    const boost::uuids::uuid jobId = (*this->UUIDGenerator)();
 
     remus::proto::Response response(*i);
     detail::make_terminateWorker(response,jobId);

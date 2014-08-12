@@ -32,8 +32,8 @@
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wshadow"
 #endif
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop
 #endif
@@ -145,7 +145,8 @@ inline std::string AsciiStringGenerator(std::size_t length)
 
 inline boost::uuids::uuid UUIDGenerator()
 {
-  static boost::mt19937 ran;
+  //should be good enough for uuid generation
+  static boost::mt19937 ran( static_cast<unsigned int>(std::time(0)) );
   static boost::uuids::basic_random_generator<boost::mt19937> generator(&ran);
   return generator();
 }
