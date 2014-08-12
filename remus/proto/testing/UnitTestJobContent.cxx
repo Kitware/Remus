@@ -36,15 +36,39 @@ struct make_empty_string
 
 };
 
+struct make_same_string
+{
+  std::string operator()() const
+  {
+    return std::string("same_string");
+  }
+  std::size_t size() const
+  {
+    return std::string("same_string").size();
+  }
+};
+
 struct make_small_string
 {
   std::string operator()() const
   {
-    return std::string("small string");
+    return remus::testing::AsciiStringGenerator(128);
   }
   std::size_t size() const
   {
-    return std::string("small string").size();
+    return 128;
+  }
+};
+
+struct make_small_binary_string
+{
+  std::string operator()() const
+  {
+    return remus::testing::BinaryDataGenerator(128);
+  }
+  std::size_t size() const
+  {
+    return 128;
   }
 };
 
@@ -125,7 +149,7 @@ void verify_tag()
 
 void verify_container_algorithm_support()
 {
-  make_small_string str_factory;
+  make_same_string str_factory;
   make_large_string large_str_factory;
   std::vector<JobContent> jc_vec(100);
   for(std::size_t i=0; i < 100; ++i)
@@ -266,31 +290,44 @@ int UnitTestJobContent(int, char *[])
 
   verify_container_algorithm_support();
 
+  std::cout << "verify_serilization_no_tag" << std::endl;
   std::cout << "make_empty_string" << std::endl;
   verify_serilization_no_tag( (make_empty_string()) );
   std::cout << "make_small_string" << std::endl;
   verify_serilization_no_tag( (make_small_string()) );
+  std::cout << "make_small_binary_string" << std::endl;
+  verify_serilization_no_tag( (make_small_binary_string()) );
   std::cout << "make_large_string" << std::endl;
   verify_serilization_no_tag( (make_large_string()) );
   std::cout << "make_really_large_string" << std::endl;
   verify_serilization_no_tag( (make_really_large_string()) );
+  std::cout << std::endl;
 
+  std::cout << "verify_serilization_with_tag" << std::endl;
   std::cout << "make_empty_string" << std::endl;
   verify_serilization_with_tag( (make_empty_string()) );
   std::cout << "make_small_string" << std::endl;
   verify_serilization_with_tag( (make_small_string()) );
+  std::cout << "make_small_binary_string" << std::endl;
+  verify_serilization_with_tag( (make_small_binary_string()) );
   std::cout << "make_large_string" << std::endl;
   verify_serilization_with_tag( (make_large_string()) );
   std::cout << "make_really_large_string" << std::endl;
   verify_serilization_with_tag( (make_really_large_string()) );
+  std::cout << std::endl;
 
+  std::cout << "verify_zero_copy_serilization" << std::endl;
   std::cout << "make_empty_string" << std::endl;
   verify_zero_copy_serilization( (make_empty_string()) );
   std::cout << "make_small_string" << std::endl;
   verify_zero_copy_serilization( (make_small_string()) );
+  std::cout << "make_small_binary_string" << std::endl;
+  verify_zero_copy_serilization( (make_small_binary_string()) );
   std::cout << "make_large_string" << std::endl;
   verify_zero_copy_serilization( (make_large_string()) );
   std::cout << "make_really_large_string" << std::endl;
   verify_zero_copy_serilization( (make_really_large_string()) );
+  std::cout << std::endl;
+
   return 0;
 }
