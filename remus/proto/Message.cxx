@@ -14,8 +14,8 @@
 
 #include <remus/proto/zmq.hpp>
 #include <remus/proto/zmqHelper.h>
-
 #include <boost/make_shared.hpp>
+#include <cstring>
 
 namespace remus{
 namespace proto{
@@ -58,7 +58,7 @@ Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
 //creates a job message from reading in the socket
 Message::Message(zmq::socket_t* socket)
   {
-//we are receiving a multi part message
+  //we are receiving a multi part message
   //frame 0: REQ header / attachReqHeader does this
   //frame 1: Mesh Type
   //frame 2: Service Type
@@ -84,7 +84,7 @@ Message::Message(zmq::socket_t* socket)
       std::string bufferData(reinterpret_cast<const char*>(meshIOType.data()),
                              meshIOType.size());
 
-      std::istringstream bufferData(bufferData);
+      std::istringstream buffer(bufferData);
       std::string in_type, out_type;
       buffer >> in_type;
       buffer >> out_type;
@@ -175,9 +175,9 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
     return false;
     }
 
-  zmq::attachReqHeader(*socket,flags);
+  const bool attached_header = zmq::attachReqHeader(*socket,flags);
 
-  bool valid = true;
+  bool valid = attached_header;
 
   //we need to encode the MType as a string buffer
   //I worry about the performance cost of this
@@ -187,6 +187,7 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
 
   zmq::message_t meshIOType(bufferData.size());
   std::memcpy(meshIOType.data(),bufferData.c_str(),bufferData.size());
+
   valid = valid && zmq::send_harder(*socket,meshIOType,flags|ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
@@ -197,9 +198,7 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
     valid = zmq::send_harder(*socket,service,flags|ZMQ_SNDMORE);
 
 
-    valid = valid && zmq::send_harder(*socket,
-                                      *this->Storage.get(),
-                                      flags);
+    valid = valid && zmq::send_harder(*socket, *this->Storage, flags);
     }
   else if(valid) //we are done
     {

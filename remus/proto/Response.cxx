@@ -12,8 +12,8 @@
 #include <remus/proto/Response.h>
 
 #include <remus/proto/zmqHelper.h>
-
 #include <boost/make_shared.hpp>
+#include <cstring>
 
 namespace remus{
 namespace proto{
@@ -24,7 +24,7 @@ Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
   FullyFormed(true),
   Storage( boost::make_shared<zmq::message_t>(rdata.size()) )
 {
-  memcpy(this->Storage->data(),rdata.data(),rdata.size());
+  std::memcpy(this->Storage->data(),rdata.data(),rdata.size());
 }
 
 //----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ Response::Response(remus::SERVICE_TYPE stype,
   FullyFormed(true),
   Storage( boost::make_shared<zmq::message_t>(size) )
 {
-  memcpy(this->Storage->data(),rdata,size);
+  std::memcpy(this->Storage->data(),rdata,size);
 }
 
 //----------------------------------------------------------------------------
@@ -53,6 +53,7 @@ Response::Response(zmq::socket_t* socket):
       {
       this->SType = *(reinterpret_cast<SERVICE_TYPE*>(servType.data()));
       const bool recvStorage = zmq::recv_harder(*socket,this->Storage.get());
+
       //if recvStorage is true than we received every chunk of data and we
       //are valid
       this->FullyFormed = recvStorage;
@@ -103,7 +104,7 @@ bool Response::send_impl(zmq::socket_t* socket,
   if(client.size()>0)
     {
     zmq::message_t cAddress(client.size());
-    memcpy(cAddress.data(),client.data(),client.size());
+    std::memcpy(cAddress.data(),client.data(),client.size());
     clientSent = zmq::send_harder( *socket, cAddress, flags|ZMQ_SNDMORE );
     }
 
@@ -113,13 +114,14 @@ bool Response::send_impl(zmq::socket_t* socket,
     if(sentFakeReq)
       {
       zmq::message_t service(sizeof(this->SType));
-      memcpy(service.data(),&this->SType,sizeof(this->SType));
+      std::memcpy(service.data(),&this->SType,sizeof(this->SType));
 
       const bool sentServiceType = zmq::send_harder( *socket,
                                                  service, flags|ZMQ_SNDMORE );
       if(sentServiceType)
         {
-        responseSent = zmq::send_harder( *socket, *this->Storage.get(), flags);
+        responseSent = zmq::send_harder( *socket, *this->Storage, flags);
+
         }
       }
     }

@@ -16,6 +16,7 @@
 #include <remus/testing/Testing.h>
 
 #include <string>
+#include <cstring>
 
 namespace {
 
@@ -87,11 +88,11 @@ bool verify_bindings(remus::server::ServerPorts ports)
   int clientTag = 1, workerTag = 2;
   {
   zmq::message_t client_data(sizeof(clientTag));
-  memcpy(client_data.data(),&clientTag,sizeof(clientTag));
+  std::memcpy(client_data.data(),&clientTag,sizeof(clientTag));
   zmq::send_harder(check_client,client_data);
 
   zmq::message_t worker_data(sizeof(workerTag));
-  memcpy(worker_data.data(),&workerTag,sizeof(workerTag));
+  std::memcpy(worker_data.data(),&workerTag,sizeof(workerTag));
   zmq::send_harder(check_worker,worker_data);
   }
 
