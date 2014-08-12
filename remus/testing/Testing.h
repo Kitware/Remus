@@ -107,8 +107,9 @@ inline std::string CharacterGenerator(const std::string& charset,
   //first we copy the remainder, or in the case of short strings
   //this will fill the entire string
   std::string result(length,0);
-  if(length > 0) //have to handle asking for an empty string gen
-    {
+  if(length > 0 && sampling.size() > 0)
+    { //have to handle asking for an empty string gen. We check
+      //sampling.size to help out static analyzers
     std::size_t remainder = length % sampling.size();
     std::copy(sampling.begin(),sampling.begin()+remainder,result.begin());
 
