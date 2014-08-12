@@ -28,16 +28,6 @@ Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
 }
 
 //----------------------------------------------------------------------------
-Response::Response(remus::SERVICE_TYPE stype,
-                   const char* rdata, std::size_t size):
-  SType(stype),
-  FullyFormed(true),
-  Storage( boost::make_shared<zmq::message_t>(size) )
-{
-  std::memcpy(this->Storage->data(),rdata,size);
-}
-
-//----------------------------------------------------------------------------
 Response::Response(zmq::socket_t* socket):
   SType(remus::INVALID_SERVICE),
   FullyFormed(false), //false by default in case we failed to recv everything

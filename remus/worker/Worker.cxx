@@ -166,7 +166,7 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
   std::string msg = remus::proto::to_string(info);
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::MESH_STATUS,
-                                msg.data(),msg.size());
+                                msg);
   message.send(&this->Zmq->Server);
 }
 
@@ -177,7 +177,7 @@ void Worker::returnMeshResults(const remus::proto::JobResult& result)
   std::string msg = remus::proto::to_string(result);
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
                                 remus::RETRIEVE_MESH,
-                                msg.data(),msg.size());
+                                msg);
   message.send(&this->Zmq->Server);
 }
 

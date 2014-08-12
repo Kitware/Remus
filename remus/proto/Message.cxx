@@ -32,19 +32,6 @@ Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype,
 }
 
 //----------------------------------------------------------------------------
-//pass in a data pointer that the message will use when sending
-//the pointer data can't become invalid before you call send.
-Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype,
-                 const char* mdata, std::size_t size):
-  MType(mtype),
-  SType(stype),
-  ValidMsg(true),
-  Storage( boost::make_shared<zmq::message_t>(size) )
-{
-  std::memcpy(this->Storage->data(),mdata,size);
-}
-
-//----------------------------------------------------------------------------
 //creates a job message with no data
 Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
   MType(mtype),
@@ -56,7 +43,11 @@ Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
 
 //----------------------------------------------------------------------------
 //creates a job message from reading in the socket
-Message::Message(zmq::socket_t* socket)
+Message::Message(zmq::socket_t* socket):
+  MType(),
+  SType(),
+  ValidMsg(false),
+  Storage( boost::make_shared<zmq::message_t>() )
   {
   //we are receiving a multi part message
   //frame 0: REQ header / attachReqHeader does this
@@ -111,7 +102,6 @@ Message::Message(zmq::socket_t* socket)
     if(haveStorageData)
       {
       //if we have a need for storage construct it now
-      this->Storage = boost::make_shared<zmq::message_t>();
       readStorageData = zmq::recv_harder(*socket, this->Storage.get());
       }
     }
@@ -196,7 +186,6 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
     {
     //send the service line not as the last line
     valid = zmq::send_harder(*socket,service,flags|ZMQ_SNDMORE);
-
 
     valid = valid && zmq::send_harder(*socket, *this->Storage, flags);
     }

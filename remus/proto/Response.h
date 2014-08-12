@@ -38,11 +38,6 @@ public:
   Response(remus::SERVICE_TYPE stype, const std::string& data);
 
   //----------------------------------------------------------------------------
-  //construct a response, the contents of the data pointer will copied and sent.
-  Response(remus::SERVICE_TYPE stype, const char* data,
-           std::size_t size);
-
-  //----------------------------------------------------------------------------
   //create a response from reading from the socket
   explicit Response(zmq::socket_t* socket);
 

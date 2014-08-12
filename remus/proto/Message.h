@@ -40,12 +40,6 @@ public:
           const std::string& data);
 
   //----------------------------------------------------------------------------
-  //pass in a data pointer that Message will copy and send
-  Message(remus::common::MeshIOType mtype,
-          remus::SERVICE_TYPE stype,
-          const char* data, std::size_t size);
-
-  //----------------------------------------------------------------------------
   //creates a Message with no data
   Message(remus::common::MeshIOType mtype,
           remus::SERVICE_TYPE stype);
