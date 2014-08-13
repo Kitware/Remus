@@ -33,6 +33,17 @@ int main (int argc, char* argv[])
   remus::Worker w(requirements,connection);
   remus::worker::Job jd = w.getJob();
 
+  switch(jd.validityReason())
+    {
+      case remus::worker::Job::INVALID:
+        return 0;
+      case remus::worker::Job::TERMINATE_WORKER:
+        return 0;
+      case remus::worker::Job::VALID_JOB:
+      default:
+        break;
+    }
+
   const remus::proto::JobContent& content =
                                     jd.submission().find("data")->second;
 

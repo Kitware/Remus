@@ -39,10 +39,9 @@ int main (int argc, char* argv[])
     switch(jd.validityReason())
     {
       case remus::worker::Job::INVALID:
-        std::cout << "job invalid" << std::endl;
         return 0;
       case remus::worker::Job::TERMINATE_WORKER:
-        return 1;
+        return 0;
       default:
         break;
     }
