@@ -418,7 +418,8 @@ bool WorkerFactory::createWorker(const remus::proto::JobRequirements& reqs,
                                WorkerFactory::FactoryDeletionBehavior lifespan)
 {
   this->updateWorkerCount(); //remove dead workers
-  if(this->currentWorkerCount() < this->maxWorkerCount())
+  //should be <= to since current count is 1 based, not zero based
+  if(this->currentWorkerCount() <= this->maxWorkerCount())
     {
     const ValidWorker w = find_worker_path(reqs, this->PossibleWorkers);
     if(w.valid)
