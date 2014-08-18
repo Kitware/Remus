@@ -48,7 +48,7 @@ struct Mesh3D : remus::meshtypes::MeshTypeBase
 struct Mesh3DSurface : remus::meshtypes::MeshTypeBase
 {
     static boost::shared_ptr<MeshTypeBase> create()
-      { return boost::shared_ptr<MeshTypeBase>(new Mesh3D()); }
+      { return boost::shared_ptr<MeshTypeBase>(new Mesh3DSurface()); }
     boost::uint16_t id() const { return 4; }
     std::string name() const { return "Mesh3DSurface"; }
 };
