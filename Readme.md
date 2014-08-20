@@ -182,10 +182,17 @@ while( j.valid() )
   }
 
 //lets take the data key's value out of the job submission
-const remus::proto::JobContent& content =
-                                    jd.submission().find("data")->second;
-std::string message(content.data(),content.dataSize());
-message += " and Hello Client I am currently in progress";
+remus::proto::JobContent content;
+const bool has_data_content = jd.details("data", content);
+
+//extract the data from the content
+std::string message;
+if(has_data_content)
+  {
+  message = std::string(content.data(),content.dataSize());
+  mesasge += " and ";
+  }
+message += "Hello Client I am currently in progress";
 
 remus::proto::JobProgress progress(message);
 remus::proto::JobStatus status(j.id(),progress);
