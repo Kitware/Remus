@@ -21,6 +21,6 @@ add_revision(boost
   )
 
 add_revision(zeroMQ
-  GIT_REPOSITORY "https://github.com/zeromq/zeromq3-x.git"
-  GIT_TAG v3.2.4
+  GIT_REPOSITORY "https://github.com/robertmaynard/zeromq3-x.git"
+  GIT_TAG "master"
   )
