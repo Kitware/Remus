@@ -22,7 +22,15 @@ string(REPLACE " " "\\ " boost_build_dir ${CMAKE_CURRENT_BINARY_DIR}/boost/src/b
 #such a mess on support for directories with spaces in the name
 
 if(MSVC)
-  if(MSVC11)
+  if(MSVC14)
+    set(msvc_version "msvc-14.0")
+  elseif(MSVC13)
+    #I think 13 was skipped in the version numbering, but we will add it
+    #to be safe
+    set(msvc_version "msvc-13.0")
+  elseif(MSVC12)
+    set(msvc_version "msvc-12.0")
+  elseif(MSVC11)
     set(msvc_version "msvc-11.0")
   elseif(MSVC10)
     set(msvc_version "msvc-10.0")
