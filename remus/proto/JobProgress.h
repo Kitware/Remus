@@ -15,71 +15,50 @@
 
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include <remus/common/remusGlobals.h>
-#include <remus/proto/conversionHelpers.h>
+
+//included for export symbols
+#include <remus/proto/ProtoExports.h>
 
 namespace remus {
 namespace proto {
 
 //Job progress is a helper class to easily state what the progress of a currently
 //running job is. Progress can be numeric, textual or both.
-struct JobProgress
+class REMUSPROTO_EXPORT JobProgress
 {
-  JobProgress():
-    Value(-1),
-    Message()
-    {}
+public:
+  JobProgress();
+  explicit JobProgress(remus::STATUS_TYPE status);
 
-  explicit JobProgress(remus::STATUS_TYPE status):
-    Value( (status==remus::IN_PROGRESS) ? 0 : -1),
-    Message()
-    {
-    }
+  explicit JobProgress(int v);
 
-  explicit JobProgress(int v):
-    Value(valid_progress_value(v)),
-    Message()
-    {}
+  explicit JobProgress(const std::string& msg);
 
-  explicit JobProgress(const std::string& msg):
-    Value(0),
-    Message(msg)
-    {}
-
-  JobProgress(int v, const std::string& msg):
-    Value(valid_progress_value(v)),
-    Message(msg)
-    {}
+  JobProgress(int v, const std::string& msg);
 
   //overload on the progress object to make it easier to detect when
   //progress has been changed.
   bool operator ==(const JobProgress& b) const
-  {
-    return this->Value == b.Value && this->Message == b.Message;
-  }
+    { return this->Value == b.Value && this->Message == b.Message; }
 
   //overload on the progress object to make it easier to detect when
   //progress has been changed.
   bool operator !=(const JobProgress& b) const
-  {
-    return !(this->operator ==(b));
-  }
+    { return !(this->operator ==(b)); }
 
   int value() const { return Value; }
   const std::string message() const { return Message; }
 
-  void setValue(int v) { Value = JobProgress::valid_progress_value(v); }
-  void setMessage(const std::string& msg) { Message = msg; }
-
+  void setValue(int v)
+    { Value = JobProgress::valid_progress_value(v); }
+  void setMessage(const std::string& msg)
+    { Message = msg; }
 
   //make sure that we can't set progress to be outside the valid range.
-  static inline int valid_progress_value(int v)
-  {
-    v = std::min<int>(v,100);
-    v = std::max<int>(v,1);
-    return v;
-  }
+  int valid_progress_value(int v);
 
   friend std::ostream& operator<<(std::ostream &os, const JobProgress &prog)
     { prog.serialize(os); return os; }
@@ -88,24 +67,10 @@ struct JobProgress
 
 private:
   //serialize function
-  void serialize(std::ostream& buffer) const
-  {
-    buffer << this->value() << std::endl;
-    buffer << this->message().size() << std::endl;
-    remus::internal::writeString(buffer,this->message());
-  }
+  void serialize(std::ostream& buffer) const;
 
   //deserialize constructor function
-  explicit JobProgress(std::istream& buffer)
-  {
-    //this is really important, the progress message can have multiple words and/or
-    //new line characters. so we want all of the left over characters in the
-    //buffer to be the progress message.
-    int progressMessageLen;
-    buffer >> this->Value;
-    buffer >> progressMessageLen;
-    this->Message = remus::internal::extractString(buffer,progressMessageLen);
-  }
+  explicit JobProgress(std::istream& buffer);
 
   int Value;
   std::string Message;
