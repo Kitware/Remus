@@ -17,38 +17,17 @@
 
 int main(int argc, char** argv)
 {
-  //never ending application that needs to be killed
-  //and just spews values
-  int pollingType = -1;
-  int exitNormally = -1;
   if(argc == 2)
     {
     std::string prog_type(argv[1]);
-    if(prog_type.find("NO_POLL") == 0)
-      pollingType = 1;
-    else if( prog_type.find("POLL") == 0)
-      pollingType = 2;
-    else if( prog_type.find("EXIT_NORMALLY") == 0)
-      exitNormally = 1;
+    if( prog_type.find("SLEEP_AND_EXIT") == 0)
+      {
+      remus::common::SleepForMillisec(1000);
+      }
+    else
+      {
+      return 1;
+      }
     }
-
-  //determine our behavior
-  if(exitNormally == 1)
-    {
-    remus::common::SleepForMillisec(2000);
-    }
-  else if(pollingType == 1)
-    {
-    while(true){}
-    }
-  else if(pollingType == 2)
-    {
-    while(true){  std::cout << "fake polling output" << std::endl; }
-    }
-  else
-    {
-    while(true){  std::cout << "default behavior" << std::endl; }
-    }
-
   return 0;
 }
