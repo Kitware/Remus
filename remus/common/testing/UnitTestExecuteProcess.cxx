@@ -78,7 +78,7 @@ int UnitTestExecuteProcess(int, char *[])
   {
   //next create a program that will exit normally, and we won't have to kill
   std::vector< std::string > args;
-  args.push_back("EXIT_NORMALLY");
+  args.push_back("SLEEP_AND_EXIT");
   remus::common::ExecuteProcess example(eapp.name, args );
 
   //start the process in non detached-mode
@@ -106,78 +106,74 @@ int UnitTestExecuteProcess(int, char *[])
 
 
 //==============================================================================
-//  Test Polling
+//  Test Polling on standard out channel
 //==============================================================================
   {
   //next step will be to test that we can properly poll an application
   std::vector< std::string > args;
-  args.push_back("POLL");
+  args.push_back("COUT_OUTPUT");
   remus::common::ExecuteProcess example(eapp.name, args );
 
-  //validate that program isn't running, and that poll returns invalid results
-  //before the process has been launched
-  remus::common::ProcessPipe unableToPoll = example.poll(-1.0);
-  REMUS_ASSERT(!unableToPoll.valid());
-  unableToPoll = example.poll(-1.0);
-  REMUS_ASSERT(!unableToPoll.valid());
-  unableToPoll = example.poll(0.0);
-  REMUS_ASSERT(!unableToPoll.valid());
-  unableToPoll = example.poll(1.0);
-  REMUS_ASSERT(!unableToPoll.valid());
-
-  REMUS_ASSERT(!example.kill());
-  REMUS_ASSERT(!example.isAlive());
-
-
-
-  //start the process in detached mode, and test polling
-  example.execute(detached);
+  //start the process in attached mode, and test polling
+  example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
   remus::common::ProcessPipe pollResult = example.poll(-1);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
+
   pollResult = example.poll(10);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
+
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
 
   remus::common::SleepForMillisec(1000);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
 
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
+  }
 
-  //make sure the program terminated
-  REMUS_ASSERT(!example.isAlive());
-  REMUS_ASSERT(!example.exitedNormally());
+//==============================================================================
+//  Test Polling on standard error channel
+//==============================================================================
+  {
+  //next step will be to test that we can properly poll an application
+  std::vector< std::string > args;
+  args.push_back("CERR_OUTPUT");
+  remus::common::ExecuteProcess example(eapp.name, args );
 
-
-  //start the process in non-detached mode, and test polling
+  //start the process in attached mode, and test polling
   example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
-  pollResult = example.poll(-1);
+  remus::common::ProcessPipe pollResult = example.poll(-1);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
+
   pollResult = example.poll(10);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
+
   pollResult = example.poll(1);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
 
-  remus::common::SleepForMillisec(1);
+  remus::common::SleepForMillisec(1000);
   pollResult = example.poll(0);
   REMUS_ASSERT(pollResult.valid());
+  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
 
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
-
-  //make sure the program terminated
-  REMUS_ASSERT(!example.isAlive());
-  REMUS_ASSERT(!example.exitedNormally());
   }
-
 
 //==============================================================================
 //  Test Polling timeout
@@ -187,7 +183,7 @@ int UnitTestExecuteProcess(int, char *[])
   //next create a program that will not have output so the polling will
   //timeout
   std::vector< std::string > args;
-  args.push_back("NO_POLL");
+  args.push_back("NO_OUTPUT");
   remus::common::ExecuteProcess example(eapp.name, args );
   remus::common::ProcessPipe noPoll = example.poll(0.1);
   REMUS_ASSERT(!noPoll.valid());
@@ -199,9 +195,6 @@ int UnitTestExecuteProcess(int, char *[])
   //try polling for different lengths of time
   //all should fail
   //The timeout's unit of time is SECONDS.
-  noPoll = example.poll(1.0);
-  REMUS_ASSERT(!noPoll.valid());
-
   noPoll = example.poll(0.5);
   REMUS_ASSERT(!noPoll.valid());
 
@@ -221,9 +214,6 @@ int UnitTestExecuteProcess(int, char *[])
   //try polling for different lengths of time
   //all should fail
   //The timeout's unit of time is SECONDS.
-  noPoll = example.poll(1.0);
-  REMUS_ASSERT(!noPoll.valid());
-
   noPoll = example.poll(0.5);
   REMUS_ASSERT(!noPoll.valid());
 
