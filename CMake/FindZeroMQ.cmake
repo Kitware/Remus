@@ -62,20 +62,26 @@ if(MSVC)
   #now try to find the release and debug version
   find_library(ZeroMQ_LIBRARY_RELEASE
     NAMES ${_zmq_release_names} zmq libzmq
-    HINTS ${ZeroMQ_ROOT_DIR}/lib
-          ${ZeroMQ_ROOT_DIR}/bin
+    HINTS ${ZeroMQ_ROOT_DIR}/bin
+          ${ZeroMQ_ROOT_DIR}/lib
     )
 
   find_library(ZeroMQ_LIBRARY_DEBUG
     NAMES ${_zmq_debug_names} zmq libzmq
-    HINTS ${ZeroMQ_ROOT_DIR}/lib
-          ${ZeroMQ_ROOT_DIR}/bin
+    HINTS ${ZeroMQ_ROOT_DIR}/bin
+          ${ZeroMQ_ROOT_DIR}/lib
     )
 
-  set(ZeroMQ_LIBRARY
-  debug ${ZeroMQ_LIBRARY_DEBUG}
-  optimized ${ZeroMQ_LIBRARY_RELEASE}
-  )
+  if(ZeroMQ_LIBRARY_RELEASE AND ZeroMQ_LIBRARY_DEBUG)
+    set(ZeroMQ_LIBRARY
+        debug ${ZeroMQ_LIBRARY_DEBUG}
+        optimized ${ZeroMQ_LIBRARY_RELEASE}
+        )
+  elseif(ZeroMQ_LIBRARY_RELEASE)
+    set(ZeroMQ_LIBRARY ${ZeroMQ_LIBRARY_RELEASE})
+  elseif(ZeroMQ_LIBRARY_DEBUG)
+    set(ZeroMQ_LIBRARY ${ZeroMQ_LIBRARY_DEBUG})
+  endif()
 
 else()
   find_library(ZeroMQ_LIBRARY
