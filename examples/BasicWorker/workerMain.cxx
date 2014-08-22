@@ -36,9 +36,9 @@ int main (int argc, char* argv[])
   switch(jd.validityReason())
     {
       case remus::worker::Job::INVALID:
-        return 0;
+        return 1;
       case remus::worker::Job::TERMINATE_WORKER:
-        return 0;
+        return 1;
       case remus::worker::Job::VALID_JOB:
       default:
         break;
@@ -70,5 +70,5 @@ int main (int argc, char* argv[])
                                   remus::proto::make_JobResult(jd.id(),result);
   w.returnMeshResults(results);
 
-  return 1;
+  return 0;
 }
