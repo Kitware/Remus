@@ -60,7 +60,7 @@ public:
   remus::proto::JobRequirementsSet queuedJobRequirements() const;
 
   //return the number of jobs waiting for workers
-  unsigned int numJobsWaitingForWokers() const
+  unsigned int numJobsWaitingForWorkers() const
     { return QueuedJobsForWorkers.size(); }
 
   //return the number of jobs queued but not waiting for a worker

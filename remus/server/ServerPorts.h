@@ -79,9 +79,9 @@ public:
 
   //explicitly state the connection type, this can handle inproc, ipc,
   //and tcp connection types
-  template<typename ClientSocketType, typename WokerSocketType>
+  template<typename ClientSocketType, typename WorkerSocketType>
   ServerPorts(const ClientSocketType& c,
-              const WokerSocketType& w):
+              const WorkerSocketType& w):
     Client(c),
     Worker(w)
   { }
