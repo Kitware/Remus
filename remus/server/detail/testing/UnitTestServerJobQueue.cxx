@@ -105,7 +105,7 @@ void verify_add_remove_jobs()
   REMUS_ASSERT( (queue.queuedJobRequirements().count(worker_type2D) == 0) );
   REMUS_ASSERT( (queue.queuedJobRequirements().count(worker_type3D) == 0) );
 
-  REMUS_ASSERT( (queue.numJobsWaitingForWokers() == 0) );
+  REMUS_ASSERT( (queue.numJobsWaitingForWorkers() == 0) );
   REMUS_ASSERT( (queue.numJobsJustQueued() == 0) );
 }
 
@@ -151,7 +151,7 @@ void verify_dispatch_jobs()
   REMUS_ASSERT( (queue.waitingJobRequirements().count(worker_type2D) == 1) );
   REMUS_ASSERT( (queue.waitingJobRequirements().count(worker_type3D) == 0) );
 
-  REMUS_ASSERT( (queue.numJobsWaitingForWokers() == 1) );
+  REMUS_ASSERT( (queue.numJobsWaitingForWorkers() == 1) );
   REMUS_ASSERT( (queue.numJobsJustQueued() == 6) );
 
 
@@ -160,7 +160,7 @@ void verify_dispatch_jobs()
   REMUS_ASSERT( (queue.workerDispatched(worker_type3D) == true) );
   REMUS_ASSERT( (queue.workerDispatched(worker_type3D) == true) );
 
-  REMUS_ASSERT( (queue.numJobsWaitingForWokers() == 4) );
+  REMUS_ASSERT( (queue.numJobsWaitingForWorkers() == 4) );
   REMUS_ASSERT( (queue.numJobsJustQueued() == 3) );
 
   //verify the state of both queues
@@ -191,7 +191,7 @@ void verify_dispatch_jobs()
   REMUS_ASSERT( (queue.takeJob(worker_type3D).valid() == true) );
   REMUS_ASSERT( (queue.takeJob(worker_type3D).valid() == true) );
 
-  REMUS_ASSERT( (queue.numJobsWaitingForWokers() == 0) );
+  REMUS_ASSERT( (queue.numJobsWaitingForWorkers() == 0) );
   REMUS_ASSERT( (queue.numJobsJustQueued() == 2) );
 
   //take job will get from the just queued list once the waiting list
@@ -200,7 +200,7 @@ void verify_dispatch_jobs()
   REMUS_ASSERT( (queue.takeJob(worker_type2D).valid() == true) );
   REMUS_ASSERT( (queue.takeJob(worker_type3D).valid() == true) );
 
-  REMUS_ASSERT( (queue.numJobsWaitingForWokers() == 0) );
+  REMUS_ASSERT( (queue.numJobsWaitingForWorkers() == 0) );
   REMUS_ASSERT( (queue.numJobsJustQueued() == 0) );
 
   REMUS_ASSERT( (queue.queuedJobRequirements().size() == 0) );
