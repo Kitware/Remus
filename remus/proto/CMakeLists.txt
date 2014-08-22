@@ -27,6 +27,7 @@ set(srcs
     JobProgress.cxx
     JobRequirements.cxx
     JobResult.cxx
+    JobStatus.cxx
     JobSubmission.cxx
     Message.cxx
     Response.cxx
