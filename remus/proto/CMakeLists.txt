@@ -24,15 +24,17 @@ set(private_headers
 
 set(srcs
     JobContent.cxx
+    JobProgress.cxx
     JobRequirements.cxx
     JobResult.cxx
+    JobStatus.cxx
     JobSubmission.cxx
     Message.cxx
     Response.cxx
     )
 
 #setup the protocol library
-add_library(RemusProto ${srcs}  ${headers})
+add_library(RemusProto ${srcs} ${headers})
 
 target_link_libraries(RemusProto
                       LINK_PUBLIC RemusCommon ${ZeroMQ_LIBRARIES}

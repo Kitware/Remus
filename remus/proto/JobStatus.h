@@ -13,7 +13,6 @@
 #ifndef remus_proto_JobStatus_h
 #define remus_proto_JobStatus_h
 
-#include <algorithm>
 #include <string>
 #include <sstream>
 
@@ -30,62 +29,42 @@
 #endif
 
 #include <remus/common/remusGlobals.h>
-#include <remus/proto/conversionHelpers.h>
 #include <remus/proto/JobProgress.h>
+
+//included for export symbols
+#include <remus/proto/ProtoExports.h>
 
 namespace remus {
 namespace proto {
 
-class JobStatus
+class REMUSPROTO_EXPORT JobStatus
 {
 public:
   //Construct a job status that has no form of progress value or message
-  JobStatus(const boost::uuids::uuid& jid, remus::STATUS_TYPE statusType):
-    JobId(jid),
-    Status(statusType),
-    Progress(statusType)
-    {
-    }
+  JobStatus(const boost::uuids::uuid& jid, remus::STATUS_TYPE statusType);
 
   //will make sure that the progress value is between 1 and 100 inclusive
   //on both ends. Progress value of zero is used when the status type is not progress
-  JobStatus(const boost::uuids::uuid& jid, const remus::proto::JobProgress& jprogress):
-    JobId(jid),
-    Status(remus::IN_PROGRESS),
-    Progress(jprogress)
-    {
-    }
+  JobStatus(const boost::uuids::uuid& jid, const remus::proto::JobProgress& jprogress);
 
   //returns the current progress object
   const remus::proto::JobProgress& progress() const
-  {
-    return this->Progress;
-  }
+    { return this->Progress; }
 
   //update the progress values of the status object
-  void updateProgress( const remus::proto::JobProgress& prog )
-    {
-    this->Status = remus::IN_PROGRESS;
-    this->Progress = prog;
-    }
+  void updateProgress( const remus::proto::JobProgress& prog );
 
   //returns true if the job is still running on the worker
   bool inProgress() const
-  {
-    return this->Status == remus::IN_PROGRESS;
-  }
+    { return this->Status == remus::IN_PROGRESS; }
 
   //returns true if the job is waiting for a worker
   bool queued() const
-  {
-    return this->Status == remus::QUEUED;
-  }
+    { return this->Status == remus::QUEUED; }
 
   //returns true if the job is in progress or queued
   bool good() const
-  {
-    return queued() || inProgress();
-  }
+    { return queued() || inProgress(); }
 
   //returns true if the job failed to launch in any way.
   bool failed() const
@@ -97,27 +76,23 @@ public:
 
   //marks the job as being failing to finish
   void markAsFailed()
-  {
-    this->Status = remus::FAILED;
-  }
+    { this->Status = remus::FAILED; }
 
   //returns true if the job is finished and you can get the results from the server.
   bool finished() const
-  {
-    return this->Status == remus::FINISHED;
-  }
+    { return this->Status == remus::FINISHED; }
 
   //marks the job as being successfully finished
   void markAsFinished()
-  {
-    this->Status = remus::FINISHED;
-  }
+    { this->Status = remus::FINISHED; }
 
   //returns true if the job is valid
-  bool valid() const { return this->Status != remus::INVALID_STATUS; }
+  bool valid() const
+    { return this->Status != remus::INVALID_STATUS; }
 
   //returns false if the job is valid
-  bool invalid() const { return this->Status == remus::INVALID_STATUS; }
+  bool invalid() const
+    { return this->Status == remus::INVALID_STATUS; }
 
   //returns the uuid for the job that this status is for
   const boost::uuids::uuid& id() const { return JobId; }
@@ -137,9 +112,7 @@ public:
   //overload on the job status object to make it easier to detect when
   //job status has been changed.
   bool operator !=(const JobStatus& b) const
-  {
-    return !(this->operator ==(b));
-  }
+    { return !(this->operator ==(b)); }
 
   friend std::ostream& operator<<(std::ostream &os,
                                     const JobStatus &status)
@@ -150,23 +123,12 @@ public:
 
 private:
   friend remus::proto::JobStatus to_JobStatus(const std::string& msg);
+
   //serialize function
-  void serialize(std::ostream& buffer) const
-  {
-    buffer << this->id() << std::endl;
-    buffer << this->status() << std::endl;
-    buffer << this->progress() << std::endl;
-  }
+  void serialize(std::ostream& buffer) const;
 
   //deserialize constructor function
-  explicit JobStatus(std::istream& buffer)
-  {
-    int t;
-    buffer >> this->JobId;
-    buffer >> t;
-    buffer >> this->Progress;
-    this->Status = static_cast<remus::STATUS_TYPE>(t);
-  }
+  explicit JobStatus(std::istream& buffer);
 
   boost::uuids::uuid JobId;
   remus::STATUS_TYPE Status;
