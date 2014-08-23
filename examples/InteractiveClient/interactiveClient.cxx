@@ -13,7 +13,7 @@
 #include <iostream>
 #include <map>
 
-//store a mappin of job output types to every jobrequest of that type.
+//store a mapping of job output types to every jobrequest of that type.
 //this way we can easily send out a query to the server for a single output type
 typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
 std::map<std::string,std::vector<remus::common::MeshIOType> > AllJobTypeCombinations;
@@ -25,14 +25,21 @@ typedef std::vector<remus::common::MeshIOType>::iterator RequestIt;
 void populateJobTypes()
 {
   std::size_t numRegisteredMeshTypes =
-                      remus::common::MeshRegistrar::numberOfRegisteredTypes();
+    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> > allTypes =
+    remus::common::MeshRegistrar::allRegisteredTypes();
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator iit = allTypes.begin();
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator jit = allTypes.begin();
 
-  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
+  for(std::size_t i=1; i < numRegisteredMeshTypes; i++, ++iit)
     {
-    MeshType outType = remus::meshtypes::to_meshType(i);
-    for(std::size_t j=1; j < numRegisteredMeshTypes; j++)
+    //MeshType outType = remus::meshtypes::to_meshType(i);
+    MeshType outType = *iit;
+    jit = allTypes.begin();
+    for(std::size_t j=1; j < numRegisteredMeshTypes; j++, ++jit)
       {
-      MeshType inType = remus::meshtypes::to_meshType(j);
+      //MeshType inType = remus::meshtypes::to_meshType(j);
+      MeshType inType = *jit;
       AllJobTypeCombinations[outType->name()].push_back(
                  remus::common::MeshIOType(*(inType.get()),*(outType.get()) ));
       }
@@ -42,12 +49,23 @@ void populateJobTypes()
 void dumpMeshInputInfo(remus::Client &client,
                        const remus::meshtypes::MeshTypeBase& outType)
 {
+  bool atLeastOne = false;
   RequestVector requests = AllJobTypeCombinations[outType.name()];
   for(RequestIt i=requests.begin(); i != requests.end(); ++i)
     {
-    std::cout << "\t " << (*i).inputType() << ": "
-              << client.canMesh(*i) << std::endl;
+    if (client.canMesh(*i))
+      {
+      std::cout
+        << "\t from "
+        << remus::common::MeshRegistrar::instantiate((*i).inputType())->name()
+        << " (" << (*i).inputType() << ")" << std::endl;
+      atLeastOne = true;
+      }
     }
+
+  if (!atLeastOne)
+    std::cout << "\t cannot be generated." << std::endl;
+
   std::cout << std::endl;
   return;
 }
@@ -55,14 +73,15 @@ void dumpMeshInputInfo(remus::Client &client,
 void dumpCanMeshInfo(remus::Client& client)
 {
   std::cout << "Available Worker Types : " << std::endl;
-  std::cout << "2DMesh: " << std::endl;
-  dumpMeshInputInfo(client, (remus::meshtypes::Mesh2D()) );
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> > allTypes =
+    remus::common::MeshRegistrar::allRegisteredTypes();
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator iit;
+  for (iit = allTypes.begin(); iit != allTypes.end(); ++iit)
+    {
+    std::cout << (*iit)->name() << " (" << (*iit)->id() << ") : " << std::endl;
+    dumpMeshInputInfo(client, *iit->get());
+    }
 
-  std::cout << "3DMesh: " << std::endl;
-  dumpMeshInputInfo(client, (remus::meshtypes::Mesh3D()) );
-
-  std::cout << "3D Surface: " << std::endl;
-  dumpMeshInputInfo(client, (remus::meshtypes::Mesh3DSurface()));
   return;
 }
 
@@ -90,22 +109,17 @@ void dumpJobInfo(remus::Client& client)
 
 void submitJob(remus::Client& client)
 {
-  std::size_t numRegisteredMeshTypes =
-                      remus::common::MeshRegistrar::numberOfRegisteredTypes();
-  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
-    {
-    std::cout << i << " ";
-    std::cout << remus::meshtypes::to_meshType(i)->name()<< std::endl;
-    }
+  std::cout << "Available Job I/O Types: " << std::endl;
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> > allTypes =
+    remus::common::MeshRegistrar::allRegisteredTypes();
+  std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator iit;
+  for (iit = allTypes.begin(); iit != allTypes.end(); ++iit)
+    std::cout << (*iit)->name() << " (" << (*iit)->id() << ") : " << std::endl;
+
   std::cout<<"Enter Job Input Type (integer): " << std::endl;
   int inType;
   std::cin >> inType;
 
-  for(std::size_t i=1; i < numRegisteredMeshTypes; i++)
-    {
-    std::cout << i << " ";
-    std::cout << remus::meshtypes::to_meshType(i)->name()<< std::endl;
-    }
   std::cout<<"Enter Job Output Type (integer): " << std::endl;
   int outType;
   std::cin >> outType;
@@ -120,10 +134,43 @@ void submitJob(remus::Client& client)
   remus::common::MeshIOType mtypes( *(in.get()),
                                      *(out.get()) );
 
-  remus::proto::JobRequirements request =
-    remus::proto::make_JobRequirements(mtypes,"",data);
+  std::cout<<"Enter Job Worker Name (string): " << std::endl;
+  remus::proto::JobRequirementsSet reqSet;
+  remus::proto::JobRequirementsSet::const_iterator wit;
+  if (client.canMesh(mtypes))
+    {
+    reqSet = client.retrieveRequirements(mtypes);
 
-  remus::proto::Job job = client.submitJob(request);
+    if (reqSet.size())
+      std::cout << "  Worker can be one of:" << std::endl;
+    else
+      std::cout << "  No workers found even though canMesh!" << std::endl;
+    for (wit = reqSet.begin(); wit != reqSet.end(); ++wit)
+      {
+      std::cout << "    " << wit->workerName() << "\n";
+      }
+    }
+  std::string workerName;
+  std::cin >> workerName;
+  for (wit = reqSet.begin(); wit != reqSet.end(); ++wit)
+    if (wit->workerName() == workerName)
+      break;
+
+  // Create requirements, possibly using requirements from the named worker.
+  remus::proto::JobRequirements request =
+    remus::proto::make_JobRequirements(mtypes, workerName,
+      (wit != reqSet.end() && wit->hasRequirements()) ? wit->requirements() : "");
+
+  remus::proto::JobSubmission jsub(request);
+  if (!data.empty())
+    jsub.insert(
+      remus::proto::JobSubmission::value_type(
+        jsub.default_key(),
+        remus::proto::JobContent(
+          remus::common::ContentFormat::User,
+          data)));
+
+  remus::proto::Job job = client.submitJob(jsub);
 
   std::cout << "Job Submitted, info is: " << std::endl;
   std::cout << "Job Valid: " << job.valid() << std::endl;
@@ -133,7 +180,7 @@ void submitJob(remus::Client& client)
   return;
 }
 
-void changeConntion(remus::Client*& c)
+void changeConnection(remus::Client*& c)
 {
 
   std::cout << "What is the ip to connect too: " << std::endl;
@@ -152,19 +199,18 @@ void changeConntion(remus::Client*& c)
     }
   std::cout << conn.endpoint() << std::endl;
   c = new remus::Client(conn);
-
 }
 
 
 int showMenu()
 {
   std::cout << "Options Are:" << std::endl;
-  std::cout << "1: Dump Aviable Worker Types" << std::endl;
+  std::cout << "1: Dump Available Worker Types" << std::endl;
   std::cout << "2: Dump Info On Job" << std::endl;
   std::cout << "3: Submit Job" << std::endl;
   std::cout << "9: Connect to different server" << std::endl;
   std::cout << std::endl;
-  std::cout << "All other will quit application." << std::endl;
+  std::cout << "Any other non-whitespace character will quit application." << std::endl;
   int returnValue;
   std::cin >> returnValue;
   return returnValue;
@@ -176,7 +222,7 @@ int main ()
   populateJobTypes();
 
   remus::Client *c = NULL;
-  changeConntion(c);
+  changeConnection(c);
 
   bool wantInfo=true;
   while(wantInfo)
@@ -193,7 +239,7 @@ int main ()
         submitJob(*c);
         break;
       case 9:
-        changeConntion(c);
+        changeConnection(c);
       default:
         wantInfo=false;
         break;
