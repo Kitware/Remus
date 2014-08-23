@@ -16,7 +16,14 @@
 #include <algorithm>
 #include <cstddef>
 #include <sstream>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/lexical_cast.hpp>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 //We now provide our own zmq.hpp since it has been removed from zmq 3, and
 //made its own project

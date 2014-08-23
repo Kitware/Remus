@@ -13,7 +13,14 @@
 #ifndef remus_proto_zmqSocketInfo_h
 #define remus_proto_zmqSocketInfo_h
 
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/lexical_cast.hpp>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <remus/proto/zmqTraits.h>
 
