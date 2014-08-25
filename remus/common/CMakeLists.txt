@@ -31,11 +31,11 @@ set(srcs
 #setup the common library
 add_library(RemusCommon ${srcs} ${headers})
 target_link_libraries(RemusCommon
-                      LINK_PRIVATE sysTools ${Boost_LIBRARIES}
+                      LINK_PRIVATE RemusSysTools ${Boost_LIBRARIES}
                       )
 target_include_directories(RemusCommon
                            PUBLIC  ${Boost_INCLUDE_DIRS}
-                           PRIVATE ${sysTools_BINARY_DIR} )
+                           PRIVATE ${RemusSysTools_BINARY_DIR} )
 
 
 #create the export header symbol exporting
@@ -50,7 +50,7 @@ remus_private_headers(${private_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusCommon)
-export(TARGETS RemusCommon sysTools FILE RemusCommon-exports.cmake)
+export(TARGETS RemusCommon RemusSysTools FILE RemusCommon-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
   add_subdirectory(testing)

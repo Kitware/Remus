@@ -41,4 +41,4 @@ set(unit_tests
   )
 
 remus_unit_tests(SOURCES ${unit_tests}
-                 LIBRARIES sysTools RemusCommon ${Boost_LIBRARIES})
+                 LIBRARIES RemusSysTools RemusCommon ${Boost_LIBRARIES})

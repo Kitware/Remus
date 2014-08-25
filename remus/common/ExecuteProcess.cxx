@@ -12,7 +12,7 @@
 
 #include <remus/common/ExecuteProcess.h>
 
-#include <sysTools/Process.h>
+#include <RemusSysTools/Process.h>
 
 namespace{
 
@@ -21,24 +21,24 @@ remus::common::ProcessPipe::PipeType typeToType(int type)
   typedef remus::common::ProcessPipe PPipe;
   typedef remus::common::ProcessPipe::PipeType PipeType;
 
-  sysToolsProcess_Pipes_e processType =
-      static_cast<sysToolsProcess_Pipes_e>(type);
+  RemusSysToolsProcess_Pipes_e processType =
+      static_cast<RemusSysToolsProcess_Pipes_e>(type);
   PipeType pipeType;
   switch(processType)
     {
-    case sysToolsProcess_Pipe_STDIN:
+    case RemusSysToolsProcess_Pipe_STDIN:
       pipeType = PPipe::STDIN;
       break;
-    case sysToolsProcess_Pipe_STDOUT:
+    case RemusSysToolsProcess_Pipe_STDOUT:
       pipeType = PPipe::STDOUT;
       break;
-    case sysToolsProcess_Pipe_STDERR:
+    case RemusSysToolsProcess_Pipe_STDERR:
       pipeType = PPipe::STDERR;
       break;
-    case sysToolsProcess_Pipe_Timeout:
+    case RemusSysToolsProcess_Pipe_Timeout:
       pipeType = PPipe::Timeout;
       break;
-    case sysToolsProcess_Pipe_None:
+    case RemusSysToolsProcess_Pipe_None:
     default:
       pipeType = PPipe::None;
       break;
@@ -54,17 +54,17 @@ namespace common{
 struct ExecuteProcess::Process
 {
 public:
-  sysToolsProcess *Proc;
+  RemusSysToolsProcess *Proc;
   bool Created;
   Process():Created(false)
     {
-    this->Proc = sysToolsProcess_New();
+    this->Proc = RemusSysToolsProcess_New();
     }
   ~Process()
     {
     if(this->Created)
       {
-      sysToolsProcess_Delete(this->Proc);
+      RemusSysToolsProcess_Delete(this->Proc);
       }
 
     }
@@ -106,12 +106,12 @@ void ExecuteProcess::execute(DetachMode mode)
     }
   cmds[size-1]=NULL;
 
-  sysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
-  sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                            sysToolsProcess_Option_HideWindow, true);
-  sysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                              sysToolsProcess_Option_Detach, (mode==Detached) );
-  sysToolsProcess_Execute(this->ExternalProcess->Proc);
+  RemusSysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
+  RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
+                            RemusSysToolsProcess_Option_HideWindow, true);
+  RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
+                              RemusSysToolsProcess_Option_Detach, (mode==Detached) );
+  RemusSysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   this->ExternalProcess->Created = true;
 
@@ -123,11 +123,11 @@ void ExecuteProcess::execute(DetachMode mode)
 bool ExecuteProcess::kill()
 {
   if(this->ExternalProcess->Created &&
-     sysToolsProcess_GetState(this->ExternalProcess->Proc) ==
-     sysToolsProcess_State_Executing)
+     RemusSysToolsProcess_GetState(this->ExternalProcess->Proc) ==
+     RemusSysToolsProcess_State_Executing)
     {
-    sysToolsProcess_Kill( this->ExternalProcess->Proc );
-    sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, 0);
+    RemusSysToolsProcess_Kill( this->ExternalProcess->Proc );
+    RemusSysToolsProcess_WaitForExit(this->ExternalProcess->Proc, 0);
     return true;
     }
   return false;
@@ -143,10 +143,10 @@ bool ExecuteProcess::isAlive()
     }
   //poll just to see if the state has changed
   double timeout = -1; //set to a negative number to poll
-  sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
+  RemusSysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
 
-  int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
-  return state == sysToolsProcess_State_Executing;
+  int state = RemusSysToolsProcess_GetState(this->ExternalProcess->Proc);
+  return state == RemusSysToolsProcess_State_Executing;
 }
 
 //-----------------------------------------------------------------------------
@@ -159,10 +159,10 @@ bool ExecuteProcess::exitedNormally()
     }
   //poll just to see if the state has changed
   double timeout = -1; //set to a negative number to poll
-  sysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
+  RemusSysToolsProcess_WaitForExit(this->ExternalProcess->Proc, &timeout);
 
-  int state = sysToolsProcess_GetState(this->ExternalProcess->Proc);
-  return (state == sysToolsProcess_State_Exited);
+  int state = RemusSysToolsProcess_GetState(this->ExternalProcess->Proc);
+  return (state == RemusSysToolsProcess_State_Exited);
 }
 
 
@@ -179,19 +179,19 @@ remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
     return PPipe(PPipe::None);
     }
 
-  //convert our syntax for timout to the systools version
+  //convert our syntax for timout to the RemusSysTools version
   //our negative values mean zero for sysToolProcess
   //our zero value means a negative value
   //other wise we are the same
 
-  //systools currently doesn't have a block for inifinte time that acutally works
+  //RemusSysTools currently doesn't have a block for inifinte time that acutally works
   const double fakeInfiniteWait = 100000000;
   double realTimeOut = (timeout == 0 ) ? -1 : ( timeout < 0) ? fakeInfiniteWait : timeout;
 
   //poll sys tool for data
   int length;
   char* data;
-  int pipe = sysToolsProcess_WaitForData(this->ExternalProcess->Proc,
+  int pipe = RemusSysToolsProcess_WaitForData(this->ExternalProcess->Proc,
                                           &data,&length,&realTimeOut);
   PPipe::PipeType type = typeToType(pipe);
 

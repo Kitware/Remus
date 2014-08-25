@@ -12,19 +12,19 @@
 
 #include <remus/common/MD5Hash.h>
 
-#include <sysTools/MD5.h>
+#include <RemusSysTools/MD5.h>
 
 namespace
 {
   std::string to_hash(const char* data, const std::size_t length)
   {
-    sysToolsMD5* hasher = sysToolsMD5_New();
-    sysToolsMD5_Initialize(hasher);
-    sysToolsMD5_Append(hasher, reinterpret_cast<const unsigned char*>(data), length);
+    RemusSysToolsMD5* hasher = RemusSysToolsMD5_New();
+    RemusSysToolsMD5_Initialize(hasher);
+    RemusSysToolsMD5_Append(hasher, reinterpret_cast<const unsigned char*>(data), length);
 
     char hash[32];
-    sysToolsMD5_FinalizeHex(hasher, hash);
-    sysToolsMD5_Delete(hasher);
+    RemusSysToolsMD5_FinalizeHex(hasher, hash);
+    RemusSysToolsMD5_Delete(hasher);
     return std::string(hash,32);
   }
 }
