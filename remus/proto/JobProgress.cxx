@@ -32,7 +32,7 @@ JobProgress::JobProgress(remus::STATUS_TYPE status):
   }
 
 //------------------------------------------------------------------------------
-JobProgress::JobProgress::JobProgress(int v):
+JobProgress::JobProgress(int v):
   Value(valid_progress_value(v)),
   Message()
   {
