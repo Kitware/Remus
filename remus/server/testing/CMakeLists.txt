@@ -23,6 +23,9 @@ set(testing_workers
     TestWorker.cxx
     )
 
+include(${Remus_SOURCE_DIR}/CMake/RemusRegisterWorker.cmake)
+
+
 remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 INPUT_TYPE  "Edges"
                                 OUTPUT_TYPE "Mesh2D"
