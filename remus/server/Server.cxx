@@ -15,6 +15,7 @@
 #ifndef _MSC_VER
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wshadow"
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include <boost/thread.hpp>
 #ifndef _MSC_VER

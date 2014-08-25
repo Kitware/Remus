@@ -14,13 +14,14 @@
 #define remus_server_detail_uuidHelper_h
 
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/lexical_cast.hpp>
 //suppress warnings inside boost headers for gcc and clang
 #ifndef _MSC_VER
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wshadow"
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
+#include <boost/uuid/uuid.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop

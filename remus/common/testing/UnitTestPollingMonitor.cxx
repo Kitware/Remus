@@ -10,7 +10,14 @@
 //
 //=============================================================================
 
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/date_time/posix_time/posix_time.hpp>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <remus/common/PollingMonitor.h>
 

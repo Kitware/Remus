@@ -19,10 +19,15 @@
 #include <remus/common/PollingMonitor.h>
 #include <remus/worker/Job.h>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wshadow"
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/thread.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+#  pragma GCC diagnostic pop
+#endif
 
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>

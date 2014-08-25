@@ -24,8 +24,15 @@
 #include <string>
 #include <vector>
 
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 //suppress warnings inside boost headers for gcc and clang
 #ifndef _MSC_VER

@@ -18,10 +18,15 @@
 
 #include <boost/scoped_ptr.hpp>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
+#ifndef _MSC_VER
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wshadow"
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <boost/thread.hpp>
-#pragma GCC diagnostic pop
+#ifndef _MSC_VER
+#  pragma GCC diagnostic pop
+#endif
 
 
 #include <string>
