@@ -1,5 +1,0 @@
-{
-"InputType": "@InputMeshFileType@",
-"OutputType": "@OutputMeshType@",
-"ExecutableName": "@WorkerExecutableName@"
-}

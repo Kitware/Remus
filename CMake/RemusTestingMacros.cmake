@@ -73,7 +73,7 @@ endfunction(remus_unit_test_executable)
 #   )
 
 # IS_FILE_BASED will set the requirements to be file based, and specify
-# the file format to be JSON, and will point back to the file we are generating
+# the file format to be USER, and will point back to the file we are generating
 # as the requirements file
 
 function(remus_register_unit_test_worker)
@@ -86,22 +86,38 @@ function(remus_register_unit_test_worker)
     )
 
   #set up variables that the config file is looking for
-  set(InputMeshFileType ${R_INPUT_TYPE})
-  set(OutputMeshType ${R_OUTPUT_TYPE})
-  set(WorkerExecutableName "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${R_EXEC_NAME}")
-  set(ReqsFileName ${R_EXEC_NAME}.${R_FILE_EXT})
+  set(input_type "${R_INPUT_TYPE}")
+  set(output_type "${R_OUTPUT_TYPE}")
+  set(worker_name "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${R_EXEC_NAME}")
+  set(reqs_file_name ${R_EXEC_NAME}.${R_FILE_EXT})
 
   set(R_ABS_FILE_NAME ${R_CONFIG_DIR}/${R_EXEC_NAME}.${R_FILE_EXT})
   if(R_IS_FILE_BASED)
-    configure_file(
-          ${Remus_SOURCE_DIR}/CMake/RemusWorkerWithFile.rw.in
-          ${R_ABS_FILE_NAME}
-          @ONLY)
+    set(rw_file_content
+    "
+    {
+    \"ExecutableName\": \"@worker_name@\",
+    \"InputType\": \"@input_type@\",
+    \"OutputType\": \"@output_type@\",
+    \"File\" : \"@reqs_file_name@\",
+    \"FileFormat\" : \"USER\"
+    }
+    "
+    )
+    string(CONFIGURE "${rw_file_content}" file_contents @ONLY)
+    file(WRITE "${R_ABS_FILE_NAME}" "${file_contents}")
   else()
-    configure_file(
-          ${Remus_SOURCE_DIR}/CMake/RemusWorker.rw.in
-          ${R_ABS_FILE_NAME}
-          @ONLY)
+    set(rw_file_content
+    "
+    {
+    \"ExecutableName\": \"@worker_name@\",
+    \"InputType\": \"@input_type@\",
+    \"OutputType\": \"@output_type@\"
+    }
+    "
+    )
+    string(CONFIGURE "${rw_file_content}" file_contents @ONLY)
+    file(WRITE "${R_ABS_FILE_NAME}" "${file_contents}")
   endif()
 endfunction()
 
