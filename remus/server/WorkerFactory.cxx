@@ -162,12 +162,18 @@ namespace
     using namespace remus::common;
 
     cJSON *root = cJSON_Parse(json_contents.c_str());
+    if(!root)
+      {
+      return std::make_pair( boost::filesystem::path(),
+                             remus::proto::JobRequirements() );
+      }
 
     cJSON *inputT = cJSON_GetObjectItem(root,"InputType");
     cJSON *outputT = cJSON_GetObjectItem(root,"OutputType");
     cJSON *execT = cJSON_GetObjectItem(root,"ExecutableName");
     if(!inputT || !outputT || !execT)
       {
+      cJSON_Delete(root);
       return std::make_pair( boost::filesystem::path(),
                              remus::proto::JobRequirements() );
       }
