@@ -42,6 +42,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
         \"zmq.hpp\"
         \"UnitTest\"
         \"TestBuild_remus_\"
+        \"/remus/testing\"
         )
       ")
 

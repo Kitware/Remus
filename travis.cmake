@@ -28,16 +28,15 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 #if the BUILD_CONFIG is debug enable coverage
 set(enable_coverage OFF)
-if(CTEST_BUILD_CONFIGURATION STREQUAL "Debug")
+if(CTEST_BUILD_CONFIGURATION STREQUAL "Debug" AND ${COMPILER} STREQUAL "g++")
   set(enable_coverage ON)
 endif()
 
 
 #Write initial cache:
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
-CMAKE_BUILD_TYPE:STRING=${enable_coverage}
+Remus_ENABLE_COVERAGE:BOOL=${enable_coverage}
 Remus_NO_SYSTEM_BOOST:BOOl=OFF
-Remus_ENABLE_COVERAGE:BOOL=ON
 ")
 
 #Use Travis track:
@@ -87,15 +86,12 @@ set(COVERAGE_EXTRA_FLAGS "-l -p")
 #Set coverage exclusion
 set(CTEST_CUSTOM_COVERAGE_EXCLUDE
 	"${CTEST_CUSTOM_COVERAGE_EXCLUDE}"
-	"/thirdparty/kwsys"
-	"/thirdparty/cJson"
-	"/remus/testing"
-	"/remus/common/testing"
-	"/remus/client/testing"
-	"/remus/server/testing"
-	"/remus/proto/testing"
-	"/remus/worker/testing"
-)
+  "thirdparty"
+  "zmq.hpp"
+  "UnitTest"
+  "TestBuild_remus_"
+  "/remus/testing"
+  )
 
 ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Computed coverage.")
