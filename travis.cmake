@@ -26,16 +26,18 @@ set (CTEST_BINARY_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/build")
 set(CTEST_BUILD_CONFIGURATION $ENV{BUILD_CONFIG})
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
+#temporarily disabling coverage
 #if the BUILD_CONFIG is debug enable coverage
 set(enable_coverage OFF)
-if(CTEST_BUILD_CONFIGURATION STREQUAL "Debug" AND ${COMPILER} STREQUAL "g++")
-  set(enable_coverage ON)
-endif()
+#if(CTEST_BUILD_CONFIGURATION STREQUAL "Debug" AND ${COMPILER} STREQUAL "g++")
+  #set(enable_coverage ON)
+  #set(CTEST_COVERAGE_COMMAND "gcov")
+#endif()
 
 
 #Write initial cache:
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
-Remus_ENABLE_COVERAGE:BOOL=${enable_coverage}
+Remus_ENABLE_COVERAGE:BOOL=OFF #${enable_coverage}
 Remus_NO_SYSTEM_BOOST:BOOl=OFF
 ")
 
@@ -76,24 +78,10 @@ message("Built.")
 ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND PARALLEL_LEVEL 6 SCHEDULE_RANDOM ON)
 message("Tested.")
 
-#For some reason, CTest doesn't automatically figure this out.  Manually set that we want gcov.
-set(CTEST_COVERAGE_COMMAND "gcov")
+if(enable_coverage)
+  ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
+  message("Computed coverage.")
+endif()
 
-#try using "-p" to preserve full paths to handle the fact that we have
-#to files named Job.h/Job.cxx
-set(COVERAGE_EXTRA_FLAGS "-l -p")
-
-#Set coverage exclusion
-set(CTEST_CUSTOM_COVERAGE_EXCLUDE
-	"${CTEST_CUSTOM_COVERAGE_EXCLUDE}"
-  "thirdparty"
-  "zmq.hpp"
-  "UnitTest"
-  "TestBuild_remus_"
-  "/remus/testing"
-  )
-
-ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
-message("Computed coverage.")
 ctest_submit()
 message("Submitted.")
