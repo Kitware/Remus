@@ -86,15 +86,12 @@ set(COVERAGE_EXTRA_FLAGS "-l -p")
 #Set coverage exclusion
 set(CTEST_CUSTOM_COVERAGE_EXCLUDE
 	"${CTEST_CUSTOM_COVERAGE_EXCLUDE}"
-	"/thirdparty/kwsys"
-	"/thirdparty/cJson"
-	"/remus/testing"
-	"/remus/common/testing"
-	"/remus/client/testing"
-	"/remus/server/testing"
-	"/remus/proto/testing"
-	"/remus/worker/testing"
-)
+  "thirdparty"
+  "zmq.hpp"
+  "UnitTest"
+  "TestBuild_remus_"
+  "/remus/testing"
+  )
 
 ctest_coverage(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
 message("Computed coverage.")
