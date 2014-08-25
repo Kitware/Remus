@@ -185,3 +185,10 @@ add_subdirectory(remus)
 if(Remus_ENABLE_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+#------------------------------------------------------------------------------
+#-------------------------- Install Support Files -----------------------------
+#------------------------------------------------------------------------------
+install(FILES ${CMAKE_MODULE_PATH}/RemusRegisterWorker.cmake
+        DESTINATION lib
+       )
