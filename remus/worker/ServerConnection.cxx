@@ -52,25 +52,25 @@ remus::worker::ServerConnection make_ServerConnection(const std::string& dest)
   //tcp:// and ipc:// + 1 character are the minimum size
   if(dest.size() > 6)
     {
-    const std::string::size_type protocall_end_pos = dest.find("://");
-    if(protocall_end_pos != std::string::npos)
+    const std::string::size_type protocol_end_pos = dest.find("://");
+    if(protocol_end_pos != std::string::npos)
       {
       //determine if we are tcp
-      //we can protocalll_end_pos as a distance currently since we are starting
+      //we can protocol_end_pos as a distance currently since we are starting
       //at zero
-      const std::string protocall = dest.substr(0,protocall_end_pos);
-      if(protocall == zmq::proto::scheme_name(zmq::proto::tcp()))
+      const std::string protocol = dest.substr(0,protocol_end_pos);
+      if(protocol == zmq::proto::scheme_name(zmq::proto::tcp()))
         {
         //we need to extract the host name and port
         const std::string::size_type host_end_pos = dest.rfind(":");
-        if(host_end_pos!=protocall_end_pos)
+        if(host_end_pos!=protocol_end_pos)
           {
           //extract the host_name and port
           const std::string::size_type host_len = host_end_pos -
-                                                       (protocall_end_pos+3);
+                                                       (protocol_end_pos+3);
           const std::string::size_type port_len = dest.size() - host_end_pos;
 
-          const std::string host_name(dest, protocall_end_pos+3, host_len);
+          const std::string host_name(dest, protocol_end_pos+3, host_len);
           const std::string temp_port(dest, host_end_pos+1, port_len );
           int port = boost::lexical_cast<int>(temp_port);
 
@@ -79,17 +79,17 @@ remus::worker::ServerConnection make_ServerConnection(const std::string& dest)
           connection = remus::worker::ServerConnection(socket);
           }
         }
-      else if(protocall == zmq::proto::scheme_name(zmq::proto::ipc()))
+      else if(protocol == zmq::proto::scheme_name(zmq::proto::ipc()))
         {
         //3 equals size of "://"
-        const std::string host_name = dest.substr(protocall_end_pos+3);
+        const std::string host_name = dest.substr(protocol_end_pos+3);
         zmq::socketInfo<zmq::proto::ipc> socket(host_name);
         connection = remus::worker::ServerConnection(socket);
         }
-      else if(protocall == zmq::proto::scheme_name(zmq::proto::inproc()))
+      else if(protocol == zmq::proto::scheme_name(zmq::proto::inproc()))
         {
         //3 equals size of "://"
-        const std::string host_name = dest.substr(protocall_end_pos+3);
+        const std::string host_name = dest.substr(protocol_end_pos+3);
         zmq::socketInfo<zmq::proto::inproc> socket(host_name);
         connection = remus::worker::ServerConnection(socket);
         }
