@@ -186,7 +186,7 @@ void test_factory_worker_launching()
                 remus::server::WorkerFactory::KillOnFactoryDeletion;
 
   remus::server::WorkerFactory f_def(".tst");
-  f_def.addCommandLineArgument("EXIT_NORMALLY");
+  f_def.addCommandLineArgument("SLEEP_AND_EXIT");
 
   f_def.addWorkerSearchDirectory(
                   remus::server::testing::worker_factory::locationToSearch() );
