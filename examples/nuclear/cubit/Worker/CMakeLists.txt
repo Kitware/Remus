@@ -11,5 +11,8 @@ target_include_directories(CubitWorker
 
 #write out the worker registration file for the default worker factory
 include(${Remus_SOURCE_DIR}/CMake/RemusRegisterWorker.cmake)
-Register_Mesh_Worker(CubitWorker "Model" "Mesh3D")
 
+remus_register_mesh_worker(CubitWorker
+                           INPUT_TYPE "Model"
+                           OUTPUT_TYPE "Mesh3D"
+                           NO_INSTALL)

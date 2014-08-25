@@ -18,6 +18,7 @@
 #   [ EXECUTABLE_NAME <name of the executable> ]
 #   [ INSTALL_PATH <path to install to> ]
 #   [ WORKER_FILE_EXT <> ]
+#   [ NO_INSTALL ]
 #   [ FILE_TYPE  <type of requirements file> FILE_PATH  <path to requirements file> ]
 #   )
 #
@@ -52,8 +53,10 @@
 #instead of using the default "rw" extension. The passed in extension
 #should not start with "."
 #
+#NO_INSTALL allows you to generate build directory remus rw files
+#
 function(remus_register_mesh_worker workerTarget )
-  set(options )
+  set(options NO_INSTALL)
   set(oneValueArgs INPUT_TYPE OUTPUT_TYPE EXECUTABLE_NAME INSTALL_PATH WORKER_FILE_EXT FILE_TYPE FILE_PATH)
   set(multiValueArgs )
   cmake_parse_arguments(R "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
@@ -162,10 +165,12 @@ function(remus_register_mesh_worker workerTarget )
 
   #install all the files needed for this worker in every of the bin directories
   #that need meshing workers
-  foreach(dest ${destinations_to_install})
-    foreach(f ${files_to_install})
-      install (FILES "${f}" DESTINATION "${dest}")
+  if(NOT R_NO_INSTALL)
+    foreach(dest ${destinations_to_install})
+      foreach(f ${files_to_install})
+        install (FILES "${f}" DESTINATION "${dest}")
+      endforeach()
     endforeach()
-  endforeach()
+  endif()
 
 endfunction()

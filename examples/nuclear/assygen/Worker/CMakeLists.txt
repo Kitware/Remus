@@ -14,4 +14,8 @@ target_include_directories(AssyGenWorker
 
 #write out the worker registration file for the default worker factory
 include(${Remus_SOURCE_DIR}/CMake/RemusRegisterWorker.cmake)
-Register_Mesh_Worker(AssyGenWorker "SceneFile" "Model")
+
+remus_register_mesh_worker(AssyGenWorker
+                           INPUT_TYPE "SceneFile"
+                           OUTPUT_TYPE "Model"
+                           NO_INSTALL)
