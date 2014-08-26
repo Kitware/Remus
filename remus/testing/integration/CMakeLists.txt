@@ -12,6 +12,7 @@
 
 set(unit_tests
   AlwaysAcceptServer.cxx
+  QueryIOTypes.cxx
   SimpleJobFlow.cxx
   TerminateQueuedJob.cxx
   )
