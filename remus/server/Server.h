@@ -168,6 +168,7 @@ protected:
                                  const remus::proto::Message& msg);
 
   //These methods are all to do with sending responses to clients
+  std::string allSupportedMeshIOTypes(const remus::proto::Message& msg);
   std::string canMesh(const remus::proto::Message& msg);
   std::string canMeshRequirements(const remus::proto::Message& msg);
   std::string meshRequirements(const remus::proto::Message& msg);

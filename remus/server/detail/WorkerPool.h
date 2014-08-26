@@ -33,6 +33,11 @@ public:
   bool addWorker(zmq::SocketIdentity workerIdentity,
                  const remus::proto::JobRequirements& reqs);
 
+  //return all the MeshIOTypes that workers have registered to support.
+  //this allows the client to discover workers that have connected with
+  //new types
+  remus::common::MeshIOTypeSet supportedIOTypes() const;
+
   //return all the requirements for workers that are waiting.
   remus::proto::JobRequirementsSet
   waitingWorkerRequirements(remus::common::MeshIOType type) const;

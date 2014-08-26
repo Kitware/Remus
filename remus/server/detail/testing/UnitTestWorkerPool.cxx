@@ -117,6 +117,12 @@ void verify_has_worker_type()
       REMUS_ASSERT( (valid == (reqs == worker_type2D) ) )
       }
     }
+
+  //now verify we can get the set of MeshIOTypes of worker ready for work
+  remus::common::MeshIOTypeSet typeSet = pool.supportedIOTypes();
+  REMUS_ASSERT( (typeSet.size() == 1) )
+  REMUS_ASSERT( (typeSet.count(worker_type2D.meshTypes()) == 1) );
+
 }
 
 void verify_purge_workers()

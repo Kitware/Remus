@@ -83,11 +83,21 @@ public:
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
 
+  //return all the MeshIOTypes that the factory can possibly make
+  //this allows the client to discover workers types that can be constructed
+  virtual remus::common::MeshIOTypeSet supportedIOTypes() const;
+
+  //return all the JobRequirementsSet for all workers that match a give
+  //MeshIOType
   virtual remus::proto::JobRequirementsSet workerRequirements(
                                        remus::common::MeshIOType type) const;
 
+  //return if the worker factory has a worker that matches the given requirements
   virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const;
 
+  //request the factory to construct a worker given a requirements and a lifespan
+  //can return false if the factory doesn't support these requirements, or
+  //if the factory already has too many workers in existence already.
   virtual bool createWorker(const remus::proto::JobRequirements& type,
                             WorkerFactory::FactoryDeletionBehavior lifespan);
 

@@ -50,6 +50,18 @@ bool WorkerPool::addWorker(zmq::SocketIdentity workerIdentity,
 }
 
 //------------------------------------------------------------------------------
+remus::common::MeshIOTypeSet WorkerPool::supportedIOTypes() const
+{
+  remus::common::MeshIOTypeSet validIOTypes;
+  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    if( i->isWaitingForWork() )
+      { validIOTypes.insert(i->Reqs.meshTypes()); }
+    }
+  return validIOTypes;
+}
+
+//------------------------------------------------------------------------------
 remus::proto::JobRequirementsSet WorkerPool::waitingWorkerRequirements(
                                          remus::common::MeshIOType type) const
 {

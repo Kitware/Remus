@@ -84,6 +84,11 @@ void test_factory_worker_finder()
   remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 
+  //verify that factory reports raw_edges as a supportedIOType
+  remus::common::MeshIOTypeSet validTypes = f_def.supportedIOTypes();
+  REMUS_ASSERT( (validTypes.size() == 1) );
+  REMUS_ASSERT( (validTypes.count(raw_edges.meshTypes()) == 1) );
+
   typedef boost::shared_ptr< MeshTypeBase > MeshType;
   std::set< MeshType > allRegTypes =
                     remus::common::MeshRegistrar::allRegisteredTypes();
@@ -130,6 +135,11 @@ void test_factory_worker_file_based_requirements()
   MeshIOType raw_edges((Edges()),(Mesh2D()));
   REMUS_ASSERT( (f_def.workerRequirements(raw_edges).size() > 0) )
 
+  //verify that factory reports raw_edges as a supportedIOType
+  remus::common::MeshIOTypeSet validTypes = f_def.supportedIOTypes();
+  REMUS_ASSERT( (validTypes.size() == 1) );
+  REMUS_ASSERT( (validTypes.count(raw_edges) == 1) );
+
   typedef boost::shared_ptr< MeshTypeBase > MeshType;
   std::set< MeshType > allRegTypes =
                     remus::common::MeshRegistrar::allRegisteredTypes();
@@ -149,6 +159,8 @@ void test_factory_worker_file_based_requirements()
       REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
       }
     }
+
+
 
 
   remus::proto::JobRequirementsSet workerReqs =

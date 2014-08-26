@@ -465,6 +465,11 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
+    case remus::SUPPORTED_IO_TYPES:
+      //returns what MeshIOTypes the server supports
+      //by checking the worker pool and factory
+      response.setData(this->allSupportedMeshIOTypes(msg));
+      break;
     case remus::CAN_MESH_IO_TYPE:
       //returns if we can mesh a given MeshIOType
       //by checking the worker pool and factory
@@ -513,6 +518,24 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   response.send(&this->Zmq->ClientQueries);
   return;
 }
+
+//------------------------------------------------------------------------------
+std::string Server::allSupportedMeshIOTypes(const remus::proto::Message& )
+{
+  //we ask the worker factory and Worker Pool for the MeshIO types for
+  //all workers they know about
+  remus::common::MeshIOTypeSet supportedTypes, poolTypes;
+
+  supportedTypes = this->WorkerFactory->supportedIOTypes();
+  poolTypes = this->WorkerPool->supportedIOTypes();
+
+  //combine the two sets to get all the valid requirements
+  supportedTypes.insert(poolTypes.begin(),poolTypes.end());
+  std::ostringstream buffer;
+  buffer << supportedTypes;
+  return buffer.str();
+}
+
 
 //------------------------------------------------------------------------------
 std::string Server::canMesh(const remus::proto::Message& msg)

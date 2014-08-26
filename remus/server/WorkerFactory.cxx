@@ -119,6 +119,18 @@ namespace
     return ValidWorker();
   }
 
+    //----------------------------------------------------------------------------
+  template<typename Container >
+  remus::common::MeshIOTypeSet
+  find_all_workers_iotypes(Container const& container)
+  {
+    typedef typename Container::const_iterator IterType;
+    remus::common::MeshIOTypeSet validIOTypes;
+    for(IterType i = container.begin(); i != container.end(); ++i)
+      { validIOTypes.insert(i->Requirements.meshTypes()); }
+    return validIOTypes;
+  }
+
   //----------------------------------------------------------------------------
   template<typename Container >
   remus::proto::JobRequirementsSet
@@ -400,6 +412,12 @@ void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
+}
+
+//----------------------------------------------------------------------------
+remus::common::MeshIOTypeSet WorkerFactory::supportedIOTypes() const
+{
+  return find_all_workers_iotypes(this->PossibleWorkers);
 }
 
 //----------------------------------------------------------------------------
