@@ -16,44 +16,31 @@
 #include <remus/common/MeshTypes.h>
 #include <remus/common/remusGlobals.h>
 
+#include <remus/common/CommonExports.h>
+
+
 namespace remus {
 namespace common {
 
 //------------------------------------------------------------------------------
-//MeshIOType is a union of the mesh input and output types into a single integer
-//that represents the requirements of a mesh job.
+//MeshIOType is the input and output types of a given job type.
+//These are used to describe worker types at a high level. For example
+//this allows a server to state that it can transform Model into 3D Meshes
 //
-//The single integer is used to compare if a workers submitted job request
-//matches that of what any worker has registered support for.
-class MeshIOType
+//
+class REMUSCOMMON_EXPORT MeshIOType
 {
 public:
   //construct an invalid mesh type
-  MeshIOType():
-    InputName(),
-    OutputName()
-    {}
+  MeshIOType();
 
-  MeshIOType(const std::string& in, const std::string& out):
-    InputName(in),
-    OutputName(out)
-    {
-    }
+  MeshIOType(const std::string& in, const std::string& out);
 
   MeshIOType(const boost::shared_ptr<remus::meshtypes::MeshTypeBase>& in,
-             const boost::shared_ptr<remus::meshtypes::MeshTypeBase>& out):
-    InputName(in->name()),
-    OutputName(out->name())
-    {
-    }
-
+             const boost::shared_ptr<remus::meshtypes::MeshTypeBase>& out);
 
   MeshIOType(const remus::meshtypes::MeshTypeBase& in,
-             const remus::meshtypes::MeshTypeBase& out):
-    InputName(in.name()),
-    OutputName(out.name())
-    {
-    }
+             const remus::meshtypes::MeshTypeBase& out);
 
   const std::string& inputType() const { return this->InputName; }
   const std::string& outputType() const { return this->OutputName; }
@@ -63,40 +50,74 @@ public:
   bool valid() const { return !inputType().empty() && !outputType().empty(); }
 
   //needed to see if a client request type and a workers type are equal
-  bool operator ==(const MeshIOType& b) const
-    {
-    return (this->inputType() == b.inputType() &&
-            this->outputType() == b.outputType());
-    }
+  bool operator ==(const MeshIOType& b) const;
 
   //needed to properly store mesh types into stl containers
-  bool operator <(const MeshIOType& b) const
-    {
-    if( this->inputType() == b.inputType() )
-      { return ( this->outputType() < b.outputType() ); }
-    else
-      { return ( this->inputType() < b.inputType() ); }
-    }
+  bool operator <(const MeshIOType& b) const;
 
-  //needed to encode the object on the wire
-  friend std::ostream& operator<<(std::ostream &os, const MeshIOType &ctype)
-    {
-    os << ctype.inputType() << std::endl;
-    os << ctype.outputType() << std::endl;
-    return os;
-    }
+  friend std::ostream& operator<<(std::ostream &os,
+                                  const MeshIOType &types)
+    { types.serialize(os); return os; }
 
-  //needed to decode the object from the wire
-  friend std::istream& operator>>(std::istream &is, MeshIOType &ctype)
-    {
-    is >> ctype.InputName;
-    is >> ctype.OutputName;
-    return is;
-    }
+  friend std::istream& operator>>(std::istream &is,
+                                  MeshIOType &types)
+    { types = MeshIOType(is); return is; }
 
-protected:
+private:
+  void serialize(std::ostream& buffer) const;
+  explicit MeshIOType(std::istream& buffer);
+
   std::string InputName;
   std::string OutputName;
+};
+
+//a simple container so we can send a collection of MeshIOType
+//to and from the client easily.
+struct REMUSCOMMON_EXPORT MeshIOTypeSet
+{
+  typedef std::set< MeshIOType > ContainerType;
+
+  typedef ContainerType::iterator iterator;
+  typedef ContainerType::const_iterator const_iterator;
+  typedef ContainerType::reference reference;
+  typedef ContainerType::const_reference const_reference;
+  typedef ContainerType::value_type value_type;
+
+  MeshIOTypeSet();
+  MeshIOTypeSet(const ContainerType& container);
+
+
+  friend std::ostream& operator<<(std::ostream &os,
+                                  const MeshIOTypeSet &reqs)
+    { reqs.serialize(os); return os; }
+
+  friend std::istream& operator>>(std::istream &is,
+                                  MeshIOTypeSet &reqs)
+    { reqs = MeshIOTypeSet(is); return is; }
+
+  std::pair<iterator,bool> insert( const value_type& value )
+    { return this->Container.insert(value); }
+
+  template< class InputIt >
+  void insert( InputIt first, InputIt last )
+    { return this->Container.insert(first,last); }
+
+  iterator begin() { return this->Container.begin(); }
+  const_iterator begin() const { return this->Container.begin(); }
+
+  iterator end( ) { return this->Container.end(); }
+  const_iterator end( ) const { return this->Container.end(); }
+
+  std::size_t size() const { return this->Container.size(); }
+
+  std::size_t count( const value_type& item ) const
+    { return this->Container.count(item); }
+
+private:
+  void serialize(std::ostream& buffer) const;
+  explicit MeshIOTypeSet(std::istream& buffer);
+
+  ContainerType Container;
 };
 
 inline
