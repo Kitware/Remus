@@ -95,27 +95,21 @@ void verify_has_worker_type()
   pool.addWorker(worker1_id, worker_type2D);
   pool.readyForWork(worker1_id, worker_type2D);
 
-  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-  std::set<MeshType> all_types =
-                    remus::common::MeshRegistrar::allRegisteredTypes();
-
-  typedef std::set<MeshType>::const_iterator cit;
-  for( cit i = all_types.begin(); i != all_types.end(); ++i)
+  std::set< MeshIOType > allTypes = remus::testing::GenerateAllIOTypes();
+  typedef std::set< MeshIOType >::const_iterator cit;
+  for( cit i = allTypes.begin(); i != allTypes.end(); ++i)
     {
-    for(cit j = all_types.begin(); j != all_types.end(); ++j)
-      {
-      remus::common::MeshIOType io_type( (*i), (*j) );
+    remus::common::MeshIOType io_type( *i );
 
-      remus::proto::JobRequirements reqs( worker_type2D.formatType(),
-                                          io_type,
-                                          worker_type2D.workerName(),
-                                          worker_type2D.requirements(),
-                                          worker_type2D.requirementsSize()
-                                         );
-      bool valid = pool.haveWaitingWorker(reqs);
-      //only when io_type equals
-      REMUS_ASSERT( (valid == (reqs == worker_type2D) ) )
-      }
+    remus::proto::JobRequirements reqs( worker_type2D.formatType(),
+                                        io_type,
+                                        worker_type2D.workerName(),
+                                        worker_type2D.requirements(),
+                                        worker_type2D.requirementsSize()
+                                       );
+    bool valid = pool.haveWaitingWorker(reqs);
+    //only when io_type equals
+    REMUS_ASSERT( (valid == (reqs == worker_type2D) ) )
     }
 
   //now verify we can get the set of MeshIOTypes of worker ready for work
