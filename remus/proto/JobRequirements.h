@@ -208,7 +208,6 @@ inline remus::proto::JobRequirements make_JobRequirements(
                                        reqs);
 }
 
-
 //------------------------------------------------------------------------------
 inline std::string to_string(const remus::proto::JobRequirements& reqs)
 {
@@ -229,39 +228,11 @@ to_JobRequirements(const std::string& msg)
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobRequirements
-to_JobRequirements(const char* data, int size)
+to_JobRequirements(const char* data, std::size_t size)
 {
-  std::string temp(size,char());
-  std::copy( data, data+size, temp.begin() );
+  const std::string temp(data,size);
   return to_JobRequirements( temp );
 }
-
-//------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobRequirementsSet& reqs)
-{
-  std::ostringstream buffer;
-  buffer << reqs;
-  return buffer.str();
-}
-
-//------------------------------------------------------------------------------
-inline remus::proto::JobRequirementsSet
-to_JobRequirementsSet(const std::string& msg)
-{
-  std::istringstream buffer(msg);
-  remus::proto::JobRequirementsSet reqs;
-  buffer >> reqs;
-  return reqs;
-}
-
-//------------------------------------------------------------------------------
-inline remus::proto::JobRequirementsSet
-to_JobRequirementsSet(const char* data, std::size_t size)
-{
-  std::string temp(data,size);
-  return to_JobRequirementsSet( temp );
-}
-
 
 }
 }

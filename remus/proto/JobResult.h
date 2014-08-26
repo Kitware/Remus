@@ -123,7 +123,7 @@ inline remus::proto::JobResult to_JobResult(const std::string& msg)
 //------------------------------------------------------------------------------
 inline remus::proto::JobResult to_JobResult(const char* data, std::size_t size)
 {
-  std::string temp(data,size);
+  const std::string temp(data,size);
   return to_JobResult( temp );
 }
 

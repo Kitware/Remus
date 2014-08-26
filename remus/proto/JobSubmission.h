@@ -136,7 +136,7 @@ to_JobSubmission(const std::string& msg)
 inline remus::proto::JobSubmission
 to_JobSubmission(const char* data, std::size_t length)
 {
-  std::string temp(data,length);
+  const std::string temp(data,length);
   return to_JobSubmission( temp );
 }
 

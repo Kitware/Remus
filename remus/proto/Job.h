@@ -92,8 +92,7 @@ inline remus::proto::Job to_Job(const std::string& msg)
 //------------------------------------------------------------------------------
 inline remus::proto::Job to_Job(const char* data, std::size_t size)
 {
-  //convert a job from a string, used as a hack to serialize
-  std::string temp(data,size);
+  const std::string temp(data,size);
   return to_Job( temp );
 }
 

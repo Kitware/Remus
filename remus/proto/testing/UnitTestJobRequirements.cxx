@@ -292,22 +292,6 @@ void verify_req_set()
                                to_wire.end(),
                                from_wire.begin());
   REMUS_ASSERT( same );
-
-  //verify that to_ string/req_set api work
-  const std::string wire = to_string(to_wire);
-  JobRequirementsSet from_wire2 = to_JobRequirementsSet(wire);
-  JobRequirementsSet from_wire3 = to_JobRequirementsSet(wire.c_str(),
-                                                        wire.size());
-
-  const bool same2 = std::equal(to_wire.begin(),
-                                to_wire.end(),
-                                from_wire2.begin());
-  REMUS_ASSERT( same2 );
-
-  const bool same3 = std::equal(to_wire.begin(),
-                                to_wire.end(),
-                                from_wire3.begin());
-  REMUS_ASSERT( same3 );
 }
 
 

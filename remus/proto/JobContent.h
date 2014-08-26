@@ -133,7 +133,7 @@ inline remus::proto::JobContent to_JobContent(const std::string& msg)
 //------------------------------------------------------------------------------
 inline remus::proto::JobContent to_JobContent(const char* data, std::size_t size)
 {
-  std::string temp(data,size);
+  const std::string temp(data,size);
   return to_JobContent( temp );
 }
 

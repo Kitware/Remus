@@ -551,7 +551,9 @@ std::string Server::meshRequirements(const remus::proto::Message& msg)
   //combine the two sets to get all the valid requirements
   reqSet.insert(poolSet.begin(),poolSet.end());
 
-  return remus::proto::to_string(reqSet);
+  std::ostringstream buffer;
+  buffer << reqSet;
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------
