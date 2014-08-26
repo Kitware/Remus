@@ -91,18 +91,21 @@ std::vector< remus::common::MeshIOType > make_all_meshTypes()
   using namespace remus::meshtypes;
   using namespace remus::common;
 
-  //what really we need are iterators to the mesh registrar
-  const std::size_t num_mesh_types = MeshRegistrar::numberOfRegisteredTypes();
+  typedef boost::shared_ptr< MeshTypeBase > MeshType;
+  std::set< MeshType > allRegTypes =
+                    remus::common::MeshRegistrar::allRegisteredTypes();
 
-  std::vector< MeshIOType > allTypes;
-  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  std::vector< MeshIOType > allTypes(allRegTypes.size());
+  typedef std::set<MeshType>::const_iterator cit;
+  for( cit i = allRegTypes.begin(); i != allRegTypes.end(); ++i)
     {
-    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(cit j = allRegTypes.begin(); j != allRegTypes.end(); ++j)
       {
-      MeshIOType io_type( to_meshType(input_type), to_meshType(output_type));
+      MeshIOType io_type( (*i)->name(), (*j)->name());
       allTypes.push_back(io_type);
       }
     }
+
   return allTypes;
 }
 

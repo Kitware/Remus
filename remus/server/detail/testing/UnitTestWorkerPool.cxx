@@ -17,6 +17,8 @@
 
 #include <remus/testing/Testing.h>
 
+#include <vector>
+
 namespace {
 
 using namespace remus::common;
@@ -93,17 +95,17 @@ void verify_has_worker_type()
   pool.addWorker(worker1_id, worker_type2D);
   pool.readyForWork(worker1_id, worker_type2D);
 
-  //what really we need are iterators to the mesh registrar
-  const std::size_t num_mesh_types =
-                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
+  std::set<MeshType> all_types =
+                    remus::common::MeshRegistrar::allRegisteredTypes();
 
-  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  typedef std::set<MeshType>::const_iterator cit;
+  for( cit i = all_types.begin(); i != all_types.end(); ++i)
     {
-    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(cit j = all_types.begin(); j != all_types.end(); ++j)
       {
-      remus::common::MeshIOType io_type(
-          remus::meshtypes::to_meshType(input_type),
-          remus::meshtypes::to_meshType(output_type));
+      remus::common::MeshIOType io_type( (*i), (*j) );
+
       remus::proto::JobRequirements reqs( worker_type2D.formatType(),
                                           io_type,
                                           worker_type2D.workerName(),
@@ -115,7 +117,6 @@ void verify_has_worker_type()
       REMUS_ASSERT( (valid == (reqs == worker_type2D) ) )
       }
     }
-
 }
 
 void verify_purge_workers()

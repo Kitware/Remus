@@ -27,9 +27,9 @@ boost::uuids::uuid make_id()
 remus::common::MeshIOType fakeMeshType()
 {
   using namespace remus::meshtypes;
-  int in_type = 1;
-  int out_type = 3;
-  return remus::common::MeshIOType(to_meshType(in_type),to_meshType(out_type));
+  Mesh1D m1d;
+  Mesh3D m3d;
+  return remus::common::MeshIOType(m1d,m3d);
 }
 
 remus::proto::JobSubmission make_empty_sub()

@@ -40,17 +40,13 @@ struct REMUSCOMMON_EXPORT MeshTypeBase
   //virtual destructor
   virtual ~MeshTypeBase() { }
 
-  //virtual method to get back to the id of a mesh type.
-  //The id is used to encode a mesh type for wire transfer
-  virtual boost::uint16_t id() const { return 0; }
-
   //virtual method to get back of the name of the mesh type
-  //The name is used to encode the mesh type when creating mesh
-  //worker helper files
-  virtual std::string name() const { return "Unknown"; }
+  //The name is actually how servers match jobs to workers, since
+  //the full types can't be sent
+  virtual std::string name() const { return std::string(); }
 
   bool operator <(boost::shared_ptr<remus::meshtypes::MeshTypeBase> b) const
-    { return this->id() < b->id(); }
+    { return this->name() < b->name(); }
 };
 
 }
@@ -70,7 +66,7 @@ public:
   template <typename D>
   explicit MeshRegistrar(D d)
     {
-    MeshRegistrar::registrate(d.name(), d.id(), &D::create);
+    MeshRegistrar::registrate(d.name(), &D::create);
     }
 
   static std::size_t numberOfRegisteredTypes() {
@@ -94,31 +90,16 @@ public:
             ReturnType(new remus::meshtypes::MeshTypeBase()) : (it->second)();
     }
 
-  static ReturnType instantiate(boost::uint16_t id)
-    {
-    boost::unordered_map<boost::uint16_t,
-        create_function_ptr>::const_iterator it = IdRegistry().find(id);
-    return (it == IdRegistry().end()) ?
-            ReturnType(new remus::meshtypes::MeshTypeBase()) : (it->second)();
-    }
-
-
 private:
-  static void registrate(std::string const & name, boost::uint16_t id,
-                         create_function_ptr fp)
+  static void registrate(std::string const & name, create_function_ptr fp)
     {
     NameRegistry()[name] = fp;
-    IdRegistry()[id] = fp;
     }
 
 
   typedef boost::unordered_map<std::string, create_function_ptr>
                                             NameRegisteredMeshMapType;
   static NameRegisteredMeshMapType& NameRegistry();
-
-  typedef boost::unordered_map<boost::uint16_t, create_function_ptr>
-                                            IdRegisteredMeshMapType;
-  static IdRegisteredMeshMapType& IdRegistry();
 
   MeshRegistrar( const MeshRegistrar& other ); // non construction-copyable
   MeshRegistrar& operator=( const MeshRegistrar& ); // non copyable

@@ -51,13 +51,5 @@ MeshRegistrar::NameRegisteredMeshMapType & MeshRegistrar::NameRegistry()
   return NameImplementation;
 }
 
-MeshRegistrar::IdRegisteredMeshMapType & MeshRegistrar::IdRegistry()
-{
-  add_default_types();
-  static MeshRegistrar::IdRegisteredMeshMapType IdImplementation;
-  return IdImplementation;
-}
-
-
 }
 }

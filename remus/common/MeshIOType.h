@@ -25,69 +25,78 @@ namespace common {
 //
 //The single integer is used to compare if a workers submitted job request
 //matches that of what any worker has registered support for.
-struct MeshIOType
+class MeshIOType
 {
-
+public:
   //construct an invalid mesh type
   MeshIOType():
-    CombinedType(0)
+    InputName(),
+    OutputName()
     {}
 
-  MeshIOType(boost::shared_ptr<remus::meshtypes::MeshTypeBase> in,
-             boost::shared_ptr<remus::meshtypes::MeshTypeBase> out)
+  MeshIOType(const std::string& in, const std::string& out):
+    InputName(in),
+    OutputName(out)
     {
-    this->CombinedType = out->id();
-    this->CombinedType <<= 16; //shift out to the upper 16 bits
-    this->CombinedType += in->id(); //now set the lower 16 bits to the value in
     }
+
+  MeshIOType(const boost::shared_ptr<remus::meshtypes::MeshTypeBase>& in,
+             const boost::shared_ptr<remus::meshtypes::MeshTypeBase>& out):
+    InputName(in->name()),
+    OutputName(out->name())
+    {
+    }
+
 
   MeshIOType(const remus::meshtypes::MeshTypeBase& in,
-             const remus::meshtypes::MeshTypeBase& out)
+             const remus::meshtypes::MeshTypeBase& out):
+    InputName(in.name()),
+    OutputName(out.name())
     {
-    //set combined to out
-    this->CombinedType = out.id();
-    this->CombinedType <<= 16; //shift out to the upper 16 bits
-    this->CombinedType += in.id(); //now set the lower 16 bits to the value in
     }
 
-  boost::uint32_t type() const { return CombinedType; }
-
-  boost::uint16_t inputType() const
-    {
-    return this->CombinedType & 0xFFFF;
-    }
-
-  boost::uint16_t outputType() const
-    {
-    return (this->CombinedType & (0xFFFF << 16)) >> 16;
-    }
+  const std::string& inputType() const { return this->InputName; }
+  const std::string& outputType() const { return this->OutputName; }
 
   //If either the input or output is invalid we need say we are invalid.
   //If we just check the combined type we only see if both are invalid.
-  bool valid() const { return inputType() != 0 && outputType() !=0; }
+  bool valid() const { return !inputType().empty() && !outputType().empty(); }
 
   //needed to see if a client request type and a workers type are equal
-  bool operator ==(const MeshIOType& b) const { return CombinedType == b.CombinedType; }
+  bool operator ==(const MeshIOType& b) const
+    {
+    return (this->inputType() == b.inputType() &&
+            this->outputType() == b.outputType());
+    }
 
   //needed to properly store mesh types into stl containers
-  bool operator <(const MeshIOType& b) const { return CombinedType < b.CombinedType; }
+  bool operator <(const MeshIOType& b) const
+    {
+    if( this->inputType() == b.inputType() )
+      { return ( this->outputType() < b.outputType() ); }
+    else
+      { return ( this->inputType() < b.inputType() ); }
+    }
 
   //needed to encode the object on the wire
   friend std::ostream& operator<<(std::ostream &os, const MeshIOType &ctype)
     {
-    os << ctype.type();
+    os << ctype.inputType() << std::endl;
+    os << ctype.outputType() << std::endl;
     return os;
     }
 
   //needed to decode the object from the wire
   friend std::istream& operator>>(std::istream &is, MeshIOType &ctype)
     {
-    is >> ctype.CombinedType;
+    is >> ctype.InputName;
+    is >> ctype.OutputName;
     return is;
     }
 
 protected:
-  boost::uint32_t CombinedType;
+  std::string InputName;
+  std::string OutputName;
 };
 
 inline

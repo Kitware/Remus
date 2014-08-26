@@ -37,6 +37,7 @@ void validate_serialization(Job s)
   REMUS_ASSERT( (from_c_string.id() == s.id()) );
   REMUS_ASSERT( (from_c_string.type() == s.type()) );
   REMUS_ASSERT( (from_c_string.valid() == s.valid()) );
+
 }
 
 }

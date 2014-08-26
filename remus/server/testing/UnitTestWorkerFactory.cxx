@@ -84,18 +84,17 @@ void test_factory_worker_finder()
   remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
   REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
 
+  typedef boost::shared_ptr< MeshTypeBase > MeshType;
+  std::set< MeshType > allRegTypes =
+                    remus::common::MeshRegistrar::allRegisteredTypes();
 
-  //what really we need are iterators to the mesh registrar
-  const std::size_t num_mesh_types =
-                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
-
-  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  std::vector< MeshIOType > allTypes(allRegTypes.size());
+  typedef std::set<MeshType>::const_iterator cit;
+  for( cit i = allRegTypes.begin(); i != allRegTypes.end(); ++i)
     {
-    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(cit j = allRegTypes.begin(); j != allRegTypes.end(); ++j)
       {
-      remus::proto::JobRequirements io_type = make_Reqs(
-                                    remus::meshtypes::to_meshType(input_type),
-                                    remus::meshtypes::to_meshType(output_type));
+      remus::proto::JobRequirements io_type = make_Reqs(*i, *j);
 
       bool should_be_valid = (io_type == raw_edges);
       bool haveSupport_valid = f_def.haveSupport(io_type);
@@ -131,17 +130,17 @@ void test_factory_worker_file_based_requirements()
   MeshIOType raw_edges((Edges()),(Mesh2D()));
   REMUS_ASSERT( (f_def.workerRequirements(raw_edges).size() > 0) )
 
-  //what really we need are iterators to the mesh registrar
-  const std::size_t num_mesh_types =
-                    remus::common::MeshRegistrar::numberOfRegisteredTypes();
+  typedef boost::shared_ptr< MeshTypeBase > MeshType;
+  std::set< MeshType > allRegTypes =
+                    remus::common::MeshRegistrar::allRegisteredTypes();
 
-  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  std::vector< MeshIOType > allTypes(allRegTypes.size());
+  typedef std::set<MeshType>::const_iterator cit;
+  for( cit i = allRegTypes.begin(); i != allRegTypes.end(); ++i)
     {
-    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(cit j = allRegTypes.begin(); j != allRegTypes.end(); ++j)
       {
-      MeshIOType io_type = MeshIOType(remus::meshtypes::to_meshType(input_type),
-                                      remus::meshtypes::to_meshType(output_type)
-                                      );
+      MeshIOType io_type = MeshIOType(*i,*j);
 
       bool should_be_valid = (io_type == raw_edges);
       bool workerReqs_valid =

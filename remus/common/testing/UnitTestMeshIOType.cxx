@@ -24,7 +24,6 @@ namespace
   {
   static boost::shared_ptr<MeshTypeBase> create() {
           return boost::shared_ptr<TextMeshType>(new TextMeshType()); }
-  boost::uint16_t id() const { return 999; }
   std::string name() const { return "TextMeshType"; }
   };
 
@@ -37,8 +36,8 @@ namespace
   void VerifyValid(T t, U u, V v)
   {
   REMUS_ASSERT( (t.valid() == true) );
-  REMUS_ASSERT( (t.inputType() == u.id()) );
-  REMUS_ASSERT( (t.outputType() == v.id()) );
+  REMUS_ASSERT( (t.inputType() == u.name()) );
+  REMUS_ASSERT( (t.outputType() == v.name()) );
 
   //verify the iostream operator works
   std::cout << t << std::endl;
@@ -61,13 +60,17 @@ int UnitTestMeshIOType(int, char *[])
                 (TextMeshType()) );
 
   //now verify that we can take a mesh type from the helper constructors
+  { //verify string constructor
+  remus::common::MeshIOType validMeshIOType(m.name(),text.name());
+  VerifyValid( validMeshIOType, m, (TextMeshType()) );
+  }
+
+  { //verify shared_ptr constructor
   remus::common::MeshIOType validMeshIOType(
-                                  remus::meshtypes::to_meshType(m.id()),
-                                  remus::meshtypes::to_meshType(text.name())
-                                  );
-  VerifyValid( validMeshIOType,
-                m,
-                (TextMeshType()) );
+                remus::meshtypes::to_meshType(m.name()),
+                remus::meshtypes::to_meshType(text.name()));
+  VerifyValid( validMeshIOType, m, (TextMeshType()) );
+  }
 
 
   //verify that setting the inputType or outputType to MeshTypeBase makes
@@ -77,13 +80,10 @@ int UnitTestMeshIOType(int, char *[])
 
   REMUS_ASSERT ( (invalid.valid()==false) );
 
-  remus::common::MeshIOType invalid2( (remus::meshtypes::MeshTypeBase()),
-                                      m );
+  remus::common::MeshIOType invalid2( (remus::meshtypes::MeshTypeBase()), m );
   REMUS_ASSERT ( (invalid2.valid()==false) );
 
-  remus::common::MeshIOType invalid3( text,
-                                        (remus::meshtypes::MeshTypeBase()) );
-
+  remus::common::MeshIOType invalid3( text, (remus::meshtypes::MeshTypeBase()) );
   REMUS_ASSERT ( (invalid3.valid()==false) );
 
 

@@ -28,7 +28,7 @@ Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
   ValidMsg(true),
   Storage( boost::make_shared<zmq::message_t>(mdata.size()) )
 {
-  memcpy(Storage->data(),mdata.data(),mdata.size());
+  std::memcpy(Storage->data(),mdata.data(),mdata.size());
 }
 
 //----------------------------------------------------------------------------
@@ -41,7 +41,7 @@ Message::Message(remus::common::MeshIOType mtype, SERVICE_TYPE stype,
   ValidMsg(true),
   Storage( boost::make_shared<zmq::message_t>(size) )
 {
-  memcpy(this->Storage->data(),mdata,size);
+  std::memcpy(this->Storage->data(),mdata,size);
 }
 
 //----------------------------------------------------------------------------
@@ -70,9 +70,18 @@ Message::Message(zmq::socket_t* socket)
   //construct a job message from the socket
   zmq::removeReqHeader(*socket);
 
+  //we need to decode the MType using a string buffer
   zmq::message_t meshIOType;
   zmq::recv_harder(*socket,&meshIOType);
-  this->MType = *(reinterpret_cast<remus::common::MeshIOType*>(meshIOType.data()));
+
+  std::string bufferData(reinterpret_cast<const char*>(meshIOType.data()),
+                         meshIOType.size());
+
+  std::istringstream buffer(bufferData);
+  std::string in_type, out_type;
+  buffer >> in_type;
+  buffer >> out_type;
+  this->MType = remus::common::MeshIOType(in_type,out_type);
 
   zmq::message_t servType;
   zmq::recv_harder(*socket,&servType);
@@ -132,12 +141,19 @@ bool Message::send_impl(zmq::socket_t *socket, int flags) const
   zmq::attachReqHeader(*socket);
 
   bool valid = true;
-  zmq::message_t meshIOType(sizeof(this->MType));
-  memcpy(meshIOType.data(),&this->MType,sizeof(this->MType));
+
+  //we need to encode the MType as a string buffer
+  //I worry about the performance cost of this
+  std::ostringstream buffer;
+  buffer << this->MType;
+  std::string bufferData = buffer.str();
+
+  zmq::message_t meshIOType(bufferData.size());
+  std::memcpy(meshIOType.data(),bufferData.c_str(),bufferData.size());
   valid = valid && zmq::send_harder(*socket,meshIOType,flags|ZMQ_SNDMORE);
 
   zmq::message_t service(sizeof(this->SType));
-  memcpy(service.data(),&this->SType,sizeof(this->SType));
+  std::memcpy(service.data(),&this->SType,sizeof(this->SType));
   if(this->dataSize()> 0 && valid)
     {
     //send the service line not as the last line

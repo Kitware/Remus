@@ -33,15 +33,13 @@ void populateJobTypes()
 
   for(std::size_t i=1; i < numRegisteredMeshTypes; i++, ++iit)
     {
-    //MeshType outType = remus::meshtypes::to_meshType(i);
     MeshType outType = *iit;
     jit = allTypes.begin();
     for(std::size_t j=1; j < numRegisteredMeshTypes; j++, ++jit)
       {
-      //MeshType inType = remus::meshtypes::to_meshType(j);
       MeshType inType = *jit;
-      AllJobTypeCombinations[outType->name()].push_back(
-                 remus::common::MeshIOType(*(inType.get()),*(outType.get()) ));
+      const remus::common::MeshIOType mtype( (*inType),(*outType) );
+      AllJobTypeCombinations[outType->name()].push_back( mtype );
       }
     }
 }
@@ -78,7 +76,7 @@ void dumpCanMeshInfo(remus::Client& client)
   std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator iit;
   for (iit = allTypes.begin(); iit != allTypes.end(); ++iit)
     {
-    std::cout << (*iit)->name() << " (" << (*iit)->id() << ") : " << std::endl;
+    std::cout << (*iit)->name() << ": " << std::endl;
     dumpMeshInputInfo(client, *iit->get());
     }
 
@@ -114,14 +112,14 @@ void submitJob(remus::Client& client)
     remus::common::MeshRegistrar::allRegisteredTypes();
   std::set< boost::shared_ptr<remus::meshtypes::MeshTypeBase> >::iterator iit;
   for (iit = allTypes.begin(); iit != allTypes.end(); ++iit)
-    std::cout << (*iit)->name() << " (" << (*iit)->id() << ") : " << std::endl;
+    std::cout << (*iit)->name() << ": " << std::endl;
 
-  std::cout<<"Enter Job Input Type (integer): " << std::endl;
-  int inType;
+  std::cout<<"Enter Job Input Type (string): " << std::endl;
+  std::string inType;
   std::cin >> inType;
 
-  std::cout<<"Enter Job Output Type (integer): " << std::endl;
-  int outType;
+  std::cout<<"Enter Job Output Type (string): " << std::endl;
+  std::string outType;
   std::cin >> outType;
 
   std::string data;
