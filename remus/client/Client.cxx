@@ -54,6 +54,21 @@ const remus::client::ServerConnection& Client::connection() const
 }
 
 //------------------------------------------------------------------------------
+remus::common::MeshIOTypeSet Client::supportedIOTypes()
+{
+  remus::proto::Message j(remus::common::MeshIOType(),
+                          remus::SUPPORTED_IO_TYPES);
+  j.send(&this->Zmq->Server);
+
+  remus::proto::Response response(&this->Zmq->Server);
+  std::istringstream buffer(response.data());
+
+  remus::common::MeshIOTypeSet supportedTypes;
+  buffer >> supportedTypes;
+  return supportedTypes;
+}
+
+//------------------------------------------------------------------------------
 bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 {
   remus::proto::Message j(meshtypes, remus::CAN_MESH_IO_TYPE);
