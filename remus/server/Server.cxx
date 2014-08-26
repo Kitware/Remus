@@ -466,28 +466,45 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   switch(msg.serviceType())
     {
     case remus::CAN_MESH_IO_TYPE:
-      // std::cout << "c CAN_MESH_IO_TYPE" << std::endl;
+      //returns if we can mesh a given MeshIOType
+      //by checking the worker pool and factory
       response.setData(this->canMesh(msg));
       break;
     case remus::CAN_MESH_REQUIREMENTS:
-      // std::cout << "c CAN_MESH_REQS" << std::endl;
+      //returns if we can mesh a given proto::JobRequirements
+      //by checking the worker pool and factory
       response.setData(this->canMeshRequirements(msg));
       break;
     case remus::MESH_REQUIREMENTS_FOR_IO_TYPE:
+      //Generates all the JobRequirments that have the
+      //passed in MeshIOType. Does this
+      //by checking the worker pool and factory
       response.setData(this->meshRequirements(msg));
       break;
     case remus::MAKE_MESH:
-      // std::cout << "c MAKE_MESH" << std::endl;
+      //queues the proto::JobSubmission and returns
+      //a proto::Job that can be used to track that job
       response.setData(this->queueJob(msg));
       break;
     case remus::MESH_STATUS:
-      // std::cout << "c MESH_STATUS" << std::endl;
+      //retrieves the current status of the job related to the passed
+      //proto::Job. Returns a proto::JobStatus
       response.setData(this->meshStatus(msg));
       break;
     case remus::RETRIEVE_MESH:
+      //retrieves the current result of the job related to the passed
+      //proto::Job. Returns a proto::JobResult. The result is than deleted
+      //from the server.
+      //If no result exists will return an invalid JobResult
       response.setData(this->retrieveMesh(msg));
       break;
     case remus::TERMINATE_JOB:
+      //Will try to terminate the given proto::Job.
+      //If the job is currently queued on the server it will be eliminated
+      //if the job is been given to a worker, we will ask the worker to
+      //terminate the job. As long as the job is in the workers task
+      //queue the job will be removed. If the job is currently being processed
+      //we can do nothing to stop it
       response.setData(this->terminateJob(msg));
       break;
     default:
@@ -657,7 +674,9 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
     {
     case remus::CAN_MESH_REQUIREMENTS:
       {
-      // std::cout << "w CAN_MESH" << std::endl;
+      //convert the message into a proto::JobRequirements and add the
+      //worker to the pool stating it can support the Requirements.
+      //to response is required to this
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->addWorker(workerIdentity,reqs);
@@ -665,15 +684,17 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
       break;
     case remus::MAKE_MESH:
       {
-      // std::cout << "w MAKE_MESH" << std::endl;
+      //Mark that the given worker is ready to accept a job with the passed
+      //in set of requirements
+      //The worker is waiting for us to respond to the service call
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->readyForWork(workerIdentity,reqs);
       }
       break;
     case remus::MESH_STATUS:
-      // std::cout << "w MAKE_STATUS" << std::endl;
-      //store the mesh status msg,  no response needed
+      //store the mesh status msg which is a proto::JobStatus
+      //no response needed
       this->storeMeshStatus(msg);
       break;
     case remus::RETRIEVE_MESH:
@@ -681,9 +702,9 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
       this->storeMesh(msg);
       break;
     case remus::HEARTBEAT:
-      // std::cout << "w HEARTBEAT" << std::endl;
       //pass along to the worker monitor what worker just sent a heartbeat
-      //message
+      //message. The heartbeat message contains the msec delta for when
+      //to next expect a heartbeat message from the given worker
       this->SocketMonitor->heartbeat(workerIdentity,msg);
       break;
     case remus::TERMINATE_WORKER:
