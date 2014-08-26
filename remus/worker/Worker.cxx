@@ -64,7 +64,7 @@ Worker::Worker(remus::common::MeshIOType mtype,
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
-                            remus::CAN_MESH,
+                            remus::CAN_MESH_REQUIREMENTS,
                             input_buffer.str());
   canMesh.send(&this->Zmq->Server);
 }
@@ -87,7 +87,7 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
   remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
-                            remus::CAN_MESH,
+                            remus::CAN_MESH_REQUIREMENTS,
                             input_buffer.str());
   canMesh.send(&this->Zmq->Server);
 }

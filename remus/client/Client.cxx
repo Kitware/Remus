@@ -56,7 +56,7 @@ const remus::client::ServerConnection& Client::connection() const
 //------------------------------------------------------------------------------
 bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 {
-  remus::proto::Message j(meshtypes, remus::CAN_MESH);
+  remus::proto::Message j(meshtypes, remus::CAN_MESH_IO_TYPE);
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
@@ -89,7 +89,7 @@ bool Client::canMesh(const remus::proto::JobRequirements& reqs)
 remus::proto::JobRequirementsSet
 Client::retrieveRequirements( const remus::common::MeshIOType& meshtypes)
 {
-  remus::proto::Message j(meshtypes, remus::MESH_REQUIREMENTS);
+  remus::proto::Message j(meshtypes, remus::MESH_REQUIREMENTS_FOR_IO_TYPE);
   j.send(&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);

@@ -465,6 +465,17 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
+    case remus::CAN_MESH_IO_TYPE:
+      // std::cout << "c CAN_MESH_IO_TYPE" << std::endl;
+      response.setData(this->canMesh(msg));
+      break;
+    case remus::CAN_MESH_REQUIREMENTS:
+      // std::cout << "c CAN_MESH_REQS" << std::endl;
+      response.setData(this->canMeshRequirements(msg));
+      break;
+    case remus::MESH_REQUIREMENTS_FOR_IO_TYPE:
+      response.setData(this->meshRequirements(msg));
+      break;
     case remus::MAKE_MESH:
       // std::cout << "c MAKE_MESH" << std::endl;
       response.setData(this->queueJob(msg));
@@ -472,17 +483,6 @@ void Server::DetermineJobQueryResponse(const zmq::SocketIdentity& clientIdentity
     case remus::MESH_STATUS:
       // std::cout << "c MESH_STATUS" << std::endl;
       response.setData(this->meshStatus(msg));
-      break;
-    case remus::CAN_MESH:
-      // std::cout << "c CAN_MESH" << std::endl;
-      response.setData(this->canMesh(msg));
-      break;
-    case remus::CAN_MESH_REQUIREMENTS:
-      // std::cout << "c CAN_MESH_REQS" << std::endl;
-      response.setData(this->canMeshRequirements(msg));
-      break;
-    case remus::MESH_REQUIREMENTS:
-      response.setData(this->meshRequirements(msg));
       break;
     case remus::RETRIEVE_MESH:
       response.setData(this->retrieveMesh(msg));
@@ -653,6 +653,14 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
   //we have a valid job, determine what to do with it
   switch(msg.serviceType())
     {
+    case remus::CAN_MESH_REQUIREMENTS:
+      {
+      // std::cout << "w CAN_MESH" << std::endl;
+      const remus::proto::JobRequirements reqs =
+            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
+      this->WorkerPool->addWorker(workerIdentity,reqs);
+      }
+      break;
     case remus::MAKE_MESH:
       {
       // std::cout << "w MAKE_MESH" << std::endl;
@@ -665,14 +673,6 @@ void Server::DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
       // std::cout << "w MAKE_STATUS" << std::endl;
       //store the mesh status msg,  no response needed
       this->storeMeshStatus(msg);
-      break;
-    case remus::CAN_MESH:
-      {
-      // std::cout << "w CAN_MESH" << std::endl;
-      const remus::proto::JobRequirements reqs =
-            remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
-      this->WorkerPool->addWorker(workerIdentity,reqs);
-      }
       break;
     case remus::RETRIEVE_MESH:
       //we need to store the mesh result, no response needed
