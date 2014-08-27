@@ -131,11 +131,6 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(pollResult.valid());
   REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
 
-  remus::common::SleepForMillisec(1000);
-  pollResult = example.poll(0);
-  REMUS_ASSERT(pollResult.valid());
-  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDOUT) );
-
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
   }
@@ -166,11 +161,6 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(pollResult.valid());
   REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
 
-  remus::common::SleepForMillisec(1000);
-  pollResult = example.poll(0);
-  REMUS_ASSERT(pollResult.valid());
-  REMUS_ASSERT( (pollResult.type == remus::common::ProcessPipe::STDERR) );
-
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
   }
@@ -178,7 +168,6 @@ int UnitTestExecuteProcess(int, char *[])
 //==============================================================================
 //  Test Polling timeout
 //==============================================================================
-
   {
   //next create a program that will not have output so the polling will
   //timeout
@@ -226,7 +215,6 @@ int UnitTestExecuteProcess(int, char *[])
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
   }
-
 
   return 0;
 }
