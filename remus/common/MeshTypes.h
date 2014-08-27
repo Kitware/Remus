@@ -77,8 +77,7 @@ struct PiecewiseLinearComplex : remus::meshtypes::MeshTypeBase
     std::string name() const { return "PiecewiseLinearComplex"; }
 };
 
-inline
-boost::shared_ptr<remus::meshtypes::MeshTypeBase>
+inline boost::shared_ptr<remus::meshtypes::MeshTypeBase>
 to_meshType(const std::string& s)
 {
   return remus::common::MeshRegistrar::instantiate(s);

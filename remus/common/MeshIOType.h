@@ -120,12 +120,33 @@ private:
   ContainerType Container;
 };
 
-inline
-remus::common::MeshIOType make_MeshIOType(
+inline remus::common::MeshIOType make_MeshIOType(
              const remus::meshtypes::MeshTypeBase& in,
              const remus::meshtypes::MeshTypeBase& out)
 {
   return remus::common::MeshIOType(in,out);
+}
+
+//helper method to generate the cross product of all known mesh io types
+inline std::set< remus::common::MeshIOType > generateAllIOTypes()
+{
+  using namespace remus::common;
+  using namespace remus::meshtypes;
+  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
+  std::set<MeshType> all_types = remus::common::MeshRegistrar::allRegisteredTypes();
+
+  std::set< MeshIOType > allIOTypes;
+
+  typedef std::set<MeshType>::const_iterator cit;
+  for(cit i=all_types.begin(); i!=all_types.end(); ++i)
+    {
+    for(cit j=all_types.begin(); j!=all_types.end(); ++j)
+      {
+      allIOTypes.insert( MeshIOType(*i,*j) );
+      }
+    }
+
+  return allIOTypes;
 }
 
 

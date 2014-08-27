@@ -25,11 +25,6 @@
 #include <string>
 #include <vector>
 
-//needed for helper to generate All MeshIO permutations
-#include <remus/common/MeshIOType.h>
-
-#include <boost/shared_ptr.hpp>
-
 #ifndef _MSC_VER
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -168,28 +163,6 @@ inline std::string UniqueString()
 {
   boost::uuids::uuid i = UUIDGenerator();
   return boost::lexical_cast<std::string>(i);
-}
-
-inline std::set< remus::common::MeshIOType > GenerateAllIOTypes()
-{
-  using namespace remus::common;
-  using namespace remus::meshtypes;
-  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-  std::set<MeshType> all_types = remus::common::MeshRegistrar::allRegisteredTypes();
-
-  std::set< MeshIOType > allIOTypes;
-
-  typedef std::set<MeshType>::const_iterator cit;
-  for(cit i=all_types.begin(); i!=all_types.end(); ++i)
-    {
-    for(cit j=all_types.begin(); j!=all_types.end(); ++j)
-      {
-      allIOTypes.insert( MeshIOType(*i,*j) );
-      }
-    }
-
-  return allIOTypes;
-
 }
 
 }

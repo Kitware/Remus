@@ -36,8 +36,7 @@ public:
   remus::common::MeshIOTypeSet supportedIOTypes() const
   {
     //we need to return that we support all types!
-    remus::common::MeshIOTypeSet tmp( remus::testing::GenerateAllIOTypes() );
-    return tmp;
+    return remus::common::generateAllIOTypes();
   }
 
   remus::proto::JobRequirementsSet workerRequirements(

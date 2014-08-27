@@ -55,16 +55,12 @@ T randomEnum(T min_t, T max_t)
 
 remus::common::MeshIOType randomMeshTypes()
 {
-  typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-  std::set< remus::common::MeshIOType > allTypes =
-                                    remus::testing::GenerateAllIOTypes();
+  remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
 
   int selected_index = randomInt(0,allTypes.size());
-
   int index=0;
-  for(std::set< remus::common::MeshIOType >::const_iterator i=allTypes.begin();
-      i != allTypes.end();
-      ++i, ++index)
+  typedef remus::common::MeshIOTypeSet::const_iterator cit;
+  for(cit i=allTypes.begin(); i != allTypes.end(); ++i, ++index)
     {
     if(index == selected_index)
       {

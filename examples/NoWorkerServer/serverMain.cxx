@@ -23,23 +23,7 @@ public:
 
   remus::common::MeshIOTypeSet supportedIOTypes() const
   {
-    using namespace remus::common;
-    using namespace remus::meshtypes;
-    typedef boost::shared_ptr<remus::meshtypes::MeshTypeBase> MeshType;
-    std::set<MeshType> all_types = remus::common::MeshRegistrar::allRegisteredTypes();
-
-    remus::common::MeshIOTypeSet allIOTypes;
-
-    typedef std::set<MeshType>::const_iterator cit;
-    for(cit i=all_types.begin(); i!=all_types.end(); ++i)
-      {
-      for(cit j=all_types.begin(); j!=all_types.end(); ++j)
-        {
-        allIOTypes.insert( MeshIOType(*i,*j) );
-        }
-      }
-
-    return allIOTypes;
+    return remus::common::generateAllIOTypes();
   }
 
   remus::proto::JobRequirementsSet workerRequirements(

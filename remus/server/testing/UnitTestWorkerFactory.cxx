@@ -89,8 +89,8 @@ void test_factory_worker_finder()
   REMUS_ASSERT( (validTypes.size() == 1) );
   REMUS_ASSERT( (validTypes.count(raw_edges.meshTypes()) == 1) );
 
-  std::set< MeshIOType > allTypes = remus::testing::GenerateAllIOTypes();
-  typedef std::set< MeshIOType >::const_iterator cit;
+  remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
+  typedef remus::common::MeshIOTypeSet::const_iterator cit;
   for( cit i = allTypes.begin(); i != allTypes.end(); ++i)
     {
     remus::proto::JobRequirements io_type = make_Reqs( (*i).inputType(),
@@ -134,7 +134,7 @@ void test_factory_worker_file_based_requirements()
   REMUS_ASSERT( (validTypes.size() == 1) );
   REMUS_ASSERT( (validTypes.count(raw_edges) == 1) );
 
-  std::set< MeshIOType > allTypes = remus::testing::GenerateAllIOTypes();
+  std::set< MeshIOType > allTypes = remus::common::generateAllIOTypes();
   typedef std::set< MeshIOType >::const_iterator cit;
   for( cit i = allTypes.begin(); i != allTypes.end(); ++i)
     {
