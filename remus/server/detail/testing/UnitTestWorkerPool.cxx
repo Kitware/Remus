@@ -64,6 +64,7 @@ void verify_has_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type2D) == true) );
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == false) );
   REMUS_ASSERT( (pool.allWorkers().count(worker1_id) == 1) );
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 1) )
 
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type2D) == false) );
 
@@ -74,6 +75,7 @@ void verify_has_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type2D) == true) );
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == true) );
   REMUS_ASSERT( (pool.allWorkers().count(worker1_id) == 1) );
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 2) )
 
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type2D) == false) );
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type3D) == false) );
@@ -83,6 +85,7 @@ void verify_has_workers()
   pool.readyForWork(worker1_id, worker_type3D);
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type2D) == true) );
   REMUS_ASSERT( (pool.haveWaitingWorker(worker_type3D) == true) );
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 2) )
 
 }
 
@@ -93,6 +96,13 @@ void verify_has_worker_type()
   remus::server::detail::WorkerPool pool;
   zmq::SocketIdentity worker1_id = make_socketId();
   pool.addWorker(worker1_id, worker_type2D);
+
+  //now verify that a worker added to the pool, but not marked as ready
+  //for work, means that we are aware of a given type
+  remus::common::MeshIOTypeSet typeSet = pool.supportedIOTypes();
+  REMUS_ASSERT( (typeSet.size() == 1) )
+  REMUS_ASSERT( (typeSet.count(worker_type2D.meshTypes()) == 1) );
+
   pool.readyForWork(worker1_id, worker_type2D);
 
   remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
@@ -113,9 +123,8 @@ void verify_has_worker_type()
     }
 
   //now verify we can get the set of MeshIOTypes of worker ready for work
-  remus::common::MeshIOTypeSet typeSet = pool.supportedIOTypes();
-  REMUS_ASSERT( (typeSet.size() == 1) )
-  REMUS_ASSERT( (typeSet.count(worker_type2D.meshTypes()) == 1) );
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 1) )
+  REMUS_ASSERT( (pool.supportedIOTypes().count(worker_type2D.meshTypes()) == 1) );
 
 }
 
@@ -127,7 +136,6 @@ void verify_purge_workers()
 
   typedef remus::server::detail::SocketMonitor MonitorType;
   MonitorType monitor = make_Monitor( );
-
 
   pool.addWorker(worker1_id, worker_type2D);
   pool.addWorker(worker1_id, worker_type3D);
@@ -211,6 +219,12 @@ void verify_taking_works()
   REMUS_ASSERT( (good_3d_id == worker1_id) );
   REMUS_ASSERT( (pool.allWorkersWantingWork().size() == 0) );
   REMUS_ASSERT( (pool.allWorkers().size() == 1) );
+
+  //now verify that worker types we are aware of
+  //this should be 2 since we have worker_type2D and worker_type3D
+  //and while they have been assigned a job they still are in the pool
+  //since they are still responsive to heartbeating
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 2) )
   }
 
   //add a worker for 2 types, but only one of those types as
@@ -235,10 +249,12 @@ void verify_taking_works()
   REMUS_ASSERT( (bad_3d_id == zmq::SocketIdentity()) );
   REMUS_ASSERT( !(bad_3d_id == worker1_id) );
 
-
-
   //still have the 3d worker item kicking around
   REMUS_ASSERT( (pool.allWorkers().size() == 1) );
+
+  //now verify that worker types we are aware of
+  REMUS_ASSERT( (pool.supportedIOTypes().size() == 2) )
+
   }
 }
 
