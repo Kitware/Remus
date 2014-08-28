@@ -20,6 +20,12 @@ namespace factory
 class DoNothingFactory: public remus::server::WorkerFactory
 {
 public:
+
+  remus::common::MeshIOTypeSet supportedIOTypes() const
+  {
+    return remus::common::generateAllIOTypes();
+  }
+
   remus::proto::JobRequirementsSet workerRequirements(
                                           remus::common::MeshIOType type) const
   {

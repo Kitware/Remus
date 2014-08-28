@@ -55,19 +55,19 @@ T randomEnum(T min_t, T max_t)
 
 remus::common::MeshIOType randomMeshTypes()
 {
+  remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
 
-  std::size_t numRegisteredMeshTypes =
-                      remus::common::MeshRegistrar::numberOfRegisteredTypes();
-
-  //we want to work in some invalid mesh types so we say the min is 0
-  int in_type = randomInt(0,numRegisteredMeshTypes);
-  int out_type = randomInt(0,numRegisteredMeshTypes);
-
-  return remus::common::MeshIOType( remus::meshtypes::to_meshType(in_type),
-                                     remus::meshtypes::to_meshType(out_type)
-                                     );
-
-
+  int selected_index = randomInt(0,allTypes.size());
+  int index=0;
+  typedef remus::common::MeshIOTypeSet::const_iterator cit;
+  for(cit i=allTypes.begin(); i != allTypes.end(); ++i, ++index)
+    {
+    if(index == selected_index)
+      {
+      return *i;
+      }
+    }
+  return remus::common::MeshIOType();
 }
 
 template<typename T>

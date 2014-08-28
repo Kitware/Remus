@@ -264,11 +264,6 @@ ones are insufficient. For example, let's say that you have a meshing process wh
 is actually an AMR dataset and whose output is collection of Voxels. You can
 do the following to have Remus support those new types.
 
-> Note that Remus reserves the id space 0 to 100 for provided mesh types. User defined
-> mesh types should start at 100. If you are working with multiple plugins that
-> define mesh types, ask the registrar for all registered types and verify
-> the id spaces don't collide before adding new ids.
-
 ```cpp
   #include <remus/common/MeshTypes.h>
 
@@ -277,7 +272,6 @@ do the following to have Remus support those new types.
   {
   static boost::shared_ptr<MeshTypeBase> create() {
           return boost::shared_ptr<AMRData>(new AMRData()); }
-  boost::uint16_t id() const { return 1234; }
   std::string name() const { return "AMRData"; }
   };
 
@@ -286,21 +280,17 @@ do the following to have Remus support those new types.
   {
   static boost::shared_ptr<MeshTypeBase> create() {
           return boost::shared_ptr<Voxel>(new Voxel()); }
-  boost::uint16_t id() const { return 1235; }
   std::string name() const { return "Voxel"; }
   };
 
   remus::common::MeshRegistrar a( (AMRData()) );
   remus::common::MeshRegistrar b( (Voxel()) );
 ```
+At a minimum these new types must be compiled into the Worker that uses them.
+The server and client don't need to know about these types, as long
+as you are willing to query the server for the supported ```remus::common::MeshIOTypes```.
 
-This will need to be compiled into a custom Server if you need the default
-worker factory to parse these types from a Remus Worker JSON file. If you just
-need it on the client and worker, you can just define the above in just the
-client and worker implementations.
-
-Now you can use the AMRData and Voxel classes in the client and worker, like
-this:
+Now you can use the AMRData and Voxel classes in the worker, like this:
 
 ```
 remus::common::MeshIOType io_type =

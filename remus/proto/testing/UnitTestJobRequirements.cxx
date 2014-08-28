@@ -62,19 +62,19 @@ T randomEnum(T min_t, T max_t)
 
 remus::common::MeshIOType randomMeshTypes()
 {
+  remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
+  int selected_index = randomInt(0,allTypes.size());
 
-  std::size_t numRegisteredMeshTypes =
-                      remus::common::MeshRegistrar::numberOfRegisteredTypes();
-
-  //we want to work in some invalid mesh types so we say the min is 0
-  int in_type = randomInt(0,numRegisteredMeshTypes);
-  int out_type = randomInt(0,numRegisteredMeshTypes);
-
-  return remus::common::MeshIOType( remus::meshtypes::to_meshType(in_type),
-                                     remus::meshtypes::to_meshType(out_type)
-                                     );
-
-
+  int index=0;
+  typedef remus::common::MeshIOTypeSet::const_iterator cit;
+  for(cit i=allTypes.begin(); i != allTypes.end(); ++i, ++index)
+    {
+    if(index == selected_index)
+      {
+      return *i;
+      }
+    }
+  return remus::common::MeshIOType();
 }
 
 template<typename T>
@@ -282,22 +282,6 @@ void verify_req_set()
                                to_wire.end(),
                                from_wire.begin());
   REMUS_ASSERT( same );
-
-  //verify that to_ string/req_set api work
-  const std::string wire = to_string(to_wire);
-  JobRequirementsSet from_wire2 = to_JobRequirementsSet(wire);
-  JobRequirementsSet from_wire3 = to_JobRequirementsSet(wire.c_str(),
-                                                        wire.size());
-
-  const bool same2 = std::equal(to_wire.begin(),
-                                to_wire.end(),
-                                from_wire2.begin());
-  REMUS_ASSERT( same2 );
-
-  const bool same3 = std::equal(to_wire.begin(),
-                                to_wire.end(),
-                                from_wire3.begin());
-  REMUS_ASSERT( same3 );
 }
 
 

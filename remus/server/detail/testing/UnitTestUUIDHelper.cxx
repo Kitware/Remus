@@ -28,7 +28,7 @@ int UnitTestUUIDHelper(int, char *[])
   REMUS_ASSERT( (r_from_str==b_from_str) );
 
   remus::common::MeshIOType type;
-  remus::proto::Message msg(type, remus::CAN_MESH, text);
+  remus::proto::Message msg(type, remus::CAN_MESH_IO_TYPE, text);
 
   //message data needs to be an uuid.
   boost::uuids::uuid msg_uuid = remus::to_uuid(msg);

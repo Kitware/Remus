@@ -32,6 +32,13 @@ using namespace remus::meshtypes;
 class DoNothingFactory: public remus::server::WorkerFactory
 {
 public:
+
+  remus::common::MeshIOTypeSet supportedIOTypes() const
+  {
+    //we need to return that we support all types!
+    return remus::common::generateAllIOTypes();
+  }
+
   remus::proto::JobRequirementsSet workerRequirements(
                                           remus::common::MeshIOType type) const
   {

@@ -24,44 +24,6 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 
-namespace factory
-{
-//we want a custom factory that can not create any workers
-//but alays states that it can support a mesh type
-class AlwaysSupportFactory: public remus::server::WorkerFactory
-{
-public:
-  remus::proto::JobRequirementsSet workerRequirements(
-                                          remus::common::MeshIOType type) const
-  {
-    //make clients think we have real workers, by sending back fake job reqs
-    remus::proto::JobRequirements reqs =
-         remus::proto::make_JobRequirements(type,"AlwaysSupportWorker","");
-    remus::proto::JobRequirementsSet reqSet;
-    reqSet.insert(reqs);
-    return reqSet;
-  }
-
-  bool haveSupport(const remus::proto::JobRequirements& reqs) const
-    {
-    (void) reqs;
-    //we want to return true so that the server adds jobs to it worker queue
-    return true;
-    }
-
-  bool createWorker(const remus::proto::JobRequirements& type,
-                    WorkerFactory::FactoryDeletionBehavior lifespan)
-    {
-    (void) type;
-    (void) lifespan;
-    //we want to return false here so that server never thinks we are creating
-    //a worker and assigns a job to a worker we didn't create
-    return false;
-    }
-
-  };
-}
-
 namespace
 {
   //global store of data to verify on worker
@@ -70,6 +32,54 @@ namespace
   std::string ascii_data;
   std::string binary_data;
   }
+
+
+  namespace factory
+  {
+  //we want a custom factory that can not create any workers
+  //but alays states that it can support a mesh type
+  class AlwaysSupportFactory: public remus::server::WorkerFactory
+  {
+  public:
+
+    //when asked about which IOTypes we support we say none
+    remus::common::MeshIOTypeSet supportedIOTypes() const
+    {
+      //we need to return that we support all types!
+      return remus::common::generateAllIOTypes();
+    }
+
+    remus::proto::JobRequirementsSet workerRequirements(
+                                            remus::common::MeshIOType type) const
+    {
+      //make clients think we have real workers, by sending back fake job reqs
+      remus::proto::JobRequirements reqs =
+           remus::proto::make_JobRequirements(type,"AlwaysSupportWorker","");
+      remus::proto::JobRequirementsSet reqSet;
+      reqSet.insert(reqs);
+      return reqSet;
+    }
+
+    bool haveSupport(const remus::proto::JobRequirements& reqs) const
+      {
+      (void) reqs;
+      //we want to return true so that the server adds jobs to it worker queue
+      return true;
+      }
+
+    bool createWorker(const remus::proto::JobRequirements& type,
+                      WorkerFactory::FactoryDeletionBehavior lifespan)
+      {
+      (void) type;
+      (void) lifespan;
+      //we want to return false here so that server never thinks we are creating
+      //a worker and assigns a job to a worker we didn't create
+      return false;
+      }
+
+    };
+  }
+
 
 //------------------------------------------------------------------------------
 bool get_value(const remus::proto::JobSubmission& data, const std::string& key,
@@ -91,18 +101,21 @@ std::vector< remus::common::MeshIOType > make_all_meshTypes()
   using namespace remus::meshtypes;
   using namespace remus::common;
 
-  //what really we need are iterators to the mesh registrar
-  const std::size_t num_mesh_types = MeshRegistrar::numberOfRegisteredTypes();
+  typedef boost::shared_ptr< MeshTypeBase > MeshType;
+  std::set< MeshType > allRegTypes =
+                    remus::common::MeshRegistrar::allRegisteredTypes();
 
-  std::vector< MeshIOType > allTypes;
-  for(std::size_t input_type = 1; input_type < num_mesh_types+1; ++input_type)
+  std::vector< MeshIOType > allTypes(allRegTypes.size());
+  typedef std::set<MeshType>::const_iterator cit;
+  for( cit i = allRegTypes.begin(); i != allRegTypes.end(); ++i)
     {
-    for(std::size_t output_type = 1; output_type < num_mesh_types+1; ++output_type)
+    for(cit j = allRegTypes.begin(); j != allRegTypes.end(); ++j)
       {
-      MeshIOType io_type( to_meshType(input_type), to_meshType(output_type));
+      MeshIOType io_type( (*i)->name(), (*j)->name());
       allTypes.push_back(io_type);
       }
     }
+
   return allTypes;
 }
 

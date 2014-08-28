@@ -27,7 +27,7 @@ WorkerPool::WorkerInfo::WorkerInfo(const zmq::SocketIdentity& address,
   NumberOfDesiredJobs(0),
   Reqs(reqs),
   Address(address),
-  IsAlive(true)
+  IsResponsive(true)
 {
 }
 
@@ -47,6 +47,18 @@ bool WorkerPool::addWorker(zmq::SocketIdentity workerIdentity,
     this->Pool.push_back( WorkerPool::WorkerInfo(workerIdentity,reqs) );
     }
   return true;
+}
+
+//------------------------------------------------------------------------------
+remus::common::MeshIOTypeSet WorkerPool::supportedIOTypes() const
+{
+  remus::common::MeshIOTypeSet validIOTypes;
+  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    if( i->IsResponsive )
+      { validIOTypes.insert(i->Reqs.meshTypes()); }
+    }
+  return validIOTypes;
 }
 
 //------------------------------------------------------------------------------
@@ -100,7 +112,7 @@ bool WorkerPool::readyForWork(const zmq::SocketIdentity& address,
     {
     if(i->Address == address && i->Reqs == reqs)
       {
-      i->IsAlive = true; //mark the worker alive if it wasn't already
+      i->IsResponsive = true; //mark the worker as responsive
       i->addJob();
       ++count;
       }
@@ -152,7 +164,7 @@ void WorkerPool::purgeDeadWorkers(remus::server::detail::SocketMonitor monitor)
 
   for(It i=this->Pool.begin(); i != newEnd; ++i)
     {
-    i->IsAlive = !monitor.isUnresponsive(i->Address);
+    i->IsResponsive = !monitor.isUnresponsive(i->Address);
     }
 
   //erase all the dead workers to free up space

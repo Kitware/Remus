@@ -33,6 +33,13 @@ public:
   bool addWorker(zmq::SocketIdentity workerIdentity,
                  const remus::proto::JobRequirements& reqs);
 
+  //return all the MeshIOTypes that workers have registered to support.
+  //this allows the client to discover workers that have connected with
+  //new types. It will return the types for all workers connected, either
+  //ready for work, or just registered. The only workers that are ignored
+  //are workers that aren't responsive
+  remus::common::MeshIOTypeSet supportedIOTypes() const;
+
   //return all the requirements for workers that are waiting.
   remus::proto::JobRequirementsSet
   waitingWorkerRequirements(remus::common::MeshIOType type) const;
@@ -49,7 +56,10 @@ public:
   bool readyForWork(const zmq::SocketIdentity& address,
                     const remus::proto::JobRequirements& reqs);
 
-  //returns the worker address and marks that the worker has taken a job
+  //returns the worker address and marks that the worker has taken a job.
+  //this doesn't remove the worker from the worker pool, it just decrements
+  //the number of jobs the worker is allowed to take, and puts in at the worker
+  //queue
   zmq::SocketIdentity takeWorker(const remus::proto::JobRequirements& reqs);
 
   //remove all workers that haven't responded based on the passed in monitor
@@ -67,12 +77,12 @@ private:
     int NumberOfDesiredJobs;
     remus::proto::JobRequirements Reqs;
     zmq::SocketIdentity Address;
-    bool IsAlive; //alive as heartbeating, not alive as actively wanting jobs
+    bool IsResponsive; //as in we are getting heartbeating from the worker
 
     WorkerInfo(const zmq::SocketIdentity& address,
                const remus::proto::JobRequirements& type);
 
-    bool isWaitingForWork() const { return NumberOfDesiredJobs > 0 && IsAlive; }
+    bool isWaitingForWork() const { return NumberOfDesiredJobs > 0 && IsResponsive; }
     void addJob() { ++NumberOfDesiredJobs; }
     void takesJob() { --NumberOfDesiredJobs; }
   };

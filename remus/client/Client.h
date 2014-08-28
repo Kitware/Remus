@@ -52,6 +52,9 @@ public:
   //remus server
   const remus::client::ServerConnection& connection() const;
 
+  //Submit a request to the server to see what MeshIOTypes are supported
+  remus::common::MeshIOTypeSet supportedIOTypes();
+
   //Submit a request to the server to see if the server supports
   //the requested input and output mesh types
   bool canMesh(const remus::common::MeshIOType& meshtypes);

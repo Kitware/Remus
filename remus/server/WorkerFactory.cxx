@@ -119,6 +119,18 @@ namespace
     return ValidWorker();
   }
 
+    //----------------------------------------------------------------------------
+  template<typename Container >
+  remus::common::MeshIOTypeSet
+  find_all_workers_iotypes(Container const& container)
+  {
+    typedef typename Container::const_iterator IterType;
+    remus::common::MeshIOTypeSet validIOTypes;
+    for(IterType i = container.begin(); i != container.end(); ++i)
+      { validIOTypes.insert(i->Requirements.meshTypes()); }
+    return validIOTypes;
+  }
+
   //----------------------------------------------------------------------------
   template<typename Container >
   remus::proto::JobRequirementsSet
@@ -177,23 +189,20 @@ namespace
       return std::make_pair( boost::filesystem::path(),
                              remus::proto::JobRequirements() );
       }
-    std::string inputType(inputT->valuestring);
-    std::string outputType(outputT->valuestring);
-    std::string executableName(execT->valuestring);
-
-    //by default we select memory and user
-    ContentFormat::Type format_type = ContentFormat::User;
-    MeshIOType mesh_type( remus::meshtypes::to_meshType(inputType),
-                          remus::meshtypes::to_meshType(outputType)
-                          );
+    const std::string inputType(inputT->valuestring);
+    const std::string outputType(outputT->valuestring);
+    MeshIOType mesh_type( inputType, outputType );
 
     //executableName can be a path, so figure it out
+    std::string executableName(execT->valuestring);
     boost::filesystem::path mesher_path(executableName);
     if(boost::filesystem::is_regular_file(mesher_path))
       {
       executableName = mesher_path.filename().string();
       }
 
+    //by default we select memory and user
+    ContentFormat::Type format_type = ContentFormat::User;
 
     //make the basic memory type reqs
     remus::proto::JobRequirements reqs(format_type,
@@ -403,6 +412,12 @@ void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
                                finder.begin(),
                                finder.end());
+}
+
+//----------------------------------------------------------------------------
+remus::common::MeshIOTypeSet WorkerFactory::supportedIOTypes() const
+{
+  return find_all_workers_iotypes(this->PossibleWorkers);
 }
 
 //----------------------------------------------------------------------------

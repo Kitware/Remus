@@ -22,6 +22,7 @@ set(private_headers
     )
 
 set(srcs
+    MeshIOType.cxx
     ExecuteProcess.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx

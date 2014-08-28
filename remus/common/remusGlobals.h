@@ -33,15 +33,17 @@ static const std::string INVALID_MSG = "INVALID_MSG";
 // Severice Type macros.
 #define ServiceTypeMacros() \
      ServiceTypeMacro(INVALID_SERVICE, 0,"INVALID"), \
-     ServiceTypeMacro(MAKE_MESH, 1, "MAKE MESH"), \
-     ServiceTypeMacro(MESH_STATUS, 2, "MESH STATUS"), \
-     ServiceTypeMacro(CAN_MESH, 3, "CAN MESH"), \
-     ServiceTypeMacro(RETRIEVE_MESH, 4, "RETRIEVE MESH"), \
-     ServiceTypeMacro(HEARTBEAT, 5, "HEARTBEAT"), \
-     ServiceTypeMacro(TERMINATE_JOB, 6, "TERMINATE JOB"), \
-     ServiceTypeMacro(TERMINATE_WORKER, 7, "TERMINATE WORKER"), \
-     ServiceTypeMacro(CAN_MESH_REQUIREMENTS, 8, "CAN MESH REQUIREMENTS"), \
-     ServiceTypeMacro(MESH_REQUIREMENTS, 9, "MESH REQUIREMENTS")
+     ServiceTypeMacro(SUPPORTED_IO_TYPES, 1, "SUPPORTED IO TYPES"), \
+     ServiceTypeMacro(MESH_REQUIREMENTS_FOR_IO_TYPE, 2, "MESH REQUIREMENTS IO TYPE"), \
+     ServiceTypeMacro(CAN_MESH_REQUIREMENTS, 3, "CAN MESH REQUIREMENTS"), \
+     ServiceTypeMacro(CAN_MESH_IO_TYPE, 4, "CAN MESH IO TYPE"), \
+     ServiceTypeMacro(MAKE_MESH, 5, "MAKE MESH"), \
+     ServiceTypeMacro(MESH_STATUS, 6, "MESH STATUS"), \
+     ServiceTypeMacro(RETRIEVE_MESH, 7, "RETRIEVE MESH"), \
+     ServiceTypeMacro(HEARTBEAT, 8, "HEARTBEAT"), \
+     ServiceTypeMacro(TERMINATE_JOB, 97, "TERMINATE JOB"), \
+     ServiceTypeMacro(TERMINATE_WORKER, 98, "TERMINATE WORKER")
+
 
 //------------------------------------------------------------------------------
 enum SERVICE_TYPE
