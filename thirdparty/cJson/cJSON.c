@@ -43,6 +43,16 @@
 
 #include "cJSON.h"
 
+#ifdef _MSC_VER
+// setup a stack of warnings so we can pop them all and restore warnings
+// for the rest of the code base
+# pragma warning(push)
+//disable sprintf, strcpy, etc warnings as they are just noise
+# pragma warning(disable: 4996)
+//disable conversion warnings of size_t to int
+# pragma warning(disable: 4267)
+#endif
+
 static const char *ep;
 
 const char *cJSON_GetErrorPtr(void) {return ep;}
@@ -605,3 +615,8 @@ void cJSON_Minify(char *json)
 	}
 	*into=0;	// and null-terminate.
 }
+
+//reset our warnings to the original level
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
