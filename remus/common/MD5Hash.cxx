@@ -20,8 +20,9 @@ namespace
   {
     RemusSysToolsMD5* hasher = RemusSysToolsMD5_New();
     RemusSysToolsMD5_Initialize(hasher);
-    RemusSysToolsMD5_Append(hasher, reinterpret_cast<const unsigned char*>(data), length);
-
+    RemusSysToolsMD5_Append(hasher,
+                       reinterpret_cast<const unsigned char*>(data),
+                       static_cast<int>(length) );
     char hash[32];
     RemusSysToolsMD5_FinalizeHex(hasher, hash);
     RemusSysToolsMD5_Delete(hasher);

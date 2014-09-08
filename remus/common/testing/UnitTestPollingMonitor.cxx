@@ -228,21 +228,23 @@ void verify_slow_polling()
   TestPoller p(&t);
 
   //verify polling at the min keeps the duration equal to the min
-  const int pollTimeInSecs = p.minTimeOut() +
-                                      (p.maxTimeOut() - p.minTimeOut())/2;
+  const boost::int64_t pollTime = p.minTimeOut() +
+                                 (p.maxTimeOut() - p.minTimeOut())/2;
+  const long pollTimeInMSecs = static_cast<long>(pollTime);
+
   for(int i=0; i < 20; ++i)
   {
-  t += boost::posix_time::milliseconds(pollTimeInSecs);
+  t += boost::posix_time::milliseconds(pollTimeInMSecs);
   p.fakeAPollOccurringAt(&t);
 
   //we expect that the current will be always greater than min
   REMUS_ASSERT ( (p.current( ) > p.minTimeOut()) );
   REMUS_ASSERT ( (p.average( ) > p.minTimeOut()) );
-  REMUS_ASSERT ( (p.average( ) <= pollTimeInSecs) );
+  REMUS_ASSERT ( (p.average( ) <= pollTimeInMSecs) );
   REMUS_ASSERT ( (p.hasAbnormalEvent( ) == false) );
   }
 
-  REMUS_ASSERT ( (p.average( ) == pollTimeInSecs) );
+  REMUS_ASSERT ( (p.average( ) == pollTimeInMSecs) );
   REMUS_ASSERT ( (p.hasAbnormalEvent( ) == false) );
 
   // verify that as we use p.current() for the duration,
