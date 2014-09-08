@@ -58,7 +58,7 @@ remus_private_headers(${private_headers})
 export(PACKAGE RemusProto)
 export(TARGETS RemusProto
                RemusCommon
-               sysTools
+               RemusSysTools
                FILE RemusProto-exports.cmake)
 
 
