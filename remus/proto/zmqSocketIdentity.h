@@ -16,6 +16,12 @@
 #include <cstddef>
 #include <string>
 
+#ifdef _MSC_VER
+# pragma warning(push)
+//disable warning about using std::copy with pointers
+# pragma warning(disable: 4996)
+#endif
+
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq
 {
@@ -63,5 +69,10 @@ inline std::string to_string(const zmq::SocketIdentity& add)
 }
 
 }
+
+//reset our warnings to the original level
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif // remus_proto_zmqSocketIdentity_h

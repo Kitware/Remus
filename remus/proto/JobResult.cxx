@@ -14,14 +14,20 @@
 
 #include <remus/proto/conversionHelpers.h>
 
-//suppress warnings inside boost headers for gcc and clang
+//suppress warnings inside boost headers for gcc, clang and MSVC
 #ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wshadow"
+#else
+# pragma warning(push)
+//disable warning about using std::copy with pointers
+# pragma warning(disable: 4996)
 #endif
 #include <boost/uuid/uuid_io.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop
+#else
+# pragma warning(pop)
 #endif
 
 #include <iostream>
