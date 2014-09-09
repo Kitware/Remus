@@ -39,13 +39,8 @@ namespace detail{
 //-----------------------------------------------------------------------------
 class MessageRouter::MessageRouterImplementation
 {
-  zmq::socket_t WorkerComm;
-  zmq::socket_t QueueComm;
-  zmq::socket_t ServerComm;
-
   std::string WorkerEndpoint;
   std::string QueueEndpoint;
-  std::string ServerEndpoint;
 
   //thread our polling method
   mutable boost::mutex ThreadMutex;
@@ -55,18 +50,10 @@ class MessageRouter::MessageRouterImplementation
 public:
 //-----------------------------------------------------------------------------
 MessageRouterImplementation(
-                      zmq::context_t& internal_inproc_context,
-                      const remus::worker::ServerConnection& server_info,
                       const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                       const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-  //use a custom context just for inter process communication, this allows
-  //multiple workers to share the same context to the server
-  WorkerComm(internal_inproc_context,ZMQ_PAIR),
-  QueueComm(internal_inproc_context,ZMQ_PAIR),
-  ServerComm(*(server_info.context()),ZMQ_DEALER),
   WorkerEndpoint(worker_info.endpoint()),
   QueueEndpoint(queue_info.endpoint()),
-  ServerEndpoint(server_info.endpoint()),
   ThreadMutex(),
   PollingThread(new boost::thread()),
   ContinueTalking(false)
@@ -81,7 +68,6 @@ MessageRouterImplementation(
     {
     this->stopTalking();
     }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +78,8 @@ bool isTalking() const
 }
 
 //------------------------------------------------------------------------------
-bool startTalking()
+bool startTalking(const remus::worker::ServerConnection& server_info,
+                  zmq::context_t& internal_inproc_context)
 {
   bool launchThread = false;
   bool threadIsRunning = false;
@@ -107,14 +94,12 @@ bool startTalking()
 
     if(launchThread)
       {
-      zmq::connectToAddress(this->ServerComm, this->ServerEndpoint);
-      zmq::connectToAddress(this->WorkerComm, this->WorkerEndpoint);
-      zmq::connectToAddress(this->QueueComm,  this->QueueEndpoint);
-
       this->ContinueTalking = true;
 
       boost::scoped_ptr<boost::thread> pollthread(
-        new boost::thread( &MessageRouterImplementation::poll, this) );
+        new boost::thread( &MessageRouterImplementation::poll, this,
+                            server_info,
+                            &internal_inproc_context) );
       this->PollingThread.swap(pollthread);
       }
     }
@@ -144,11 +129,24 @@ void setIsTalking(bool t)
 }
 
 //------------------------------------------------------------------------------
-void poll()
+void poll(remus::worker::ServerConnection server_info,
+          zmq::context_t* internal_inproc_context)
 {
+  //we pass the context by pointer since it can't be copied.
+  //we pass the ServerConnection by value since it is light weight
+
+  zmq::socket_t serverComm(*(server_info.context()),ZMQ_DEALER);
+  zmq::connectToAddress(serverComm, server_info.endpoint());
+
+  zmq::socket_t queueComm(*internal_inproc_context,ZMQ_PAIR);
+  zmq::connectToAddress(queueComm,  this->QueueEndpoint);
+
+  zmq::socket_t workerComm(*internal_inproc_context,ZMQ_PAIR);
+  zmq::connectToAddress(workerComm, this->WorkerEndpoint);
+
   zmq::pollitem_t items[2]  = {
-                                { this->WorkerComm,  0, ZMQ_POLLIN, 0 },
-                                { this->ServerComm,  0, ZMQ_POLLIN, 0 }
+                                { workerComm,  0, ZMQ_POLLIN, 0 },
+                                { serverComm,  0, ZMQ_POLLIN, 0 }
                               };
 
   remus::common::PollingMonitor monitor;
@@ -162,7 +160,7 @@ void poll()
       {
       sentToServer = true;
 
-      remus::proto::Message message(&this->WorkerComm);
+      remus::proto::Message message(&workerComm);
 
       //special case is that TERMINATE_WORKER means we stop looping
       if(message.serviceType()==remus::TERMINATE_WORKER)
@@ -171,19 +169,19 @@ void poll()
         remus::worker::Job terminateJob;
         remus::proto::Response termJob( remus::TERMINATE_WORKER,
                                         remus::worker::to_string(terminateJob));
-        termJob.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()) );
+        termJob.sendNonBlocking(&queueComm, (zmq::SocketIdentity()) );
 
         this->setIsTalking(false);
         }
       else
         {
         //just pass the message on to the server
-        message.send(&this->ServerComm);
+        message.send(&serverComm);
         }
       }
     if(items[1].revents & ZMQ_POLLIN)
       {
-      remus::proto::Response response(&this->ServerComm);
+      remus::proto::Response response(&serverComm);
       const bool goodToForward = response.isFullyFormed() &&
                                  response.isValidService();
       if(goodToForward)
@@ -191,19 +189,18 @@ void poll()
         switch(response.serviceType())
           {
           case remus::TERMINATE_WORKER:
-            response.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()));
+            response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
             this->setIsTalking(false);
             break;
           case remus::TERMINATE_JOB:
             //send the terminate to the job queue since it holds the jobs
           case remus::MAKE_MESH:
             //send the job to the queue so that somebody can take it later
-            response.sendNonBlocking(&this->QueueComm, (zmq::SocketIdentity()));
+            response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
             break;
           default:
             // do nothing if it isn't terminate_job, terminate_worker
             // or make_mesh.
-            // response.send(&this->WorkerComm);
             break;
           }
         }
@@ -219,7 +216,7 @@ void poll()
       remus::proto::Message message(remus::common::MeshIOType(),
                                     remus::HEARTBEAT,
                                     boost::lexical_cast<std::string>(polldur));
-      message.send(&this->ServerComm);
+      message.send(&serverComm);
       }
     }
 }
@@ -238,14 +235,9 @@ void stopTalking()
 
 //-----------------------------------------------------------------------------
 MessageRouter::MessageRouter(
-                const remus::worker::ServerConnection& server_info,
-                zmq::context_t& internal_inproc_context,
                 const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-Implementation( new MessageRouterImplementation(internal_inproc_context,
-                                                server_info,
-                                                worker_info,
-                                                queue_info) )
+Implementation( new MessageRouterImplementation(worker_info, queue_info) )
 {
 
 }
@@ -262,9 +254,11 @@ bool MessageRouter::valid() const
 }
 
 //-----------------------------------------------------------------------------
-bool MessageRouter::start()
+bool MessageRouter::start(const remus::worker::ServerConnection& server_info,
+                          zmq::context_t& internal_inproc_context)
 {
-  return this->Implementation->startTalking();
+  return this->Implementation->startTalking(server_info,
+                                            internal_inproc_context);
 }
 
 }
