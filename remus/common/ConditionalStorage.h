@@ -16,6 +16,7 @@
 #include <cstring> //from memcpy
 #include <boost/shared_array.hpp>
 #include <vector>
+#include <cstring>
 
 namespace remus {
 namespace common {
@@ -37,7 +38,7 @@ struct ConditionalStorage
   if(this->Size > 0)
     {
     this->Space = boost::shared_array<char>( new char[this->Size] );
-    memcpy(this->Space.get(),t.data(),t.size());
+    std::memcpy(this->Space.get(),t.data(),t.size());
     }
   }
 
@@ -49,7 +50,7 @@ struct ConditionalStorage
   if(this->Size > 0)
     {
     this->Space = boost::shared_array<char>( new char[this->Size] );
-    memcpy(this->Space.get(),&t[0],t.size());
+    std::memcpy(this->Space.get(),&t[0],t.size());
     }
   }
 

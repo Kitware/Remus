@@ -17,6 +17,8 @@
 #include <ostream>
 #include <vector>
 
+#include <cassert>
+
 namespace remus {
 namespace internal
 {
@@ -30,7 +32,8 @@ inline void extractVector(BufferType& buffer, std::vector<char>& msg)
     }
   if(msg.size() > 0)
     {
-    buffer.rdbuf()->sgetn(&msg[0],msg.size());
+    const std::streamsize readLen = buffer.rdbuf()->sgetn(&msg[0],msg.size());
+    assert(readLen == static_cast<std::streamsize>(msg.size()));
     }
 }
 
@@ -51,23 +54,23 @@ inline std::string extractString(BufferType& buffer, int size)
 
 }
 
+//------------------------------------------------------------------------------
+template<typename BufferType>
+inline bool writeString(BufferType& buffer, const char * str, std::size_t size)
+{
+  const std::streamsize writeLen = buffer.rdbuf()->sputn(str,size);
+  buffer << std::endl;
+  assert(writeLen == static_cast<std::streamsize>(size));
+  return writeLen == static_cast<std::streamsize>(size);
+}
 
 //------------------------------------------------------------------------------
 template<typename BufferType>
-inline void writeString(BufferType& buffer, const std::string& str)
+inline bool writeString(BufferType& buffer, const std::string& str)
 {
-  buffer.rdbuf()->sputn(str.c_str(),str.length());
-  buffer << std::endl;
+  return writeString(buffer,str.c_str(),str.size());
 }
 
-
-//------------------------------------------------------------------------------
-template<typename BufferType>
-inline void writeString(BufferType& buffer, const char * str, std::size_t size)
-{
-  buffer.rdbuf()->sputn(str,size);
-  buffer << std::endl;
-}
 
 }
 }

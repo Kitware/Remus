@@ -270,6 +270,38 @@ void to_from_string_test()
   REMUS_ASSERT( (from_wire == to_wire) );
 }
 
+void multiple_content_test()
+{ //verify that a job submission with multiple key:values works properly
+
+  for(int i=0; i < 32; ++i)
+  { //first verify with random everything
+  JobRequirements reqs = make_random_MeshReqs();
+  std::map< std::string, JobContent > content;
+  for(std::size_t j = 0;  j < size_t(64); ++j)
+    { content.insert(make_random_MapPairs()); }
+
+  JobSubmission sub(reqs,content);
+  JobSubmission from_wire = to_JobSubmission(to_string(sub));
+  REMUS_ASSERT( (sub==from_wire) );
+  }
+
+  for(int i=0; i < 512; ++i)
+  { //test with asci/binary/asci order
+  JobRequirements reqs = make_random_MeshReqs();
+  JobSubmission sub(reqs);
+  sub["a"]= remus::proto::make_JobContent(remus::testing::AsciiStringGenerator(128));
+  sub["b"]= remus::proto::make_JobContent(remus::testing::BinaryDataGenerator(256));
+  sub["c"]= remus::proto::make_JobContent(remus::testing::AsciiStringGenerator(128));
+  REMUS_ASSERT( (sub.size()==3) );
+
+  JobSubmission from_wire = to_JobSubmission(to_string(sub));
+  REMUS_ASSERT( (from_wire.size()==3) );
+  REMUS_ASSERT( (sub==from_wire) );
+
+  }
+
+}
+
 
 int UnitTestJobSubmission(int, char *[])
 {
@@ -277,6 +309,8 @@ int UnitTestJobSubmission(int, char *[])
   insert_test();
   serialize_operator_test();
   to_from_string_test();
+
+  multiple_content_test();
 
   return 0;
 }

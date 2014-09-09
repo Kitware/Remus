@@ -108,6 +108,11 @@ void pollForJobs()
     if(item.revents & ZMQ_POLLIN)
       {
       remus::proto::Response response(&this->ServerComm);
+      if(!response.isFullyFormed())
+        { //ignore this response if it isn't fully formed
+        continue;
+        }
+
       switch(response.serviceType())
         {
         case remus::TERMINATE_WORKER:
@@ -130,7 +135,10 @@ void pollForJobs()
 void terminateJob(remus::proto::Response& response)
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
-  remus::worker::Job tj = remus::worker::to_Job(response.data());
+
+  const std::string data(response.data(), response.dataSize());
+  remus::worker::Job tj = remus::worker::to_Job(data);
+
   for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
        i != this->Queue.end(); ++i)
     {
@@ -157,7 +165,11 @@ void clearJobs()
 void addItem(remus::proto::Response& response )
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
-  remus::worker::Job j = remus::worker::to_Job(response.data());
+
+  //required to use the char*, len constructor as response's data can
+  //be binary data with lots of null terminators.
+  const std::string data(response.data(), response.dataSize());
+  remus::worker::Job j = remus::worker::to_Job(data);
   this->Queue.push_back( j );
 
   this->QueueChanged.notify_all();
