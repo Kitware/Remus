@@ -118,7 +118,6 @@ boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& 
 {
   remus::client::ServerConnection conn =
               remus::client::make_ServerConnection(ports.client().endpoint());
-  conn.context(ports.context());
 
   boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
   return c;
@@ -219,8 +218,7 @@ int TerminateQueuedJob(int argc, char* argv[])
   (void) argc;
   (void) argv;
 
-  //construct a simple worker and client, we need to share the same
-  //context between the server, client and worker
+  //construct a simple worker and client
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 

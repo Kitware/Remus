@@ -13,6 +13,7 @@
 set(unit_tests
   AlwaysAcceptServer.cxx
   QueryIOTypes.cxx
+  ShareContext.cxx
   SimpleJobFlow.cxx
   TerminateQueuedJob.cxx
   )

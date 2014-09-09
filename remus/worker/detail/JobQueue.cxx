@@ -38,9 +38,6 @@ namespace detail{
 //-----------------------------------------------------------------------------
 class JobQueue::JobQueueImplementation
 {
-  //needed to talk to the location that is queuing jobs
-  zmq::socket_t ServerComm;
-
   //thread our polling method
   boost::scoped_ptr<boost::thread> PollingThread;
 
@@ -55,25 +52,27 @@ class JobQueue::JobQueueImplementation
   //state to tell when we should stop polling
   bool ContinuePolling;
 
+  //states that we have finished setting up and are ready to accept messages
+  bool PollingStarted;
+
 public:
 //-----------------------------------------------------------------------------
 JobQueueImplementation(zmq::context_t& context,
                        const zmq::socketInfo<zmq::proto::inproc>& queue_info):
-  ServerComm(context,ZMQ_PAIR),
   PollingThread(new boost::thread()),
   QueueMutex(),
   QueueChanged(),
   Queue(),
-  EndPoint(queue_info.endpoint()),
-  ContinuePolling(true)
+  EndPoint(),
+  ContinuePolling(true),
+  PollingStarted(false)
 {
-  //bind to the work_jobs communication channel first
-  this->EndPoint = zmq::bindToAddress(this->ServerComm, queue_info).endpoint();
-
   //start up our thread
   boost::scoped_ptr<boost::thread> pollingThread(
       new boost::thread( &JobQueueImplementation::pollForJobs,
-                         this) );
+                         this,
+                         &context,
+                         queue_info) );
 
   //transfer ownership of the polling thread to our scoped_ptr
   this->PollingThread.swap(pollingThread);
@@ -96,18 +95,36 @@ const std::string& endpoint() const
 void stop()
 {
   this->ContinuePolling = false;
+  this->PollingStarted = false;
 }
 
 //------------------------------------------------------------------------------
-void pollForJobs()
+void pollForJobs(zmq::context_t* context,
+                 zmq::socketInfo<zmq::proto::inproc> queue_info)
 {
-  zmq::pollitem_t item  = { this->ServerComm,  0, ZMQ_POLLIN, 0 };
+  //we pass the context by pointer since it can't be copied.
+  //we pass the queue_info by value since it is light weight
+
+  //since this is threaded, this we need to make sure that zmq_socket and
+  //zmq_close will execute from inside the thread address space so that
+  //when the thread is joined everything cleans up in the correct order,
+  //otherwise we can get segment-faults when trying to use multiple workers in
+  //the same process.
+  zmq::socket_t serverComm(*context,ZMQ_PAIR);
+
+  //bind to the work_jobs communication channel first
+  this->EndPoint = zmq::bindToAddress(serverComm, queue_info).endpoint();
+
+  //now that we have finished binding we are ready to accept jobs
+  this->PollingStarted = true;
+
+  zmq::pollitem_t item  = { serverComm,  0, ZMQ_POLLIN, 0 };
   while( this->ContinuePolling )
     {
     zmq::poll(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
-      remus::proto::Response response(&this->ServerComm);
+      remus::proto::Response response(&serverComm);
       if(!response.isFullyFormed())
         { //ignore this response if it isn't fully formed
         continue;
@@ -132,6 +149,7 @@ void pollForJobs()
     }
 }
 
+//------------------------------------------------------------------------------
 void terminateJob(remus::proto::Response& response)
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
@@ -213,6 +231,12 @@ std::size_t size()
   return this->Queue.size();
 }
 
+//------------------------------------------------------------------------------
+bool isReady() const
+{
+  return this->PollingStarted && this->ContinuePolling;
+}
+
 };
 
 //------------------------------------------------------------------------------
@@ -251,6 +275,11 @@ std::size_t JobQueue::size() const
   return this->Implementation->size();
 }
 
+//------------------------------------------------------------------------------
+bool JobQueue::isReady() const
+{
+  return this->Implementation->isReady();
+}
 
 }
 }

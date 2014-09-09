@@ -40,10 +40,12 @@ remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
   return remus::worker::ServerConnection(socketInfo);
 }
 
-void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
+void test_job_routing(MessageRouter& mr,
+                      remus::worker::ServerConnection serverConn,
+                      zmq::socket_t& socket,
                       JobQueue& jq)
 {
-  mr.start();
+  mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
 
   //we need to fetch a heartbeat message from the router
@@ -115,10 +117,12 @@ void test_job_routing(MessageRouter& mr, zmq::socket_t& socket,
     }
 }
 
-void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
+void test_server_stop_routing_call(MessageRouter& mr,
+                                   remus::worker::ServerConnection serverConn,
+                                   zmq::socket_t& socket,
                                    JobQueue& jq)
 {
-  mr.start();
+  mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
 
   //we need to fetch a heartbeat message from the router
@@ -145,10 +149,12 @@ void test_server_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
                  remus::worker::Job::TERMINATE_WORKER) )
 }
 
-void test_worker_stop_routing_call(MessageRouter& mr, zmq::socket_t& socket,
+void test_worker_stop_routing_call(MessageRouter& mr,
+                                   remus::worker::ServerConnection serverConn,
+                                   zmq::socket_t& socket,
                                    JobQueue& jq)
 {
-  mr.start();
+  mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
 
   //now send it a terminate message over the worker channel
@@ -191,8 +197,7 @@ void verify_basic_comms()
   //now we can construct the message router, and verify that it can
   //be destroyed before starting
   {
-  MessageRouter mr(serverConn, *(serverConn.context()),
-                   worker_channel, queue_channel);
+  MessageRouter mr(worker_channel, queue_channel);
   REMUS_ASSERT( (!mr.valid()) )
   }
 
@@ -200,21 +205,18 @@ void verify_basic_comms()
   //noted that since MessageRouter uses ZMQ_PAIR connections we can't have
   //multiple MessageRouters connecting to the same socket, you have to bind
   //and unbind those socket classes.
-  MessageRouter mr(serverConn, *(serverConn.context()),
-                   worker_channel, queue_channel);
+  MessageRouter mr(worker_channel, queue_channel);
   {
   REMUS_ASSERT( (!mr.valid()) )
-  mr.start();
+  mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
-  mr.start();
-  mr.start();
-  mr.start();
-  mr.start();
+  mr.start( serverConn, *(serverConn.context()) );
+  mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
   }
 
   //verify that we route messages to the job queue
-  test_job_routing(mr,serverSocket,jq);
+  test_job_routing(mr,serverConn,serverSocket,jq);
 }
 
 void verify_server_term()
@@ -241,11 +243,10 @@ void verify_server_term()
   //or MessageRouter it can't be started again
 
   //verify that we can send a TERMINATE_WORKER call from the server properly
-    MessageRouter mr(serverConn, *(serverConn.context()),
-                   worker_channel, queue_channel);
-  test_server_stop_routing_call(mr,serverSocket,jq);
+  MessageRouter mr(worker_channel, queue_channel);
+  test_server_stop_routing_call(mr, serverConn, serverSocket,jq);
 
-  REMUS_ASSERT( (mr.start() == false) )
+  REMUS_ASSERT( (mr.start(serverConn, *(serverConn.context())) == false) )
   REMUS_ASSERT( (mr.valid() == false) )
 }
 
@@ -272,11 +273,10 @@ void verify_worker_term()
 
   //It should be noted that once you send a terminate call to a JobQueue
   //or MessageRouter it can't be started again
-  MessageRouter mr(serverConn, *(serverConn.context()),
-                   worker_channel, queue_channel);
-  test_worker_stop_routing_call(mr,worker_socket,jq);
+  MessageRouter mr(worker_channel, queue_channel);
+  test_worker_stop_routing_call(mr,serverConn,worker_socket,jq);
 
-  REMUS_ASSERT( (mr.start() == false) )
+  REMUS_ASSERT( (mr.start(serverConn, *(serverConn.context())) == false) )
   REMUS_ASSERT( (mr.valid() == false) )
 }
 

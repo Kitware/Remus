@@ -48,6 +48,9 @@ public:
   //return the number of jobs waiting for work
   std::size_t size() const;
 
+  //has finished setting up and is ready for jobs
+  bool isReady() const;
+
 private:
   class JobQueueImplementation;
   boost::scoped_ptr<JobQueueImplementation> Implementation;

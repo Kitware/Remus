@@ -32,9 +32,7 @@ namespace detail{
 class MessageRouter
 {
 public:
-  MessageRouter(const remus::worker::ServerConnection& server_info,
-                zmq::context_t& internal_inproc_context,
-                const zmq::socketInfo<zmq::proto::inproc>& worker_info,
+  MessageRouter(const zmq::socketInfo<zmq::proto::inproc>& worker_info,
                 const zmq::socketInfo<zmq::proto::inproc>& queue_info);
 
   ~MessageRouter();
@@ -44,7 +42,8 @@ public:
   //Will return true if the message router can start. Will return false
   //if you try to start a MessageRouter that has been terminated by the server
   //or worker
-  bool start();
+  bool start(const remus::worker::ServerConnection& server_info,
+             zmq::context_t& internal_inproc_context);
 
 private:
   class MessageRouterImplementation;
