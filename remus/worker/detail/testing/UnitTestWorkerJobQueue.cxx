@@ -21,8 +21,6 @@
 
 #include <remus/testing/Testing.h>
 
-
-
 #include <boost/uuid/uuid.hpp>
 
 using namespace remus::worker::detail;
@@ -34,6 +32,11 @@ void verify_basic_comms(zmq::context_t& context)
   zmq::socketInfo<zmq::proto::inproc> queue_channel(
                                                 remus::testing::UniqueString());
   JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
+
+  //we need to pause for some time to all the JobQueue
+  //to properly bind to the socket before we connect
+  while(!jq.isReady())
+    { remus::common::SleepForMillisec(10); }
 
   //create the socket to send info to the job queue
   zmq::socket_t jobSocket(context,ZMQ_PAIR);
@@ -120,6 +123,11 @@ void verify_term(zmq::context_t& context)
   zmq::socketInfo<zmq::proto::inproc> queue_channel(
                                                 remus::testing::UniqueString());
   JobQueue jq(context,queue_channel); //bind the jobqueue to the worker channel
+
+  //we need to pause for some time to all the JobQueue
+  //to properly bind to the socket before we connect
+  while(!jq.isReady())
+    { remus::common::SleepForMillisec(10); }
 
   //create the socket to send info to the job queue
   zmq::socket_t jobSocket(context,ZMQ_PAIR);

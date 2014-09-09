@@ -52,6 +52,9 @@ class JobQueue::JobQueueImplementation
   //state to tell when we should stop polling
   bool ContinuePolling;
 
+  //states that we have finished setting up and are ready to accept messages
+  bool PollingStarted;
+
 public:
 //-----------------------------------------------------------------------------
 JobQueueImplementation(zmq::context_t& context,
@@ -61,7 +64,8 @@ JobQueueImplementation(zmq::context_t& context,
   QueueChanged(),
   Queue(),
   EndPoint(),
-  ContinuePolling(true)
+  ContinuePolling(true),
+  PollingStarted(false)
 {
   //start up our thread
   boost::scoped_ptr<boost::thread> pollingThread(
@@ -91,6 +95,7 @@ const std::string& endpoint() const
 void stop()
 {
   this->ContinuePolling = false;
+  this->PollingStarted = false;
 }
 
 //------------------------------------------------------------------------------
@@ -109,6 +114,9 @@ void pollForJobs(zmq::context_t* context,
 
   //bind to the work_jobs communication channel first
   this->EndPoint = zmq::bindToAddress(serverComm, queue_info).endpoint();
+
+  //now that we have finished binding we are ready to accept jobs
+  this->PollingStarted = true;
 
   zmq::pollitem_t item  = { serverComm,  0, ZMQ_POLLIN, 0 };
   while( this->ContinuePolling )
@@ -141,6 +149,7 @@ void pollForJobs(zmq::context_t* context,
     }
 }
 
+//------------------------------------------------------------------------------
 void terminateJob(remus::proto::Response& response)
 {
   boost::lock_guard<boost::mutex> lock(this->QueueMutex);
@@ -222,6 +231,12 @@ std::size_t size()
   return this->Queue.size();
 }
 
+//------------------------------------------------------------------------------
+bool isReady() const
+{
+  return this->PollingStarted && this->ContinuePolling;
+}
+
 };
 
 //------------------------------------------------------------------------------
@@ -260,6 +275,11 @@ std::size_t JobQueue::size() const
   return this->Implementation->size();
 }
 
+//------------------------------------------------------------------------------
+bool JobQueue::isReady() const
+{
+  return this->Implementation->isReady();
+}
 
 }
 }
