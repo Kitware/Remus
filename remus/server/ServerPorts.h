@@ -13,9 +13,17 @@
 #ifndef remus_server_ServerPorts_h
 #define remus_server_ServerPorts_h
 
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include <remus/proto/zmqSocketInfo.h>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
+
 #include <string>
 #include <remus/common/remusGlobals.h>
-
 #include <boost/shared_ptr.hpp>
 
 //included for export symbols
@@ -30,8 +38,8 @@ namespace server{
 class REMUSSERVER_EXPORT PortConnection
 {
 public:
-  template<typename SocketType>
-  PortConnection(const SocketType& socket):
+  template<typename T>
+  PortConnection(const zmq::socketInfo<T>& socket):
     Endpoint(socket.endpoint()),
     Host(socket.host()),
     Scheme(socket.scheme()),
@@ -79,12 +87,9 @@ public:
 
   //explicitly state the connection type, this can handle inproc, ipc,
   //and tcp connection types
-  template<typename ClientSocketType, typename WorkerSocketType>
-  ServerPorts(const ClientSocketType& c,
-              const WorkerSocketType& w):
-    Client(c),
-    Worker(w)
-  { }
+  template<typename ClientType, typename WorkerType>
+  ServerPorts(const zmq::socketInfo<ClientType>&  c,
+              const zmq::socketInfo<WorkerType>&  w);
 
   //will attempt to bind the passed in socket to client port connection endpoint
   //that we where constructed with. If that is a tcp-ip endpoing and the bind
@@ -117,6 +122,20 @@ private:
   PortConnection Client;
   PortConnection Worker;
 };
+
+//construct a context that is used for both the client and worker comms
+REMUSSERVER_EXPORT
+boost::shared_ptr<zmq::context_t> make_Context(std::size_t num_threads=1);
+
+//------------------------------------------------------------------------------
+ template<typename ClientType, typename WorkerType>
+ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
+                         zmq::socketInfo<WorkerType> const& w):
+  Context( remus::server::make_Context() ),
+  Client(c),
+  Worker(w)
+{
+}
 
 //end namespaces
 }

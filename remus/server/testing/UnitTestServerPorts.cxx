@@ -55,6 +55,11 @@ bool verify_ports(remus::server::ServerPorts ports,
 
 bool verify_bindings(remus::server::ServerPorts ports)
 {
+  if(ports.context() == NULL)
+    {
+    return false;
+    }
+
   bool valid = true;
 
   //bind the sockets manually and verify that the binding works.
