@@ -15,8 +15,6 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/testing/Testing.h>
 
-#include <iostream>
-
 namespace {
 
 //presumes a != b
@@ -29,6 +27,9 @@ void test_server_ports(const remus::server::Server& a,
   //the server ports can't match on two servers since
   //when you create a server it binds the ports at that time
   //the host though will be the same
+  std::cout << "sa.client().port()" << sa.client().port() << std::endl;
+  std::cout << "sb.client().port()" << sb.client().port() << std::endl;
+
   REMUS_ASSERT( (sa.client().host() == sb.client().host()) );
   REMUS_ASSERT( (sa.client().port() != sb.client().port()) );
   REMUS_ASSERT( (sa.client().endpoint() != sb.client().endpoint()) );
@@ -54,10 +55,20 @@ void test_server_constructors()
 
   remus::server::Server server_pf(ports,factory);
 
+  //start each server up, so they bind the client and worker ports
+  server_def.startBrokering();
+  server_fact.startBrokering();
+  server_port.startBrokering();
+
   //verify that each server has bound to a unique port, each
   //sharing the same hostname
   test_server_ports(server_def, server_fact);
   test_server_ports(server_def, server_port);
+
+  //now verify that waitForBrokerkingToStart works when called by the
+  //primary thread
+  server_pf.startBrokering();
+  server_pf.waitForBrokeringToStart();
   test_server_ports(server_def, server_pf);
 }
 
