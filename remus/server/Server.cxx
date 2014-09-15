@@ -142,11 +142,7 @@ struct ThreadManagement
   //do this outside the previous critical section so that we properly
   //tell other threads that the thread has been launched. We don't
   //want to cause a recursive lock in the same thread to happen
-  if(launchThread)
-    {
-    this->setIsBrokering(true);
-    }
-
+  this->waitForThreadToStart();
   return this->isBrokering();
   }
 
@@ -177,13 +173,6 @@ struct ThreadManagement
   this->BrokerThread->join();
   }
 
-private:
-  boost::scoped_ptr<boost::thread> BrokerThread;
-
-  boost::mutex BrokeringStatus;
-  boost::condition_variable BrokerStatusChanged;
-  bool BrokerIsRunning;
-
   //----------------------------------------------------------------------------
   void setIsBrokering(bool t)
   {
@@ -193,6 +182,15 @@ private:
     }
   this->BrokerStatusChanged.notify_all();
   }
+
+private:
+  boost::scoped_ptr<boost::thread> BrokerThread;
+
+  boost::mutex BrokeringStatus;
+  boost::condition_variable BrokerStatusChanged;
+  bool BrokerIsRunning;
+
+
 };
 
 //------------------------------------------------------------------------------
@@ -351,6 +349,11 @@ bool Server::Brokering(Server::SignalHandling sh)
                       boost::posix_time::microsec_clock::local_time() +
                       boost::posix_time::milliseconds(deadWorkersCheckInterval);
 
+  //We need to notify the Thread management that brokering is about to start.
+  //This allows the calling thread to resume, as it has been waiting for this
+  //notification, and will also allow threads that have been holding on
+  //waitForBrokeringToStart to resume
+  Thread->setIsBrokering(true);
   while (Thread->isBrokering())
     {
     zmq::poll(&items[0], 2, static_cast<long>(monitor.current()) );
