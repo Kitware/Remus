@@ -54,7 +54,7 @@ namespace server{
 
 //------------------------------------------------------------------------------
 ServerPorts::ServerPorts():
-  Context( boost::make_shared<zmq::context_t>(2) ),
+  Context( remus::server::make_Context() ),
   Client(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
                                           remus::SERVER_CLIENT_PORT)),
   Worker(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
@@ -70,7 +70,7 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
                          unsigned int clientPort,
                          const std::string& workerHostName,
                          unsigned int workerPort):
-  Context( boost::make_shared<zmq::context_t>(2) ),
+  Context( remus::server::make_Context() ),
   Client(zmq::socketInfo<zmq::proto::tcp>(clientHostName,clientPort)),
   Worker(zmq::socketInfo<zmq::proto::tcp>(workerHostName,workerPort))
 {
@@ -94,6 +94,13 @@ void ServerPorts::bindWorker(zmq::socket_t* socket)
 {
   this->Worker = detail::bind(*socket,this->Worker);
 }
+
+//------------------------------------------------------------------------------
+boost::shared_ptr<zmq::context_t> make_Context(std::size_t threads)
+{
+  return boost::make_shared<zmq::context_t>( static_cast<int>(threads) );
+}
+
 
 //end namespaces
 }
