@@ -55,7 +55,6 @@ namespace server{
     class WorkerPool;
     struct ThreadManagement;
     struct UUIDManagement;
-    struct ZmqManagement;
     }
 
 //helper class that allows users to set and get the polling rates for
@@ -88,20 +87,16 @@ class REMUSSERVER_EXPORT Server : public remus::common::SignalCatcher
 public:
   friend struct remus::server::detail::ThreadManagement;
   enum SignalHandling {NONE, CAPTURE};
-  //construct a new server using the default worker factory
-  //and default loopback ports
+  //construct a new server with the default worker factory and server ports.
   Server();
 
-  //construct a new server with a custom factory
-  //and the default loopback ports
+  //construct a new server with a custom factory and default server ports.
   explicit Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory);
 
-  //construct a new server using the given loop back ports
-  //and the default factory
+  //construct a new server using the given server ports and default factory.
   explicit Server(const remus::server::ServerPorts& ports);
 
-  //construct a new server using the given loop back ports
-  //and the default factory
+  //construct a new server using the given server ports and factory.
   Server(const remus::server::ServerPorts& ports,
          const boost::shared_ptr<remus::server::WorkerFactory>& factory);
 
@@ -122,17 +117,26 @@ public:
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests.
+  //IMPORTANT:
+  //A server only binds to the required server ports once brokering has
+  //been started.
   bool startBrokering(SignalHandling sh = CAPTURE);
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests. This is an easy helper to start with
   //signal handling enabled
+  //IMPORTANT:
+  //A server only binds to the required server ports once brokering has
+  //been started.
   bool startBrokeringWithSignalHandling()
     { return startBrokering(CAPTURE); }
 
   //when you call start brokering the server will actually start accepting
   //worker and client requests. This is an easy helper to start without
   //signal handling enabled
+  //IMPORTANT:
+  //A server only binds to the required server ports once brokering has
+  //been started.
   bool startBrokeringWithoutSignalHandling()
     { return startBrokering(NONE); }
 
@@ -140,6 +144,10 @@ public:
   //and client requests. This will also tell all active workers that we
   //are shutting down, so they themselves will terminate. You can't stop
   //the server and expect 'good' things to happen.
+  //IMPORTANT:
+  //Once you call stopBrokering the server unbinds from its given server ports.
+  //That means if you stop and restart a server it might rebind to new ports
+  //if another program / server has bound to the ports while you are stopped.
   void stopBrokering();
 
   //Returns if the server is still brokering client and worker requests
@@ -154,6 +162,10 @@ public:
   //get back the port information that this server bound too. Since multiple
   //remus servers can be running at a single time this is a way for the server
   //to report which port it bound it self too.
+  //IMPORTANT:
+  //A Remus server only reports which ports it has properly bound to after
+  //you start it brokering. If you query serverPortInfo before a server has
+  //started brokering you will get what ports the server desires to bind to.
   const remus::server::ServerPorts& serverPortInfo() const {return PortInfo;}
 
   //control how we handle abnormal signals that we catch
@@ -163,9 +175,10 @@ protected:
   //The main brokering loop, called by thread
   virtual bool Brokering(SignalHandling sh = CAPTURE);
 
-  //processes all job queries
-  void DetermineJobQueryResponse(const zmq::SocketIdentity &clientIdentity,
-                                 const remus::proto::Message& msg);
+  //processes all client queries
+  void DetermineClientResponse(zmq::socket_t& clientChannel,
+                               const zmq::SocketIdentity &clientIdentity,
+                               zmq::socket_t& WorkerChannel);
 
   //These methods are all to do with sending responses to clients
   std::string allSupportedMeshIOTypes(const remus::proto::Message& msg);
@@ -175,16 +188,17 @@ protected:
   std::string meshStatus(const remus::proto::Message& msg);
   std::string queueJob(const remus::proto::Message& msg);
   std::string retrieveMesh(const remus::proto::Message& msg);
-  std::string terminateJob(const remus::proto::Message& msg);
+  std::string terminateJob(zmq::socket_t& WorkerChannel,const remus::proto::Message& msg);
 
   //Methods for processing Worker queries
-  void DetermineWorkerResponse(const zmq::SocketIdentity &workerIdentity,
-                               const remus::proto::Message& msg);
+  void DetermineWorkerResponse(zmq::socket_t& clientChannel,
+                               const zmq::SocketIdentity &workerIdentity);
 
   //These methods are all to do with sending/recving to workers
   void storeMeshStatus(const remus::proto::Message& msg);
   void storeMesh(const remus::proto::Message& msg);
-  void assignJobToWorker(const zmq::SocketIdentity &workerIdentity,
+  void assignJobToWorker(zmq::socket_t& workerChannel,
+                         const zmq::SocketIdentity &workerIdentity,
                          const remus::worker::Job& job);
 
   //see if we have a worker in the pool for the next job in the queue,
@@ -193,10 +207,10 @@ protected:
   //of workers
   //overriding this will also allow custom servers to change the priority
   //of queued jobs and workers
-  virtual void FindWorkerForQueuedJob();
+  virtual void FindWorkerForQueuedJob(zmq::socket_t& workerChannel);
 
   //terminate all workers that are doing jobs or waiting for jobs
-  void TerminateAllWorkers();
+  void TerminateAllWorkers(zmq::socket_t& workerChannel);
 
 private:
   //explicitly state the server doesn't support copy or move semantics
@@ -204,7 +218,6 @@ private:
   void operator=(const Server&);
 
   remus::server::ServerPorts PortInfo;
-  boost::scoped_ptr<detail::ZmqManagement> Zmq;
 
 protected:
   //allow subclasses to override these detail containers
