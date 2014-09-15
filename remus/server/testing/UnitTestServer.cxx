@@ -27,8 +27,6 @@ void test_server_ports(const remus::server::Server& a,
   //the server ports can't match on two servers since
   //when you create a server it binds the ports at that time
   //the host though will be the same
-  std::cout << "sa.client().port()" << sa.client().port() << std::endl;
-  std::cout << "sb.client().port()" << sb.client().port() << std::endl;
 
   REMUS_ASSERT( (sa.client().host() == sb.client().host()) );
   REMUS_ASSERT( (sa.client().port() != sb.client().port()) );

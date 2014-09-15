@@ -90,22 +90,39 @@ int ShareContext(int argc, char* argv[])
   (void) argv;
 
   //construct a simple worker and client
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
-  const remus::server::ServerPorts& ports = server->serverPortInfo();
+  remus::server::ServerPorts tcp_ports = remus::server::ServerPorts();
+  boost::shared_ptr<remus::Server> server = make_Server( tcp_ports );
+  tcp_ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client1 = make_Client( ports );
-  boost::shared_ptr<remus::Client> client2 = make_Client( ports );
-
-  boost::shared_ptr<remus::Worker> worker1 = make_Worker( ports );
-  boost::shared_ptr<remus::Worker> worker2 = make_Worker( ports );
+  boost::shared_ptr<remus::Client> tcp_client = make_Client( tcp_ports );
+  boost::shared_ptr<remus::Worker> tcp_worker = make_Worker( tcp_ports );
+  boost::shared_ptr<remus::Worker> tcp_worker2 = make_Worker( tcp_ports );
 
   //verify we can create multiple client contexts and swap clients.
   //zmq context will seg-fault if this doesn't work.
-  swap_client_connection( make_Client( ports ) );
+  swap_client_connection( make_Client( tcp_ports ) );
+  swap_client_connection( tcp_client );
 
   //verify we can create multiple worker context and swap workers.
   //zmq context will seg-fault if this doesn't work.
-  swap_worker_connection(make_Worker( ports ) );
+  swap_worker_connection( make_Worker( tcp_ports ) );
+  swap_worker_connection( tcp_worker2 );
+
+  //Create a second server, and make client and workers based on it
+  //this will verify that the server has zmq thread management, and that we
+  //can have multiple server bound from the same instance
+  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
+  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  remus::server::ServerPorts inproc_ports(ci,wi);
+
+  boost::shared_ptr<remus::Server> inproc_server( new remus::Server(inproc_ports) );
+  inproc_server->startBrokering();
+
+  boost::shared_ptr<remus::Client> in_procclient = make_Client( inproc_ports );
+  boost::shared_ptr<remus::Worker> in_procworker = make_Worker( inproc_ports );
+
+  swap_worker_connection( in_procworker );
+  swap_client_connection( in_procclient );
 
   return 0;
 }
