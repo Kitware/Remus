@@ -10,6 +10,7 @@
 //
 //=============================================================================
 
+#include <remus/common/SleepFor.h>
 #include <remus/worker/ServerConnection.h>
 #include <remus/worker/Worker.h>
 #include <remus/testing/Testing.h>
@@ -95,7 +96,7 @@ void verify_server_connection_tcpip()
                           remus::common::make_MeshIOType(Model(),Model());
 
   zmq::socketInfo<zmq::proto::tcp> local_socket("127.0.0.1",
-                                                  remus::SERVER_WORKER_PORT);
+                                        remus::SERVER_WORKER_PORT+101);
   remus::worker::ServerConnection tcp_ip_conn(local_socket);
 
   //start up server to talk to worker
@@ -107,7 +108,7 @@ void verify_server_connection_tcpip()
   REMUS_ASSERT( (sc.endpoint().size() > 0) );
   REMUS_ASSERT( (sc.endpoint() == local_socket.endpoint()) );
   REMUS_ASSERT( (sc.endpoint() ==
-         make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT).endpoint()) );
+       make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT+101).endpoint()) );
 
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
 }

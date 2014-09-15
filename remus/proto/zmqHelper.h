@@ -107,7 +107,8 @@ inline zmq::socketInfo<zmq::proto::tcp> bindToAddress(zmq::socket_t &socket,
     {
     socketInfo.setPort(i);
     //using the C syntax to skip having to catch the exception;
-    rc = zmq_bind(socket.operator void *(),socketInfo.endpoint().c_str());
+    const std::string endpoint = socketInfo.endpoint();
+    rc = zmq_bind(socket.operator void *(),endpoint.c_str());
     }
 
   if(rc!=0)
@@ -122,14 +123,27 @@ inline zmq::socketInfo<zmq::proto::tcp> bindToAddress(zmq::socket_t &socket,
 inline void connectToAddress(zmq::socket_t &socket,const std::string &endpoint)
 {
   set_socket_linger(socket);
-  socket.connect(endpoint.c_str());
+  int rc = zmq_connect(socket.operator void*(), endpoint.c_str());
+  //check if we bound properly, if so stop
+  if(rc == 0)
+    {
+    return;
+    }
+  //if we failed to bind properly lets try a couple more times if it was because
+  //the socket was already in-use. This fixes issues with connecting/disconnecting
+  //the same socket repeatedly, something tests do.
+  int error_value = zmq_errno();
+  for(int i=0; i < 5 && rc != 0 && error_value == EADDRINUSE ; ++i)
+    {
+    rc = zmq_connect(socket.operator void*(), endpoint.c_str());
+    }
 }
 
 template<typename T>
 inline void connectToAddress(zmq::socket_t &socket,const zmq::socketInfo<T> &sInfo)
 {
-  set_socket_linger(socket);
-  socket.connect(sInfo.endpoint().c_str());
+  const std::string endpoint = sInfo.endpoint();
+  connectToAddress(socket,endpoint);
 }
 
 //A wrapper around zeroMQ send. When we call the standard send call
@@ -150,7 +164,7 @@ inline bool send_harder(zmq::socket_t& socket, zmq::message_t& message, int flag
       sent = socket.send(message,flags);
       if (!sent) { ++tries; }
       }
-    catch(error_t){ ++tries; }
+    catch(zmq::error_t){ ++tries; }
     }
   return sent;
 }
@@ -173,7 +187,7 @@ inline bool recv_harder(zmq::socket_t& socket, zmq::message_t* message, int flag
       recieved = socket.recv(message,flags);
       if (!recieved) { ++tries; }
       }
-    catch(error_t){ ++tries; }
+    catch(zmq::error_t){ ++tries; }
     }
   return recieved;
 }
@@ -197,7 +211,7 @@ inline bool removeReqHeader(zmq::socket_t& socket,
       {
       removedHeader = socket.recv(&reqHeader,flags);
       }
-    catch(error_t et)
+    catch(zmq::error_t et)
       {
       return false;
       }
@@ -223,7 +237,7 @@ inline bool removeReqHeader(zmq::socket_t& socket,
       {
       attachedHeader = socket.send(reqHeader, flags|ZMQ_SNDMORE);
       }
-    catch(error_t) { return false; }
+    catch(zmq::error_t) { return false; }
     }
   return attachedHeader;
 }
