@@ -77,9 +77,7 @@ Message::Message(zmq::socket_t* socket):
 
       std::istringstream buffer(bufferData);
       std::string in_type, out_type;
-      buffer >> in_type;
-      buffer >> out_type;
-      this->MType = remus::common::MeshIOType(in_type,out_type);
+      buffer >> this->MType;
       }
     }
 
