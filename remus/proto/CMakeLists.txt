@@ -23,6 +23,7 @@ set(private_headers
   )
 
 set(srcs
+    Job.cxx
     JobContent.cxx
     JobProgress.cxx
     JobRequirements.cxx
