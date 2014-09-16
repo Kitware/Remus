@@ -104,6 +104,7 @@ struct ThreadManagement
   ThreadManagement():
     BrokerThread( new boost::thread() ),
     BrokeringStatus(),
+    BrokerStatusChanged(),
     BrokerIsRunning(false)
   {
   }
