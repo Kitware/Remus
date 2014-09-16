@@ -78,7 +78,9 @@ void MeshIOType::serialize(std::ostream& buffer) const
 }
 
 //------------------------------------------------------------------------------
-MeshIOType::MeshIOType(std::istream& buffer)
+MeshIOType::MeshIOType(std::istream& buffer):
+  InputName(),
+  OutputName()
 {
   std::size_t inputSize=0;
   std::size_t outputSize=0;

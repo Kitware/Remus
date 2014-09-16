@@ -76,7 +76,6 @@ Message::Message(zmq::socket_t* socket):
                              meshIOType.size());
 
       std::istringstream buffer(bufferData);
-      std::string in_type, out_type;
       buffer >> this->MType;
       }
     }
