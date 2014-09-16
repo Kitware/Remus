@@ -28,6 +28,7 @@
 //disable warning about using std::copy with pointers
 # pragma warning(disable: 4996)
 #endif
+#include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop
@@ -76,6 +77,7 @@ inline std::string to_string(const remus::proto::Job& job)
   std::ostringstream buffer;
   buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
+  std::cout << "to string size: " << buffer.str().size() << std::endl;
   return buffer.str();
 }
 
@@ -84,13 +86,21 @@ inline std::string to_string(const remus::proto::Job& job)
 inline remus::proto::Job to_Job(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
+  std::cout << "from string size: " << msg.size() << std::endl;
   std::istringstream buffer(msg);
 
   remus::common::MeshIOType type;
-  boost::uuids::uuid id;
-
   buffer >> type;
-  buffer >> id;
+
+  //While this is fairly complex, it is the only correct way I have found
+  //to properly de-serialize a null boost id
+  std::string id_as_string;
+  buffer >> id_as_string;
+  if(id_as_string.empty())
+    {
+    return remus::proto::Job(boost::uuids::uuid(),type);
+    }
+  boost::uuids::uuid id = boost::lexical_cast<boost::uuids::uuid>(id_as_string);
   return remus::proto::Job(id,type);
 }
 
@@ -100,6 +110,14 @@ inline remus::proto::Job to_Job(const char* data, std::size_t size)
 {
   const std::string temp(data,size);
   return to_Job( temp );
+}
+
+//------------------------------------------------------------------------------
+inline remus::proto::Job make_invalidJob()
+{
+  //use empty strings to signify invalid mesh io type
+  const remus::common::MeshIOType badIOType( (std::string()), (std::string()) );
+  return remus::proto::Job(boost::uuids::uuid(),badIOType);
 }
 
 }
