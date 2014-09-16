@@ -27,22 +27,24 @@ using namespace remus::worker::detail;
 
 namespace {
 
+//------------------------------------------------------------------------------
 remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
 {
   //try a new port each time we are called this is to help speed up the test
-  static int port_offset = 0;
+  static int port_offset = 301;
   ++port_offset;
 
   zmq::socketInfo<zmq::proto::tcp> socketInfo("127.0.0.1",
-                                    port_offset + remus::SERVER_WORKER_PORT);
+                              port_offset + remus::SERVER_WORKER_PORT);
   socketInfo = zmq::bindToAddress(socket,socketInfo);
 
   return remus::worker::ServerConnection(socketInfo);
 }
 
+//------------------------------------------------------------------------------
 void test_job_routing(MessageRouter& mr,
                       remus::worker::ServerConnection serverConn,
-                      zmq::socket_t& socket,
+                      zmq::socket_t& serverSocket,
                       JobQueue& jq)
 {
   mr.start( serverConn, *(serverConn.context()) );
@@ -50,7 +52,7 @@ void test_job_routing(MessageRouter& mr,
 
   //we need to fetch a heartbeat message from the router
   //so that we get the socket identity to send to
-  zmq::SocketIdentity sid = zmq::address_recv(socket);
+  zmq::SocketIdentity sid = zmq::address_recv(serverSocket);
 
 
   boost::uuids::uuid jobId = remus::testing::UUIDGenerator();
@@ -60,7 +62,7 @@ void test_job_routing(MessageRouter& mr,
   //now send it a terminate message over the server channel
   remus::proto::Response response(remus::MAKE_MESH,
                                   remus::worker::to_string(fakeJob));
-  response.sendNonBlocking(&socket,sid);
+  response.sendNonBlocking(&serverSocket,sid);
 
   while(jq.size()<1){}
   REMUS_ASSERT( (jq.size()>0) );
@@ -79,12 +81,12 @@ void test_job_routing(MessageRouter& mr,
   remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
   remus::proto::Response response2(remus::MAKE_MESH,
                                   remus::worker::to_string(fakeJob2));
-  response2.sendNonBlocking(&socket,sid);
+  response2.sendNonBlocking(&serverSocket,sid);
 
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
   remus::proto::Response response3(remus::MAKE_MESH,
                                   remus::worker::to_string(fakeJob3));
-  response3.sendNonBlocking(&socket,sid);
+  response3.sendNonBlocking(&serverSocket,sid);
 
   //now send a terminate job command for the first job
   //and verify that the correct job was terminated by pulling
@@ -92,12 +94,15 @@ void test_job_routing(MessageRouter& mr,
   remus::worker::Job terminateJob(jobId, sub);
   remus::proto::Response response4(remus::TERMINATE_JOB,
                                   remus::worker::to_string(terminateJob));
-  response4.sendNonBlocking(&socket,sid);
+  response4.sendNonBlocking(&serverSocket,sid);
 
   //gotta wait for all three messages to come in
-  while(jq.size()<3){}
+  while(jq.size()<3)
+    {
+    remus::common::SleepForMillisec(150);
+    }
 
-  remus::common::SleepForMillisec(2000);
+
 
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==3) );
@@ -117,17 +122,19 @@ void test_job_routing(MessageRouter& mr,
     }
 }
 
+//------------------------------------------------------------------------------
 void test_server_stop_routing_call(MessageRouter& mr,
                                    remus::worker::ServerConnection serverConn,
-                                   zmq::socket_t& socket,
+                                   zmq::socket_t& serverSocket,
                                    JobQueue& jq)
 {
+
   mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
 
   //we need to fetch a heartbeat message from the router
   //so that we get the socket identity to send to
-  zmq::SocketIdentity sid = zmq::address_recv(socket);
+  zmq::SocketIdentity sid = zmq::address_recv(serverSocket);
 
   remus::worker::Job terminateJob(remus::testing::UUIDGenerator(),
                                   remus::proto::JobSubmission());
@@ -135,11 +142,13 @@ void test_server_stop_routing_call(MessageRouter& mr,
   //now send it a terminate message over the server channel
   remus::proto::Response response (remus::TERMINATE_WORKER,
                                    remus::worker::to_string(terminateJob));
-  response.send(&socket,sid);
+  bool sent = response.sendNonBlocking(&serverSocket,sid);
+  REMUS_ASSERT(sent)
 
   //cheap block while we wait for the router thread to get the message
-  while(jq.size()<1){}
-  while(mr.valid()){}
+  remus::common::SleepForMillisec(250);
+  REMUS_ASSERT( (jq.size() > 0) )
+  remus::common::SleepForMillisec(250);
   REMUS_ASSERT( (!mr.valid()) )
 
   REMUS_ASSERT( (jq.size() == 1) )
@@ -149,22 +158,24 @@ void test_server_stop_routing_call(MessageRouter& mr,
                  remus::worker::Job::TERMINATE_WORKER) )
 }
 
+//------------------------------------------------------------------------------
 void test_worker_stop_routing_call(MessageRouter& mr,
                                    remus::worker::ServerConnection serverConn,
-                                   zmq::socket_t& socket,
+                                   zmq::socket_t& workerSocket,
                                    JobQueue& jq)
 {
   mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
-
   //now send it a terminate message over the worker channel
   remus::proto::Message shutdown(remus::common::MeshIOType(),
                                  remus::TERMINATE_WORKER);
-  shutdown.send(&socket);
+  bool sent = shutdown.sendNonBlocking(&workerSocket);
+  REMUS_ASSERT(sent)
 
   //cheap block while we wait for the router thread to get the message
-  while(jq.size()<1){}
-  while(mr.valid()){}
+  remus::common::SleepForMillisec(250);
+  REMUS_ASSERT( (jq.size() > 0) )
+  remus::common::SleepForMillisec(250);
   REMUS_ASSERT( (!mr.valid()) )
 
   REMUS_ASSERT( (jq.size() == 1) )
@@ -174,6 +185,7 @@ void test_worker_stop_routing_call(MessageRouter& mr,
                  remus::worker::Job::TERMINATE_WORKER) )
 }
 
+//------------------------------------------------------------------------------
 void verify_basic_comms()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
@@ -219,6 +231,7 @@ void verify_basic_comms()
   test_job_routing(mr,serverConn,serverSocket,jq);
 }
 
+//------------------------------------------------------------------------------
 void verify_server_term()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
@@ -245,11 +258,9 @@ void verify_server_term()
   //verify that we can send a TERMINATE_WORKER call from the server properly
   MessageRouter mr(worker_channel, queue_channel);
   test_server_stop_routing_call(mr, serverConn, serverSocket,jq);
-
-  REMUS_ASSERT( (mr.start(serverConn, *(serverConn.context())) == false) )
-  REMUS_ASSERT( (mr.valid() == false) )
 }
 
+//------------------------------------------------------------------------------
 void verify_worker_term()
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
@@ -261,7 +272,6 @@ void verify_worker_term()
   remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
   //set the context on the server connection to the one we just created
   serverConn.context(context);
-
 
   //we need to bind to the inproc sockets before constructing the MessageRouter
   //this is a required implementation detail caused by zmq design, also we have
@@ -275,9 +285,6 @@ void verify_worker_term()
   //or MessageRouter it can't be started again
   MessageRouter mr(worker_channel, queue_channel);
   test_worker_stop_routing_call(mr,serverConn,worker_socket,jq);
-
-  REMUS_ASSERT( (mr.start(serverConn, *(serverConn.context())) == false) )
-  REMUS_ASSERT( (mr.valid() == false) )
 }
 
 }

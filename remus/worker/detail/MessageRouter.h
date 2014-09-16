@@ -28,7 +28,8 @@ namespace detail{
 //message back to the server
 
 //Once a MessageRouter is sent a TerminateWorker message,it will not accept any
-//new messages from the Server and trying to start back up the server
+//new messages from the Server and trying to start back up the server. Also
+//once terminated the MessageRouter can not be restarted.
 class MessageRouter
 {
 public:

@@ -209,11 +209,11 @@ inline bool removeReqHeader(zmq::socket_t& socket,
     zmq::message_t reqHeader;
     try
       {
-      removedHeader = socket.recv(&reqHeader,flags);
+      removedHeader = zmq::recv_harder(socket, &reqHeader, flags);
       }
-    catch(zmq::error_t et)
+    catch(zmq::error_t)
       {
-      return false;
+      removedHeader = false;
       }
     }
   return removedHeader;
@@ -226,7 +226,7 @@ inline bool removeReqHeader(zmq::socket_t& socket,
  inline bool attachReqHeader(zmq::socket_t& socket,
                              int flags=0)
 {
-  bool attachedHeader = true;  //nee
+  bool attachedHeader = true;
   int socketType;
   std::size_t socketTypeSize = sizeof(socketType);
   socket.getsockopt(ZMQ_TYPE,&socketType,&socketTypeSize);
@@ -235,9 +235,12 @@ inline bool removeReqHeader(zmq::socket_t& socket,
     zmq::message_t reqHeader(0);
     try
       {
-      attachedHeader = socket.send(reqHeader, flags|ZMQ_SNDMORE);
+      attachedHeader = zmq::send_harder(socket, reqHeader, flags|ZMQ_SNDMORE);
       }
-    catch(zmq::error_t) { return false; }
+    catch(zmq::error_t err)
+      {
+      attachedHeader = false;
+      }
     }
   return attachedHeader;
 }

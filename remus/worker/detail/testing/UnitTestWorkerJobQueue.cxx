@@ -27,6 +27,7 @@ using namespace remus::worker::detail;
 
 namespace {
 
+//------------------------------------------------------------------------------
 void verify_basic_comms(zmq::context_t& context)
 {
   zmq::socketInfo<zmq::proto::inproc> queue_channel(
@@ -118,6 +119,7 @@ void verify_basic_comms(zmq::context_t& context)
     }
 }
 
+//------------------------------------------------------------------------------
 void verify_term(zmq::context_t& context)
 {
   zmq::socketInfo<zmq::proto::inproc> queue_channel(
