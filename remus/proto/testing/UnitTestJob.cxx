@@ -30,6 +30,13 @@ void validate_serialization(Job s)
   Job from_string = to_Job(temp);
   Job from_c_string = to_Job(temp.c_str(), temp.size());
 
+  std::cout << "mesh io types string sizes " << from_string.type().inputType().size() << ", " << from_string.type().outputType().size() << std::endl;
+  std::cout << from_string.type() << " valid " << from_string.type().valid() << std::endl;
+  std::cout << from_string.type() << " valid " << from_string.type().valid() << std::endl;
+  std::cout << s.type() << " valid " << s.type().valid() << std::endl;
+
+  std::cout << std::endl;
+
   REMUS_ASSERT( (from_string.id() == s.id()) );
   REMUS_ASSERT( (from_string.type() == s.type()) );
   REMUS_ASSERT( (from_string.valid() == s.valid()) );
@@ -78,6 +85,11 @@ int UnitTestJob(int, char *[])
   validate_serialization(meshToModel2);
   validate_serialization(meshToModel3);
 
+  //verify construction of invalid jobs
+  Job inval = make_invalidJob();
+  REMUS_ASSERT( (inval.valid() == false))
+  REMUS_ASSERT( (inval.id() == boost::uuids::uuid()) )
+  validate_serialization(inval);
 
   return 0;
 }

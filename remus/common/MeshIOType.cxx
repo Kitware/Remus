@@ -11,6 +11,9 @@
 //=============================================================================
 
 #include <remus/common/MeshIOType.h>
+//I don't know if this means that MeshIOType should be moved into
+//remus proto or not
+#include <remus/proto/conversionHelpers.h>
 
 namespace remus {
 namespace common {
@@ -64,15 +67,26 @@ bool MeshIOType::operator <(const MeshIOType& b) const
 //------------------------------------------------------------------------------
 void MeshIOType::serialize(std::ostream& buffer) const
 {
-  buffer << this->inputType() << std::endl;
-  buffer << this->outputType() << std::endl;
+  //write out the input type as a fixed length string
+  buffer << this->inputType().size() << std::endl;
+  remus::internal::writeString(buffer,this->inputType());
+
+  //write out the output type as a fixed length string
+  buffer << this->outputType().size() << std::endl;
+  remus::internal::writeString(buffer,this->outputType());
+
 }
 
 //------------------------------------------------------------------------------
 MeshIOType::MeshIOType(std::istream& buffer)
 {
-  buffer >> this->InputName;
-  buffer >> this->OutputName;
+  std::size_t inputSize=0;
+  std::size_t outputSize=0;
+
+  buffer >> inputSize;
+  this->InputName = remus::internal::extractString(buffer,inputSize);
+  buffer >> outputSize;
+  this->OutputName = remus::internal::extractString(buffer,outputSize);
 }
 
 //------------------------------------------------------------------------------
