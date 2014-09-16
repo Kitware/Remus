@@ -44,6 +44,8 @@ class MessageRouter::MessageRouterImplementation
 
   //thread our polling method
   mutable boost::mutex ThreadMutex;
+  boost::condition_variable ThreadStatusChanged;
+
   boost::scoped_ptr<boost::thread> PollingThread;
   //state to tell when we should stop polling
   bool ContinueTalking;
@@ -55,6 +57,7 @@ MessageRouterImplementation(
   WorkerEndpoint(worker_info.endpoint()),
   QueueEndpoint(queue_info.endpoint()),
   ThreadMutex(),
+  ThreadStatusChanged(),
   PollingThread(new boost::thread()),
   ContinueTalking(false)
 {
@@ -66,7 +69,8 @@ MessageRouterImplementation(
 {
   if(this->PollingThread)
     {
-    this->stopTalking();
+    this->setIsTalking(false);
+    this->PollingThread->join();
     }
 }
 
@@ -91,11 +95,8 @@ bool startTalking(const remus::worker::ServerConnection& server_info,
     //thread was never given anything to run, and is actually empty
     threadIsRunning = this->PollingThread->get_id() != boost::thread::id();
     launchThread = !this->ContinueTalking && !threadIsRunning;
-
     if(launchThread)
       {
-      this->ContinueTalking = true;
-
       boost::scoped_ptr<boost::thread> pollthread(
         new boost::thread( &MessageRouterImplementation::poll, this,
                             server_info,
@@ -107,14 +108,11 @@ bool startTalking(const remus::worker::ServerConnection& server_info,
   //do this outside the previous critical section so that we properly
   //tell other threads that the thread has been launched. We don't
   //want to cause a recursive lock in the same thread to happen
-  if(launchThread)
-    {
-    this->setIsTalking(true);
-    }
+  this->waitForThreadToStart();
 
   //we can only launch the thread once, and once it has been terminated
   //the entire message router is invalid to start up again.
-  return launchThread;
+  return this->isTalking();
 }
 
 private:
@@ -125,6 +123,17 @@ void setIsTalking(bool t)
     {
     boost::unique_lock<boost::mutex> lock(ThreadMutex);
     this->ContinueTalking = t;
+    }
+  this->ThreadStatusChanged.notify_all();
+}
+
+//----------------------------------------------------------------------------
+void waitForThreadToStart()
+{
+  boost::unique_lock<boost::mutex> lock(ThreadMutex);
+  while(!this->ContinueTalking)
+    {
+    ThreadStatusChanged.wait(lock);
     }
 }
 
@@ -150,6 +159,12 @@ void poll(remus::worker::ServerConnection server_info,
                               };
 
   remus::common::PollingMonitor monitor;
+
+  //We need to notify the Thread management that polling is about to start.
+  //This allows the calling thread to resume, as it has been waiting for this
+  //notification, and will also allow threads that have been holding on
+  //waitForThreadToStart to resume
+  this->setIsTalking(true);
   while( this->isTalking() )
     {
     bool sentToServer=false;
