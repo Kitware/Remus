@@ -64,7 +64,10 @@ void test_job_routing(MessageRouter& mr,
                                   remus::worker::to_string(fakeJob));
   response.sendNonBlocking(&serverSocket,sid);
 
-  while(jq.size()<1){}
+  while(jq.size()<1)
+    {
+    remus::common::SleepForMillisec(150);
+    }
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==1) );
 
@@ -146,7 +149,10 @@ void test_server_stop_routing_call(MessageRouter& mr,
   REMUS_ASSERT(sent)
 
   //cheap block while we wait for the router thread to get the message
-  remus::common::SleepForMillisec(250);
+  for(int i=0; i < 10 && jq.size() == 0; ++i)
+    {
+    remus::common::SleepForMillisec(250);
+    }
   REMUS_ASSERT( (jq.size() > 0) )
   remus::common::SleepForMillisec(250);
   REMUS_ASSERT( (!mr.valid()) )
@@ -173,7 +179,10 @@ void test_worker_stop_routing_call(MessageRouter& mr,
   REMUS_ASSERT(sent)
 
   //cheap block while we wait for the router thread to get the message
-  remus::common::SleepForMillisec(250);
+  for(int i=0; i < 10 && jq.size() == 0; ++i)
+    {
+    remus::common::SleepForMillisec(250);
+    }
   REMUS_ASSERT( (jq.size() > 0) )
   remus::common::SleepForMillisec(250);
   REMUS_ASSERT( (!mr.valid()) )
