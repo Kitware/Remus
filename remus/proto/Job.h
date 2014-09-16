@@ -77,7 +77,6 @@ inline std::string to_string(const remus::proto::Job& job)
   std::ostringstream buffer;
   buffer << job.type() << std::endl;
   buffer << job.id() << std::endl;
-  std::cout << "to string size: " << buffer.str().size() << std::endl;
   return buffer.str();
 }
 
@@ -86,7 +85,6 @@ inline std::string to_string(const remus::proto::Job& job)
 inline remus::proto::Job to_Job(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
-  std::cout << "from string size: " << msg.size() << std::endl;
   std::istringstream buffer(msg);
 
   remus::common::MeshIOType type;
