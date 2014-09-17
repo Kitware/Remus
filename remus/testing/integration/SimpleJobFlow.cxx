@@ -36,7 +36,12 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
   //no workers, so we have to use workers that connect in only
   boost::shared_ptr<remus::server::WorkerFactory> factory(new remus::server::WorkerFactory());
   factory->setMaxWorkerCount(0);
+
+  //setup a slower polling cycle so we don't kill a worker by mistake
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
+
+  remus::server::PollingRates newRates(1500,60000);
+  server->pollingRates(newRates);
   server->startBrokering();
   return server;
 }
@@ -73,7 +78,7 @@ void verify_job_status(remus::proto::Job  job,
 {
   using namespace remus::proto;
 
-  remus::common::SleepForMillisec(25);
+  remus::common::SleepForMillisec(250);
   JobStatus currentStatus = client->jobStatus(job);
   const bool valid_status = (currentStatus.status() == statusType);
   REMUS_ASSERT(valid_status)
@@ -96,7 +101,7 @@ void verify_can_mesh(boost::shared_ptr<remus::Client> client,
   //ask for a job on the worker, and wait for server to process the
   //request
   worker->askForJobs(1);
-  remus::common::SleepForMillisec(50);
+  remus::common::SleepForMillisec(250);
 
   //now that the server knows a worker can handle a job of the given type
   //make the client verifies that it can mesh that job type
@@ -131,7 +136,7 @@ remus::proto::Job verify_job_submission(boost::shared_ptr<remus::Client> client,
   verify_job_status(clientJob,client,remus::QUEUED);
 
   //wait for the server to send the job to the worker
-  remus::common::SleepForMillisec(50);
+  remus::common::SleepForMillisec(250);
   const std::size_t numPendingJobs = worker->pendingJobCount();
   REMUS_ASSERT( (numPendingJobs==1) )
 
@@ -186,7 +191,7 @@ void verifyt_job_result(const remus::proto::Job& job,
   JobResult worker_results = make_JobResult(job.id(),ascii_data);
   worker->returnMeshResults(worker_results);
 
-  remus::common::SleepForMillisec(50);
+  remus::common::SleepForMillisec(250);
 
   //after the job result has been submitted back to the server
   //the status should be finished
