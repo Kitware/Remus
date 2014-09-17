@@ -13,6 +13,8 @@
 #ifndef remus_proto_Job_h
 #define remus_proto_Job_h
 
+#include <sstream>
+
 #include <boost/uuid/uuid.hpp>
 #include <remus/common/MeshIOType.h>
 
