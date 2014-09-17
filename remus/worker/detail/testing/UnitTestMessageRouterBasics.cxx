@@ -31,11 +31,9 @@ namespace {
 remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
 {
   //try a new port each time we are called this is to help speed up the test
-  static int port_offset = 301;
-  ++port_offset;
-
+  int port_offset = 52;
   zmq::socketInfo<zmq::proto::tcp> socketInfo("127.0.0.1",
-                              port_offset + remus::SERVER_WORKER_PORT);
+                              remus::SERVER_WORKER_PORT + port_offset);
   socketInfo = zmq::bindToAddress(socket,socketInfo);
 
   return remus::worker::ServerConnection(socketInfo);
@@ -64,7 +62,10 @@ void test_job_routing(MessageRouter& mr,
                                   remus::worker::to_string(fakeJob));
   response.sendNonBlocking(&serverSocket,sid);
 
-  while(jq.size()<1){}
+  while(jq.size()<1)
+    {
+    remus::common::SleepForMillisec(150);
+    }
   REMUS_ASSERT( (jq.size()>0) );
   REMUS_ASSERT( (jq.size()==1) );
 
@@ -122,71 +123,9 @@ void test_job_routing(MessageRouter& mr,
     }
 }
 
-//------------------------------------------------------------------------------
-void test_server_stop_routing_call(MessageRouter& mr,
-                                   remus::worker::ServerConnection serverConn,
-                                   zmq::socket_t& serverSocket,
-                                   JobQueue& jq)
-{
-
-  mr.start( serverConn, *(serverConn.context()) );
-  REMUS_ASSERT( (mr.valid()) )
-
-  //we need to fetch a heartbeat message from the router
-  //so that we get the socket identity to send to
-  zmq::SocketIdentity sid = zmq::address_recv(serverSocket);
-
-  remus::worker::Job terminateJob(remus::testing::UUIDGenerator(),
-                                  remus::proto::JobSubmission());
-
-  //now send it a terminate message over the server channel
-  remus::proto::Response response (remus::TERMINATE_WORKER,
-                                   remus::worker::to_string(terminateJob));
-  bool sent = response.sendNonBlocking(&serverSocket,sid);
-  REMUS_ASSERT(sent)
-
-  //cheap block while we wait for the router thread to get the message
-  remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (jq.size() > 0) )
-  remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (!mr.valid()) )
-
-  REMUS_ASSERT( (jq.size() == 1) )
-  remus::worker::Job invalid_job = jq.take();
-  REMUS_ASSERT( (!invalid_job.valid()) )
-  REMUS_ASSERT( (invalid_job.validityReason() ==
-                 remus::worker::Job::TERMINATE_WORKER) )
 }
 
-//------------------------------------------------------------------------------
-void test_worker_stop_routing_call(MessageRouter& mr,
-                                   remus::worker::ServerConnection serverConn,
-                                   zmq::socket_t& workerSocket,
-                                   JobQueue& jq)
-{
-  mr.start( serverConn, *(serverConn.context()) );
-  REMUS_ASSERT( (mr.valid()) )
-  //now send it a terminate message over the worker channel
-  remus::proto::Message shutdown(remus::common::MeshIOType(),
-                                 remus::TERMINATE_WORKER);
-  bool sent = shutdown.sendNonBlocking(&workerSocket);
-  REMUS_ASSERT(sent)
-
-  //cheap block while we wait for the router thread to get the message
-  remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (jq.size() > 0) )
-  remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (!mr.valid()) )
-
-  REMUS_ASSERT( (jq.size() == 1) )
-  remus::worker::Job invalid_job = jq.take();
-  REMUS_ASSERT( (!invalid_job.valid()) )
-  REMUS_ASSERT( (invalid_job.validityReason() ==
-                 remus::worker::Job::TERMINATE_WORKER) )
-}
-
-//------------------------------------------------------------------------------
-void verify_basic_comms()
+int UnitTestMessageRouterBasics(int, char *[])
 {
   zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
   zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
@@ -229,76 +168,5 @@ void verify_basic_comms()
 
   //verify that we route messages to the job queue
   test_job_routing(mr,serverConn,serverSocket,jq);
-}
-
-//------------------------------------------------------------------------------
-void verify_server_term()
-{
-  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
-  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
-
-  //bind the serverSocket
-  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
-  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
-  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
-  //set the context on the server connection to the one we just created
-  serverConn.context(context);
-
-  //we need to bind to the inproc sockets before constructing the MessageRouter
-  //this is a required implementation detail caused by zmq design, also we have
-  //to share the same zmq context with the inproc protocol
-  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
-  zmq::bindToAddress(worker_socket, worker_channel);
-
-  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
-
-  //It should be noted that once you send a terminate call to a JobQueue
-  //or MessageRouter it can't be started again
-
-  //verify that we can send a TERMINATE_WORKER call from the server properly
-  MessageRouter mr(worker_channel, queue_channel);
-  test_server_stop_routing_call(mr, serverConn, serverSocket,jq);
-}
-
-//------------------------------------------------------------------------------
-void verify_worker_term()
-{
-  zmq::socketInfo<zmq::proto::inproc> worker_channel(remus::testing::UniqueString());
-  zmq::socketInfo<zmq::proto::inproc> queue_channel(remus::testing::UniqueString());
-
-  //bind the serverSocket
-  boost::shared_ptr<zmq::context_t> context = remus::worker::make_ServerContext();
-  zmq::socket_t serverSocket(*context, ZMQ_ROUTER);
-  remus::worker::ServerConnection serverConn = bindToTCPSocket(serverSocket);
-  //set the context on the server connection to the one we just created
-  serverConn.context(context);
-
-  //we need to bind to the inproc sockets before constructing the MessageRouter
-  //this is a required implementation detail caused by zmq design, also we have
-  //to share the same zmq context with the inproc protocol
-  zmq::socket_t worker_socket(*context, ZMQ_PAIR);
-  zmq::bindToAddress(worker_socket, worker_channel);
-
-  JobQueue jq(*context,queue_channel); //bind the jobqueue to the worker channel
-
-  //It should be noted that once you send a terminate call to a JobQueue
-  //or MessageRouter it can't be started again
-  MessageRouter mr(worker_channel, queue_channel);
-  test_worker_stop_routing_call(mr,serverConn,worker_socket,jq);
-}
-
-}
-
-int UnitTestMessageRouter(int, char *[])
-{
-  std::cout << "verify_basic_comms" << std::endl;
-  verify_basic_comms();
-
-  std::cout << "verify_server_term" << std::endl;
-  verify_server_term();
-
-  std::cout << "verify_worker_term" << std::endl;
-  verify_worker_term();
-
   return 0;
 }
