@@ -158,7 +158,11 @@ void poll(remus::worker::ServerConnection server_info,
                                 { serverComm,  0, ZMQ_POLLIN, 0 }
                               };
 
-  remus::common::PollingMonitor monitor;
+  //we specify a new polling rate so that the polling monitor is more responsive
+  //plus allows testing of the monitor to be quicker. In the future we could
+  //expose this option in the MessageRouter class.
+  remus::common::PollingMonitor monitor(boost::int64_t(250),
+                                        boost::int64_t(60*1000) );
 
   //We need to notify the Thread management that polling is about to start.
   //This allows the calling thread to resume, as it has been waiting for this
