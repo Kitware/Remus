@@ -61,7 +61,7 @@ void worker::meshJob()
   //Do it
   remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                                                            in.getInputFile());
-  this->returnMeshResults(results);
+  this->returnResult(results);
 
   return;
 }

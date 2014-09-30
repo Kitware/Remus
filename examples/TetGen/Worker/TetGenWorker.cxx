@@ -164,6 +164,6 @@ void TetGenWorker::meshJob()
 
   remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                                                                   tetResults);
-  this->returnMeshResults(results);
+  this->returnResult(results);
   return;
 }
