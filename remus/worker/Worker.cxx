@@ -169,7 +169,7 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
 }
 
 //-----------------------------------------------------------------------------
-void Worker::returnMeshResults(const remus::proto::JobResult& result)
+void Worker::returnResult(const remus::proto::JobResult& result)
 {
   //send a message that contains, the path to the resulting file
   std::string msg = remus::proto::to_string(result);

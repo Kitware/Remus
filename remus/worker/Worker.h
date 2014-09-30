@@ -80,8 +80,14 @@ public:
   //update the status of the worker
   virtual void updateStatus(const remus::proto::JobStatus& info);
 
-  //send to the server the mesh results.
-  virtual void returnMeshResults(const remus::proto::JobResult& result);
+  //send to the server the result of the meshing operating.
+  //deprecated in 0.4 and will be removed in 0.5
+  REMUSWORKER_DEPRECATED
+  void returnMeshResults(const remus::proto::JobResult& result)
+    { this->returnResult(result); }
+
+  //send to the server the result of the meshing operating.
+  virtual void returnResult(const remus::proto::JobResult& result);
 
 private:
   //holds the type of mesh we support
