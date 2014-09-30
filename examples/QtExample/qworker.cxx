@@ -77,7 +77,7 @@ void RWorker::startProcessing()
     std::string result_data("Job Finished");
     remus::proto::JobResult results =
                             remus::proto::make_JobResult(jd.id(),result_data);
-    w.returnMeshResults(results);
+    w.returnResult(results);
     }
 }
 

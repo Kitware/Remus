@@ -233,7 +233,7 @@ void TriangleWorker::meshJob()
   //when we transform the string back to the TriangleResult class
   remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                        TriangleResult::ToString(parms.meshing_data,parms.out));
-  this->returnMeshResults(results);
+  this->returnResult(results);
 
   return;
 }

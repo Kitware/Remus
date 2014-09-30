@@ -62,7 +62,7 @@ int main (int argc, char* argv[])
 
     JobResult results = remus::proto::make_JobResult(jd.id(),
                                                  "Hello From InfiniteWorker");
-    w.returnMeshResults(results);
+    w.returnResult(results);
   }
 
   return 0;

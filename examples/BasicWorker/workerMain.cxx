@@ -68,7 +68,7 @@ int main (int argc, char* argv[])
   result += " and Hello Client";
   remus::proto::JobResult results =
                                   remus::proto::make_JobResult(jd.id(),result);
-  w.returnMeshResults(results);
+  w.returnResult(results);
 
   return 0;
 }
