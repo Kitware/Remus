@@ -165,7 +165,7 @@ The process can be broken into 3 major steps. Those steps are:
 - Send Job Status:
   ```void updateStatus(const remus::proto::JobStatus& info)```
 - Send Job Results:
-  ```void returnMeshResults(const remus::proto::JobResult& result)```
+  ```void returnResult(const remus::proto::JobResult& result)```
 
 Let's put this all together and show how to get a job from the server,
 send back some status, and then return a result:
@@ -206,7 +206,7 @@ for(int i=0; i < 100; i+=10)
 std::string finished_message(content.data(),content.dataSize());
 finished_message += " and Hello Client I am now finished";
 remus::proto::JobResult results(j.id(),finished_message);
-worker.returnMeshResults(results);
+worker.returnResult(results);
 
 ```
 
