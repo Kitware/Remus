@@ -39,7 +39,7 @@ static const std::string INVALID_MSG = "INVALID_MSG";
      ServiceTypeMacro(CAN_MESH_IO_TYPE, 4, "CAN MESH IO TYPE"), \
      ServiceTypeMacro(MAKE_MESH, 5, "MAKE MESH"), \
      ServiceTypeMacro(MESH_STATUS, 6, "MESH STATUS"), \
-     ServiceTypeMacro(RETRIEVE_MESH, 7, "RETRIEVE MESH"), \
+     ServiceTypeMacro(RETRIEVE_RESULT, 7, "RETRIEVE RESULT"), \
      ServiceTypeMacro(HEARTBEAT, 8, "HEARTBEAT"), \
      ServiceTypeMacro(TERMINATE_JOB, 97, "TERMINATE JOB"), \
      ServiceTypeMacro(TERMINATE_WORKER, 98, "TERMINATE WORKER")

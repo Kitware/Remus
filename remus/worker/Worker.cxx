@@ -174,7 +174,7 @@ void Worker::returnMeshResults(const remus::proto::JobResult& result)
   //send a message that contains, the path to the resulting file
   std::string msg = remus::proto::to_string(result);
   remus::proto::Message message(this->MeshRequirements.meshTypes(),
-                                remus::RETRIEVE_MESH,
+                                remus::RETRIEVE_RESULT,
                                 msg);
   message.send(&this->Zmq->Server);
 }

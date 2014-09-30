@@ -187,7 +187,7 @@ protected:
   std::string meshRequirements(const remus::proto::Message& msg);
   std::string meshStatus(const remus::proto::Message& msg);
   std::string queueJob(const remus::proto::Message& msg);
-  std::string retrieveMesh(const remus::proto::Message& msg);
+  std::string retrieveResult(const remus::proto::Message& msg);
   std::string terminateJob(zmq::socket_t& WorkerChannel,const remus::proto::Message& msg);
 
   //Methods for processing Worker queries
