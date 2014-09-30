@@ -127,7 +127,7 @@ triangleParameters::~triangleParameters()
 //----------------------------------------------------------------------------
 TriangleWorker::TriangleWorker(
                      remus::worker::ServerConnection const& connection):
-remus::worker::Worker(
+  Worker(
     remus::proto::make_JobRequirements(
       remus::common::make_MeshIOType(remus::meshtypes::Edges(),
                                      remus::meshtypes::Mesh2D()),
@@ -193,7 +193,7 @@ bool TriangleWorker::buildTriangleArguments(const triangleParameters &params,
 //----------------------------------------------------------------------------
 void TriangleWorker::meshJob()
 {
-  remus::worker::Job j = this->getJob();
+  remus::worker::Job j = this->Worker.getJob();
 
   //extract the parameters of the job to launch, including the raw edges
   triangleParameters parms(j);
@@ -233,7 +233,7 @@ void TriangleWorker::meshJob()
   //when we transform the string back to the TriangleResult class
   remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                        TriangleResult::ToString(parms.meshing_data,parms.out));
-  this->returnResult(results);
+  this->Worker.returnResult(results);
 
   return;
 }
@@ -242,7 +242,7 @@ void TriangleWorker::meshJob()
 void TriangleWorker::jobFailed(const remus::worker::Job& job)
 {
   remus::proto::JobStatus status(job.id(),remus::FAILED);
-  this->updateStatus(status);
+  this->Worker.updateStatus(status);
 
   return;
 }

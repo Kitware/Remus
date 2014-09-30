@@ -62,7 +62,7 @@ struct triangleParameters
     }
 };
 
-class TriangleWorker : public remus::worker::Worker
+class TriangleWorker
 {
 public:
   TriangleWorker(remus::worker::ServerConnection const& connection);
@@ -77,5 +77,7 @@ protected:
                               std::string& options) const;
 
   void jobFailed(const remus::worker::Job& job);
+private:
+  remus::worker::Worker Worker;
 };
 #endif

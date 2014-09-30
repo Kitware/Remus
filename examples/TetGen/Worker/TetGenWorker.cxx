@@ -45,7 +45,7 @@ tetgenParameters::~tetgenParameters()
 
 //----------------------------------------------------------------------------
 TetGenWorker::TetGenWorker(remus::worker::ServerConnection const& connection):
-  remus::worker::Worker(
+  Worker(
     remus::proto::make_JobRequirements(
       remus::common::make_MeshIOType(remus::meshtypes::PiecewiseLinearComplex(),
                                      remus::meshtypes::Mesh3D()),
@@ -117,7 +117,7 @@ bool TetGenWorker::buildTetGenArguments(const tetgenParameters &params,
 //----------------------------------------------------------------------------
 void TetGenWorker::meshJob()
 {
-  remus::worker::Job j = this->getJob();
+  remus::worker::Job j = this->Worker.getJob();
 
   //extract the parameters of the job to launch, including the raw edges
   tetgenParameters parms(j);
@@ -131,7 +131,7 @@ void TetGenWorker::meshJob()
   if (!canLaunchTetGen)
     {
     remus::proto::JobStatus status(j.id(),remus::FAILED);
-    this->updateStatus(status);
+    this->Worker.updateStatus(status);
     return;
     }
 
@@ -164,6 +164,6 @@ void TetGenWorker::meshJob()
 
   remus::proto::JobResult results = remus::proto::make_JobResult(j.id(),
                                                                   tetResults);
-  this->returnResult(results);
+  this->Worker.returnResult(results);
   return;
 }
