@@ -478,7 +478,7 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
       //proto::Job. Returns a proto::JobResult. The result is than deleted
       //from the server.
       //If no result exists will return an invalid JobResult
-      response_data = this->retrieveMesh(msg);
+      response_data = this->retrieveResult(msg);
       break;
     case remus::TERMINATE_JOB:
       //Will try to terminate the given proto::Job.
@@ -614,7 +614,7 @@ std::string Server::queueJob(const remus::proto::Message& msg)
 }
 
 //------------------------------------------------------------------------------
-std::string Server::retrieveMesh(const remus::proto::Message& msg)
+std::string Server::retrieveResult(const remus::proto::Message& msg)
 {
   //go to the active jobs list and grab the mesh result if it exists
   remus::proto::Job job = remus::proto::to_Job(msg.data(),msg.dataSize());
