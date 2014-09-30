@@ -473,7 +473,7 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
       //proto::Job. Returns a proto::JobStatus
       response_data = this->meshStatus(msg);
       break;
-    case remus::RETRIEVE_MESH:
+    case remus::RETRIEVE_RESULT:
       //retrieves the current result of the job related to the passed
       //proto::Job. Returns a proto::JobResult. The result is than deleted
       //from the server.
@@ -704,7 +704,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //no response needed
       this->storeMeshStatus(msg);
       break;
-    case remus::RETRIEVE_MESH:
+    case remus::RETRIEVE_RESULT:
       //we need to store the mesh result, no response needed
       this->storeMesh(msg);
       break;

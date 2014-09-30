@@ -149,7 +149,7 @@ remus::proto::JobStatus Client::jobStatus(const remus::proto::Job& job)
 remus::proto::JobResult Client::retrieveResults(const remus::proto::Job& job)
 {
   remus::proto::Message j(job.type(),
-                          remus::RETRIEVE_MESH,
+                          remus::RETRIEVE_RESULT,
                           remus::proto::to_string(job));
   j.send(&this->Zmq->Server);
 
