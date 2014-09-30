@@ -56,7 +56,7 @@ struct tetgenParameters
 
 };
 
-class TetGenWorker : public remus::worker::Worker
+class TetGenWorker
 {
 public:
   TetGenWorker(remus::worker::ServerConnection const& connection);
@@ -69,5 +69,8 @@ protected:
 
   bool buildTetGenArguments(const tetgenParameters& params,
                             std::string& options) const;
+
+private:
+  remus::worker::Worker Worker;
 };
 #endif
