@@ -66,19 +66,19 @@ public:
 
   //send a message to the server stating how many jobs
   //that we want to be sent to process
-  virtual void askForJobs( unsigned int numberOfJobs = 1 );
+  void askForJobs( unsigned int numberOfJobs = 1 );
 
   //query to see how many pending jobs we need to process
-  virtual std::size_t pendingJobCount( ) const;
+  std::size_t pendingJobCount( ) const;
 
   //fetch a pending job
-  virtual remus::worker::Job takePendingJob();
+  remus::worker::Job takePendingJob();
 
   //Blocking fetch a pending job and return it
-  virtual remus::worker::Job getJob();
+  remus::worker::Job getJob();
 
   //update the status of the worker
-  virtual void updateStatus(const remus::proto::JobStatus& info);
+  void updateStatus(const remus::proto::JobStatus& info);
 
   //send to the server the result of the meshing operating.
   //deprecated in 0.4 and will be removed in 0.5
@@ -86,8 +86,8 @@ public:
   void returnMeshResults(const remus::proto::JobResult& result)
     { this->returnResult(result); }
 
-  //send to the server the result of the meshing operating.
-  virtual void returnResult(const remus::proto::JobResult& result);
+  //send to the server the mesh results.
+  void returnResult(const remus::proto::JobResult& result);
 
 private:
   //holds the type of mesh we support
