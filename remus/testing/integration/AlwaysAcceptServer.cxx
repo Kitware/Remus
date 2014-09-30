@@ -215,7 +215,7 @@ void verify_job_status(remus::proto::Job  job,
 {
   using namespace remus::proto;
 
-  remus::common::SleepForMillisec(25);
+  remus::common::SleepForMillisec(250);
   JobStatus currentStatus = client->jobStatus(job);
   const bool valid_status = (currentStatus.status() == statusType);
   REMUS_ASSERT(valid_status)
