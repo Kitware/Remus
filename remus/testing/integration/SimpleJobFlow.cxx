@@ -189,7 +189,7 @@ void verifyt_job_result(const remus::proto::Job& job,
   const std::string ascii_data = remus::testing::AsciiStringGenerator(2097152);
 
   JobResult worker_results = make_JobResult(job.id(),ascii_data);
-  worker->returnMeshResults(worker_results);
+  worker->returnResult(worker_results);
 
   remus::common::SleepForMillisec(250);
 

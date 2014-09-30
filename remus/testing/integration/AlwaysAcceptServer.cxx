@@ -321,7 +321,7 @@ void verify_job_result(remus::proto::Job  job,
 
   JobResult worker_results = make_JobResult(job.id(),
                                      "Here be results");
-  worker->returnMeshResults(worker_results);
+  worker->returnResult(worker_results);
 
   remus::common::SleepForMillisec(50);
 
