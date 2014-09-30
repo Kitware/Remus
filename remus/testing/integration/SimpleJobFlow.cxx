@@ -136,8 +136,13 @@ remus::proto::Job verify_job_submission(boost::shared_ptr<remus::Client> client,
   verify_job_status(clientJob,client,remus::QUEUED);
 
   //wait for the server to send the job to the worker
-  remus::common::SleepForMillisec(250);
-  const std::size_t numPendingJobs = worker->pendingJobCount();
+  std::size_t numPendingJobs = worker->pendingJobCount();
+  while(numPendingJobs == 0)
+    {
+    numPendingJobs = worker->pendingJobCount();
+    remus::common::SleepForMillisec(50);
+    numPendingJobs = worker->pendingJobCount();
+    }
   REMUS_ASSERT( (numPendingJobs==1) )
 
   remus::worker::Job workerJob = worker->takePendingJob();
