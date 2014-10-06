@@ -80,7 +80,10 @@ int main(int argc, char* argv[])
 
 
   //keep track of the number of queries to do a rough test
+  const int num_submitted_jobs = 18;
   int queries = 0;
+  int failed_jobs = 0;
+
   Timer time;
 
   remus::common::MeshIOType requestIOType( (remus::meshtypes::Edges()),
@@ -116,7 +119,7 @@ int main(int argc, char* argv[])
     //for meshing
 
     std::vector<remus::proto::Job> jobs;
-    for(std::size_t i=0; i < 18; ++i, ++queries)
+    for(std::size_t i=0; i < num_submitted_jobs; ++i, ++queries)
       {
       remus::proto::Job job = c.submitJob(sub);
       jobs.push_back(job);
@@ -168,6 +171,10 @@ int main(int argc, char* argv[])
             remus::proto::JobResult r = c.retrieveResults(jobs.at(i));
             std::cout << r.data() << std::endl;
             }
+          else
+            {
+            ++failed_jobs;
+            }
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);
 
@@ -177,6 +184,8 @@ int main(int argc, char* argv[])
           }
         }
       }
+    std::cout << "Number of jobs submitted: " << num_submitted_jobs << std::endl;
+    std::cout << "Number of jobs failed: " << failed_jobs << std::endl;
     std::cout << "We issued " << queries <<  " queries to the server " << std::endl;
     std::cout << "Number of queries per second is " << queries / time.GetElapsedTime() << std::endl;
     }
