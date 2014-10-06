@@ -36,25 +36,37 @@
 namespace remus{
 namespace proto{
 
+namespace
+{
+  std::string make_serialzied_form( const boost::uuids::uuid& my_id,
+                                    const remus::common::MeshIOType& my_type)
+  {
+    std::ostringstream buffer;
+    buffer << my_type << std::endl;
+    buffer << my_id << std::endl;
+    return buffer.str();
+  }
+}
+
 //------------------------------------------------------------------------------
 Job::Job(const boost::uuids::uuid& my_id, const remus::common::MeshIOType& my_type):
     Id(my_id),
-    Type(my_type)
-  {
-  }
-
+    Type(my_type),
+    CachedSerializedForm( make_serialzied_form(my_id, my_type) )
+{
+}
 
 //------------------------------------------------------------------------------
 void Job::serialize(std::ostream& buffer) const
 {
-  buffer << this->type() << std::endl;
-  buffer << this->id() << std::endl;
+  buffer << this->CachedSerializedForm << std::endl;
 }
 
 //------------------------------------------------------------------------------
 Job::Job(std::istream& buffer):
   Id(), //need to default to null id
-  Type() //needs to default to a bad mesh io type
+  Type(), //needs to default to a bad mesh io type
+  CachedSerializedForm()
 {
   this->deserialize(buffer);
 }
@@ -62,7 +74,8 @@ Job::Job(std::istream& buffer):
 //------------------------------------------------------------------------------
 Job::Job(const std::string& data):
   Id(), //need to default to null
-  Type() //needs to default to a bad mesh io type
+  Type(), //needs to default to a bad mesh io type
+  CachedSerializedForm(data)
 {
   std::stringstream buffer(data);
   this->deserialize(buffer);
@@ -82,6 +95,10 @@ void Job::deserialize(std::istream& buffer)
       //and than crash
     this->Id = boost::lexical_cast<boost::uuids::uuid>(id_as_string.c_str());
     }
+
+  std::ostringstream cache_buffer;
+  cache_buffer << *this;
+  this->CachedSerializedForm = cache_buffer.str();
 }
 
 }

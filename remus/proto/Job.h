@@ -32,7 +32,7 @@ public:
 
   //construct a valid job object with an Id and Type
   Job(const boost::uuids::uuid& my_id,
-         const remus::common::MeshIOType& my_type);
+      const remus::common::MeshIOType& my_type);
 
   //get if the current job is a valid job
   bool valid() const { return Type.valid(); }
@@ -67,6 +67,7 @@ private:
 
   boost::uuids::uuid Id;
   remus::common::MeshIOType Type;
+  std::string CachedSerializedForm;
 };
 
 //------------------------------------------------------------------------------
