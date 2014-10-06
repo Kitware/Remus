@@ -50,7 +50,7 @@ public:
     { return !(this->operator ==(b)); }
 
   int value() const { return Value; }
-  const std::string message() const { return Message; }
+  const std::string& message() const { return Message; }
 
   void setValue(int v)
     { Value = JobProgress::valid_progress_value(v); }
