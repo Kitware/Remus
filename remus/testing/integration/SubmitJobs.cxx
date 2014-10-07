@@ -186,7 +186,8 @@ boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& 
 }
 
 //------------------------------------------------------------------------------
-remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client)
+remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
+                             remus::proto::JobContent binary_content)
 {
   using namespace remus::meshtypes;
   using namespace remus::proto;
@@ -194,12 +195,8 @@ remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client)
   remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
   JobRequirements reqs = make_JobRequirements(io_type, "SimpleWorker", "");
 
-  //save this data to global variables so we can check them in the worker
-  std::string binary_input = remus::testing::BinaryDataGenerator( binary_data_size );
-  JobContent random_binary_data = make_JobContent( binary_input );
-
   JobSubmission sub(reqs);
-  sub["binary"]=random_binary_data;
+  sub["binary"]=binary_content;
   remus::proto::Job job = client->submitJob(sub);
   REMUS_ASSERT(job.valid())
   return job;
@@ -210,11 +207,18 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
                  std::vector< WorkerController* >& processors,
                  std::size_t num_jobs_to_submit)
 {
+  using namespace remus::proto;
+
   //first task is to start all the worker controllers
   std::cout << "starting up workers" << std::endl;
   for( std::size_t i=0; i < processors.size(); ++i)
     { processors[i]->start(); }
   remus::common::SleepForMillisec( 125 ); //let workers connect to server
+
+  //compute the binary data once to improve performance and not kill
+  //travis dashboard machines ( OOM errors )
+  const std::string binary_input = remus::testing::BinaryDataGenerator( binary_data_size );
+  JobContent random_binary_content = make_JobContent( binary_input );
 
   //submit each job to the server, we know that the we have workers
   //attached to the server by this point so all jobs will be accepted
@@ -222,7 +226,7 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
   std::cout << "submitting jobs" << std::endl;
   for( std::size_t i = 0; i < num_jobs_to_submit; ++i)
     {
-    remus::proto::Job job_i = submit_Job( client );
+    Job job_i = submit_Job( client, random_binary_content );
     jobs.push_back( job_i );
     }
 
@@ -233,7 +237,7 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
     {
     for(std::size_t i=0; i < jobs.size(); ++i)
       {
-      remus::proto::JobStatus status = client->jobStatus( jobs[i] );
+      JobStatus status = client->jobStatus( jobs[i] );
       if ( !status.good() )
         {
         std::cout << "job finished with status: "
@@ -242,7 +246,7 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
           {
           //mark the job as finished properly if the result are larger
           //than the job we submitted.
-          remus::proto::JobResult r = client->retrieveResults( jobs[i] );
+          JobResult r = client->retrieveResults( jobs[i] );
           if( r.data().size() >  binary_data_size  )
             { num_valid_finished_jobs++; }
           }
