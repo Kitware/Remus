@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <string>
+#include <remus/common/MD5Hash.h>
 
 #ifdef _MSC_VER
 # pragma warning(push)
@@ -65,7 +66,7 @@ private:
 
 inline std::string to_string(const zmq::SocketIdentity& add)
 {
-  return std::string(add.data(),add.size());
+  return remus::common::MD5Hash(add.data(),add.size());
 }
 
 }
