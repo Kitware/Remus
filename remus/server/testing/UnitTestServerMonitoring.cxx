@@ -69,7 +69,6 @@ struct ThreadMonitor
   {
   boost::scoped_ptr<boost::thread> sthread(
         new  boost::thread(&remus::server::Server::waitForBrokeringToFinish, server) );
-  std::cout << __LINE__ << std::endl;
   this->Monitor.swap(sthread);
   }
 
