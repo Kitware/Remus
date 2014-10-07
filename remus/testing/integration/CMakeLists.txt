@@ -45,7 +45,7 @@ add_test(NAME SubmitSmallJobs4by2
 add_test(NAME SubmitSmallJobs4by120
          COMMAND IntegrationTests_SubmitJobs small 4 120)
 add_test(NAME SubmitLargeJobs1by1
-         COMMAND IntegrationTests_SubmitJobs large)
+         COMMAND IntegrationTests_SubmitJobs large 1 1)
 add_test(NAME SubmitLargeJobs1by4
          COMMAND IntegrationTests_SubmitJobs large 1 4)
 add_test(NAME SubmitLargeJobs2by4

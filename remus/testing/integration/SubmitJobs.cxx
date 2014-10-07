@@ -40,7 +40,8 @@
 namespace
 {
   static std::size_t small_size = 1024;
-  static std::size_t large_size = 268435456;
+  static std::size_t large_size = 64000000;
+
   static std::size_t ascii_data_size = small_size;
   static std::size_t binary_data_size = small_size;
 
@@ -130,6 +131,7 @@ private:
         status.updateProgress( jprogress );
         this->Worker->updateStatus( status );
         std::cout << "Worker sending progress " << progress << "%" << std::endl;
+        remus::common::SleepForMillisec( 250 );
         boost::this_thread::yield();
         }
       }
@@ -218,7 +220,9 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
   //compute the binary data once to improve performance and not kill
   //travis dashboard machines ( OOM errors )
   const std::string binary_input = remus::testing::BinaryDataGenerator( binary_data_size );
-  JobContent random_binary_content = make_JobContent( binary_input );
+  JobContent random_binary_content = JobContent(remus::common::ContentFormat::User,
+                                                binary_input.c_str(),
+                                                binary_input.size() );
 
   //submit each job to the server, we know that the we have workers
   //attached to the server by this point so all jobs will be accepted
@@ -291,7 +295,7 @@ int main(int argc, char* argv[])
   if(data_size_flag == "large")
     {
     ascii_data_size = large_size;
-    binary_data_size = large_size * 1.50;
+    binary_data_size = large_size;
     }
 
   std::cout << "verifying " << num_workers << " workers "
