@@ -40,7 +40,7 @@
 namespace
 {
   static std::size_t small_size = 1024;
-  static std::size_t large_size = 2097152; //268435456
+  static std::size_t large_size = 268435456;
   static std::size_t ascii_data_size = small_size;
   static std::size_t binary_data_size = small_size;
 
