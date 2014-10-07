@@ -32,6 +32,7 @@ int main (int argc, char* argv[])
 
   //start accepting connections for clients and workers
   bool valid = b.startBrokeringWithoutSignalHandling();
+  std::cout << "Bound client port is " << b.serverPortInfo().client().endpoint() << std::endl;
   std::cout << "Brokering started, waiting for finishing" << std::endl;
   b.waitForBrokeringToFinish();
   return valid ? 0 : 1;
