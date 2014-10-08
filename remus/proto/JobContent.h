@@ -122,20 +122,15 @@ inline std::string to_string(const remus::proto::JobContent& content)
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobContent to_JobContent(const std::string& msg)
-{
-  std::istringstream buffer(msg);
-  remus::proto::JobContent content;
-  buffer >> content;
-  return content;
-}
+REMUSPROTO_EXPORT
+remus::proto::JobContent to_JobContent(const char* data, std::size_t size);
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobContent to_JobContent(const char* data, std::size_t size)
+inline remus::proto::JobContent to_JobContent(const std::string& msg)
 {
-  const std::string temp(data,size);
-  return to_JobContent( temp );
+  return to_JobContent(msg.c_str(), msg.size());
 }
+
 
 
 }

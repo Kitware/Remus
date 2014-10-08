@@ -240,6 +240,16 @@ JobContent::JobContent(std::istream& buffer)
   this->Implementation = boost::make_shared<InternalImpl>(contents);
 }
 
+//------------------------------------------------------------------------------
+remus::proto::JobContent to_JobContent(const char* data, std::size_t size)
+{
+  std::stringstream buffer;
+  remus::internal::writeString(buffer, data, size);
+  remus::proto::JobContent content;
+  buffer >> content;
+  return content;
+}
+
 
 }
 }
