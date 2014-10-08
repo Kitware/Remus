@@ -217,6 +217,16 @@ JobRequirements::JobRequirements(std::istream& buffer)
 }
 
 //------------------------------------------------------------------------------
+remus::proto::JobRequirements to_JobRequirements(const char* data, std::size_t size)
+{
+  std::stringstream buffer;
+  remus::internal::writeString(buffer, data, size);
+  remus::proto::JobRequirements reqs;
+  buffer >> reqs;
+  return reqs;
+}
+
+//------------------------------------------------------------------------------
 JobRequirementsSet::JobRequirementsSet():
 Container()
 {

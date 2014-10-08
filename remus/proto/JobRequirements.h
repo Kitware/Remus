@@ -217,21 +217,13 @@ inline std::string to_string(const remus::proto::JobRequirements& reqs)
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobRequirements
-to_JobRequirements(const std::string& msg)
-{
-  std::istringstream buffer(msg);
-  remus::proto::JobRequirements reqs;
-  buffer >> reqs;
-  return reqs;
-}
+REMUSPROTO_EXPORT
+remus::proto::JobRequirements to_JobRequirements(const char* data, std::size_t size);
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobRequirements
-to_JobRequirements(const char* data, std::size_t size)
+inline remus::proto::JobRequirements to_JobRequirements(const std::string& msg)
 {
-  const std::string temp(data,size);
-  return to_JobRequirements( temp );
+  return to_JobRequirements(msg.c_str(), msg.size());
 }
 
 }
