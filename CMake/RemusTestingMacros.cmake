@@ -158,7 +158,7 @@ function(remus_integration_tests)
       add_test(NAME ${tname} COMMAND ${test_prog} ${tname})
       #we give integration tests a longer timout peroid, since they
       #have 'real' work
-      set_tests_properties(${tname} PROPERTIES TIMEOUT 240)
+      set_tests_properties(${tname} PROPERTIES TIMEOUT 120)
     endforeach(test)
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_integration_tests)
