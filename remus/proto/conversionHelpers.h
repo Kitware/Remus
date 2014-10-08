@@ -23,6 +23,8 @@ namespace remus {
 namespace internal
 {
 //------------------------------------------------------------------------------
+//requires the msg to be allocated before calling, as we will extract it's size
+//from the buffer. If msg size is 0 we will extract nothing
 template<typename BufferType>
 inline void extractVector(BufferType& buffer, std::vector<char>& msg)
 {
@@ -34,6 +36,25 @@ inline void extractVector(BufferType& buffer, std::vector<char>& msg)
     {
     const std::streamsize readLen = buffer.rdbuf()->sgetn(&msg[0],msg.size());
     assert(readLen == static_cast<std::streamsize>(msg.size()));
+    }
+}
+
+//------------------------------------------------------------------------------
+//requires the msg_data to be allocated to at least msg_size before calling,
+//as we will extract msg_size characters from the buffer.
+//if msg_data is NULL or msg_size is 0 we will extract nothing
+template<typename BufferType>
+inline void extractArray(BufferType& buffer, char* msg_data,
+                         std::size_t msg_size)
+{
+  if(buffer.peek()=='\n')
+    {
+    buffer.get();
+    }
+  if(msg_size > 0 && msg_data != NULL)
+    {
+    const std::streamsize readLen = buffer.rdbuf()->sgetn(msg_data,msg_size);
+    assert(readLen == static_cast<std::streamsize>(msg_size));
     }
 }
 

@@ -85,5 +85,19 @@ int UnitTestConditionalStorage(int, char *[])
   REMUS_ASSERT( ( fhcs.get() != t.get() ) );
 
 
+  //test with an empty boost::shared_array
+  boost::shared_array<char> empty_array;
+  remus::common::ConditionalStorage emptycs(empty_array,0);
+  REMUS_ASSERT( ( emptycs.size() == 0 ) );
+  REMUS_ASSERT( ( emptycs.get() == NULL ) );
+  REMUS_ASSERT( ( emptycs.get() == empty_array.get() ) );
+
+  //test with a boost::shared_array point to 16mb of data
+  boost::shared_array<char> allocated_array( new char[16777216] );
+  remus::common::ConditionalStorage shared_mem_cs(allocated_array,16777216);
+  REMUS_ASSERT( ( shared_mem_cs.size() == 16777216 ) );
+  REMUS_ASSERT( ( shared_mem_cs.get() == allocated_array.get() ) );
+  REMUS_ASSERT( ( shared_mem_cs.get() != empty_array.get() ) );
+
   return 0;
 }
