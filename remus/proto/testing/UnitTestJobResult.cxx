@@ -30,9 +30,14 @@ remus::common::ContentFormat::Type ftype = remus::common::ContentFormat::User)
   JobResult from_string = to_JobResult(temp);
 
   REMUS_ASSERT( (from_string.id() == s.id()) );
-  REMUS_ASSERT( (from_string.data() == s.data()) );
+  REMUS_ASSERT( (from_string.dataSize() == s.dataSize()) );
   REMUS_ASSERT( (from_string.valid() == s.valid()) );
   REMUS_ASSERT( (from_string.formatType() == ftype) );
+
+  std::string data_from_string(from_string.data(),from_string.dataSize());
+  std::string data_s(s.data(),s.dataSize());
+  REMUS_ASSERT( (data_from_string == data_s) );
+
 
   std::stringstream buffer;
   JobResult from_buffer(make_id());
@@ -40,9 +45,13 @@ remus::common::ContentFormat::Type ftype = remus::common::ContentFormat::User)
   buffer >> from_buffer;
 
   REMUS_ASSERT( (from_buffer.id() == s.id()) );
-  REMUS_ASSERT( (from_buffer.data() == s.data()) );
+  REMUS_ASSERT( (from_buffer.dataSize() == s.dataSize()) );
   REMUS_ASSERT( (from_buffer.valid() == s.valid()) );
   REMUS_ASSERT( (from_buffer.formatType() == ftype) );
+
+  std::string data_from_buffer(from_buffer.data(),from_buffer.dataSize());
+  REMUS_ASSERT( (data_from_string == data_s) );
+
 }
 
 void serialize_test()

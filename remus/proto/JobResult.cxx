@@ -12,7 +12,11 @@
 
 #include <remus/proto/JobResult.h>
 
+#include <remus/common/ConditionalStorage.h>
+#include <remus/common/MD5Hash.h>
 #include <remus/proto/conversionHelpers.h>
+
+#include <boost/make_shared.hpp>
 
 //suppress warnings inside boost headers for gcc, clang and MSVC
 #ifndef _MSC_VER
@@ -30,16 +34,66 @@
 # pragma warning(pop)
 #endif
 
-#include <iostream>
+#include <algorithm>
 
 namespace remus {
 namespace proto {
+
+
+struct JobResult::InternalImpl
+{
+  template<typename T>
+  explicit InternalImpl(const T& t):
+    Size(0),
+    Data(NULL),
+    Storage()
+  {
+    remus::common::ConditionalStorage temp(t);
+    this->Storage.swap(temp);
+    this->Size = this->Storage.size();
+    this->Data = this->Storage.data();
+  }
+
+  InternalImpl(const char* d, std::size_t s):
+    Size(s),
+    Data(d),
+    Storage()
+  {
+  }
+
+  InternalImpl(const boost::shared_array<char> d, std::size_t s):
+    Size(s),
+    Data(NULL),
+    Storage()
+  {
+    remus::common::ConditionalStorage temp(d,s);
+    this->Storage.swap(temp);
+    this->Size = this->Storage.size();
+    this->Data = this->Storage.data();
+  }
+
+  std::size_t size() const { return Size; }
+  const char* data() const { return Data; }
+
+private:
+
+  //store the size of the data being held
+  std::size_t Size;
+
+  //points to the zero copy or data in the conditional storage
+  const char* Data;
+
+  //Storage is an optional allocation that is used when we need to copy data
+  remus::common::ConditionalStorage Storage;
+};
 
 //------------------------------------------------------------------------------
 JobResult::JobResult(const boost::uuids::uuid& jid):
   JobId(jid),
   FormatType(),
-  Data()
+  Implementation( boost::make_shared<InternalImpl>(
+                 static_cast<char*>(NULL),std::size_t(0)) )
+  //make_shared is significantly faster than using manual new
 {
 }
 
@@ -49,7 +103,8 @@ JobResult::JobResult(const boost::uuids::uuid& jid,
             const remus::common::FileHandle& fileHandle):
   JobId(jid),
   FormatType(format),
-  Data(fileHandle.path())
+  Implementation( boost::make_shared<InternalImpl>(fileHandle) )
+  //make_shared is significantly faster than using manual new
 {
 }
 
@@ -60,9 +115,42 @@ JobResult::JobResult(const boost::uuids::uuid& jid,
             const std::string& contents):
   JobId(jid),
   FormatType(format),
-  Data(contents)
+  Implementation( boost::make_shared<InternalImpl>(contents) )
+  //make_shared is significantly faster than using manual new
 {
 }
+
+//------------------------------------------------------------------------------
+JobResult::JobResult(const boost::uuids::uuid& jid,
+            remus::common::ContentFormat::Type format,
+            const char* contents,
+            std::size_t size):
+  JobId(jid),
+  FormatType(format),
+  Implementation( boost::make_shared<InternalImpl>(contents,size) )
+  //make_shared is significantly faster than using manual new
+{
+
+}
+
+//------------------------------------------------------------------------------
+bool JobResult::valid() const
+{
+  return this->Implementation->size() != 0;
+}
+
+//------------------------------------------------------------------------------
+const char* JobResult::data() const
+{
+  return this->Implementation->data();
+}
+
+//------------------------------------------------------------------------------
+std::size_t JobResult::dataSize() const
+{
+  return this->Implementation->size();
+}
+
 
 //------------------------------------------------------------------------------
 bool JobResult::operator<(const JobResult& other) const
@@ -81,21 +169,44 @@ void JobResult::serialize(std::ostream& buffer) const
 {
   buffer << this->id() << std::endl;
   buffer << this->formatType() << std::endl;
-  buffer << this->Data.size() << std::endl;
-  remus::internal::writeString(buffer,this->data());
+  buffer << this->Implementation->size() << std::endl;
+  remus::internal::writeString( buffer,
+                                this->Implementation->data(),
+                                this->Implementation->size() );
 }
 
 //------------------------------------------------------------------------------
 JobResult::JobResult(std::istream& buffer)
 {
   int ftype=0;
-  std::size_t dataSize=0;
+  std::size_t contentsSize=0;
 
   buffer >> this->JobId;
   buffer >> ftype;
-  buffer >> dataSize;
-  this->Data = remus::internal::extractString(buffer,dataSize);
+
   this->FormatType = static_cast<remus::common::ContentFormat::Type>(ftype);
+
+  //read in the contents. By using a shared_array instead of a vector
+  //we reduce the memory overhead, as that shared_array is used by
+  //the conditional storage. So the net result is instead of having
+  //3 copies of contents, we now have 2 ( conditional storage, and buffer )
+  buffer >> contentsSize;
+  boost::shared_array<char> contents( new char[contentsSize] );
+  remus::internal::extractArray(buffer, contents.get(), contentsSize);
+
+  //if we have read nothing in, and the array is empty, we need to explicitly
+  //act like we have a null pointer, which doesn't happen if we pass in
+  //contents as it has a non NULL location ( see spec 5.3.4/7 )
+  if( contentsSize == 0)
+    { //make_shared is significantly faster than using manual new
+    this->Implementation = boost::make_shared<InternalImpl>(
+                                    static_cast<char*>(NULL),std::size_t(0));
+    }
+  else
+    { //make_shared is significantly faster than using manual new
+    this->Implementation = boost::make_shared<InternalImpl>(
+                                                contents, contentsSize);
+    }
 }
 
 //------------------------------------------------------------------------------

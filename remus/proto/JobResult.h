@@ -16,6 +16,8 @@
 #include <string>
 #include <sstream>
 
+#include <boost/shared_ptr.hpp>
+
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
 #include <remus/common/FileHandle.h>
@@ -44,21 +46,33 @@ public:
             remus::common::ContentFormat::Type format,
             const remus::common::FileHandle& fileHandle);
 
-  //pass in some data back to the client. The
+  //pass in some data to send back to the client. The
   //contents of the string will be copied into a local memory
   //The result should be considered invalid if the contents length is zero
   JobResult(const boost::uuids::uuid& jid,
             remus::common::ContentFormat::Type format,
             const std::string& contents);
 
+  //pass in some data to send back to the client.  A pointer
+  //to the contents is kept and no copy will of data will happen, so
+  //the contents of the pointer can't be deleted while the JobResult instance
+  //is valid.
+  JobResult(const boost::uuids::uuid& jid,
+            remus::common::ContentFormat::Type format,
+            const char* contents,
+            std::size_t size);
+
   //get the storage format that we currently have setup for the source
   remus::common::ContentFormat::Type formatType() const
     { return this->FormatType; }
 
-  bool valid() const { return Data.size() > 0; }
+  bool valid() const;
 
   const boost::uuids::uuid& id() const { return JobId; }
-  const std::string& data() const { return Data; }
+
+  const char* data() const;
+  std::size_t dataSize() const;
+
 
   //implement a less than operator and equal operator so you
   //can use the class in containers and algorithms
@@ -84,7 +98,9 @@ private:
 
   boost::uuids::uuid JobId;
   remus::common::ContentFormat::Type FormatType;
-  std::string Data; //data of the result of a job
+
+  struct InternalImpl;
+  boost::shared_ptr<InternalImpl> Implementation;
 };
 
 //------------------------------------------------------------------------------
