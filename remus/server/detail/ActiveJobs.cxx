@@ -134,7 +134,7 @@ void ActiveJobs::updateResult(const remus::proto::JobResult& r)
     {
     //once we get a result we can state our status is now finished,
     //since the uploading of data has finished.
-    if( item->second.jstatus.good() || item->second.jstatus.finished() )
+    if( item->second.jstatus.status() != remus::FAILED )
       {
       item->second.jstatus = remus::proto::JobStatus(r.id(),remus::FINISHED);
       }

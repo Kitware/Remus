@@ -11,6 +11,7 @@
 //=============================================================================
 
 #include <remus/server/detail/JobQueue.h>
+#include <iostream>
 
 namespace remus{
 namespace server{

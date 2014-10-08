@@ -761,7 +761,13 @@ void Server::assignJobToWorker(zmq::socket_t& workerChannel,
   remus::proto::Response response(remus::MAKE_MESH,
                                   remus::worker::to_string(job));
 
-  response.sendNonBlocking(&workerChannel, workerIdentity);
+  const bool job_sent = response.sendNonBlocking(&workerChannel,
+                                                 workerIdentity);
+  if(job_sent)
+    { //consider sending the job to be refreshing the worker
+    this->SocketMonitor->refresh(workerIdentity);
+    }
+
 }
 
 //see if we have a worker in the pool for the next job in the queue,
