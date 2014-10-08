@@ -98,5 +98,15 @@ JobResult::JobResult(std::istream& buffer)
   this->FormatType = static_cast<remus::common::ContentFormat::Type>(ftype);
 }
 
+//------------------------------------------------------------------------------
+remus::proto::JobResult to_JobResult(const char* data, std::size_t size)
+{
+  std::stringstream buffer;
+  remus::internal::writeString(buffer, data, size);
+  remus::proto::JobResult res(buffer);
+  return res;
+}
+
+
 }
 }

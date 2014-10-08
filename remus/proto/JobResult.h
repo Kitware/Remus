@@ -75,7 +75,7 @@ public:
     { submission = JobResult(is); return is; }
 
 private:
-  friend remus::proto::JobResult to_JobResult(const std::string& msg);
+  friend remus::proto::JobResult to_JobResult(const char* data, std::size_t size);
   //serialize function
   void serialize(std::ostream& buffer) const;
 
@@ -112,21 +112,14 @@ inline std::string to_string(const remus::proto::JobResult& result)
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobResult to_JobResult(const std::string& msg)
-{
-  //convert a job detail from a string, used as a hack to serialize
-  std::istringstream buffer(msg);
-  return remus::proto::JobResult(buffer);
-}
-
+REMUSPROTO_EXPORT
+remus::proto::JobResult to_JobResult(const char* data, std::size_t size);
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobResult to_JobResult(const char* data, std::size_t size)
+inline remus::proto::JobResult to_JobResult(const std::string& msg)
 {
-  const std::string temp(data,size);
-  return to_JobResult( temp );
+  return to_JobResult(msg.c_str(), msg.size());
 }
-
 
 }
 }
