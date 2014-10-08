@@ -333,7 +333,7 @@ void verify_job_result(remus::proto::Job  job,
   remus::proto::JobResult client_results = client->retrieveResults(job);
   REMUS_ASSERT( (client_results.valid()==true) )
 
-  const std::string resultText(client_results.data());
+  const std::string resultText(client_results.data(), client_results.dataSize());
   REMUS_ASSERT( (resultText=="Here be results") )
 }
 
