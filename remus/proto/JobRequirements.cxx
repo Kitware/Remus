@@ -23,7 +23,10 @@ namespace proto{
 struct JobRequirements::InternalImpl
 {
   template<typename T>
-  explicit InternalImpl(const T& t)
+  explicit InternalImpl(const T& t):
+    Size(0),
+    Data(NULL),
+    Storage()
   {
     remus::common::ConditionalStorage temp(t);
     this->Storage.swap(temp);
@@ -36,6 +39,17 @@ struct JobRequirements::InternalImpl
     Data(d),
     Storage()
   {
+  }
+
+  InternalImpl(const boost::shared_array<char> d, std::size_t s):
+    Size(s),
+    Data(NULL),
+    Storage()
+  {
+    remus::common::ConditionalStorage temp(d,s);
+    this->Storage.swap(temp);
+    this->Size = this->Storage.size();
+    this->Data = this->Storage.data();
   }
 
   std::size_t size() const { return Size; }
@@ -205,15 +219,28 @@ JobRequirements::JobRequirements(std::istream& buffer)
   buffer >> tagSize;
   this->Tag = remus::internal::extractString(buffer,tagSize);
 
-  //read in the contents, todo do this with less temp objects and copies
+  //read in the contents. By using a shared_array instead of a vector
+  //we reduce the memory overhead, as that shared_array is used by
+  //the conditional storage. So the net result is instead of having
+  //3 copies of contents, we now have 2 ( conditional storage, and buffer )
   buffer >> contentsSize;
 
-  std::vector<char> contents(contentsSize);
+  boost::shared_array<char> contents( new char[contentsSize] );
+  remus::internal::extractArray(buffer, contents.get(), contentsSize);
 
-  //enables us to use less copies for faster read of large data
-  remus::internal::extractVector(buffer,contents);
-
-  this->Implementation = boost::make_shared<InternalImpl>(contents);
+  //if we have read nothing in, and the array is empty, we need to explicitly
+  //act like we have a null pointer, which doesn't happen if we pass in
+  //contents as it has a non NULL location ( see spec 5.3.4/7 )
+  if( contentsSize == 0)
+    { //make_shared is significantly faster than using manual new
+    this->Implementation = boost::make_shared<InternalImpl>(
+                                    static_cast<char*>(NULL),std::size_t(0));
+    }
+  else
+    { //make_shared is significantly faster than using manual new
+    this->Implementation = boost::make_shared<InternalImpl>(
+                                                contents, contentsSize);
+    }
 }
 
 //------------------------------------------------------------------------------
