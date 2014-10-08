@@ -69,12 +69,19 @@ public:
 
     beat.LastOccurrence = boost::posix_time::microsec_clock::local_time();
 
-    //look at the duration we have are currently polling at, and
-    //the current duration that we last polled the worker at, take the slower
-    //of the two. When the server has a really low heartbeat rate and the
+    //look at our current max time out and the and the current duration that
+    //we last polled the worker at. Take the slower of the two.
+    //
+    //When the server has a really low heartbeat rate and the
     //and worker has a slow heartbeat we don't want to eliminate living workers
-    const boost::int64_t polldur = (PollMonitor.hasAbnormalEvent() ? PollMonitor.maxTimeOut() : PollMonitor.current());
+    //
+    //Plus when we are polling really really fast, but the worker is busy
+    //decoding a message that is really large we don't want to mark it as
+    //expired, so we always use our max time out
+    const boost::int64_t polldur = PollMonitor.maxTimeOut();
     beat.Duration = std::max(beat.Duration,polldur);
+
+    // std::cout << zmq::to_string(socket) << " duration is " << beat.Duration << std::endl;
   }
 
   //----------------------------------------------------------------------------
@@ -89,8 +96,8 @@ public:
     beat.LastOccurrence = boost::posix_time::microsec_clock::local_time();
 
     //Now we choose the greatest value between the poller and the sent in duration
-    //from the socket
-    const boost::int64_t polldur = (PollMonitor.hasAbnormalEvent() ? PollMonitor.maxTimeOut() : PollMonitor.current());
+    //from the socket.
+    const boost::int64_t polldur =  PollMonitor.maxTimeOut(); //(PollMonitor.hasAbnormalEvent() ? PollMonitor.maxTimeOut() : PollMonitor.current());
     beat.Duration = std::max(dur,polldur);
   }
 
