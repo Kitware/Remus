@@ -162,7 +162,7 @@ void poll(remus::worker::ServerConnection server_info,
   //plus allows testing of the monitor to be quicker. In the future we could
   //expose this option in the MessageRouter class.
   remus::common::PollingMonitor monitor(boost::int64_t(250),
-                                        boost::int64_t(60*1000) );
+                                        boost::int64_t(60000) );
 
   //We need to notify the Thread management that polling is about to start.
   //This allows the calling thread to resume, as it has been waiting for this
@@ -228,9 +228,10 @@ void poll(remus::worker::ServerConnection server_info,
       {
       //send the server how soon in seconds we will send our next heartbeat
       //message. This way we are telling the server itself when it should
-      //expect a message, rather than it guessing.
-      const boost::int64_t polldur = monitor.hasAbnormalEvent() ?
-                                     monitor.maxTimeOut() : monitor.current();
+      //expect a message, rather than it guessing. We always send the max
+      //time out since we don't know how long till we poll again. If a
+      //super large job comes in we could be blocking for a very long time
+      const boost::int64_t polldur = monitor.maxTimeOut();
       //send the heartbeat to the server
       remus::proto::Message message(remus::common::MeshIOType(),
                                     remus::HEARTBEAT,
