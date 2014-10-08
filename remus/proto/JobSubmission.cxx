@@ -119,6 +119,17 @@ JobSubmission::JobSubmission(std::istream& buffer)
     }
 }
 
+//------------------------------------------------------------------------------
+remus::proto::JobSubmission to_JobSubmission(const char* data, std::size_t size)
+{
+  std::stringstream buffer;
+  remus::internal::writeString(buffer, data, size);
+  remus::proto::JobSubmission sub;
+  buffer >> sub;
+  return sub;
+}
+
+
 
 }
 }

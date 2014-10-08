@@ -123,21 +123,13 @@ inline std::string to_string(const remus::proto::JobSubmission& sub)
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobSubmission
-to_JobSubmission(const std::string& msg)
-{
-  remus::proto::JobSubmission submission;
-  std::istringstream buffer(msg);
-  buffer >> submission;
-  return submission;
-}
+REMUSPROTO_EXPORT
+remus::proto::JobSubmission to_JobSubmission(const char* data, std::size_t size);
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobSubmission
-to_JobSubmission(const char* data, std::size_t length)
+inline remus::proto::JobSubmission to_JobSubmission(const std::string& msg)
 {
-  const std::string temp(data,length);
-  return to_JobSubmission( temp );
+  return to_JobSubmission(msg.c_str(), msg.size());
 }
 
 }
