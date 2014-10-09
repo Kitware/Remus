@@ -181,14 +181,12 @@ Message::Message(zmq::socket_t* socket):
     //the transitive nature of the reads mean that if we have optional
     //storage, we only care about readStorageData and haveNothingElseToRead
     this->Valid = readStorageData && haveNothingElseToRead;
-    std::cout << "have data, valid state is " << this->Valid << std::endl;
     }
   else
     {
     //the transitive nature of the reads mean that if we don't have optional
     //storage, we only care about readServiceType and haveNothingElseToRead
     this->Valid  = readServiceType && haveNothingElseToRead;
-    std::cout << "no data, valid state is " << this->Valid << std::endl;
     }
   }
 
