@@ -48,10 +48,10 @@ void test_worker_terminate_routing_call(MessageRouter& mr,
   mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
   //now send it a terminate message over the worker channel
-  remus::proto::Message shutdown(remus::common::MeshIOType(),
-                                 remus::TERMINATE_WORKER);
-  bool sent = shutdown.sendNonBlocking(&workerSocket);
-  REMUS_ASSERT(sent)
+  remus::proto::Message sent = remus::proto::send_Message(remus::common::MeshIOType(),
+                                                          remus::TERMINATE_WORKER,
+                                                          &workerSocket);
+  REMUS_ASSERT( sent.isValid() )
 
   //cheap block while we wait for the router thread to get the message
   for(int i=0; i < 10 && jq.size() == 0; ++i)
