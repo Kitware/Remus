@@ -21,24 +21,90 @@ namespace remus{
 namespace proto{
 
 //----------------------------------------------------------------------------
-Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype,
-                 const std::string& mdata):
+Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
+                                remus::SERVICE_TYPE stype,
+                                const std::string& data,
+                                zmq::socket_t* socket)
+{
+  return Message(mtype,stype,data,socket,Message::NonBlocking);
+}
+
+//----------------------------------------------------------------------------
+Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
+                                remus::SERVICE_TYPE stype,
+                                zmq::socket_t* socket)
+{
+  return Message(mtype,stype,socket,Message::NonBlocking);
+}
+
+
+//----------------------------------------------------------------------------
+Message send_Message(remus::common::MeshIOType mtype,
+                     remus::SERVICE_TYPE stype,
+                     const std::string& data,
+                     zmq::socket_t* socket)
+{
+  return Message(mtype,stype,data,socket,Message::Blocking);
+}
+
+//----------------------------------------------------------------------------
+Message send_Message(remus::common::MeshIOType mtype,
+                     remus::SERVICE_TYPE stype,
+                     zmq::socket_t* socket)
+{
+  return Message(mtype,stype,socket,Message::Blocking);
+}
+
+//----------------------------------------------------------------------------
+//parse a message from a socket
+Message receive_Message( zmq::socket_t* socket )
+{
+  return Message(socket);
+}
+
+//----------------------------------------------------------------------------
+//forward a message that has been received to another socket
+bool forward_Message(const remus::proto::Message& message,
+                     zmq::socket_t* socket)
+{
+  return message.send_impl(socket,Message::Blocking);
+}
+
+
+//----------------------------------------------------------------------------
+Message::Message(remus::common::MeshIOType mtype,
+                 remus::SERVICE_TYPE stype,
+                 const std::string& mdata,
+                 zmq::socket_t* socket,
+                 Message::SendMode mode):
   MType(mtype),
   SType(stype),
-  ValidMsg(true),
+  Valid(true), //need to be initially valid to be sent
   Storage( boost::make_shared<zmq::message_t>(mdata.size()) )
 {
   std::memcpy(Storage->data(),mdata.data(),mdata.size());
+
+  //send_impl wants us to be valid before we are sent, that way it knows
+  //that we are in a good state. This allows it to determine if it can forward
+  //itself to different sockets.
+  this->Valid = this->send_impl(socket, mode);
 }
 
 //----------------------------------------------------------------------------
 //creates a job message with no data
-Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
+Message::Message(remus::common::MeshIOType mtype,
+                 remus::SERVICE_TYPE stype,
+                 zmq::socket_t* socket,
+                 SendMode mode):
   MType(mtype),
   SType(stype),
-  ValidMsg(true),
+  Valid(true), //need to be initially valid to be sent
   Storage()
 {
+  //send_impl wants us to be valid before we are sent, that way it knows
+  //that we are in a good state. This allows it to determine if it can forward
+  //itself to different sockets.
+  this->Valid = this->send_impl(socket, mode);
 }
 
 //----------------------------------------------------------------------------
@@ -46,7 +112,7 @@ Message::Message(remus::common::MeshIOType mtype, remus::SERVICE_TYPE stype):
 Message::Message(zmq::socket_t* socket):
   MType(),
   SType(),
-  ValidMsg(false),
+  Valid(false),
   Storage( boost::make_shared<zmq::message_t>() )
   {
   //we are receiving a multi part message
@@ -114,13 +180,15 @@ Message::Message(zmq::socket_t* socket):
     {
     //the transitive nature of the reads mean that if we have optional
     //storage, we only care about readStorageData and haveNothingElseToRead
-    this->ValidMsg = readStorageData && haveNothingElseToRead;
+    this->Valid = readStorageData && haveNothingElseToRead;
+    std::cout << "have data, valid state is " << this->Valid << std::endl;
     }
   else
     {
     //the transitive nature of the reads mean that if we don't have optional
     //storage, we only care about readServiceType and haveNothingElseToRead
-    this->ValidMsg  = readServiceType && haveNothingElseToRead;
+    this->Valid  = readServiceType && haveNothingElseToRead;
+    std::cout << "no data, valid state is " << this->Valid << std::endl;
     }
   }
 
@@ -137,20 +205,13 @@ std::size_t Message::dataSize() const
 }
 
 //------------------------------------------------------------------------------
-bool Message::send(zmq::socket_t *socket) const
+bool Message::send_impl(zmq::socket_t *socket, SendMode mode) const
 {
-  return this->send_impl(socket);
-}
-
-//------------------------------------------------------------------------------
-bool Message::sendNonBlocking(zmq::socket_t *socket) const
-{
-  return this->send_impl(socket,ZMQ_DONTWAIT);
-}
-
-//------------------------------------------------------------------------------
-bool Message::send_impl(zmq::socket_t *socket, int flags) const
-{
+  int flags = 0;
+  if(mode == Message::NonBlocking)
+    {
+    flags = ZMQ_DONTWAIT;
+    }
 
   //we are sending our selves as a multi part message
   //frame 0: REQ header / attachReqHeader does this
