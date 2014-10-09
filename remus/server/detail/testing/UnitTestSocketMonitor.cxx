@@ -185,14 +185,14 @@ void verify_heartbeat_interval()
 
 
   //change the timeout ranges to be larger than the heartbeat value
-  //we pass in so that we can very the heartbeat intervals is the min
+  //we pass in so that we can very the heartbeat intervals is the max
   //time of the polling monitor
   monitor.pollingMonitor().changeTimeOutRates(100,500);
 
-  monitor.heartbeat(sid, make_heartbeat(10) ); //make a heartbeat of 60sec
+  monitor.heartbeat(sid, make_heartbeat(60) ); //make a heartbeat of 60sec
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
-  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (100)) );
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (500)) );
   }
 }
 
@@ -202,6 +202,8 @@ void verify_responiveness()
   {
   zmq::SocketIdentity sid = make_socketId();
   SocketMonitor monitor;
+  monitor.pollingMonitor().changeTimeOutRates(25,125);
+
   monitor.heartbeat(sid, make_heartbeat(25) );
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
@@ -209,19 +211,28 @@ void verify_responiveness()
   remus::common::SleepForMillisec(10);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
-  remus::common::SleepForMillisec(25);
+
+  //verify that even when we are getting fast heartbeats from the worker
+  //we still expect it's next heartbeat to be really slow
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (125)) );
+
+  remus::common::SleepForMillisec(125);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
 
   //after twice the interval sid's will become unresponsive
-  remus::common::SleepForMillisec(25);
+  remus::common::SleepForMillisec(125);
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == true) );
 
   //bring the socket back to being responsive
-  monitor.heartbeat(sid, make_heartbeat(25) );
+  monitor.heartbeat(sid, make_heartbeat(225) );
   REMUS_ASSERT( (monitor.isDead(sid) == false) );
   REMUS_ASSERT( (monitor.isUnresponsive(sid) == false) );
+
+  //verify that we have accepted a slow heartbeat from the sid compared
+  //to our max timeout
+  REMUS_ASSERT( (monitor.heartbeatInterval(sid) == (225)) );
   }
 }
 
