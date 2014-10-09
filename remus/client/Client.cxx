@@ -56,9 +56,9 @@ const remus::client::ServerConnection& Client::connection() const
 //------------------------------------------------------------------------------
 remus::common::MeshIOTypeSet Client::supportedIOTypes()
 {
-  remus::proto::Message j(remus::common::MeshIOType(),
-                          remus::SUPPORTED_IO_TYPES);
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(remus::common::MeshIOType(),
+                             remus::SUPPORTED_IO_TYPES,
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   std::istringstream buffer(response.data());
@@ -71,8 +71,9 @@ remus::common::MeshIOTypeSet Client::supportedIOTypes()
 //------------------------------------------------------------------------------
 bool Client::canMesh(const remus::common::MeshIOType& meshtypes)
 {
-  remus::proto::Message j(meshtypes, remus::CAN_MESH_IO_TYPE);
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(meshtypes,
+                             remus::CAN_MESH_IO_TYPE,
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   std::istringstream buffer(response.data());
@@ -87,10 +88,10 @@ bool Client::canMesh(const remus::proto::JobRequirements& reqs)
 {
   std::ostringstream input_buffer;
   input_buffer << reqs;
-  remus::proto::Message j(reqs.meshTypes(),
-                          remus::CAN_MESH_REQUIREMENTS,
-                          input_buffer.str() );
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(reqs.meshTypes(),
+                             remus::CAN_MESH_REQUIREMENTS,
+                             input_buffer.str(),
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   std::istringstream output_buffer(response.data());
@@ -104,8 +105,9 @@ bool Client::canMesh(const remus::proto::JobRequirements& reqs)
 remus::proto::JobRequirementsSet
 Client::retrieveRequirements( const remus::common::MeshIOType& meshtypes)
 {
-  remus::proto::Message j(meshtypes, remus::MESH_REQUIREMENTS_FOR_IO_TYPE);
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(meshtypes,
+                             remus::MESH_REQUIREMENTS_FOR_IO_TYPE,
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
 
@@ -122,10 +124,11 @@ Client::submitJob(const remus::proto::JobSubmission& submission)
 {
   std::ostringstream buffer;
   buffer << submission;
-  remus::proto::Message j(submission.type(),
-                           remus::MAKE_MESH,
-                           buffer.str());
-  j.send(&this->Zmq->Server);
+
+  remus::proto::send_Message(submission.type(),
+                             remus::MAKE_MESH,
+                            buffer.str(),
+                            &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   const std::string job(response.data(), response.dataSize());
@@ -135,10 +138,9 @@ Client::submitJob(const remus::proto::JobSubmission& submission)
 //------------------------------------------------------------------------------
 remus::proto::JobStatus Client::jobStatus(const remus::proto::Job& job)
 {
-  remus::proto::Message j(job.type(),
-                          remus::MESH_STATUS,
-                          remus::proto::to_string(job));
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(job.type(),
+                             remus::MESH_STATUS,
+                             remus::proto::to_string(job),&this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   const std::string status(response.data(), response.dataSize());
@@ -148,10 +150,10 @@ remus::proto::JobStatus Client::jobStatus(const remus::proto::Job& job)
 //------------------------------------------------------------------------------
 remus::proto::JobResult Client::retrieveResults(const remus::proto::Job& job)
 {
-  remus::proto::Message j(job.type(),
-                          remus::RETRIEVE_RESULT,
-                          remus::proto::to_string(job));
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(job.type(),
+                             remus::RETRIEVE_RESULT,
+                             remus::proto::to_string(job),
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   const std::string result(response.data(), response.dataSize());
@@ -161,10 +163,10 @@ remus::proto::JobResult Client::retrieveResults(const remus::proto::Job& job)
 //------------------------------------------------------------------------------
 remus::proto::JobStatus Client::terminate(const remus::proto::Job& job)
 {
-  remus::proto::Message j(job.type(),
-                          remus::TERMINATE_JOB,
-                          remus::proto::to_string(job));
-  j.send(&this->Zmq->Server);
+  remus::proto::send_Message(job.type(),
+                             remus::TERMINATE_JOB,
+                             remus::proto::to_string(job),
+                             &this->Zmq->Server);
 
   remus::proto::Response response(&this->Zmq->Server);
   const std::string status(response.data(), response.dataSize());
