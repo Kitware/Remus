@@ -30,12 +30,11 @@ zmq::SocketIdentity make_socketId()
   return zmq::SocketIdentity(str_id.c_str(),str_id.size());
 }
 
-//make a heartbeat message, duration in milliseconds
-remus::proto::Message make_heartbeat( boost::int64_t dur_in_milli )
+//helper function that makes it clear what the numbers in this test
+//represent
+boost::int64_t make_heartbeat( boost::int64_t dur_in_milli )
 {
-  return remus::proto::Message(remus::common::MeshIOType(),
-                               remus::HEARTBEAT,
-                               boost::lexical_cast<std::string>(dur_in_milli));
+  return dur_in_milli;
 }
 
 

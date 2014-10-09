@@ -45,10 +45,10 @@ public:
   void refresh( const zmq::SocketIdentity& socket);
 
   //update a sockets heartbeat duration, marks the socket as alive.
-  //Compares the heart beat interval in the message and the pollingMontior
+  //Compares the heart beat interval and the pollingMontior
   //to determine the expect time of the next heartbeat from the socket
   void heartbeat( const zmq::SocketIdentity& socket,
-                  const remus::proto::Message& msg );
+                  boost::int64_t dur_in_milli );
 
   //returns the interval in milliseconds between heartbeats for a socket.
   //This should always be a positive value.

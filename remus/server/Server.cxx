@@ -712,7 +712,12 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //pass along to the worker monitor what worker just sent a heartbeat
       //message. The heartbeat message contains the msec delta for when
       //to next expect a heartbeat message from the given worker
-      this->SocketMonitor->heartbeat(workerIdentity,msg);
+      { //scoped so we don't get jump bypasses variable initialization errors
+      const std::string msgPayload(msg.data(),msg.dataSize());
+      boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
+                                                              msgPayload);
+      this->SocketMonitor->heartbeat(workerIdentity,dur_in_milli);
+      }
       break;
     case remus::TERMINATE_WORKER:
       //we have found out the worker is dead, dead since it has told
