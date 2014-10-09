@@ -179,7 +179,7 @@ void poll(remus::worker::ServerConnection server_info,
       {
       sentToServer = true;
 
-      remus::proto::Message message(&workerComm);
+      remus::proto::Message message = remus::proto::receive_Message(&workerComm);
 
       //special case is that TERMINATE_WORKER means we stop looping
       if(message.serviceType()==remus::TERMINATE_WORKER)
@@ -195,7 +195,7 @@ void poll(remus::worker::ServerConnection server_info,
       else
         {
         //just pass the message on to the server
-        message.send(&serverComm);
+        remus::proto::forward_Message(message,&serverComm);
         }
       }
     if(items[1].revents & ZMQ_POLLIN)
@@ -233,10 +233,10 @@ void poll(remus::worker::ServerConnection server_info,
       //super large job comes in we could be blocking for a very long time
       const boost::int64_t polldur = monitor.maxTimeOut();
       //send the heartbeat to the server
-      remus::proto::Message message(remus::common::MeshIOType(),
-                                    remus::HEARTBEAT,
-                                    boost::lexical_cast<std::string>(polldur));
-      message.send(&serverComm);
+      remus::proto::send_Message(remus::common::MeshIOType(),
+                                 remus::HEARTBEAT,
+                                 boost::lexical_cast<std::string>(polldur),
+                                 &serverComm);
       }
     }
 }

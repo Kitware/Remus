@@ -190,13 +190,8 @@ void SocketMonitor::refresh( const zmq::SocketIdentity& socket )
 
 //------------------------------------------------------------------------------
 void SocketMonitor::heartbeat( const zmq::SocketIdentity& socket,
-                               const remus::proto::Message& msg )
+                               boost::int64_t dur_in_milli )
 {
-  //convert the string back into an int64_t which represents seconds to
-  //the next heartbeat expected from this socket
-  std::string messagePayload(msg.data(),msg.dataSize());
-  boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
-                                                              messagePayload);
   this->Tracker->heartbeat(socket, dur_in_milli);
 }
 

@@ -62,10 +62,10 @@ Worker::Worker(remus::common::MeshIOType mtype,
 
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
-  remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
+  remus::proto::send_Message(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH_REQUIREMENTS,
-                            input_buffer.str());
-  canMesh.send(&this->Zmq->Server);
+                            input_buffer.str(),
+                            &this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -84,10 +84,10 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
 
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
-  remus::proto::Message canMesh(this->MeshRequirements.meshTypes(),
+  remus::proto::send_Message(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH_REQUIREMENTS,
-                            input_buffer.str());
-  canMesh.send(&this->Zmq->Server);
+                            input_buffer.str(),
+                            &this->Zmq->Server);
 }
 
 
@@ -98,9 +98,9 @@ Worker::~Worker()
     {
     //send message that we are shutting down communication, and we can stop
     //polling the server
-    remus::proto::Message shutdown(this->MeshRequirements.meshTypes(),
-                                   remus::TERMINATE_WORKER);
-    shutdown.send(&this->Zmq->Server);
+    remus::proto::send_Message(this->MeshRequirements.meshTypes(),
+                               remus::TERMINATE_WORKER,
+                               &this->Zmq->Server);
     }
 }
 
@@ -127,12 +127,13 @@ void Worker::askForJobs( unsigned int numberOfJobs )
   std::ostringstream input_buffer;
   input_buffer << lightReqs;
 
-  proto::Message askForMesh(this->MeshRequirements.meshTypes(),
-                            remus::MAKE_MESH,
-                            input_buffer.str());
-
   for(unsigned int i=0; i < numberOfJobs; ++i)
-    { askForMesh.send(&this->Zmq->Server); }
+    {
+    proto::send_Message(this->MeshRequirements.meshTypes(),
+                        remus::MAKE_MESH,
+                        input_buffer.str(),
+                        &this->Zmq->Server);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -162,10 +163,10 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
 {
   //send a message that contains, the status
   std::string msg = remus::proto::to_string(info);
-  remus::proto::Message message(this->MeshRequirements.meshTypes(),
-                                remus::MESH_STATUS,
-                                msg);
-  message.send(&this->Zmq->Server);
+  remus::proto::send_Message(this->MeshRequirements.meshTypes(),
+                             remus::MESH_STATUS,
+                             msg,
+                             &this->Zmq->Server);
 }
 
 //-----------------------------------------------------------------------------
@@ -173,10 +174,10 @@ void Worker::returnResult(const remus::proto::JobResult& result)
 {
   //send a message that contains, the path to the resulting file
   std::string msg = remus::proto::to_string(result);
-  remus::proto::Message message(this->MeshRequirements.meshTypes(),
-                                remus::RETRIEVE_RESULT,
-                                msg);
-  message.send(&this->Zmq->Server);
+  remus::proto::send_Message(this->MeshRequirements.meshTypes(),
+                             remus::RETRIEVE_RESULT,
+                             msg,
+                             &this->Zmq->Server);
 }
 
 }

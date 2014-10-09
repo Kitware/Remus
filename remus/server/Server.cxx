@@ -420,7 +420,7 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
                                      const zmq::SocketIdentity& clientIdentity,
                                      zmq::socket_t& workerChannel)
 {
-  remus::proto::Message msg(&clientChannel);
+  remus::proto::Message msg = remus::proto::receive_Message(&clientChannel);
   //server response is the general response message type
   //the client can than convert it to the expected type
   if(!msg.isValid())
@@ -662,7 +662,7 @@ std::string Server::terminateJob(zmq::socket_t& workerChannel,
 void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
                                      const zmq::SocketIdentity &workerIdentity)
 {
-  remus::proto::Message msg(&workerChannel);
+  remus::proto::Message msg = remus::proto::receive_Message(&workerChannel);
   //if we have an invalid message just ignore it
   if(!msg.isValid())
     {
@@ -712,7 +712,12 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //pass along to the worker monitor what worker just sent a heartbeat
       //message. The heartbeat message contains the msec delta for when
       //to next expect a heartbeat message from the given worker
-      this->SocketMonitor->heartbeat(workerIdentity,msg);
+      { //scoped so we don't get jump bypasses variable initialization errors
+      const std::string msgPayload(msg.data(),msg.dataSize());
+      boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
+                                                              msgPayload);
+      this->SocketMonitor->heartbeat(workerIdentity,dur_in_milli);
+      }
       break;
     case remus::TERMINATE_WORKER:
       //we have found out the worker is dead, dead since it has told
