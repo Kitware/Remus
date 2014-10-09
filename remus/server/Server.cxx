@@ -420,7 +420,7 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
                                      const zmq::SocketIdentity& clientIdentity,
                                      zmq::socket_t& workerChannel)
 {
-  remus::proto::Message msg(&clientChannel);
+  remus::proto::Message msg = remus::proto::receive_Message(&clientChannel);
   //server response is the general response message type
   //the client can than convert it to the expected type
   if(!msg.isValid())
@@ -662,7 +662,7 @@ std::string Server::terminateJob(zmq::socket_t& workerChannel,
 void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
                                      const zmq::SocketIdentity &workerIdentity)
 {
-  remus::proto::Message msg(&workerChannel);
+  remus::proto::Message msg = remus::proto::receive_Message(&workerChannel);
   //if we have an invalid message just ignore it
   if(!msg.isValid())
     {
