@@ -40,6 +40,9 @@ function(add_SubmitJobs_test size workers jobs)
   add_test(NAME ${tname}
            COMMAND IntegrationTests_SubmitJobs ${size} ${workers} ${jobs})
   set_tests_properties(${tname} PROPERTIES TIMEOUT 120)
+  #This test needs to be run serially as it binds to lots of ports and will
+  #be an issue to other tests
+  set_tests_properties(${tname} PROPERTIES RUN_SERIAL TRUE)
 endfunction()
 
 add_SubmitJobs_test(small 1 1)
