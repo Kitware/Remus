@@ -13,6 +13,7 @@
 #ifndef remus_common__ExecuteProcess_h
 #define remus_common__ExecuteProcess_h
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,6 +57,7 @@ public:
     Attached
   };
 
+  ExecuteProcess(const std::string& command, const std::vector<std::string>& args, const std::map<std::string,std::string>& env);
   ExecuteProcess(const std::string& command, const std::vector<std::string>& args);
   explicit ExecuteProcess(const std::string& command);
 
@@ -93,6 +95,7 @@ private:
 
   std::string Command;
   std::vector<std::string> Args;
+  std::map<std::string,std::string> Env;
 
   struct Process;
   Process* ExternalProcess;
