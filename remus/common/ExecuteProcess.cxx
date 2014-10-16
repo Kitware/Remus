@@ -14,6 +14,8 @@
 
 #include <RemusSysTools/Process.h>
 
+#include <stdlib.h>
+
 namespace{
 
 remus::common::ProcessPipe::PipeType typeToType(int type)
@@ -71,6 +73,18 @@ public:
 };
 
 //-----------------------------------------------------------------------------
+ExecuteProcess::ExecuteProcess(
+  const std::string& command,
+  const std::vector<std::string>& args,
+  const std::map<std::string,std::string>& env):
+  Command(command),
+  Args(args),
+  Env(env)
+{
+  this->ExternalProcess = new ExecuteProcess::Process();
+}
+
+//-----------------------------------------------------------------------------
 ExecuteProcess::ExecuteProcess(const std::string& command,
                                const std::vector<std::string>& args):
   Command(command),
@@ -106,12 +120,43 @@ void ExecuteProcess::execute(DetachMode mode)
     }
   cmds[size-1]=NULL;
 
+  // For each requested environment variable, save
+  // the old value before setting the new one.
+  typedef std::map<std::string,std::string> envmap_t;
+  envmap_t TmpEnv;
+  for (envmap_t::const_iterator it = this->Env.begin(); it != this->Env.end(); ++it)
+    {
+    char* buf;
+#if !defined(_WIN32) || defined(__CYGWIN__)
+    buf = getenv(it->first.c_str());
+    if (buf && buf[0])
+      TmpEnv[it->first] = buf;
+    setenv(it->first.c_str(), it->second.c_str(), 1);
+#else
+    const bool valid;
+    valid = (_dupenv_s(&buf, NULL, it->first.c_str()) == 0) && (buf != NULL);
+    if (valid)
+      TmpEnv[it->first] = buf;
+    _putenv_s(it->first.c_str(), it->second.c_str());
+#endif
+    }
+
   RemusSysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
   RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             RemusSysToolsProcess_Option_HideWindow, true);
   RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
                               RemusSysToolsProcess_Option_Detach, (mode==Detached) );
   RemusSysToolsProcess_Execute(this->ExternalProcess->Proc);
+
+  // Now that the process has been created, reset the environment.
+  for (envmap_t::const_iterator it = TmpEnv.begin(); it != TmpEnv.end(); ++it)
+    {
+#if !defined(_WIN32) || defined(__CYGWIN__)
+    setenv(it->first.c_str(), it->second.c_str(), 1);
+#else
+    _putenv_s(it->first.c_str(), it->second.c_str());
+#endif
+    }
 
   this->ExternalProcess->Created = true;
 

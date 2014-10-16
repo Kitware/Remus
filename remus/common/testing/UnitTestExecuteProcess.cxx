@@ -79,7 +79,7 @@ int UnitTestExecuteProcess(int, char *[])
   //next create a program that will exit normally, and we won't have to kill
   std::vector< std::string > args;
   args.push_back("SLEEP_AND_EXIT");
-  remus::common::ExecuteProcess example(eapp.name, args );
+  remus::common::ExecuteProcess example(eapp.name, args);
 
   //start the process in non detached-mode
   example.execute(attached);
@@ -112,7 +112,10 @@ int UnitTestExecuteProcess(int, char *[])
   //next step will be to test that we can properly poll an application
   std::vector< std::string > args;
   args.push_back("COUT_OUTPUT");
-  remus::common::ExecuteProcess example(eapp.name, args );
+  //remus::common::ExecuteProcess example(eapp.name, args );
+  std::map< std::string, std::string > env; // test setting environment vars
+  env["REMUS_TEST"] = "TRUE";
+  remus::common::ExecuteProcess example(eapp.name, args, env);
 
   //start the process in attached mode, and test polling
   example.execute(attached);

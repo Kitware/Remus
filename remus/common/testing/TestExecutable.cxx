@@ -13,8 +13,12 @@
 #include <iostream>
 #include <remus/common/SleepFor.h>
 
+#include <stdlib.h>
+
 int main(int argc, char** argv)
 {
+
+
   //never ending application that needs to be killed
   //and just spews values
   int mode = -1;
@@ -26,7 +30,27 @@ int main(int argc, char** argv)
     else if(prog_type.find("NO_OUTPUT") == 0)
       mode = 1;
     else if( prog_type.find("COUT_OUTPUT") == 0)
+      {
       mode = 2;
+      // If ExecuteProcess did not pass the REMUS_TEST
+      // environment variable, exit early so the test
+      // will fail. This is used to verify that environment
+      // variables can be passed to subprocesses:
+      char* buf;
+      std::string remusTestEnv;
+#if !defined(_WIN32) || defined(__CYGWIN__)
+      buf = getenv("REMUS_TEST");
+      if (buf && buf[0])
+        remusTestEnv = buf;
+#else
+      const bool valid;
+      valid = (_dupenv_s(&buf, NULL, "REMUS_TEST") == 0) && (buf != NULL);
+      if (valid)
+        remusTestEnv = buf;
+#endif
+      if (remusTestEnv != "TRUE")
+        return -1;
+      }
     else if( prog_type.find("CERR_OUTPUT") == 0)
       mode = 3;
     }
