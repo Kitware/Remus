@@ -73,7 +73,7 @@ namespace
     void operator()(remus::server::WorkerFactory::RunningProcessInfo& process) const
       {
       const bool can_be_killed =
-        (process.second == remus::server::WorkerFactory::KillOnFactoryDeletion);
+        (process.second == remus::server::WorkerFactoryBase::KillOnFactoryDeletion);
       const bool is_alive = !is_dead()(process);
       if(can_be_killed && is_alive)
         {
@@ -355,11 +355,10 @@ private:
 
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory():
-  MaxWorkers(1),
+  WorkerFactoryBase(),
   WorkerExtension(".RW"),
   PossibleWorkers(),
-  CurrentProcesses(),
-  GlobalArguments()
+  CurrentProcesses()
 {
   WorkerFinder finder(this->WorkerExtension); //default to current working directory
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
@@ -370,11 +369,10 @@ WorkerFactory::WorkerFactory():
 
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory(const std::string& ext):
-  MaxWorkers(1),
+  WorkerFactoryBase(),
   WorkerExtension(ext),
   PossibleWorkers(),
-  CurrentProcesses(),
-  GlobalArguments()
+  CurrentProcesses()
 {
   WorkerFinder finder(this->WorkerExtension); //default to current working directory
   this->PossibleWorkers.insert(this->PossibleWorkers.end(),
@@ -390,18 +388,6 @@ WorkerFactory::~WorkerFactory()
   std::for_each(this->CurrentProcesses.begin(),
                 this->CurrentProcesses.end(),
                 kill_on_deletion());
-}
-
-//----------------------------------------------------------------------------
-void WorkerFactory::addCommandLineArgument(const std::string& argument)
-{
-  this->GlobalArguments.push_back(argument);
-}
-
-//----------------------------------------------------------------------------
-void WorkerFactory::clearCommandLineArguments()
-{
-  this->GlobalArguments.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -436,7 +422,7 @@ bool WorkerFactory::haveSupport(
 
 //----------------------------------------------------------------------------
 bool WorkerFactory::createWorker(const remus::proto::JobRequirements& reqs,
-                               WorkerFactory::FactoryDeletionBehavior lifespan)
+                               WorkerFactoryBase::FactoryDeletionBehavior lifespan)
 {
   this->updateWorkerCount(); //remove dead workers
   if(this->currentWorkerCount() < this->maxWorkerCount())
@@ -462,17 +448,25 @@ void WorkerFactory::updateWorkerCount()
 
 //----------------------------------------------------------------------------
 bool WorkerFactory::addWorker(const std::string& executable,
-                              WorkerFactory::FactoryDeletionBehavior lifespan)
+                              WorkerFactoryBase::FactoryDeletionBehavior lifespan)
 {
   //add this workers
+  std::vector< std::string > arguments;
+  if ( !this->workerEndpoint().empty() )
+    { //only add the end point if it is not empty
+    arguments.push_back( this->workerEndpoint() );
+    }
+  const std::vector< std::string >& cmlArgs = this->commandLineArguments();
+  arguments.insert( arguments.end(), cmlArgs.begin(), cmlArgs.end() );
+
   WorkerFactory::ExecuteProcessPtr ep(
-                        new ExecuteProcess(executable,this->GlobalArguments) );
+                        new ExecuteProcess(executable,arguments) );
 
   //we set the detached behavior based on if we want the worker to last
   //longer than us. We also need to store the lifespan flag, so that
   //we can hard terminate workers when we leave that have the
   //KillOnFactoryDeletion otherwise we hang while the continue to run
-  if(lifespan == WorkerFactory::KillOnFactoryDeletion)
+  if(lifespan == WorkerFactoryBase::KillOnFactoryDeletion)
     {
     ep->execute( remus::common::ExecuteProcess::Detached );
     }

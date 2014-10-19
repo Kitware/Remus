@@ -27,7 +27,7 @@
   #pragma GCC diagnostic pop
 #endif
 
-#include <remus/server/WorkerFactory.h>
+#include <remus/server/WorkerFactoryBase.h>
 #include <remus/server/ServerPorts.h>
 
 //included for export symbols
@@ -91,14 +91,14 @@ public:
   Server();
 
   //construct a new server with a custom factory and default server ports.
-  explicit Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory);
+  explicit Server(const boost::shared_ptr<remus::server::WorkerFactoryBase>& factory);
 
   //construct a new server using the given server ports and default factory.
   explicit Server(const remus::server::ServerPorts& ports);
 
   //construct a new server using the given server ports and factory.
   Server(const remus::server::ServerPorts& ports,
-         const boost::shared_ptr<remus::server::WorkerFactory>& factory);
+         const boost::shared_ptr<remus::server::WorkerFactoryBase>& factory);
 
   //cleanup the server
   virtual ~Server();
@@ -228,8 +228,8 @@ protected:
   boost::scoped_ptr<detail::UUIDManagement> UUIDGenerator;
   boost::scoped_ptr<detail::ThreadManagement> Thread;
 
-  //needs to be a shared_ptr since we can be passed in a WorkerFactory
-  boost::shared_ptr<remus::server::WorkerFactory> WorkerFactory;
+  //needs to be a shared_ptr since we can be passed in a WorkerFactoryBase
+  boost::shared_ptr<remus::server::WorkerFactoryBase> WorkerFactory;
 };
 
 }

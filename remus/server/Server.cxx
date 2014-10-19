@@ -44,6 +44,7 @@
 #include <remus/server/detail/JobQueue.h>
 #include <remus/server/detail/SocketMonitor.h>
 #include <remus/server/detail/WorkerPool.h>
+#include <remus/server/WorkerFactory.h>
 
 #include <set>
 #include <ctime>
@@ -215,7 +216,7 @@ Server::Server():
 }
 
 //------------------------------------------------------------------------------
-Server::Server(const boost::shared_ptr<remus::server::WorkerFactory>& factory):
+Server::Server(const boost::shared_ptr<remus::server::WorkerFactoryBase>& factory):
   PortInfo(),
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
@@ -242,7 +243,7 @@ Server::Server(const remus::server::ServerPorts& ports):
 
 //------------------------------------------------------------------------------
 Server::Server(const remus::server::ServerPorts& ports,
-               const boost::shared_ptr<remus::server::WorkerFactory>& factory):
+               const boost::shared_ptr<remus::server::WorkerFactoryBase>& factory):
   PortInfo( ports ),
   QueuedJobs( new remus::server::detail::JobQueue() ),
   SocketMonitor( new remus::server::detail::SocketMonitor() ),
@@ -301,7 +302,7 @@ bool Server::Brokering(Server::SignalHandling sh)
 
   //give to the worker factory the endpoint information so it can properly
   //setup workers. This needs to happen after the binding of the worker socket
-  this->WorkerFactory->addCommandLineArgument( this->PortInfo.worker().endpoint() );
+  this->WorkerFactory->portForWorkersToUse( this->PortInfo.worker() );
 
   //construct the pollitems to have client and workers so that we process
   //messages from both sockets.
@@ -830,7 +831,7 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
     //check if we have a waiting worker, if we don't than try
     //ask the factory to create a worker of that type.
     if(this->WorkerFactory->createWorker(*type,
-                           WorkerFactory::KillOnFactoryDeletion))
+                           WorkerFactoryBase::KillOnFactoryDeletion))
       {
       this->QueuedJobs->workerDispatched(*type);
       }
