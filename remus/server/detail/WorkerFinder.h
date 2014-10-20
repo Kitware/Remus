@@ -23,6 +23,10 @@
 
 namespace remus{
 namespace server{
+
+//forward declare
+class FactoryFileParser;
+
 namespace detail{
 
 //struct that we use to represent the contents of a worker that the
@@ -40,6 +44,7 @@ struct MeshWorkerInfo
 //Worker json files
 class WorkerFinder
 {
+  typedef boost::shared_ptr< remus::server::FactoryFileParser> FactoryFileParserPtr;
   //class that loads all files in the executing directory
   //with the rw extension and creates a vector of possible
   //meshers with that info
@@ -47,9 +52,11 @@ public:
   typedef std::vector<MeshWorkerInfo>::const_iterator const_iterator;
   typedef std::vector<MeshWorkerInfo>::iterator iterator;
 
-  WorkerFinder(const std::string& ext);
+  WorkerFinder(const FactoryFileParserPtr& parser,
+               const std::string& ext);
 
-  WorkerFinder(const boost::filesystem::path& path,
+  WorkerFinder(const FactoryFileParserPtr& parser,
+               const boost::filesystem::path& path,
                const std::string& ext);
 
   void parseDirectory(const boost::filesystem::path& dir);
@@ -66,6 +73,7 @@ public:
 
 private:
   const std::string FileExt;
+  FactoryFileParserPtr Parser;
   std::vector<MeshWorkerInfo> Info;
 };
 

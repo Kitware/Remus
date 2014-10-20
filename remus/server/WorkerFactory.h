@@ -22,6 +22,10 @@
 namespace remus{
 namespace server{
 
+//forward declare FactoryFileParser, a helper class that can be over-ridden
+//to allow users to parse different file formats
+class FactoryFileParser;
+
 //The Worker Factory.
 //First it locates all files that match a given extension of the default extension
 //of .rw. These files are than parsed to determine what type of local Remus workers
@@ -36,6 +40,11 @@ public:
   //Create a worker factory with a different file extension to
   //search for. The extension must start with a period.
   WorkerFactory(const std::string& ext);
+
+  //Create a worker factory with a different file extension, and a custom
+  //file parsing algorithm. The extension must start with a period.
+  WorkerFactory(const std::string& ext,
+                boost::shared_ptr<FactoryFileParser>& parser);
 
   virtual ~WorkerFactory();
 
@@ -78,6 +87,8 @@ private:
                          WorkerFactoryBase::FactoryDeletionBehavior lifespan);
 
   std::string WorkerExtension;
+
+  boost::shared_ptr<FactoryFileParser> Parser;
 
   struct WorkerTracker;
   boost::shared_ptr<WorkerTracker> Tracker;

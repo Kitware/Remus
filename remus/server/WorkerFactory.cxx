@@ -14,6 +14,7 @@
 
 #include <remus/common/ExecuteProcess.h>
 #include <remus/common/MeshIOType.h>
+#include <remus/server/FactoryFileParser.h>
 #include <remus/server/detail/WorkerFinder.h>
 
 #include <algorithm>
@@ -21,8 +22,6 @@
 //force to use filesystem version 3
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
 
 #include <boost/make_shared.hpp>
 
@@ -175,10 +174,12 @@ struct WorkerFactory::WorkerTracker
 WorkerFactory::WorkerFactory():
   WorkerFactoryBase(),
   WorkerExtension(".RW"),
+  Parser( boost::make_shared<FactoryFileParser>() ),
   Tracker(boost::make_shared<WorkerTracker>())
 {
   //default to current working directory
-  remus::server::detail::WorkerFinder finder(this->WorkerExtension);
+  remus::server::detail::WorkerFinder finder(this->Parser,
+                                             this->WorkerExtension);
   this->Tracker->PossibleWorkers.insert(this->Tracker->PossibleWorkers.end(),
                                           finder.begin(),
                                           finder.end());
@@ -189,10 +190,28 @@ WorkerFactory::WorkerFactory():
 WorkerFactory::WorkerFactory(const std::string& ext):
   WorkerFactoryBase(),
   WorkerExtension(ext),
+  Parser( boost::make_shared<FactoryFileParser>() ),
   Tracker(boost::make_shared<WorkerTracker>())
 {
   //default to current working directory
-  remus::server::detail::WorkerFinder finder(this->WorkerExtension);
+  remus::server::detail::WorkerFinder finder(this->Parser,
+                                             this->WorkerExtension);
+  this->Tracker->PossibleWorkers.insert(this->Tracker->PossibleWorkers.end(),
+                                        finder.begin(),
+                                        finder.end());
+}
+
+//----------------------------------------------------------------------------
+WorkerFactory::WorkerFactory(const std::string& ext,
+                             boost::shared_ptr<FactoryFileParser>& parser):
+  WorkerFactoryBase(),
+  WorkerExtension(ext),
+  Parser( parser ),
+  Tracker(boost::make_shared<WorkerTracker>())
+{
+  //default to current working directory
+  remus::server::detail::WorkerFinder finder(this->Parser,
+                                             this->WorkerExtension);
   this->Tracker->PossibleWorkers.insert(this->Tracker->PossibleWorkers.end(),
                                         finder.begin(),
                                         finder.end());
@@ -212,7 +231,9 @@ WorkerFactory::~WorkerFactory()
 void WorkerFactory::addWorkerSearchDirectory(const std::string &directory)
 {
   boost::filesystem::path dir(directory);
-  remus::server::detail::WorkerFinder finder(dir,this->WorkerExtension);
+  remus::server::detail::WorkerFinder finder(this->Parser,
+                                             dir,
+                                             this->WorkerExtension);
   this->Tracker->PossibleWorkers.insert(this->Tracker->PossibleWorkers.end(),
                                         finder.begin(),
                                         finder.end());
