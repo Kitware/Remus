@@ -77,6 +77,13 @@ endfunction(remus_unit_test_executable)
 # as the requirements file
 
 function(remus_register_unit_test_worker)
+
+  #enable only the new parser for this function. Policies are scoped to the
+  #function so we don't have to worry about this affecting the calling project
+  if(POLICY CMP0053)
+    cmake_policy(SET CMP0053 NEW)
+  endif()
+
   set(options IS_FILE_BASED)
   set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT)
   set(multiValueArgs)
