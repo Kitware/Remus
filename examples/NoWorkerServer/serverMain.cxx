@@ -7,7 +7,7 @@
 =========================================================================*/
 
 #include <remus/server/Server.h>
-#include <remus/server/WorkerFactory.h>
+#include <remus/server/WorkerFactoryBase.h>
 
 #include <remus/proto/JobRequirements.h>
 
@@ -17,7 +17,7 @@ namespace factory
 //but actually doesn't when asked too. This will allow the server to queue
 //jobs when no worker is connected, instead of rejecting all jobs that are
 //submitted
-class DoNothingFactory: public remus::server::WorkerFactory
+class DoNothingFactory: public remus::server::WorkerFactoryBase
 {
 public:
 
@@ -46,7 +46,7 @@ public:
     }
 
   bool createWorker(const remus::proto::JobRequirements& type,
-                    WorkerFactory::FactoryDeletionBehavior lifespan)
+                    WorkerFactoryBase::FactoryDeletionBehavior lifespan)
     {
     (void) type;
     (void) lifespan;
@@ -54,6 +54,9 @@ public:
     //a worker and assigns a job to a worker we didn't create
     return false;
     }
+
+    void updateWorkerCount(){}
+    unsigned int currentWorkerCount() const { return 0; }
 };
 
 }

@@ -15,7 +15,7 @@
 //=============================================================================
 #include <remus/client/Client.h>
 #include <remus/server/Server.h>
-#include <remus/server/WorkerFactory.h>
+#include <remus/server/WorkerFactoryBase.h>
 #include <remus/worker/Worker.h>
 
 //required to use custom contexts
@@ -37,7 +37,7 @@ namespace
   {
   //we want a custom factory that can not create any workers
   //but alays states that it can support a mesh type
-  class AlwaysSupportFactory: public remus::server::WorkerFactory
+  class AlwaysSupportFactory: public remus::server::WorkerFactoryBase
   {
   public:
 
@@ -66,7 +66,7 @@ namespace
       }
 
     bool createWorker(const remus::proto::JobRequirements& type,
-                      WorkerFactory::FactoryDeletionBehavior lifespan)
+                      WorkerFactoryBase::FactoryDeletionBehavior lifespan)
       {
       (void) type;
       (void) lifespan;
@@ -75,6 +75,8 @@ namespace
       return false;
       }
 
+    void updateWorkerCount(){}
+    unsigned int currentWorkerCount() const { return 0; }
     };
   }
 

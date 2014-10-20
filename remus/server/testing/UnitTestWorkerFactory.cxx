@@ -180,8 +180,8 @@ void test_factory_worker_invalid_paths()
 void test_factory_worker_launching()
 {
   //give our worker factory a unique extension to look for
-  const remus::server::WorkerFactory::FactoryDeletionBehavior kill =
-                remus::server::WorkerFactory::KillOnFactoryDeletion;
+  const remus::server::WorkerFactoryBase::FactoryDeletionBehavior kill =
+                remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
 
   remus::server::WorkerFactory f_def(".tst");
   f_def.addCommandLineArgument("SLEEP_AND_EXIT");
