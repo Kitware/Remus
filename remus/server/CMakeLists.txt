@@ -12,8 +12,9 @@ set(headers
 set(server_srcs
    detail/ActiveJobs.cxx
    detail/JobQueue.cxx
-   detail/WorkerPool.cxx
    detail/SocketMonitor.cxx
+   detail/WorkerFinder.cxx
+   detail/WorkerPool.cxx
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx
