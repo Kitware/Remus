@@ -56,6 +56,12 @@
 #NO_INSTALL allows you to generate build directory remus rw files
 #
 function(remus_register_mesh_worker workerTarget )
+  #enable only the new parser for this function. Policies are scoped to the
+  #function so we don't have to worry about this affecting the calling project
+  if(POLICY CMP0053)
+    cmake_policy(SET CMP0053 NEW)
+  endif()
+
   set(options NO_INSTALL)
   set(oneValueArgs INPUT_TYPE OUTPUT_TYPE EXECUTABLE_NAME INSTALL_PATH WORKER_FILE_EXT FILE_TYPE FILE_PATH)
   set(multiValueArgs )
