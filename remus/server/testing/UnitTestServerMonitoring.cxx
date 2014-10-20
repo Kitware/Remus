@@ -12,7 +12,6 @@
 
 #include <remus/server/Server.h>
 #include <remus/server/ServerPorts.h>
-#include <remus/server/WorkerFactory.h>
 #include <remus/testing/Testing.h>
 #include <remus/common/SleepFor.h>
 

@@ -15,7 +15,7 @@
 //=============================================================================
 #include <remus/client/Client.h>
 #include <remus/server/Server.h>
-#include <remus/server/WorkerFactory.h>
+#include <remus/server/WorkerFactoryBase.h>
 #include <remus/worker/Worker.h>
 
 //required to use custom contexts
@@ -29,17 +29,47 @@
 namespace factory
 {
 //custom factory that support a single mesh io type
-class BridgeFactory: public remus::server::WorkerFactory
+class BridgeFactory: public remus::server::WorkerFactoryBase
 {
 public:
 
   remus::common::MeshIOTypeSet supportedIOTypes() const
-  {
+    {
     //we need to say we only support a single type
     remus::common::MeshIOTypeSet validTypes;
     validTypes.insert( remus::common::MeshIOType("Model", "Bridge") );
     return validTypes;
-  }
+    }
+
+  remus::proto::JobRequirementsSet workerRequirements(
+                                            remus::common::MeshIOType type) const
+    {
+    (void) type;
+    remus::proto::JobRequirementsSet reqSet;
+    return reqSet;
+    }
+
+  bool haveSupport(const remus::proto::JobRequirements& reqs) const
+    {
+    (void) reqs;
+    //we want to return false so that the server requires a worker
+    //to be connected to add jobs
+    return false;
+    }
+
+  bool createWorker(const remus::proto::JobRequirements& type,
+                    WorkerFactoryBase::FactoryDeletionBehavior lifespan)
+    {
+    (void) type;
+    (void) lifespan;
+    //we want to return false here so that server never thinks we are creating
+    //a worker and assigns a job to a worker we didn't create
+    return false;
+    }
+
+  void updateWorkerCount(){}
+  unsigned int currentWorkerCount() const { return 0; }
+
 };
 }
 

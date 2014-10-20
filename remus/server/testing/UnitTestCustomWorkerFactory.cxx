@@ -12,6 +12,7 @@
 
 #include <remus/server/Server.h>
 #include <remus/server/ServerPorts.h>
+#include <remus/server/WorkerFactoryBase.h>
 #include <remus/server/WorkerFactory.h>
 #include <remus/testing/Testing.h>
 
@@ -29,7 +30,7 @@ using namespace remus::meshtypes;
 //but actually doesn't when asked too. This will allow the server to queue
 //jobs when no worker is connected, instead of rejecting all jobs that are
 //submitted
-class DoNothingFactory: public remus::server::WorkerFactory
+class DoNothingFactory: public remus::server::WorkerFactoryBase
 {
 public:
 
@@ -59,7 +60,7 @@ public:
     }
 
   bool createWorker(const remus::proto::JobRequirements& type,
-                    WorkerFactory::FactoryDeletionBehavior lifespan)
+                    WorkerFactoryBase::FactoryDeletionBehavior lifespan)
     {
     (void) type;
     (void) lifespan;
@@ -67,6 +68,10 @@ public:
     //a worker and assigns a job to a worker we didn't create
     return false;
     }
+
+  void updateWorkerCount(){}
+  unsigned int currentWorkerCount() const { return 0; }
+
 };
 
 //wrapper around server to allow us to check the state of the WorkerFactory,
@@ -75,7 +80,7 @@ class DerivedServer : public remus::server::Server
 {
 public:
   explicit DerivedServer(
-     const boost::shared_ptr<remus::server::WorkerFactory>& factory):
+     const boost::shared_ptr<remus::server::WorkerFactoryBase>& factory):
     remus::server::Server(factory)
   {
 
@@ -92,7 +97,7 @@ public:
   bool check_FactoryCreateWorker(remus::proto::JobRequirements reqs)
   {
     return this->WorkerFactory->createWorker(reqs,
-                          remus::server::WorkerFactory::KillOnFactoryDeletion);
+                          remus::server::WorkerFactoryBase::KillOnFactoryDeletion);
   }
 
 };
@@ -130,8 +135,8 @@ void test_derived_factory()
 
 
   //setup the behavior for the lifespan of the workers.
-  const remus::server::WorkerFactory::FactoryDeletionBehavior kill =
-                remus::server::WorkerFactory::KillOnFactoryDeletion;
+  const remus::server::WorkerFactoryBase::FactoryDeletionBehavior kill =
+                remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
   REMUS_ASSERT( (factory.createWorker(edges_twod,kill) == false) );
   REMUS_ASSERT( (factory.createWorker(edges_edges,kill) == false) );
   REMUS_ASSERT( (factory.createWorker(twod_twod,kill) == false) );

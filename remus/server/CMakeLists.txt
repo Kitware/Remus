@@ -4,8 +4,9 @@ add_subdirectory(detail)
 
 set(headers
     Server.h
+    ServerPorts.h
     WorkerFactory.h
-	  ServerPorts.h
+    WorkerFactoryBase.h
     )
 
 set(server_srcs
@@ -16,6 +17,7 @@ set(server_srcs
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx
+   WorkerFactoryBase.cxx
    )
 
 #include cjson
