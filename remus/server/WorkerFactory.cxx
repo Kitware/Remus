@@ -34,7 +34,7 @@ namespace
                     remus::server::WorkerFactoryBase::FactoryDeletionBehavior>
               RunningProcessInfo;
 
-  typedef std::vector<remus::server::detail::MeshWorkerInfo>::const_iterator WorkerIterator;
+  typedef std::vector<remus::server::FactoryWorkerSpecification>::const_iterator WorkerIterator;
   typedef std::vector< RunningProcessInfo >::iterator ProcessIterator;
 
   //----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ namespace
   {
     remus::common::MeshIOType Type;
     support_MeshIOType(remus::common::MeshIOType type):Type(type){}
-    bool operator()(const remus::server::detail::MeshWorkerInfo& info)
+    bool operator()(const remus::server::FactoryWorkerSpecification& info)
       {
       return info.Requirements.meshTypes() == this->Type;
       }
@@ -55,7 +55,7 @@ namespace
     support_JobReqs(remus::proto::JobRequirements& reqs):
       Requirements(reqs)
     {}
-    bool operator()(const remus::server::detail::MeshWorkerInfo& info)
+    bool operator()(const remus::server::FactoryWorkerSpecification& info)
       {
       return info.Requirements == this->Requirements;
       }
@@ -88,9 +88,9 @@ namespace
   //----------------------------------------------------------------------------
   struct ValidWorker
   {
-    ValidWorker(std::string p):
+    ValidWorker(const boost::filesystem::path& p):
       valid(true),
-      path(p)
+      path(p.string())
       {
       }
 
@@ -165,7 +165,7 @@ struct WorkerFactory::WorkerTracker
 
     }
 
-  std::vector< remus::server::detail::MeshWorkerInfo > PossibleWorkers;
+  std::vector< remus::server::FactoryWorkerSpecification > PossibleWorkers;
   std::vector< RunningProcessInfo > CurrentProcesses;
 
 };

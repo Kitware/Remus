@@ -21,9 +21,6 @@
 
 #include <iostream>
 
-//for make_pair
-#include <utility>
-
 namespace {
   //----------------------------------------------------------------------------
   std::string read_file(const boost::filesystem::path& file)
@@ -45,8 +42,8 @@ namespace {
   }
 
   //----------------------------------------------------------------------------
-  std::pair< boost::filesystem::path, remus::proto::JobRequirements >
-  parse_json_reqs( const boost::filesystem::path& file )
+  remus::server::FactoryWorkerSpecification parse_json_reqs(
+                                        const boost::filesystem::path& file )
   {
     std::string json_contents = read_file(file);
     using namespace remus::common;
@@ -54,8 +51,7 @@ namespace {
     cJSON *root = cJSON_Parse(json_contents.c_str());
     if(!root)
       {
-      return std::make_pair( boost::filesystem::path(),
-                             remus::proto::JobRequirements() );
+      return remus::server::FactoryWorkerSpecification();
       }
 
     cJSON *inputT = cJSON_GetObjectItem(root,"InputType");
@@ -64,8 +60,7 @@ namespace {
     if(!inputT || !outputT || !execT)
       {
       cJSON_Delete(root);
-      return std::make_pair( boost::filesystem::path(),
-                             remus::proto::JobRequirements() );
+      return remus::server::FactoryWorkerSpecification();
       }
     const std::string inputType(inputT->valuestring);
     const std::string outputType(outputT->valuestring);
@@ -128,15 +123,28 @@ namespace {
       }
     cJSON_Delete(root);
 
-    return std::make_pair( mesher_path, reqs );
+    //try the executableName as an absolute path, if that isn't
+    //a file than fall back to looking based on the file we are parsing
+    //path
+    boost::filesystem::path exec_path(mesher_path);
+    if(!boost::filesystem::is_regular_file(exec_path))
+      {
+      boost::filesystem::path new_path(file.parent_path());
+      new_path /= mesher_path;
+    #ifdef _WIN32
+      new_path.replace_extension(".exe");
+    #endif
+      exec_path = new_path;
+      }
+    return remus::server::FactoryWorkerSpecification(exec_path, reqs);
   }
 }
 
 
 namespace remus{
 namespace server{
-FactoryFileParser::ResultType FactoryFileParser::operator()(
-                               const boost::filesystem::path& file) const
+remus::server::FactoryFileParser::ResultType FactoryFileParser::operator()(
+                                   const boost::filesystem::path& file) const
 {
   return parse_json_reqs(file);
 }

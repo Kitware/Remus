@@ -14,6 +14,7 @@
 #define remus_server_detail_WorkerFinder_h
 
 #include <remus/proto/JobRequirements.h>
+#include <remus/server/FactoryFileParser.h>
 
 #include <vector>
 
@@ -23,34 +24,19 @@
 
 namespace remus{
 namespace server{
-
-//forward declare
-class FactoryFileParser;
-
 namespace detail{
-
-//struct that we use to represent the contents of a worker that the
-//factory can launch
-struct MeshWorkerInfo
-{
-  remus::proto::JobRequirements Requirements;
-  std::string ExecutionPath;
-  MeshWorkerInfo(const remus::proto::JobRequirements& r,
-                 const std::string& p):
-    Requirements(r),ExecutionPath(p){}
-};
 
 //Helper class that is used by the WorkerFactory to locate and parse
 //Worker json files
 class WorkerFinder
 {
-  typedef boost::shared_ptr< remus::server::FactoryFileParser> FactoryFileParserPtr;
+  typedef boost::shared_ptr< remus::server::FactoryFileParser > FactoryFileParserPtr;
   //class that loads all files in the executing directory
   //with the rw extension and creates a vector of possible
   //meshers with that info
 public:
-  typedef std::vector<MeshWorkerInfo>::const_iterator const_iterator;
-  typedef std::vector<MeshWorkerInfo>::iterator iterator;
+  typedef std::vector<FactoryWorkerSpecification>::const_iterator const_iterator;
+  typedef std::vector<FactoryWorkerSpecification>::iterator iterator;
 
   WorkerFinder(const FactoryFileParserPtr& parser,
                const std::string& ext);
@@ -63,7 +49,7 @@ public:
 
   void parseFile(const boost::filesystem::path& file);
 
-  const std::vector<MeshWorkerInfo>& results() const {return Info;}
+  const std::vector<FactoryWorkerSpecification>& results() const {return Info;}
 
   iterator begin() {return this->Info.begin();}
   const_iterator begin() const {return this->Info.begin();}
@@ -74,7 +60,7 @@ public:
 private:
   const std::string FileExt;
   FactoryFileParserPtr Parser;
-  std::vector<MeshWorkerInfo> Info;
+  std::vector<FactoryWorkerSpecification> Info;
 };
 
 }

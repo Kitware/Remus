@@ -77,26 +77,9 @@ void WorkerFinder::parseFile(const boost::filesystem::path& file )
 {
   typedef remus::server::FactoryFileParser::ResultType ReturnType;
   ReturnType info =(*this->Parser)( file );
-
-  //try the executableName as an absolute path, if that isn't
-  //a file than fall back to looking based on the file we are parsing
-  //path
-  boost::filesystem::path mesher_path(info.first);
-  if(!boost::filesystem::is_regular_file(mesher_path))
+  if( info.isValid )
     {
-    boost::filesystem::path new_path(file.parent_path());
-    new_path /= info.first;
-#ifdef _WIN32
-    new_path.replace_extension(".exe");
-#endif
-    mesher_path = new_path;
-    }
-
-  if(boost::filesystem::is_regular_file(mesher_path))
-    {
-    //convert the mesher_path into an absolute canonical path now
-    mesher_path = boost::filesystem::canonical(mesher_path);
-    this->Info.push_back(MeshWorkerInfo(info.second,mesher_path.string()));
+    this->Info.push_back(info);
     }
 }
 
