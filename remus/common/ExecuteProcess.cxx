@@ -133,8 +133,8 @@ void ExecuteProcess::execute(DetachMode mode)
       TmpEnv[it->first] = buf;
     setenv(it->first.c_str(), it->second.c_str(), 1);
 #else
-    const bool valid;
-    valid = (_dupenv_s(&buf, NULL, it->first.c_str()) == 0) && (buf != NULL);
+    const bool valid = (_dupenv_s(&buf, NULL, it->first.c_str()) == 0) &&
+                       (buf != NULL);
     if (valid)
       TmpEnv[it->first] = buf;
     _putenv_s(it->first.c_str(), it->second.c_str());
