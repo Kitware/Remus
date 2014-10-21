@@ -19,26 +19,14 @@
 #include <remus/server/ServerExports.h>
 #include <remus/server/WorkerFactoryBase.h>
 
-//forward declare the execute process
-namespace remus{
-namespace common{
-class ExecuteProcess;
-}
-}
-
 namespace remus{
 namespace server{
 
-struct REMUSSERVER_EXPORT MeshWorkerInfo
-{
-  remus::proto::JobRequirements Requirements;
-  std::string ExecutionPath;
-  MeshWorkerInfo(const remus::proto::JobRequirements& r,
-                 const std::string& p):
-    Requirements(r),ExecutionPath(p){}
-};
+//forward declare FactoryFileParser, a helper class that can be over-ridden
+//to allow users to parse different file formats
+class FactoryFileParser;
 
-//The Worker Factory task.
+//The Worker Factory.
 //First it locates all files that match a given extension of the default extension
 //of .rw. These files are than parsed to determine what type of local Remus workers
 //we can launch.
@@ -46,12 +34,17 @@ class REMUSSERVER_EXPORT WorkerFactory : public WorkerFactoryBase
 {
 public:
   //Work Factory defaults to creating a maximum of 1 workers at once,
-  //with a default extension to search for of "rw"
+  //with a default extension of ".rw" to search for
   WorkerFactory();
 
   //Create a worker factory with a different file extension to
   //search for. The extension must start with a period.
   WorkerFactory(const std::string& ext);
+
+  //Create a worker factory with a different file extension, and a custom
+  //file parsing algorithm. The extension must start with a period.
+  WorkerFactory(const std::string& ext,
+                boost::shared_ptr<FactoryFileParser>& parser);
 
   virtual ~WorkerFactory();
 
@@ -81,17 +74,10 @@ public:
   //shutdown
   virtual void updateWorkerCount();
 
-  virtual unsigned int currentWorkerCount() const
-    { return this->CurrentProcesses.size(); }
+  virtual unsigned int currentWorkerCount() const;
 
   //return the worker file extension we have
   std::string workerExtension() const { return this->WorkerExtension;  }
-
-  //typedefs required
-  typedef remus::common::ExecuteProcess ExecuteProcess;
-  typedef boost::shared_ptr<ExecuteProcess> ExecuteProcessPtr;
-  typedef std::pair<ExecuteProcessPtr, WorkerFactoryBase::FactoryDeletionBehavior>
-            RunningProcessInfo;
 
 private:
   //this method only handles constructing the worker
@@ -101,8 +87,11 @@ private:
                          WorkerFactoryBase::FactoryDeletionBehavior lifespan);
 
   std::string WorkerExtension;
-  std::vector< MeshWorkerInfo > PossibleWorkers;
-  std::vector< RunningProcessInfo > CurrentProcesses;
+
+  boost::shared_ptr<FactoryFileParser> Parser;
+
+  struct WorkerTracker;
+  boost::shared_ptr<WorkerTracker> Tracker;
 };
 
 }

@@ -3,6 +3,7 @@ project(Remus_Server)
 add_subdirectory(detail)
 
 set(headers
+    FactoryFileParser.h
     Server.h
     ServerPorts.h
     WorkerFactory.h
@@ -12,8 +13,10 @@ set(headers
 set(server_srcs
    detail/ActiveJobs.cxx
    detail/JobQueue.cxx
-   detail/WorkerPool.cxx
    detail/SocketMonitor.cxx
+   detail/WorkerFinder.cxx
+   detail/WorkerPool.cxx
+   FactoryFileParser.cxx
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx
@@ -47,5 +50,7 @@ export(TARGETS RemusServer RemusProto RemusCommon RemusSysTools remuscJSON
                FILE Remus-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
+  target_link_libraries(TestBuild_remus_server
+                        LINK_PRIVATE ${Boost_LIBRARIES} )
   add_subdirectory(testing)
 endif()
