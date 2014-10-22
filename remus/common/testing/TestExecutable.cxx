@@ -43,12 +43,12 @@ int main(int argc, char** argv)
       if (buf && buf[0])
         remusTestEnv = buf;
 #else
-      const bool valid;
-      valid = (_dupenv_s(&buf, NULL, "REMUS_TEST") == 0) && (buf != NULL);
+      const bool valid = (_dupenv_s(&buf, NULL, "REMUS_TEST") == 0) &&
+                         (buf != NULL);
       if (valid)
         remusTestEnv = buf;
 #endif
-      if (remusTestEnv != "TRUE")
+      if (remusTestEnv != std::string("TRUE") )
         return -1;
       }
     else if( prog_type.find("CERR_OUTPUT") == 0)
