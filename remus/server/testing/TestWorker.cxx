@@ -60,9 +60,9 @@ int main(int argc, char** argv)
   //     path to the worker file at run time.
   //     The test below prevents regressions.
   else if (
-    argc > 3 &&
-    std::string(argv[2]) == "-argtest" &&
-    std::string(argv[3]) != "@SELF@")
+    argc > 2 &&
+    std::string(argv[1]) == "-argtest" &&
+    std::string(argv[2]) != "@SELF@")
     {
     char* buf;
     std::string env;

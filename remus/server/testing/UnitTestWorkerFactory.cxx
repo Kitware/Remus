@@ -167,7 +167,7 @@ void test_factory_worker_args_env_tag()
   REMUS_ASSERT( (w.hasRequirements() == false) );
 
   const remus::server::WorkerFactoryBase::FactoryDeletionBehavior kill =
-    remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
+    remus::server::WorkerFactoryBase::LiveOnFactoryDeletion;
 
   //lets try to launch a worker with limit at 1
   f_def.setMaxWorkerCount(1);
@@ -175,6 +175,11 @@ void test_factory_worker_args_env_tag()
 
   //assert only 1 is created
   REMUS_ASSERT( (f_def.currentWorkerCount() == 1) );
+
+  // Now wait around until it completes to verify that it ran.
+  // This doesn't guarantee it was successful.
+  while (f_def.currentWorkerCount() == 1)
+    usleep(5000);
 }
 
 void test_factory_worker_file_based_requirements()

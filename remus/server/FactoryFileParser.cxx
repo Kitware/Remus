@@ -147,7 +147,13 @@ namespace {
       cJSON* onearg;
       for (onearg = argobj->child; onearg; onearg = onearg->next)
         if (onearg->type == cJSON_String && onearg->valuestring && onearg->valuestring[0])
-          cmdline.push_back(onearg->valuestring);
+          {
+          std::string strarg(onearg->valuestring);
+          std::string::size_type pos = strarg.find("@SELF@");
+          if (pos != std::string::npos)
+            strarg.replace(pos, 6, file.string());
+          cmdline.push_back(strarg);
+          }
       }
 
     // Add environment variables

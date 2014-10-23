@@ -38,7 +38,9 @@ remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 OUTPUT_TYPE "Good"
                                 CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
                                 FILE_EXT   "aet"
-                                ENVIRONMENT "PYTHONPATH" "pythonPath" "LDPATH" "ldpath"
+                                ENVIRONMENT
+                                  "REMUS_WORKER_ENV_TEST" "TRUE"
+                                  "NAUGHTY" "FALSE"
                                 ARGUMENTS   "-argtest" "@SELF@"
                                 TAG         "{\"thing\":\"yes\"}"
                                 )
