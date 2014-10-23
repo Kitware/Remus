@@ -22,6 +22,7 @@
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 
+#include <map>
 #include <vector>
 
 namespace remus{
@@ -36,7 +37,7 @@ struct REMUSSERVER_EXPORT FactoryWorkerSpecification
   remus::proto::JobRequirements Requirements;
   boost::filesystem::path ExecutionPath;
   std::vector< std::string > ExtraCommandLineArguments;
-  std::vector< std::string > EnvironmentVariables;
+  std::map< std::string, std::string > EnvironmentVariables;
   bool isValid;
 
   FactoryWorkerSpecification():
@@ -46,7 +47,6 @@ struct REMUSSERVER_EXPORT FactoryWorkerSpecification
     EnvironmentVariables(),
     isValid(false)
     {
-
     }
 
   FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
@@ -55,6 +55,41 @@ struct REMUSSERVER_EXPORT FactoryWorkerSpecification
     ExecutionPath(),
     ExtraCommandLineArguments(),
     EnvironmentVariables(),
+    isValid(false)
+    {
+    if(boost::filesystem::is_regular_file(exec_path))
+      {
+      //convert the exec_path into an absolute canonical path now
+      this->ExecutionPath = boost::filesystem::canonical(exec_path);
+      this->isValid = true;
+      }
+    }
+
+  FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
+                             const std::vector< std::string >& extra_args,
+                             const remus::proto::JobRequirements& r):
+    Requirements(r),
+    ExecutionPath(),
+    ExtraCommandLineArguments(extra_args),
+    EnvironmentVariables(),
+    isValid(false)
+    {
+    if(boost::filesystem::is_regular_file(exec_path))
+      {
+      //convert the exec_path into an absolute canonical path now
+      this->ExecutionPath = boost::filesystem::canonical(exec_path);
+      this->isValid = true;
+      }
+    }
+
+  FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
+                             const std::vector< std::string >& extra_args,
+                             const std::map< std::string, std::string >& environment,
+                             const remus::proto::JobRequirements& r):
+    Requirements(r),
+    ExecutionPath(),
+    ExtraCommandLineArguments(extra_args),
+    EnvironmentVariables(environment),
     isValid(false)
     {
     if(boost::filesystem::is_regular_file(exec_path))

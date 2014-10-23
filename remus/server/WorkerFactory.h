@@ -26,6 +26,8 @@ namespace server{
 //to allow users to parse different file formats
 class FactoryFileParser;
 
+struct FactoryWorkerSpecification;
+
 //The Worker Factory.
 //First it locates all files that match a given extension of the default extension
 //of .rw. These files are than parsed to determine what type of local Remus workers
@@ -83,8 +85,9 @@ private:
   //this method only handles constructing the worker
   //it is expected that all checks to make sure that the worker type
   //have been done, and that we have room for the worker already
-  virtual bool addWorker(const std::string& executable,
-                         WorkerFactoryBase::FactoryDeletionBehavior lifespan);
+  virtual bool addWorker(
+    const FactoryWorkerSpecification& worker,
+    WorkerFactoryBase::FactoryDeletionBehavior lifespan);
 
   std::string WorkerExtension;
 

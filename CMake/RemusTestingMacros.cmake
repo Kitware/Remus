@@ -59,6 +59,14 @@ function(remus_unit_test_executable)
   endif (Remus_ENABLE_TESTING)
 endfunction(remus_unit_test_executable)
 
+# Join items in a list
+# From http://stackoverflow.com/questions/7172670/best-shortest-way-to-join-a-list-in-cmake
+
+function(remus_list_join VALUES GLUE OUTPUT)
+  string (REGEX REPLACE "([^\\]|^);" "\\1${GLUE}" _TMP_STR "${VALUES}")
+  string (REGEX REPLACE "[\\](.)" "\\1" _TMP_STR "${_TMP_STR}") #fixes escaping
+  set (${OUTPUT} "${_TMP_STR}" PARENT_SCOPE)
+endfunction()
 
 # Declare unit test remus worker that is needed by other unit_tests
 # Usage:
@@ -85,12 +93,46 @@ function(remus_register_unit_test_worker)
   endif()
 
   set(options IS_FILE_BASED)
-  set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT)
-  set(multiValueArgs)
+  set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT TAG)
+  set(multiValueArgs ARGUMENTS ENVIRONMENT)
   cmake_parse_arguments(R
     "${options}" "${oneValueArgs}" "${multiValueArgs}"
     ${ARGN}
     )
+
+  set(extra_json)
+
+  if(R_TAG)
+    set(extra_json "${extra_json}
+    \"Tag\":  ${R_TAG},")
+  endif()
+
+  if(R_ARGUMENTS)
+    # Since "@SELF@" should be replaced at run-time, not
+    # configure-time, we set SELF here so that @SELF@ -> @SELF@:
+    set(SELF "@SELF@")
+
+    remus_list_join("${R_ARGUMENTS}" "\",\"" R_QUOTED_ARGS)
+    set(extra_json "${extra_json}
+    \"Arguments\":  [\"${R_QUOTED_ARGS}\"],")
+  endif()
+
+  if(R_ENVIRONMENT)
+    set(extra_json "${extra_json}
+    \"Environment\":  {
+    ")
+    set(glue "  ")
+    foreach(arg ${R_ENVIRONMENT})
+      set(extra_json "${extra_json}${glue}\"${arg}\"")
+      if ("${glue}" STREQUAL ":")
+        set(glue ",")
+      else()
+        set(glue ":")
+      endif()
+    endforeach()
+    set(extra_json "${extra_json}
+    },")
+  endif()
 
   #set up variables that the config file is looking for
   set(input_type "${R_INPUT_TYPE}")
@@ -106,6 +148,7 @@ function(remus_register_unit_test_worker)
     \"ExecutableName\": \"@worker_name@\",
     \"InputType\": \"@input_type@\",
     \"OutputType\": \"@output_type@\",
+    ${extra_json}
     \"File\" : \"@reqs_file_name@\",
     \"FileFormat\" : \"USER\"
     }
@@ -118,6 +161,7 @@ function(remus_register_unit_test_worker)
     "
     {
     \"ExecutableName\": \"@worker_name@\",
+    ${extra_json}
     \"InputType\": \"@input_type@\",
     \"OutputType\": \"@output_type@\"
     }

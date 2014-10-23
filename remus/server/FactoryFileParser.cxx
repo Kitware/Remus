@@ -121,6 +121,51 @@ namespace {
 
         }
       }
+
+    // Add the tag string
+    cJSON* tagobj = cJSON_GetObjectItem(root, "Tag");
+    if (tagobj)
+      {
+      if (tagobj->type == cJSON_String)
+        {
+        if (tagobj->valuestring && tagobj->valuestring[0])
+          reqs.tag(tagobj->valuestring);
+        }
+      else
+        {
+        char* tagstr = cJSON_PrintUnformatted(tagobj);
+        reqs.tag(tagstr);
+        free(tagstr);
+        }
+      }
+
+    // Add extra command line arguments
+    std::vector< std::string > cmdline;
+    cJSON* argobj = cJSON_GetObjectItem(root, "Arguments");
+    if (argobj && argobj->type == cJSON_Array)
+      {
+      cJSON* onearg;
+      for (onearg = argobj->child; onearg; onearg = onearg->next)
+        if (onearg->type == cJSON_String && onearg->valuestring && onearg->valuestring[0])
+          cmdline.push_back(onearg->valuestring);
+      }
+
+    // Add environment variables
+    std::map< std::string, std::string > environ;
+    cJSON* envobj = cJSON_GetObjectItem(root, "Environment");
+    if (envobj && envobj->type == cJSON_Object)
+      {
+      cJSON* oneenv;
+      for (oneenv = envobj->child; oneenv; oneenv = oneenv->next)
+        if (
+          oneenv->type == cJSON_String &&
+          oneenv->valuestring &&
+          oneenv->valuestring[0] &&
+          oneenv->string &&
+          oneenv->string[0])
+          environ[oneenv->string] = oneenv->valuestring;
+      }
+
     cJSON_Delete(root);
 
     //try the executableName as an absolute path, if that isn't
@@ -136,7 +181,7 @@ namespace {
     #endif
       exec_path = new_path;
       }
-    return remus::server::FactoryWorkerSpecification(exec_path, reqs);
+    return remus::server::FactoryWorkerSpecification(exec_path, cmdline, environ, reqs);
   }
 }
 

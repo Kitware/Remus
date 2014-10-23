@@ -34,6 +34,16 @@ remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 FILE_EXT   "tst")
 
 remus_register_unit_test_worker(EXEC_NAME TestWorker
+                                INPUT_TYPE  "Evil"
+                                OUTPUT_TYPE "Good"
+                                CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
+                                FILE_EXT   "aet"
+                                ENVIRONMENT "PYTHONPATH" "pythonPath" "LDPATH" "ldpath"
+                                ARGUMENTS   "-argtest" "@SELF@"
+                                TAG         "{\"thing\":\"yes\"}"
+                                )
+
+remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 INPUT_TYPE  "Edges"
                                 OUTPUT_TYPE "Mesh2D"
                                 CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"

@@ -116,6 +116,67 @@ void test_factory_worker_finder()
 
 }
 
+void test_factory_worker_args_env_tag()
+{
+  //give our worker factory a unique extension to look for
+  remus::server::WorkerFactory f_def(".aet");
+
+  //add invalid paths to search
+
+  f_def.addWorkerSearchDirectory(
+                  remus::server::testing::worker_factory::locationToSearch() );
+
+  //we should only support good and evil, otherwise the rest
+  //should return false
+  remus::proto::JobRequirements reqIOTypes = make_Reqs("Evil", "Good");
+
+  // This is a bit of a hack: our job requirement tag() string must
+  // exactly match the worker factory's string -- down to the whitespace
+  // inserted by cJSON_Print
+  reqIOTypes.tag("{\"thing\":\"yes\"}");
+  REMUS_ASSERT( (f_def.haveSupport(reqIOTypes)) );
+
+  //verify that factory reports reqIOTypes as a supportedIOType
+  remus::common::MeshIOTypeSet validTypes = f_def.supportedIOTypes();
+  REMUS_ASSERT( (validTypes.size() == 1) );
+  REMUS_ASSERT( (validTypes.count(reqIOTypes.meshTypes()) == 1) );
+
+  remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
+  typedef remus::common::MeshIOTypeSet::const_iterator cit;
+  for( cit i = allTypes.begin(); i != allTypes.end(); ++i)
+    {
+    remus::proto::JobRequirements io_type = make_Reqs( (*i).inputType(),
+                                                       (*i).outputType() );
+
+    bool should_be_valid = (io_type == reqIOTypes);
+    bool haveSupport_valid = f_def.haveSupport(io_type);
+    bool workerReqs_valid =
+            (f_def.workerRequirements(io_type.meshTypes()).size() > 0);
+    //only when io_type equals
+    REMUS_ASSERT( (haveSupport_valid == should_be_valid ) )
+    REMUS_ASSERT( (workerReqs_valid  == should_be_valid ) )
+    }
+
+  remus::proto::JobRequirementsSet workerReqs =
+                    f_def.workerRequirements(MeshIOType("Evil", "Good"));
+  REMUS_ASSERT( (workerReqs.size() == 1) );
+
+  remus::proto::JobRequirements w = *(workerReqs.begin());
+  REMUS_ASSERT( (w.formatType() == ContentFormat::User) );
+  REMUS_ASSERT( (w.sourceType() == ContentSource::Memory) );
+  REMUS_ASSERT( (w.hasRequirements() == false) );
+
+  const remus::server::WorkerFactoryBase::FactoryDeletionBehavior kill =
+    remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
+
+  //lets try to launch a worker with limit at 1
+  f_def.setMaxWorkerCount(1);
+  REMUS_ASSERT( (f_def.createWorker(reqIOTypes,kill) == true) );
+
+  //assert only 1 is created
+  REMUS_ASSERT( (f_def.currentWorkerCount() == 1) );
+}
+
 void test_factory_worker_file_based_requirements()
 {
   //give our worker factory a unique extension to look for
@@ -231,6 +292,8 @@ int UnitTestWorkerFactory(int, char *[])
   test_factory_worker_finder();
 
   test_factory_worker_file_based_requirements();
+
+  test_factory_worker_args_env_tag();
 
   test_factory_worker_invalid_paths();
 
