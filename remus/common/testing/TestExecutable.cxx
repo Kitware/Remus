@@ -15,6 +15,9 @@
 
 #include <stdlib.h>
 
+//needed for comparison of std::string on windows.
+#include <string>
+
 int main(int argc, char** argv)
 {
 
