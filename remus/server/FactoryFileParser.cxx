@@ -147,7 +147,7 @@ namespace {
       cJSON* onearg;
       for (onearg = argobj->child; onearg; onearg = onearg->next)
         if (onearg->type == cJSON_String && onearg->valuestring && onearg->valuestring[0])
-          {
+          { // Replace the first occurrence of @SELF@ with the path to the worker file.
           std::string strarg(onearg->valuestring);
           std::string::size_type pos = strarg.find("@SELF@");
           if (pos != std::string::npos)

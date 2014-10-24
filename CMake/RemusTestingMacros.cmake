@@ -78,6 +78,9 @@ endfunction()
 #   CONFIG_DIR <LocationToConfigureAt>
 #   FILE_EXT  <FileExtOfWorker>
 #   IS_FILE_BASED
+#   [ TAG <JSON data> ]
+#   [ ARGUMENTS <arg1> ... ]
+#   [ ENVIRONMENT <varName1> <varValue1> ... ]
 #   )
 
 # IS_FILE_BASED will set the requirements to be file based, and specify
@@ -147,8 +150,7 @@ function(remus_register_unit_test_worker)
     {
     \"ExecutableName\": \"@worker_name@\",
     \"InputType\": \"@input_type@\",
-    \"OutputType\": \"@output_type@\",
-    ${extra_json}
+    \"OutputType\": \"@output_type@\",${extra_json}
     \"File\" : \"@reqs_file_name@\",
     \"FileFormat\" : \"USER\"
     }
@@ -160,8 +162,7 @@ function(remus_register_unit_test_worker)
     set(rw_file_content
     "
     {
-    \"ExecutableName\": \"@worker_name@\",
-    ${extra_json}
+    \"ExecutableName\": \"@worker_name@\",${extra_json}
     \"InputType\": \"@input_type@\",
     \"OutputType\": \"@output_type@\"
     }
