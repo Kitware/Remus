@@ -78,14 +78,18 @@ endfunction()
 #   CONFIG_DIR <LocationToConfigureAt>
 #   FILE_EXT  <FileExtOfWorker>
 #   IS_FILE_BASED
+#   [ WORKER_NAME <name> ]
 #   [ TAG <JSON data> ]
 #   [ ARGUMENTS <arg1> ... ]
 #   [ ENVIRONMENT <varName1> <varValue1> ... ]
 #   )
-
+#
 # IS_FILE_BASED will set the requirements to be file based, and specify
 # the file format to be USER, and will point back to the file we are generating
 # as the requirements file
+#
+# See the remus_register_mesh_worker function in RemusRegisterWorker.cmake
+# for documentation on other arguments.
 
 function(remus_register_unit_test_worker)
 
@@ -96,7 +100,7 @@ function(remus_register_unit_test_worker)
   endif()
 
   set(options IS_FILE_BASED)
-  set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT TAG)
+  set(oneValueArgs EXEC_NAME INPUT_TYPE OUTPUT_TYPE CONFIG_DIR FILE_EXT TAG WORKER_NAME)
   set(multiValueArgs ARGUMENTS ENVIRONMENT)
   cmake_parse_arguments(R
     "${options}" "${oneValueArgs}" "${multiValueArgs}"
@@ -104,6 +108,11 @@ function(remus_register_unit_test_worker)
     )
 
   set(extra_json)
+
+  if(R_WORKER_NAME)
+    set(extra_json "${extra_json}
+    \"WorkerName\":  \"${R_WORKER_NAME}\",")
+  endif()
 
   if(R_TAG)
     set(extra_json "${extra_json}

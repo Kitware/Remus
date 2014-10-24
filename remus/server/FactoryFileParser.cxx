@@ -57,6 +57,7 @@ namespace {
     cJSON *inputT = cJSON_GetObjectItem(root,"InputType");
     cJSON *outputT = cJSON_GetObjectItem(root,"OutputType");
     cJSON *execT = cJSON_GetObjectItem(root,"ExecutableName");
+    cJSON *nameT = cJSON_GetObjectItem(root,"WorkerName");
     if(!inputT || !outputT || !execT)
       {
       cJSON_Delete(root);
@@ -73,6 +74,11 @@ namespace {
       {
       executableName = mesher_path.filename().string();
       }
+    std::string workerName;
+    if (nameT && nameT->type == cJSON_String && nameT->valuestring)
+      workerName = nameT->valuestring;
+    if (workerName.empty())
+      workerName = executableName;
 
     //by default we select memory and user
     ContentFormat::Type format_type = ContentFormat::User;
@@ -80,7 +86,7 @@ namespace {
     //make the basic memory type reqs
     remus::proto::JobRequirements reqs(format_type,
                                        mesh_type,
-                                       executableName,
+                                       workerName,
                                        std::string());
 
     //check if we have a specific file requirements
@@ -116,7 +122,7 @@ namespace {
                         boost::filesystem::canonical(req_file_path).string());
         reqs = remus::proto::JobRequirements(format_type,
                                              mesh_type,
-                                             executableName,
+                                             workerName,
                                              rfile);
 
         }

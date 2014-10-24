@@ -84,6 +84,11 @@
 #of the executable is identical to the target's OUTPUT_NAME if set,
 #otherwise we defer to the name of the target itself
 #
+#The worker's name is taken to be the EXECUTABLE_NAME unless a WORKER_NAME
+#is specified. The worker name is included in the JobRequirements data
+#structure; client submissions and worker advertisements must match for
+#a job to be passed to a worker.
+#
 #If WORKER_FILE_EXT is set we use the user specified file extension
 #instead of using the default "rw" extension. The passed in extension
 #should not start with "."
@@ -98,7 +103,7 @@ function(remus_register_mesh_worker workerTarget )
   endif()
 
   set(options NO_INSTALL)
-  set(oneValueArgs INPUT_TYPE OUTPUT_TYPE EXECUTABLE_NAME INSTALL_PATH WORKER_FILE_EXT FILE_TYPE FILE_PATH TAG)
+  set(oneValueArgs INPUT_TYPE OUTPUT_TYPE EXECUTABLE_NAME WORKER_NAME INSTALL_PATH WORKER_FILE_EXT FILE_TYPE FILE_PATH TAG)
   set(multiValueArgs ARGUMENTS ENVIRONMENT)
   cmake_parse_arguments(R "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
@@ -144,6 +149,11 @@ function(remus_register_mesh_worker workerTarget )
   set(files_to_install "${build_dir}/${worker_name}.${worker_file_ext}")
 
   set(extra_json)
+
+  if(R_WORKER_NAME)
+    set(extra_json "${extra_json}
+    \"WorkerName\":  \"${R_WORKER_NAME}\",")
+  endif()
 
   if(R_TAG)
     set(extra_json "${extra_json}
