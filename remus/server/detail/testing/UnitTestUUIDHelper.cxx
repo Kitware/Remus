@@ -24,9 +24,9 @@ int UnitTestUUIDHelper(int, char *[])
   const std::string b_text = boost::lexical_cast<std::string>(example);
   REMUS_ASSERT( (text==b_text) );
 
+  boost::uuids::string_generator sgen;
   boost::uuids::uuid r_from_str = remus::to_uuid(b_text);
-  boost::uuids::uuid b_from_str =
-                          boost::lexical_cast<boost::uuids::uuid>(b_text);
+  boost::uuids::uuid b_from_str = sgen(b_text);
   REMUS_ASSERT( (r_from_str==b_from_str) );
 
   zmq::context_t context(0);

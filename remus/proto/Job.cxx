@@ -86,18 +86,12 @@ Job::Job(const std::string& data):
 void Job::deserialize(std::istream& buffer)
 {
   buffer >> this->Type;
-  //While this is fairly complex, it is the only correct way I have found
-  //to properly de-serialize a null boost id
+  // Deserialize a boost UUID using the string generator.
+  // Invalid strings result in a NULL UUID.
   std::string id_as_string;
   buffer >> id_as_string;
-  if(!id_as_string.empty())
-    { //othewise the default null id is used. We have to use the c_str syntax here
-      //as lexial_cast on certain versions of boost will trunacate the std::string
-      //and than crash
-    //this->Id = boost::lexical_cast<boost::uuids::uuid>(id_as_string.c_str());
-    boost::uuids::string_generator sgen;
-    this->Id = sgen(id_as_string);
-    }
+  boost::uuids::string_generator sgen;
+  this->Id = sgen(id_as_string);
 
   std::ostringstream cache_buffer;
   cache_buffer << *this;
