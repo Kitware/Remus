@@ -57,6 +57,7 @@ namespace {
     cJSON *inputT = cJSON_GetObjectItem(root,"InputType");
     cJSON *outputT = cJSON_GetObjectItem(root,"OutputType");
     cJSON *execT = cJSON_GetObjectItem(root,"ExecutableName");
+    cJSON *nameT = cJSON_GetObjectItem(root,"WorkerName");
     if(!inputT || !outputT || !execT)
       {
       cJSON_Delete(root);
@@ -73,6 +74,11 @@ namespace {
       {
       executableName = mesher_path.filename().string();
       }
+    std::string workerName;
+    if (nameT && nameT->type == cJSON_String && nameT->valuestring)
+      workerName = nameT->valuestring;
+    if (workerName.empty())
+      workerName = executableName;
 
     //by default we select memory and user
     ContentFormat::Type format_type = ContentFormat::User;
@@ -80,7 +86,7 @@ namespace {
     //make the basic memory type reqs
     remus::proto::JobRequirements reqs(format_type,
                                        mesh_type,
-                                       executableName,
+                                       workerName,
                                        std::string());
 
     //check if we have a specific file requirements
@@ -116,11 +122,62 @@ namespace {
                         boost::filesystem::canonical(req_file_path).string());
         reqs = remus::proto::JobRequirements(format_type,
                                              mesh_type,
-                                             executableName,
+                                             workerName,
                                              rfile);
 
         }
       }
+
+    // Add the tag string
+    cJSON* tagobj = cJSON_GetObjectItem(root, "Tag");
+    if (tagobj)
+      {
+      if (tagobj->type == cJSON_String)
+        {
+        if (tagobj->valuestring && tagobj->valuestring[0])
+          reqs.tag(tagobj->valuestring);
+        }
+      else
+        {
+        char* tagstr = cJSON_PrintUnformatted(tagobj);
+        reqs.tag(tagstr);
+        free(tagstr);
+        }
+      }
+
+    // Add extra command line arguments
+    std::vector< std::string > cmdline;
+    cJSON* argobj = cJSON_GetObjectItem(root, "Arguments");
+    if (argobj && argobj->type == cJSON_Array)
+      {
+      cJSON* onearg;
+      for (onearg = argobj->child; onearg; onearg = onearg->next)
+        if (onearg->type == cJSON_String && onearg->valuestring && onearg->valuestring[0])
+          { // Replace the first occurrence of @SELF@ with the path to the worker file.
+          std::string strarg(onearg->valuestring);
+          std::string::size_type pos = strarg.find("@SELF@");
+          if (pos != std::string::npos)
+            strarg.replace(pos, 6, file.string());
+          cmdline.push_back(strarg);
+          }
+      }
+
+    // Add environment variables
+    std::map< std::string, std::string > environ;
+    cJSON* envobj = cJSON_GetObjectItem(root, "Environment");
+    if (envobj && envobj->type == cJSON_Object)
+      {
+      cJSON* oneenv;
+      for (oneenv = envobj->child; oneenv; oneenv = oneenv->next)
+        if (
+          oneenv->type == cJSON_String &&
+          oneenv->valuestring &&
+          oneenv->valuestring[0] &&
+          oneenv->string &&
+          oneenv->string[0])
+          environ[oneenv->string] = oneenv->valuestring;
+      }
+
     cJSON_Delete(root);
 
     //try the executableName as an absolute path, if that isn't
@@ -136,7 +193,7 @@ namespace {
     #endif
       exec_path = new_path;
       }
-    return remus::server::FactoryWorkerSpecification(exec_path, reqs);
+    return remus::server::FactoryWorkerSpecification(exec_path, cmdline, environ, reqs);
   }
 }
 

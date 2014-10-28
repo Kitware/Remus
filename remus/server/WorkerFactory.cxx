@@ -88,20 +88,19 @@ namespace
   //----------------------------------------------------------------------------
   struct ValidWorker
   {
-    ValidWorker(const boost::filesystem::path& p):
+    ValidWorker(const remus::server::FactoryWorkerSpecification& w):
       valid(true),
-      path(p.string())
+      spec(w)
       {
       }
 
     ValidWorker():
-      valid(false),
-      path()
+      valid(false)
       {
       }
 
     bool valid;
-    std::string path;
+    remus::server::FactoryWorkerSpecification spec;
   };
 
 
@@ -116,7 +115,7 @@ namespace
     if(result != container.end())
       {
       //return a valid work
-      return ValidWorker((*result).ExecutionPath);
+      return ValidWorker(*result);
       }
     //return an invalid worker
     return ValidWorker();
@@ -164,6 +163,10 @@ struct WorkerFactory::WorkerTracker
     {
 
     }
+
+  bool addWorker(
+    const remus::server::FactoryWorkerSpecification& workerSpec,
+    WorkerFactoryBase::FactoryDeletionBehavior lifespan);
 
   std::vector< remus::server::FactoryWorkerSpecification > PossibleWorkers;
   std::vector< RunningProcessInfo > CurrentProcesses;
@@ -269,7 +272,7 @@ bool WorkerFactory::createWorker(const remus::proto::JobRequirements& reqs,
     const ValidWorker w = find_worker_path(reqs, this->Tracker->PossibleWorkers);
     if(w.valid)
       {
-      return this->addWorker(w.path,lifespan);
+      return this->addWorker(w.spec, lifespan);
       }
     }
   return false;
@@ -293,8 +296,9 @@ unsigned int  WorkerFactory::currentWorkerCount() const
 }
 
 //----------------------------------------------------------------------------
-bool WorkerFactory::addWorker(const std::string& executable,
-                              WorkerFactoryBase::FactoryDeletionBehavior lifespan)
+bool WorkerFactory::addWorker(
+  const FactoryWorkerSpecification& spec,
+  WorkerFactoryBase::FactoryDeletionBehavior lifespan)
 {
   //add this workers
   std::vector< std::string > arguments;
@@ -304,8 +308,13 @@ bool WorkerFactory::addWorker(const std::string& executable,
     }
   const std::vector< std::string >& cmlArgs = this->commandLineArguments();
   arguments.insert( arguments.end(), cmlArgs.begin(), cmlArgs.end() );
+  arguments.insert( arguments.end(), spec.ExtraCommandLineArguments.begin(), spec.ExtraCommandLineArguments.end() );
 
-  ExecuteProcessPtr ep( boost::make_shared<ExecuteProcess>(executable,arguments) );
+  ExecuteProcessPtr ep(
+    boost::make_shared<ExecuteProcess>(
+      spec.ExecutionPath.string(), arguments, spec.EnvironmentVariables
+      )
+    );
 
   //we set the detached behavior based on if we want the worker to last
   //longer than us. We also need to store the lifespan flag, so that

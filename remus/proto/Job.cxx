@@ -27,6 +27,7 @@
 #endif
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/string_generator.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop
 #else
@@ -93,7 +94,9 @@ void Job::deserialize(std::istream& buffer)
     { //othewise the default null id is used. We have to use the c_str syntax here
       //as lexial_cast on certain versions of boost will trunacate the std::string
       //and than crash
-    this->Id = boost::lexical_cast<boost::uuids::uuid>(id_as_string.c_str());
+    //this->Id = boost::lexical_cast<boost::uuids::uuid>(id_as_string.c_str());
+    boost::uuids::string_generator sgen;
+    this->Id = sgen(id_as_string);
     }
 
   std::ostringstream cache_buffer;
