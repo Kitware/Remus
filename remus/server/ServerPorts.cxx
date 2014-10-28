@@ -80,7 +80,7 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
   assert(workerHostName.size() > 0);
   assert(workerPort > 0 && workerPort < 65536);
 
-  assert(workerHostName != clientHostName && workerPort != clientPort);
+  assert(!(workerHostName == clientHostName && workerPort == clientPort));
 }
 
 //------------------------------------------------------------------------------
