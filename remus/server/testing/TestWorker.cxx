@@ -10,7 +10,6 @@
 //
 //=============================================================================
 
-#include <fstream>
 #include <iostream>
 
 #include <remus/common/SleepFor.h>
@@ -25,27 +24,15 @@
 
 int main(int argc, char** argv)
 {
-  timeval tm;
-  gettimeofday(&tm, NULL);
-  std::ofstream tlog("/tmp/tlog", std::ios_base::app);
-  char* tbuf = ctime(&tm.tv_sec);
-  tbuf[24] = '\0';
-  tlog << tbuf << ": ";
-  for (int i = 0; i < argc; ++i)
-    tlog << " " << argv[i];
-  tlog << "\n";
-
   if(argc == 2)
     {
     std::string prog_type(argv[1]);
     if( prog_type.find("SLEEP_AND_EXIT") == 0)
       {
       remus::common::SleepForMillisec(1000);
-      tlog << "  sleep and exit 0\n";
       }
     else
       {
-      tlog << "  " << argv[1] << " 1\n";
       return 1;
       }
     return 0;
@@ -77,10 +64,8 @@ int main(int argc, char** argv)
     if (valid)
       env = buf;
 #endif
-    tlog << "  arg env test " << (env == "TRUE" ? 0 : 1) << "\n";
     if (env == "TRUE")
       return 0;
     }
-  tlog << "  return 1\n";
   return 1;
 }

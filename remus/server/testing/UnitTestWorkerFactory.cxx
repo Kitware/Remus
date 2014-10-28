@@ -31,10 +31,10 @@ using namespace remus::common;
 using namespace remus::meshtypes;
 
 template<typename In, typename Out>
-remus::proto::JobRequirements make_Reqs(In in, Out out)
+remus::proto::JobRequirements make_Reqs(In in, Out out, const std::string& wname = "TestWorker")
 {
   return remus::proto::make_JobRequirements( MeshIOType(in,out),
-                                             std::string("TestWorker"),
+                                             wname,
                                              std::string());
 }
 
@@ -136,7 +136,7 @@ void test_factory_worker_args_env_tag()
 
   //we should only support good and evil, otherwise the rest
   //should return false
-  remus::proto::JobRequirements reqIOTypes = make_Reqs("Evil", "Good");
+  remus::proto::JobRequirements reqIOTypes = make_Reqs("Evil", "Good", "EvilToGoodWorker");
 
   // This is a bit of a hack: our job requirement tag() string must
   // exactly match the worker factory's string -- down to the whitespace

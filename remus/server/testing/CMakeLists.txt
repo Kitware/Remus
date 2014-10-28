@@ -34,6 +34,7 @@ remus_register_unit_test_worker(EXEC_NAME TestWorker
                                 FILE_EXT   "tst")
 
 remus_register_unit_test_worker(EXEC_NAME TestWorker
+                                WORKER_NAME EvilToGoodWorker
                                 INPUT_TYPE  "Evil"
                                 OUTPUT_TYPE "Good"
                                 CONFIG_DIR  "${CMAKE_CURRENT_BINARY_DIR}"
