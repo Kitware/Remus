@@ -40,6 +40,9 @@ namespace remus
 {
 
 //------------------------------------------------------------------------------
+/**\brief Convert a UUID into a string.
+  *
+  */
 inline std::string to_string(const boost::uuids::uuid& id)
 {
   //call the boost to_string method in uuid_io
@@ -47,16 +50,22 @@ inline std::string to_string(const boost::uuids::uuid& id)
 }
 
 //------------------------------------------------------------------------------
+/**\brief Convert the contents of a Remus Message to a UUID.
+  *
+  * The string generator returns a null UUID for an invalid string.
+  */
 inline boost::uuids::uuid to_uuid(const remus::proto::Message& msg)
 {
-  //take the contents of the msg and convert it to an uuid
-  //no type checking will be done to make sure this is valid for now
   boost::uuids::string_generator gen;
   const std::string sId(msg.data(),msg.dataSize());
   return gen(sId);
 }
 
 //------------------------------------------------------------------------------
+/**\brief Convert a string to a UUID.
+  *
+  * The string generator returns a null UUID for an invalid string.
+  */
 inline boost::uuids::uuid to_uuid(const std::string& str)
 {
   boost::uuids::string_generator gen;
