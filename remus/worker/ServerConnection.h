@@ -27,6 +27,9 @@ namespace zmq { class context_t; }
 namespace remus{
 namespace worker{
 
+//Class is Not Thread Safe. Construct of the zmq::context is delayed
+//until requested. So if you are sharing a ServerConnection between threads
+//you need to manage when and how the zmq context is created.
 class REMUSWORKER_EXPORT ServerConnection
 {
 public:
@@ -44,19 +47,23 @@ public:
   //standard tcp-ip remus server on a custom port
   ServerConnection(std::string const& hostName, int port);
 
-  inline std::string const& endpoint() const{ return Endpoint; }
+  //Not Thread Safe.
+  std::string const& endpoint() const;
+
   inline bool isLocalEndpoint() const{ return IsLocalEndpoint; }
 
   //we have to leak some details to support inproc communication
-  boost::shared_ptr<zmq::context_t> context() const { return this->Context; }
+  //Not Thread Safe
+  boost::shared_ptr<zmq::context_t> context() const;
 
   //don't overwrite the context of a server connection once the server
   //connection is passed to the worker, as that will cause undefined behavior
   //and most likely will crash the program
+  //Not Thread Safe
   void context(boost::shared_ptr<zmq::context_t> c) { this->Context = c; }
 
 private:
-  boost::shared_ptr<zmq::context_t> Context;
+  mutable boost::shared_ptr<zmq::context_t> Context;
   std::string Endpoint;
   bool IsLocalEndpoint;
 };
@@ -75,7 +82,7 @@ boost::shared_ptr<zmq::context_t> make_ServerContext(std::size_t num_threads=1);
 //------------------------------------------------------------------------------
 template<typename T>
 ServerConnection::ServerConnection(zmq::socketInfo<T> const& socket):
-  Context( remus::worker::make_ServerContext() ),
+  Context( ),
   Endpoint(socket.endpoint()),
   IsLocalEndpoint( zmq::isLocalEndpoint(socket) )
 {
