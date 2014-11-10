@@ -19,6 +19,18 @@
 
 #include <string>
 
+//suppress warnings inside boost headers for gcc and clang
+#ifndef _MSC_VER
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wshadow"
+#endif
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
+
 namespace remus{
 namespace worker{
 
@@ -27,17 +39,27 @@ namespace worker{
 namespace detail{
 struct ZmqManagement
 {
-  //use a custom context just for inter process communication, this allows
-  //multiple workers to share the same context to the server, as you can't
-  //have multiple pairs of ZMQ_PAIR connections on the same named pipe.
-  zmq::context_t InterWorkerContext;
+  //use auto generated channel names, this allows multiple workers to share
+  //the same context.
+  boost::shared_ptr<zmq::context_t> InterWorkerContext;
   zmq::socket_t Server;
-  ZmqManagement():
-    InterWorkerContext(1),
-    Server(InterWorkerContext, ZMQ_PAIR)
+  std::string WorkerChannelUUID;
+  std::string JobChannelUUID;
+  ZmqManagement( remus::worker::ServerConnection const& conn ):
+    InterWorkerContext( conn.context() ),
+    Server( *InterWorkerContext, ZMQ_PAIR),
+    WorkerChannelUUID(),
+    JobChannelUUID()
   {
+  boost::uuids::random_generator generator;
+
+  //the goal here is to produce unique socket names. The current solution
+  //is to use uuids for the channel names
+  WorkerChannelUUID = boost::uuids::to_string(generator());
+  JobChannelUUID = boost::uuids::to_string(generator());
+
   //We have to bind to the inproc socket before the MessageRouter class does
-  zmq::socketInfo<zmq::proto::inproc> sInfo("worker");
+  zmq::socketInfo<zmq::proto::inproc> sInfo( this->WorkerChannelUUID );
   zmq::bindToAddress(this->Server, sInfo);
   }
 };
@@ -51,14 +73,14 @@ Worker::Worker(remus::common::MeshIOType mtype,
                remus::worker::ServerConnection const& conn):
   MeshRequirements( remus::proto::make_JobRequirements(mtype,"","") ),
   ConnectionInfo(conn),
-  Zmq( new detail::ZmqManagement() ),
+  Zmq( new detail::ZmqManagement( conn ) ),
   MessageRouter( new remus::worker::detail::MessageRouter(
-                    zmq::socketInfo<zmq::proto::inproc>("worker"),
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs"))),
-  JobQueue( new remus::worker::detail::JobQueue( Zmq->InterWorkerContext,
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")))
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->WorkerChannelUUID),
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID))),
+  JobQueue( new remus::worker::detail::JobQueue( *Zmq->InterWorkerContext,
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID)))
 {
-  this->MessageRouter->start(conn,Zmq->InterWorkerContext);
+  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
 
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
@@ -73,14 +95,14 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
                remus::worker::ServerConnection const& conn):
   MeshRequirements(requirements),
   ConnectionInfo(),
-  Zmq( new detail::ZmqManagement() ),
+  Zmq( new detail::ZmqManagement( conn ) ),
   MessageRouter( new remus::worker::detail::MessageRouter(
-                    zmq::socketInfo<zmq::proto::inproc>("worker"),
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) ),
-  JobQueue( new remus::worker::detail::JobQueue( Zmq->InterWorkerContext,
-                    zmq::socketInfo<zmq::proto::inproc>("worker_jobs")) )
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->WorkerChannelUUID),
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID)) ),
+  JobQueue( new remus::worker::detail::JobQueue( *Zmq->InterWorkerContext,
+                    zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID)) )
 {
-  this->MessageRouter->start(conn,Zmq->InterWorkerContext);
+  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
 
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
