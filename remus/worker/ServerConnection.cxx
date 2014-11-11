@@ -23,7 +23,7 @@ namespace worker{
 
 //------------------------------------------------------------------------------
 ServerConnection::ServerConnection():
-  Context( remus::worker::make_ServerContext() ),
+  Context( ),
   Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
                           remus::SERVER_WORKER_PORT).endpoint()),
   IsLocalEndpoint(true) //no need to call zmq::isLocalEndpoint
@@ -32,12 +32,32 @@ ServerConnection::ServerConnection():
 
 //------------------------------------------------------------------------------
 ServerConnection::ServerConnection(const std::string& hostName, int port):
-  Context( remus::worker::make_ServerContext() ),
+  Context( ),
   Endpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port).endpoint()),
   IsLocalEndpoint( zmq::isLocalEndpoint(zmq::socketInfo<zmq::proto::tcp>(hostName,port)) )
 {
   assert(hostName.size() > 0);
   assert(port > 0 && port < 65536);
+}
+
+//------------------------------------------------------------------------------
+std::string const& ServerConnection::endpoint() const
+{
+  if(!this->Context)
+    {
+    this->Context = make_ServerContext();
+    }
+  return Endpoint;
+}
+
+//------------------------------------------------------------------------------
+boost::shared_ptr<zmq::context_t> ServerConnection::context() const
+{
+  if(!this->Context)
+    {
+    this->Context = make_ServerContext();
+    }
+  return this->Context;
 }
 
 //------------------------------------------------------------------------------
