@@ -17,9 +17,6 @@
 
 #include <stdlib.h>
 
-#include <time.h>
-#include <sys/time.h>
-
 #define REMUS_WORKER_ENV_TEST "REMUS_WORKER_ENV_TEST"
 
 int main(int argc, char** argv)
