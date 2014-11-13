@@ -49,14 +49,14 @@ public:
   //it uses the server connection object to determine what server
   //to connect too. The requirements of this worker are extremely simple
   //in that it only demands a given mesh input and output type.
-  explicit Worker(remus::common::MeshIOType mtype,
-                  const remus::worker::ServerConnection& conn);
+  Worker(remus::common::MeshIOType mtype,
+         const remus::worker::ServerConnection& conn);
 
   //construct a worker that can mesh only an exact set of requirements.
   //it uses the server connection object to determine what server
   //to connect too
-  explicit Worker(const remus::proto::JobRequirements& requirements,
-                  const remus::worker::ServerConnection& conn);
+  Worker(const remus::proto::JobRequirements& requirements,
+         const remus::worker::ServerConnection& conn);
 
   virtual ~Worker();
 
