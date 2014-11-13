@@ -37,6 +37,11 @@ public:
 
   std::string endpoint() const;
 
+  //Returns true if the job is part of the queue and job status
+  //has been marked as terminate. This is allows people to peek at the queue
+  //and check jobs without taking them off the queue
+  bool isATerminatedJob( const remus::worker::Job& job) const;
+
   //Removes the first job from the queue, If no job
   //in the queue will return an invalid job
   remus::worker::Job take();
@@ -50,6 +55,11 @@ public:
 
   //has finished setting up and is ready for jobs
   bool isReady() const;
+
+  //has job queue been told to shutdown and terminate this is only true
+  //if the job queue has been started and than has been stopped. If the
+  //job queue is still launching this will return false
+  bool isShutdown() const;
 
 private:
   class JobQueueImplementation;

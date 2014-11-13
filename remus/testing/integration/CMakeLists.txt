@@ -16,6 +16,8 @@ set(unit_tests
   ShareContext.cxx
   SimpleJobFlow.cxx
   TerminateQueuedJob.cxx
+  TerminateRunningJob.cxx
+  TerminateRunningWorker.cxx
   )
 
 remus_integration_tests(SOURCES ${unit_tests}

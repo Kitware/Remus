@@ -29,7 +29,21 @@
 #include <boost/thread/locks.hpp>
 
 #include <deque>
-#include <map>
+#include <set>
+
+namespace
+{
+struct JobIdMatches
+  {
+    JobIdMatches(boost::uuids::uuid id):
+    UUID(id) {}
+
+    bool operator()(const remus::worker::Job& job) const
+      { return job.id() == UUID; }
+
+    boost::uuids::uuid UUID;
+  };
+}
 
 namespace remus{
 namespace worker{
@@ -46,6 +60,9 @@ class JobQueue::JobQueueImplementation
   boost::condition_variable QueueChanged;
   std::deque< remus::worker::Job > Queue;
 
+  //a set of jobs that the JobQueue has been told should be terminated
+  std::set< boost::uuids::uuid > TerminatedJobs;
+
   //need to store our endpoint so we can pass it to the worker
   std::string EndPoint;
 
@@ -55,6 +72,11 @@ class JobQueue::JobQueueImplementation
   //states that we have finished setting up and are ready to accept messages
   bool PollingStarted;
 
+  //states that we have been told to stop polling and should be ready
+  //to be destroyed. Is not the same as NOT ContinuePolling and PollingStarted.
+  //as that logic returns false while the polling thread is being constructed
+  bool PollingFinished;
+
 public:
 //-----------------------------------------------------------------------------
 JobQueueImplementation(zmq::context_t& context,
@@ -63,9 +85,11 @@ JobQueueImplementation(zmq::context_t& context,
   QueueMutex(),
   QueueChanged(),
   Queue(),
+  TerminatedJobs(),
   EndPoint(),
   ContinuePolling(true),
-  PollingStarted(false)
+  PollingStarted(false),
+  PollingFinished(false)
 {
   //start up our thread
   boost::scoped_ptr<boost::thread> pollingThread(
@@ -96,6 +120,7 @@ void stop()
 {
   this->ContinuePolling = false;
   this->PollingStarted = false;
+  this->PollingFinished = true;
 }
 
 //------------------------------------------------------------------------------
@@ -157,24 +182,19 @@ void terminateJob(remus::proto::Response& response)
   const std::string data(response.data(), response.dataSize());
   remus::worker::Job tj = remus::worker::to_Job(data);
 
-  bool job_found = false;
+  //first thing is we add the job id to the list of terminated job ids
+  this->TerminatedJobs.insert( tj.id() );
 
-  for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
-       i != this->Queue.end(); ++i)
-    {
-    if(i->id() == tj.id())
-      {
-      i->updateValidityReason(remus::worker::Job::INVALID);
-      job_found = true;
-      }
-    }
-  if(!job_found)
-    {
-    //Resend the current job since it could be running for a long time
-    //and has become invalid
-    tj.updateValidityReason(remus::worker::Job::INVALID);
-    this->Queue.push_front(tj);
-    }
+  //next we go through the deque and remove any job with that id
+
+  typedef std::deque< remus::worker::Job >::iterator iter;
+  JobIdMatches pred( tj.id() );
+
+  iter new_end = std::remove_if(this->Queue.begin(),
+                                this->Queue.end(),
+                                pred);
+  this->Queue.erase(new_end,this->Queue.end());
+
   this->QueueChanged.notify_all();
 }
 
@@ -206,22 +226,26 @@ void addItem(remus::proto::Response& response )
 }
 
 //------------------------------------------------------------------------------
+bool isATerminatedJob(const remus::worker::Job& job) const
+{
+  return this->TerminatedJobs.count( job.id() ) == 1;
+}
+
+//------------------------------------------------------------------------------
 remus::worker::Job take()
 {
-  //remove all jobs from the front that are invalid
-  //until we hit a valid job or the terminate worker job
-  remus::worker::Job msg;
-  while(this->size() > 0 &&
-        msg.validityReason() == remus::worker::Job::INVALID)
+  //the only jobs on the queue should be valid jobs or kill the worker
+  remus::worker::Job job;
+  if(this->size() > 0)
     {
-      {
-      boost::unique_lock<boost::mutex> lock(this->QueueMutex);
-      msg = this->Queue[0];
+    boost::unique_lock<boost::mutex> lock(this->QueueMutex);
+    job = this->Queue[0];
+    this->Queue.pop_front();
 
-      this->Queue.pop_front();
-      }
+    //notify everyone that a job was taken from the queue
+    this->QueueChanged.notify_all();
     }
-  return msg;
+  return job;
 }
 
 //------------------------------------------------------------------------------
@@ -249,6 +273,12 @@ bool isReady() const
   return this->PollingStarted && this->ContinuePolling;
 }
 
+//------------------------------------------------------------------------------
+bool isShutdown() const
+{
+  return this->PollingFinished;
+}
+
 };
 
 //------------------------------------------------------------------------------
@@ -267,6 +297,12 @@ JobQueue::~JobQueue()
 std::string JobQueue::endpoint() const
 {
   return this->Implementation->endpoint();
+}
+
+//------------------------------------------------------------------------------
+bool JobQueue::isATerminatedJob(const remus::worker::Job& job) const
+{
+  return this->Implementation->isATerminatedJob(job);
 }
 
 //------------------------------------------------------------------------------
@@ -291,6 +327,12 @@ std::size_t JobQueue::size() const
 bool JobQueue::isReady() const
 {
   return this->Implementation->isReady();
+}
+
+//------------------------------------------------------------------------------
+bool JobQueue::isShutdown() const
+{
+  return this->Implementation->isShutdown();
 }
 
 }

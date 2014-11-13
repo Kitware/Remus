@@ -156,7 +156,8 @@ public:
   //Waits until the thread is up and running
   void waitForBrokeringToStart();
 
-  //Waits until brokering finishes
+  //Waits until brokering starts up and finishes. Make sure to check isBrokering
+  //before calling this if you waiting on a server to shutdown
   void waitForBrokeringToFinish();
 
   //get back the port information that this server bound too. Since multiple

@@ -98,28 +98,16 @@ void test_job_routing(MessageRouter& mr,
   response4.sendNonBlocking(&serverSocket,sid);
 
   //gotta wait for all three messages to come in
-  while(jq.size()<3)
-    {
-    remus::common::SleepForMillisec(150);
-    }
+  remus::common::SleepForMillisec(2000);
 
-
-
-  REMUS_ASSERT( (jq.size()>0) );
-  REMUS_ASSERT( (jq.size()==3) );
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob ) ==true ))
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob2 ) ==false ))
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob3) ==false ))
 
   while(jq.size()>0)
     {
     remus::worker::Job j = jq.take();
-    if(j.id() == jobId)
-      {
-      REMUS_ASSERT( (!j.valid()) )
-      REMUS_ASSERT( (j.validityReason() == remus::worker::Job::INVALID) )
-      }
-    else
-      {
-      REMUS_ASSERT( (j.valid()) )
-      }
+    REMUS_ASSERT( (j.valid() == true) )
     }
 }
 
