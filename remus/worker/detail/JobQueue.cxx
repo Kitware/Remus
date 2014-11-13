@@ -157,11 +157,23 @@ void terminateJob(remus::proto::Response& response)
   const std::string data(response.data(), response.dataSize());
   remus::worker::Job tj = remus::worker::to_Job(data);
 
+  bool job_found = false;
+
   for (std::deque<remus::worker::Job>::iterator i = this->Queue.begin();
        i != this->Queue.end(); ++i)
     {
     if(i->id() == tj.id())
+      {
       i->updateValidityReason(remus::worker::Job::INVALID);
+      job_found = true;
+      }
+    }
+  if(!job_found)
+    {
+    //Resend the current job since it could be running for a long time
+    //and has become invalid
+    tj.updateValidityReason(remus::worker::Job::INVALID);
+    this->Queue.push_front(tj);
     }
   this->QueueChanged.notify_all();
 }
