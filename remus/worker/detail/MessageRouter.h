@@ -38,7 +38,15 @@ public:
 
   ~MessageRouter();
 
+  //Returns true when the MessageRouter running and sending messages from
+  //the worker to server or server to worker.
+  //Only returns false if we are sending no messages in both directions
   bool valid() const;
+
+  //checks to see if the MessageRouter is still forwarding worker messages
+  //to the server. When a server stops brokering it tells workers to
+  //terminate. When that happens we still want
+  bool isForwardingToServer() const;
 
   //Will return true if the message router can start. Will return false
   //if you try to start a MessageRouter that has been terminated by the server

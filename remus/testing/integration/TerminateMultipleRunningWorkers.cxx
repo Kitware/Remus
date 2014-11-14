@@ -39,11 +39,8 @@
 #endif
 namespace
 {
-  static std::size_t small_size = 1024;
-  static std::size_t large_size = 16777216;
-
-  static std::size_t ascii_data_size = small_size;
-  static std::size_t binary_data_size = small_size;
+  static std::size_t ascii_data_size = 1024;
+  static std::size_t binary_data_size = 1024;
 
 //------------------------------------------------------------------------------
 struct WorkerController
@@ -51,13 +48,11 @@ struct WorkerController
 
   boost::scoped_ptr< boost::thread > Monitor;
   boost::shared_ptr< remus::Worker > Worker;
-  boost::shared_ptr<bool> ContinueTakingJobs;
 
   //----------------------------------------------------------------------------
   WorkerController( boost::shared_ptr< remus::Worker > w):
     Monitor(),
-    Worker(w),
-    ContinueTakingJobs( new bool(false) )
+    Worker(w)
   {
   }
 
@@ -70,41 +65,39 @@ struct WorkerController
   //----------------------------------------------------------------------------
   void start()
   {
-  *this->ContinueTakingJobs = true;
   boost::scoped_ptr<boost::thread> sthread(
-        new  boost::thread(&WorkerController::start_impl,
-                           this,
-                           this->ContinueTakingJobs) );
+        new  boost::thread(&WorkerController::start_impl, this) );
   this->Monitor.swap(sthread);
   }
 
   //----------------------------------------------------------------------------
   void stop()
   {
-  *this->ContinueTakingJobs = false;
   this->Monitor->join();
   }
 
 private:
   //----------------------------------------------------------------------------
-  void start_impl(boost::shared_ptr<bool> continueTalking)
+  void start_impl()
   {
-  while(*continueTalking == true)
+  //keep going while we have jobs to do
+   while( true )
     {
-    //We rely on the server telling us to terminate for us to return
-    //from get job. The job in that case should be a TERMINATE_WORKER
-    //job.
+    boost::this_thread::yield();
 
-    remus::worker::Job jd = this->Worker->getJob();
+    //now verify the job doesn't tell us to quit
+    remus::worker::Job jd = this->Worker->getJob( );
     switch(jd.validityReason())
       {
-      case remus::worker::Job::TERMINATE_WORKER:
-        std::cout << "worker told to terminate" << std::endl;
-        *continueTalking = false;
-        return;
-      case remus::worker::Job::VALID_JOB:
-      default:
-        break;
+        case remus::worker::Job::INVALID:
+          std::cout << "worker given invalid job" << std::endl;
+          return;
+        case remus::worker::Job::TERMINATE_WORKER:
+          std::cout << "worker told to terminate" << std::endl;
+          return;
+        case remus::worker::Job::VALID_JOB:
+        default:
+          break;
       }
 
     const remus::proto::JobContent& content =
@@ -114,14 +107,12 @@ private:
     remus::proto::JobStatus status( jd.id(), remus::IN_PROGRESS );
     for( int progress=1; progress <= 100; ++progress )
       {
-      if( progress%20==0 )
+      jprogress.setValue( progress );
+      jprogress.setMessage( "Example Message With Random Content" );
+      for( int i=1; i < 100; ++i )
         {
-        jprogress.setValue( progress );
-        jprogress.setMessage( "Example Message With Random Content" );
         status.updateProgress( jprogress );
         this->Worker->updateStatus( status );
-        std::cout << "Worker sending progress " << progress << "%" << std::endl;
-        remus::common::SleepForMillisec( 350 );
         }
       }
 
@@ -134,7 +125,6 @@ private:
 
     this->Worker->returnResult( results );
     }
-  std::cout << "worker told to stop accepting jobs from server" << std::endl;
   }
 };
 
@@ -194,9 +184,10 @@ remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
 }
 
 //------------------------------------------------------------------------------
-bool verify_jobs(boost::shared_ptr<remus::Client> client,
-                 std::vector< WorkerController* >& processors,
-                 std::size_t num_jobs_to_submit)
+void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
+                                boost::shared_ptr<remus::Server> server,
+                                std::vector< WorkerController* >& processors,
+                                std::size_t num_jobs_to_submit)
 {
   using namespace remus::proto;
 
@@ -226,40 +217,32 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 
   //query the server for the job completion
   std::cout << "querying job status" << std::endl;
-  unsigned int num_valid_finished_jobs = 0;
+  unsigned int num_finished_jobs = 0;
+
   while(jobs.size() > 0)
     {
     for(std::size_t i=0; i < jobs.size(); ++i)
       {
       JobStatus status = client->jobStatus( jobs[i] );
-      if ( !status.good() )
+      //once the first job is finished we kill all workers
+      if( status.finished() )
         {
-        std::cout << "job finished with status: "
-                  <<  remus::to_string( status.status() ) << std::endl;
-        if( status.finished() )
-          {
-          //mark the job as finished properly if the result are larger
-          //than the job we submitted.
-          JobResult r = client->retrieveResults( jobs[i] );
-          if( r.dataSize() >  binary_data_size  )
-            { num_valid_finished_jobs++; }
-          }
-        //remove the job from the list to poll
-        jobs.erase(jobs.begin()+i);
+        ++num_finished_jobs;
+        }
+      if(num_finished_jobs == 3)
+        {
+        std::cout << "stopBrokering" << std::endl;
+        jobs.clear();
+        server->stopBrokering();
         }
       }
     }
-
-  //return true when the number of jobs that finished properly matches
-  //the number of jobs submitted. We don't use REMUS_ASSERT in this
-  //thread, but instead
-  return num_valid_finished_jobs == num_jobs_to_submit;
 }
 
 }
 
 //
-int main(int argc, char* argv[])
+int TerminateMultipleRunningWorkers(int, char**)
 {
   //construct a simple worker and client
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
@@ -268,53 +251,31 @@ int main(int argc, char* argv[])
   boost::shared_ptr<remus::Client> client = make_Client( ports );
 
   //if no parameters just run with a single worker and single job
-  int num_workers = 1;
-  int num_jobs = 1;
+  std::size_t num_workers = 8;
+  std::size_t num_jobs = 100;
   std::string data_size_flag = "small";
-  if( argc == 4)
-    {
-    std::stringstream buffer;
-    buffer << argv[1] << std::endl;
-    buffer << argv[2] << std::endl;
-    buffer << argv[3] << std::endl;
-    buffer >> data_size_flag;
-    buffer >> num_workers;
-    buffer >> num_jobs;
-    }
 
-  if(data_size_flag == "large")
-    {
-    ascii_data_size = large_size;
-    binary_data_size = large_size;
-    }
-
-  std::cout << "verifying " << num_workers << " workers "
+  std::cout << "verifying "
+            << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
 
   std::vector < WorkerController* > processors;
-  for (int i=0; i < num_workers; ++i)
+  for (std::size_t i=0; i < num_workers; ++i)
     {
-    WorkerController* wc = new WorkerController( make_Worker( ports ) );
+    WorkerController* wc  = new WorkerController( make_Worker( ports ) );
     processors.push_back( wc );
     }
 
-  const bool valid = verify_jobs(client, processors, num_jobs);
+  terminate_blocking_workers(client, server, processors, num_jobs);
 
-
-  //now to cleanup the workers we tell the server to stop brokering
-  //your other option is to use a slow poll in the worker and send
-  //it a signal you want it to stop
-  server->stopBrokering();
-
-  //delete workers before validating the results
+  //keep looking at the workers to see when they stop running
   for (std::size_t i=0; i < processors.size(); ++i)
     {
     WorkerController* wc = processors[i];
     wc->stop();
-    delete wc;
     }
-  processors.clear();
 
-  //now verify that all the jobs finished properly
-  return ( valid == true ) ? 0 : 1;
+
+  processors.clear();
+  return 0;
 }
