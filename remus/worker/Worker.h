@@ -71,7 +71,9 @@ public:
   //query to see how many pending jobs we need to process
   std::size_t pendingJobCount( ) const;
 
-  //fetch a pending job
+  //fetch a pending job, if no jobs are pending will return
+  //an invalid job, this method will never block waiting for a job
+  //from the server
   remus::worker::Job takePendingJob();
 
   //Blocking fetch a pending job and return it
@@ -82,6 +84,16 @@ public:
 
   //send to the server the mesh results.
   void returnResult(const remus::proto::JobResult& result);
+
+  //ask the worker API if the server has told us we should shutdown.
+  //This means that the server has shutdown and all jobs the worker
+  //has are invalid and can be terminated.
+  bool workerShouldTerminate() const;
+
+  //ask if a current processing job should be terminated, which can
+  //happen if the client sends a terminate call while the worker is processing
+  //the job
+  bool jobShouldBeTerminated( const remus::worker::Job& job ) const;
 
 private:
   //holds the type of mesh we support

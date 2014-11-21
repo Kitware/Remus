@@ -81,7 +81,7 @@ void verify_basic_comms(zmq::context_t& context)
 
   {
   remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob2));
+                                  remus::worker::to_string(fakeJob3));
   response.sendNonBlocking(&jobSocket,sid);
   }
 
@@ -99,23 +99,14 @@ void verify_basic_comms(zmq::context_t& context)
   //gotta wait for all three messages to come in
   remus::common::SleepForMillisec(2000);
 
-  while(jq.size()<3){}
-  REMUS_ASSERT( (jq.size()>0) );
-  REMUS_ASSERT( (jq.size()==3) );
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob ) ==true ))
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob2 ) ==false ))
+  REMUS_ASSERT( (jq.isATerminatedJob( fakeJob3) ==false ))
 
   while(jq.size()>0)
     {
     remus::worker::Job j = jq.take();
-    if(j.id() == jobId)
-      {
-      REMUS_ASSERT( (!j.valid()) )
-      REMUS_ASSERT( (j.validityReason() ==
-                     remus::worker::Job::TERMINATE_WORKER) )
-      }
-    else
-      {
-      REMUS_ASSERT( (j.valid()) )
-      }
+    REMUS_ASSERT( (j.valid() == true) )
     }
 }
 

@@ -202,5 +202,17 @@ void Worker::returnResult(const remus::proto::JobResult& result)
                              &this->Zmq->Server);
 }
 
+//-----------------------------------------------------------------------------
+bool Worker::workerShouldTerminate() const
+{
+  return this->JobQueue->isShutdown();
+}
+
+//-----------------------------------------------------------------------------
+bool Worker::jobShouldBeTerminated(const remus::worker::Job& job) const
+{
+  return this->JobQueue->isATerminatedJob(job);
+}
+
 }
 }

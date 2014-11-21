@@ -172,7 +172,10 @@ struct ThreadManagement
   this->waitForThreadToStart();
 
   //now we wait for the broker to finish
-  this->BrokerThread->join();
+  if(this->BrokerThread->joinable())
+    {
+    this->BrokerThread->join();
+    }
   }
 
   //----------------------------------------------------------------------------
