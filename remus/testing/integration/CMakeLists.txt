@@ -26,7 +26,7 @@ remus_integration_tests(SOURCES ${unit_tests}
                         LIBRARIES ${Boost_LIBRARIES})
 
 
-#also add other permutation for SubmitSmallJobs where
+#also add other permutation for SubmitJobs where
 #we modify the number of workers and jobs
 add_executable(IntegrationTests_SubmitJobs
                SubmitJobs.cxx)
@@ -54,6 +54,8 @@ add_SubmitJobs_test(small 2 4)
 add_SubmitJobs_test(small 4 2)
 add_SubmitJobs_test(small 6 32)
 
+
 add_SubmitJobs_test(large 1 1)
 add_SubmitJobs_test(large 2 4)
 add_SubmitJobs_test(large 4 2)
+add_SubmitJobs_test(large 6 32)

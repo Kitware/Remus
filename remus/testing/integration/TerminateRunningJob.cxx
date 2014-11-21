@@ -23,68 +23,26 @@
 
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
+#include <remus/testing/integration/detail/Factories.h>
 
 namespace
 {
+   namespace workdetail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
   //global store of data to verify on worker
   namespace data
   {
-  std::string ascii_data;
   std::string binary_data;
-  }
-
-  namespace factory
-  {
-  //we want a custom factory that can not create any workers
-  //but alays states that it can support a mesh type
-  class AlwaysSupportFactory: public remus::server::WorkerFactoryBase
-  {
-  public:
-
-    remus::common::MeshIOTypeSet supportedIOTypes() const
-    {
-      //we need to return that we support all types!
-      return remus::common::generateAllIOTypes();
-    }
-
-    remus::proto::JobRequirementsSet workerRequirements(
-                                            remus::common::MeshIOType type) const
-    {
-      //make clients think we have real workers, by sending back fake job reqs
-      remus::proto::JobRequirements reqs =
-           remus::proto::make_JobRequirements(type,"AlwaysSupportWorker","");
-      remus::proto::JobRequirementsSet reqSet;
-      reqSet.insert(reqs);
-      return reqSet;
-    }
-
-    bool haveSupport(const remus::proto::JobRequirements& reqs) const
-      {
-      (void) reqs;
-      //we want to return true so that the server adds jobs to it worker queue
-      return true;
-      }
-
-    bool createWorker(const remus::proto::JobRequirements& type,
-                      WorkerFactoryBase::FactoryDeletionBehavior lifespan)
-      {
-      (void) type;
-      (void) lifespan;
-      //we want to return false here so that server never thinks we are creating
-      //a worker and assigns a job to a worker we didn't create
-      return false;
-      }
-
-    void updateWorkerCount(){}
-    unsigned int currentWorkerCount() const { return 0; }
-    };
   }
 
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   //create the server and start brokering, with an empty factory
-  boost::shared_ptr<factory::AlwaysSupportFactory> factory(new factory::AlwaysSupportFactory());
+  boost::shared_ptr<workdetail::AlwaysSupportFactory> factory(new workdetail::AlwaysSupportFactory("SimpleWorker"));
   factory->setMaxWorkerCount(1); //max worker needs to be higher than 0
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
