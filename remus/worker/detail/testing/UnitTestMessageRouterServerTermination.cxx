@@ -48,6 +48,7 @@ void test_server_terminate_routing_call(MessageRouter& mr,
 
   mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
+  REMUS_ASSERT( (mr.isForwardingToServer()) )
 
   //we need to fetch a heartbeat message from the router
   //so that we get the socket identity to send to
@@ -69,7 +70,8 @@ void test_server_terminate_routing_call(MessageRouter& mr,
     }
   REMUS_ASSERT( (jq.size() > 0) )
   remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (!mr.valid()) )
+  REMUS_ASSERT( (mr.valid()) )
+  REMUS_ASSERT( (!mr.isForwardingToServer()) )
 
   REMUS_ASSERT( (jq.size() == 1) )
   remus::worker::Job invalid_job = jq.take();

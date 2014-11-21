@@ -18,6 +18,7 @@ set(unit_tests
   TerminateQueuedJob.cxx
   TerminateRunningJob.cxx
   TerminateRunningWorker.cxx
+  TerminateMultipleRunningWorkers.cxx
   )
 
 remus_integration_tests(SOURCES ${unit_tests}

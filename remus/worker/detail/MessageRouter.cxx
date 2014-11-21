@@ -47,8 +47,12 @@ class MessageRouter::MessageRouterImplementation
   boost::condition_variable ThreadStatusChanged;
 
   boost::scoped_ptr<boost::thread> PollingThread;
+
   //state to tell when we should stop polling
-  bool ContinueTalking;
+  bool ContinuePolling;
+
+  //Should we continue to forward messages from the worker to the server
+  bool ContinueForwardingToServer;
 public:
 //-----------------------------------------------------------------------------
 MessageRouterImplementation(
@@ -59,7 +63,8 @@ MessageRouterImplementation(
   ThreadMutex(),
   ThreadStatusChanged(),
   PollingThread(new boost::thread()),
-  ContinueTalking(false)
+  ContinuePolling(false),
+  ContinueForwardingToServer(true)
 {
   //we don't connect the sockets until the polling thread starts up
 }
@@ -78,7 +83,14 @@ MessageRouterImplementation(
 bool isTalking() const
 {
   boost::lock_guard<boost::mutex> lock(ThreadMutex);
-  return this->ContinueTalking;
+  return this->ContinuePolling;
+}
+
+//-----------------------------------------------------------------------------
+bool isForwardingToServer() const
+{
+  boost::lock_guard<boost::mutex> lock(ThreadMutex);
+  return this->ContinueForwardingToServer;
 }
 
 //------------------------------------------------------------------------------
@@ -89,12 +101,12 @@ bool startTalking(const remus::worker::ServerConnection& server_info,
   bool threadIsRunning = false;
     //lock the construction of thread as a critical section
     {
-    boost::unique_lock<boost::mutex> lock(ThreadMutex);
+    boost::lock_guard<boost::mutex> lock(ThreadMutex);
 
     //if a thread's id is equal to the default thread id, it means that the
     //thread was never given anything to run, and is actually empty
     threadIsRunning = this->PollingThread->get_id() != boost::thread::id();
-    launchThread = !this->ContinueTalking && !threadIsRunning;
+    launchThread = !this->ContinuePolling && !threadIsRunning;
     if(launchThread)
       {
       boost::scoped_ptr<boost::thread> pollthread(
@@ -121,8 +133,8 @@ private:
 void setIsTalking(bool t)
 {
     {
-    boost::unique_lock<boost::mutex> lock(ThreadMutex);
-    this->ContinueTalking = t;
+    boost::lock_guard<boost::mutex> lock(ThreadMutex);
+    this->ContinuePolling = t;
     }
   this->ThreadStatusChanged.notify_all();
 }
@@ -131,7 +143,7 @@ void setIsTalking(bool t)
 void waitForThreadToStart()
 {
   boost::unique_lock<boost::mutex> lock(ThreadMutex);
-  while(!this->ContinueTalking)
+  while(!this->ContinuePolling)
     {
     ThreadStatusChanged.wait(lock);
     }
@@ -171,83 +183,144 @@ void poll(remus::worker::ServerConnection server_info,
   this->setIsTalking(true);
   while( this->isTalking() )
     {
-    bool sentToServer=false;
     zmq::poll(&items[0],2,monitor.current());
     monitor.pollOccurred();
 
-    if(items[0].revents & ZMQ_POLLIN)
-      {
-      sentToServer = true;
-
-      remus::proto::Message message = remus::proto::receive_Message(&workerComm);
-
-      //special case is that TERMINATE_WORKER means we stop looping
-      if(message.serviceType()==remus::TERMINATE_WORKER)
-        {
-        //send the terminate worker message to the job queue too
-        remus::worker::Job terminateJob;
-        remus::proto::Response termJob( remus::TERMINATE_WORKER,
-                                        remus::worker::to_string(terminateJob));
-        termJob.sendNonBlocking(&queueComm, (zmq::SocketIdentity()) );
-
-        this->setIsTalking(false);
-        }
-      else
-        {
-        //just pass the message on to the server
-        remus::proto::forward_Message(message,&serverComm);
-        }
-      }
+    //handle taking
+    bool sentToServer = false;
     if(items[1].revents & ZMQ_POLLIN)
-      {
-      remus::proto::Response response(&serverComm);
-      const bool goodToForward = response.isFullyFormed() &&
-                                 response.isValidService();
-      if(goodToForward)
         {
-        switch(response.serviceType())
+        //handle accepting message from the server and forwarding
+        //them to the server
+        this->handleServerMessage(serverComm, queueComm);
+        }
+    if(items[0].revents & ZMQ_POLLIN)
+        {
+        sentToServer = true;
+        //handle accepting messages from the worker and forwarding
+        //them to the server
+        bool shouldSutdown = this->handleWorkerMessage(workerComm,
+                                                                                    serverComm,
+                                                                                    queueComm);
+        if(shouldSutdown)
           {
-          case remus::TERMINATE_WORKER:
-            response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
-            this->setIsTalking(false);
-            break;
-          case remus::TERMINATE_JOB:
-            //send the terminate to the job queue since it holds the jobs
-          case remus::MAKE_MESH:
-            //send the job to the queue so that somebody can take it later
-            response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
-            break;
-          default:
-            // do nothing if it isn't terminate_job, terminate_worker
-            // or make_mesh.
-            break;
+          //we are shutting down so we mark that we will not accept any
+          //more messages from anybody, and instead will stop polling
+          this->setIsTalking(false);
+
+          //don't try to handle any message from the server
+          //that could be ready
+          continue;
           }
         }
-      }
-    if(!sentToServer)
+
+
+     if(!sentToServer)
+        {
+        //we are going to send a heartbeat now since we have gone long enough
+        //without sending a message to the server
+        this->sendHeartBeat(serverComm, monitor);
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+//handles taking messages from the worker
+bool handleWorkerMessage(zmq::socket_t& workerComm,
+                                        zmq::socket_t& serverComm,
+                                        zmq::socket_t& queueComm)
+{
+  bool shouldSutdown = false;
+  //first we take the message from the worker socket so it
+  //doesn't hang around, and makes the worker think it
+  //always is connected to a server
+  remus::proto::Message message = remus::proto::receive_Message(&workerComm);
+
+  //next we check if we are forwarding messages to the server,
+  //if we aren't doing that there is no point to send the message
+  //otherwise it will hang around in our zmq inbox and make
+  //use block on destruction of the socket
+  if( this->ContinueForwardingToServer )
+    {
+    //if the worker is telling use to submit a TERMINATE_WORKER
+    //job that means it is in the process of shutting down.
+    //so we need to prepare for that
+    if(message.serviceType()==remus::TERMINATE_WORKER)
       {
-      //send the server how soon in seconds we will send our next heartbeat
-      //message. This way we are telling the server itself when it should
-      //expect a message, rather than it guessing. We always send the max
-      //time out since we don't know how long till we poll again. If a
-      //super large job comes in we could be blocking for a very long time
-      const boost::int64_t polldur = monitor.maxTimeOut();
-      //send the heartbeat to the server
-      remus::proto::send_Message(remus::common::MeshIOType(),
-                                 remus::HEARTBEAT,
-                                 boost::lexical_cast<std::string>(polldur),
-                                 &serverComm);
+      //send the terminate worker message to the job queue so it
+      //shuts down
+      remus::worker::Job terminateJob;
+      remus::proto::Response termJob( remus::TERMINATE_WORKER,
+                                       remus::worker::to_string(terminateJob));
+      termJob.sendNonBlocking(&queueComm, (zmq::SocketIdentity()) );
+
+      //we are in the process of cleaning up we need to stop everything
+      shouldSutdown = true;
+      }
+    else
+      {
+      // std::cout << "forward_Message" << this << std::endl;
+      //just pass the message on to the server
+      remus::proto::forward_Message(message,&serverComm);
+      }
+    }
+    return shouldSutdown;
+}
+
+//------------------------------------------------------------------------------
+//handles taking messages from the server
+void handleServerMessage( zmq::socket_t& serverComm,
+                                       zmq::socket_t& queueComm)
+{
+  remus::proto::Response response(&serverComm);
+  const bool goodToForward = response.isFullyFormed() && response.isValidService();
+  if(goodToForward)
+    {
+    switch(response.serviceType())
+      {
+      case remus::TERMINATE_WORKER:
+        response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
+
+        //the server has told us to terminate, which means that the server
+        //might not exist so don't continue trying to send it messages
+        this->ContinueForwardingToServer = false;
+        // std::cout << "ContinueForwardingToServer: false" << this <<  std::endl;
+        break;
+      case remus::TERMINATE_JOB:
+        //send the terminate to the job queue since it holds the jobs
+      case remus::MAKE_MESH:
+        //send the job to the queue so that somebody can take it later
+        response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
+        break;
+      default:
+        // do nothing if it isn't terminate_job, terminate_worker
+        // or make_mesh.
+        break;
       }
     }
 }
 
 //------------------------------------------------------------------------------
-//presumes the thread is valid
-void stopTalking()
+//handles sending heartbeat to the server
+void sendHeartBeat(zmq::socket_t& serverComm,
+                             const remus::common::PollingMonitor& monitor)
 {
-  this->setIsTalking(false);
-
-  this->PollingThread->join();
+  //First we check if we should be talking to the server, if we aren't forwarding
+  //messages to the server than sending heartbeats is pointless
+  if( this->ContinueForwardingToServer)
+    {
+    //send the server how soon in seconds we will send our next heartbeat
+    //message. This way we are telling the server itself when it should
+    //expect a message, rather than it guessing. We always send the max
+    //time out since we don't know how long till we poll again. If a
+    //super large job comes in we could be blocking for a very long time
+    const boost::int64_t polldur = monitor.maxTimeOut();
+    //send the heartbeat to the server
+    remus::proto::send_Message(remus::common::MeshIOType(),
+                                               remus::HEARTBEAT,
+                                               boost::lexical_cast<std::string>(polldur),
+                                               &serverComm);
+    }
 }
 
 };
@@ -271,6 +344,12 @@ MessageRouter::~MessageRouter()
 bool MessageRouter::valid() const
 {
   return this->Implementation->isTalking();
+}
+
+//-----------------------------------------------------------------------------
+bool MessageRouter::isForwardingToServer() const
+{
+  return this->Implementation->isForwardingToServer();
 }
 
 //-----------------------------------------------------------------------------
