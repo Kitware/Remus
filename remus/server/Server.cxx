@@ -784,13 +784,19 @@ void Server::assignJobToWorker(zmq::socket_t& workerChannel,
 //------------------------------------------------------------------------------
 void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
 {
-
   //We assume that a worker could possibly handle multiple jobs but all of the same type.
   //In order to prevent allocating more workers than needed we use a set instead of a vector.
   //This results in the server only creating one worker per job type.
   //This gives the new workers the opportunity of getting assigned multiple jobs.
   this->WorkerFactory->updateWorkerCount();
 
+  if(this->QueuedJobs->numJobsWaitingForWorkers() == 0 &&
+     this->QueuedJobs->numJobsJustQueued() == 0)
+    {
+    //we have no jobs waiting for work so no need to do
+    //all the heavy queries below
+    return;
+    }
 
   typedef remus::proto::JobRequirementsSet::const_iterator it;
   remus::proto::JobRequirementsSet types;
