@@ -86,7 +86,7 @@ public:
 
   //Set the maximum number of total workers that can be returning at once
   void setMaxWorkerCount(unsigned int count){MaxWorkers = count;}
-  unsigned int maxWorkerCount(){return MaxWorkers;}
+  unsigned int maxWorkerCount() const {return MaxWorkers;}
   virtual unsigned int currentWorkerCount() const =0;
 
 private:
