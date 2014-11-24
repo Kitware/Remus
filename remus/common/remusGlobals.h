@@ -41,8 +41,8 @@ static const std::string INVALID_MSG = "INVALID_MSG";
      ServiceTypeMacro(MESH_STATUS, 6, "MESH STATUS"), \
      ServiceTypeMacro(RETRIEVE_RESULT, 7, "RETRIEVE RESULT"), \
      ServiceTypeMacro(HEARTBEAT, 8, "HEARTBEAT"), \
-     ServiceTypeMacro(TERMINATE_JOB, 97, "TERMINATE JOB"), \
-     ServiceTypeMacro(TERMINATE_WORKER, 98, "TERMINATE WORKER")
+     ServiceTypeMacro(TERMINATE_JOB, 9, "TERMINATE JOB"), \
+     ServiceTypeMacro(TERMINATE_WORKER, 10, "TERMINATE WORKER")
 
 
 //------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ inline std::string to_string(remus::SERVICE_TYPE t)
 //------------------------------------------------------------------------------
 inline remus::SERVICE_TYPE to_serviceType(const std::string& t)
 {
-  for(int i=1; i <=9; i++)
+  for(int i=1; i<=10; i++)
     {
     remus::SERVICE_TYPE mt=static_cast<remus::SERVICE_TYPE>(i);
     if (remus::to_string(mt) == t)
