@@ -81,18 +81,18 @@ private:
   typedef boost::posix_time::time_duration time_duration;
 
   //this is used to generate artificial server messaging load.
-  const std::size_t numberOfMessagesToSend = randomInt(10, 25);
-  std::cout << "Worker is going to send: " << numberOfMessagesToSend << " messages" << std::endl;
+  const std::size_t numberOfMessagesToSend = randomInt(250, 2000);
+  std::cout << "Worker is going to send: " << 20 * numberOfMessagesToSend << " messages" << std::endl;
 
   //We rely on the server telling us to terminate for us to return
   //from get job. The job in that case should be a TERMINATE_WORKER
   //job.
 
-  const ptime askForJobStart = boost::posix_time::microsec_clock::local_time();
+//  const ptime askForJobStart = boost::posix_time::microsec_clock::local_time();
   remus::worker::Job jd = this->getJob();
-  const ptime askForJobEnd = boost::posix_time::microsec_clock::local_time();
+//  const ptime askForJobEnd = boost::posix_time::microsec_clock::local_time();
 
-  std::cout << "Time to get a job is: " << askForJobEnd - askForJobStart << std::endl;
+//  std::cout << "Time to get a job is: " << askForJobEnd - askForJobStart << std::endl;
   switch(jd.validityReason())
     {
     case remus::worker::Job::TERMINATE_WORKER:
@@ -131,6 +131,7 @@ private:
   ++this->numCompletedJobs;
   this->returnResult( results );
   }
+
   std::size_t numCompletedJobs;
 };
 

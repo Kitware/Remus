@@ -23,9 +23,9 @@
 
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
+
 #include <remus/testing/integration/detail/Factories.h>
 #include <remus/testing/integration/detail/Workers.h>
-
 
 #include <utility>
 
@@ -46,9 +46,36 @@ namespace
   {
   using remus::testing::integration::detail::ThreadPoolWorkerFactory;
   }
-  static std::size_t ascii_data_size = 1024;
-  static std::size_t binary_data_size = 1024;
 
+  static std::size_t small_size = 1024;
+  static std::size_t large_size = 16777216;
+
+  static std::size_t ascii_data_size = small_size;
+  static std::size_t binary_data_size = small_size;
+
+//------------------------------------------------------------------------------
+remus::proto::JobRequirements make_Reqs()
+{
+  using namespace remus::meshtypes;
+  using namespace remus::proto;
+
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
+  return requirements;
+}
+
+//------------------------------------------------------------------------------
+boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports,
+                                              std::size_t num_workers)
+{
+  boost::shared_ptr<factory::ThreadPoolWorkerFactory> factory(
+            new factory::ThreadPoolWorkerFactory(make_Reqs(), num_workers));
+
+  boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
+
+  server->startBrokering();
+  return server;
+}
 
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
@@ -67,29 +94,23 @@ remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
   using namespace remus::meshtypes;
   using namespace remus::proto;
 
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements reqs = make_JobRequirements(io_type, "SimpleWorker", "");
-
-  JobSubmission sub(reqs);
-  sub["binary"]=binary_content;
-
   std::stringstream ascii_data_size_buffer;
   ascii_data_size_buffer << ascii_data_size;
 
   JobContent asciiLength = JobContent(remus::common::ContentFormat::User,
                                       ascii_data_size_buffer.str());
-  sub["ascii_data_size"] = asciiLength;
 
+  JobSubmission sub( make_Reqs() );
+  sub["binary"] = binary_content;
+  sub["ascii_data_size"] = asciiLength;
   remus::proto::Job job = client->submitJob(sub);
   REMUS_ASSERT(job.valid())
   return job;
 }
 
 //------------------------------------------------------------------------------
-void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
-                                boost::shared_ptr<remus::Server> server,
-                                std::size_t num_jobs_to_submit,
-                                std::size_t num_jobs_to_terminate_at)
+bool verify_jobs(boost::shared_ptr<remus::Client> client,
+                 std::size_t num_jobs_to_submit)
 {
   using namespace remus::proto;
 
@@ -113,67 +134,83 @@ void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
 
   //query the server for the job completion
   std::cout << "querying job status" << std::endl;
-  unsigned int num_finished_jobs = 0;
-
+  unsigned int num_valid_finished_jobs = 0;
   while(jobs.size() > 0)
     {
     for(std::size_t i=0; i < jobs.size(); ++i)
       {
       JobStatus status = client->jobStatus( jobs[i] );
-      //once the first job is finished we kill all workers
-      if( !status.good() )
+      if ( !status.good() )
         {
-        std::cout << "status is: " << status << std::endl;
-        }
-      if( status.finished() )
-        {
-        ++num_finished_jobs;
-        std::cout << "completed job" << std::endl;
-        }
-      if(num_finished_jobs >= num_jobs_to_terminate_at)
-        {
-        std::cout << "stopBrokering" << std::endl;
-        jobs.clear();
-        server->stopBrokering();
+        if( status.finished() )
+          {
+          //mark the job as finished properly if the result are non zero
+          JobResult r = client->retrieveResults( jobs[i] );
+          if( r.dataSize() >  0  )
+            { num_valid_finished_jobs++; }
+          }
+        else
+          {
+          std::cout << "job failed with status: "
+                  <<  remus::to_string( status.status() ) << std::endl;
+          }
+        //remove the job from the list to poll
+        jobs.erase(jobs.begin()+i);
         }
       }
     }
+
+  //return true when the number of jobs that finished properly matches
+  //the number of jobs submitted. We don't use REMUS_ASSERT in this
+  //thread, but instead
+  return num_valid_finished_jobs == num_jobs_to_submit;
 }
 
 }
 
 //
-int TerminateMultipleRunningWorkers(int, char**)
+int main(int argc, char* argv[])
 {
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
   //if no parameters just run with a single worker and single job
-  std::size_t num_workers = 7;
-  std::size_t num_jobs = 100;
-  std::size_t num_jobs_to_terminate_at = 18;
+  std::size_t num_workers = 1;
+  std::size_t num_jobs = 1;
+  std::string data_size_flag = "small";
+  if( argc == 4)
+    {
+    std::stringstream buffer;
+    buffer << argv[1] << std::endl;
+    buffer << argv[2] << std::endl;
+    buffer << argv[3] << std::endl;
+    buffer >> data_size_flag;
+    buffer >> num_workers;
+    buffer >> num_jobs;
+    }
 
-  //worker requirments
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
+  if(data_size_flag == "large")
+    {
+    ascii_data_size = large_size;
+    binary_data_size = large_size;
+    }
 
-  //create the server and start brokering, with a worker pool factory
-  //that will manage the fake workers
-  boost::shared_ptr<factory::ThreadPoolWorkerFactory> factory(
-            new factory::ThreadPoolWorkerFactory(requirements, num_workers));
-
-  boost::shared_ptr<remus::Server> server( new remus::Server(remus::server::ServerPorts(),factory) );
-  server->startBrokering();
-
-  //construct a simple client
-  const remus::server::ServerPorts& ports = server->serverPortInfo();
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
-
-  std::cout << "verifying "
-            << num_workers << " workers "
+  std::cout << "verifying " << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
 
-  terminate_blocking_workers(client, server, num_jobs, num_jobs_to_terminate_at);
+  //construct a threaded pool factory
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(),
+                                                         num_workers );
+  const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  return 0;
+  //construct the client interface
+  boost::shared_ptr<remus::Client> client = make_Client( ports );
+
+  const bool valid = verify_jobs(client, num_jobs);
+
+  //now to cleanup the workers we tell the server to stop brokering
+  //which will tell the workers to stop running
+  server->stopBrokering();
+
+  //now validate that all workers received a fair share of the jobs
+
+  //now verify that all the jobs finished properly
+  return ( valid == true ) ? 0 : 1;
 }

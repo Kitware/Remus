@@ -22,6 +22,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/locks.hpp>
+#include <map>
 
 #include <remus/testing/integration/detail/Workers.h>
 
@@ -93,11 +94,14 @@ public:
                            std::size_t maxThreadCount ):
     WorkerFactoryBase(),
     WorkerReqs(reqs),
+    Connection(),
+    HasConnection(false),
     IOService(),
     Work( IOService ),
     ThreadPool(),
     Mutex(),
-    AvailableThreads( maxThreadCount )
+    AvailableThreads( maxThreadCount ),
+    JobsPerThread()
   {
     this->setMaxWorkerCount(maxThreadCount);
 
@@ -108,6 +112,15 @@ public:
                            &this->IOService ) );
     }
   }
+
+  ~ThreadPoolWorkerFactory()
+    {
+    typedef std::map< ::boost::thread::id, std::size_t >::const_iterator c_it;
+    for (c_it i = this->JobsPerThread.begin(); i != this->JobsPerThread.end(); ++i )
+      {
+      std::cout << "thread: " << i->first << " finished " << i->second << " jobs " << std::endl;
+      }
+    }
 
   remus::proto::JobRequirementsSet workerRequirements(remus::common::MeshIOType type) const
   {
@@ -169,17 +182,22 @@ private:
   void LaunchWorker()
     {
     using namespace remus::testing;
-      try
+    //construct a shared connection for all workers to use
+    if(!this->HasConnection)
       {
-      using namespace remus::worker;
-      ServerConnection conn = make_ServerConnection(this->workerEndpoint());
+      this->Connection = remus::worker::make_ServerConnection(this->workerEndpoint());
+      this->HasConnection = true;
+      }
 
+    std::size_t numCompleted = 0;
+    try
+      {
       //construct the worker and tell it to process a job
-      integration::detail::SingleShotWorker worker(this->WorkerReqs, conn);
+      integration::detail::SingleShotWorker worker(this->WorkerReqs,
+                                                   this->Connection);
 
       //should be 1, could be zero
-      std::size_t numCompleted = worker.numberOfCompletedJobs();
-      (void) numCompleted;
+      numCompleted = worker.numberOfCompletedJobs();
       }
       catch(...)
       { //the worker crashed, just ignore it
@@ -188,12 +206,35 @@ private:
     //worker is finished so mark the thread as usable
     {
     boost::lock_guard< boost::mutex > lock( this->Mutex );
+
+    //mark the thread as having finished another job
+    if(this->JobsPerThread.find( boost::this_thread::get_id() ) != this->JobsPerThread.end())
+      {
+      this->JobsPerThread[ boost::this_thread::get_id() ]+= numCompleted;
+      }
+   else
+      {
+      this->JobsPerThread[ boost::this_thread::get_id() ] = 0;
+      }
+
     ++this->AvailableThreads;
     }
 
     }
 
+  //when we are quickly starting up and shutting down
+  //workers we can run into some zmq edge case bugs, mainly
+  //the error Assertion failed: get_load () == 0 (poller_base.cpp:31)
+  //The issue is:
+  //is sendlarge ZMQ_DONTWAIT message(s)
+  //than close the socket and context immediately
+  //the destination willnever recieves anything, and if you do
+  //it enough times you get that assertion failure.
+  //The solution is to use a single connection so that all
+  //workers use the same zmq context
   remus::proto::JobRequirements WorkerReqs;
+  remus::worker::ServerConnection Connection;
+  bool HasConnection;
 
   boost::asio::io_service IOService;
   boost::asio::io_service::work Work;
@@ -201,6 +242,8 @@ private:
 
   mutable boost::mutex Mutex;
   std::size_t AvailableThreads;
+
+  std::map< ::boost::thread::id, std::size_t > JobsPerThread;
 };
 
 }
