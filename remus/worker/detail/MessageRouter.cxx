@@ -191,7 +191,9 @@ void poll(remus::worker::ServerConnection server_info,
     if(items[1].revents & ZMQ_POLLIN)
         {
         //handle accepting message from the server and forwarding
-        //them to the server
+        //them to the server. Handle server messages before worker
+        //messages so that we don't send messages to a server
+        //that is now telling us to shut down
         this->handleServerMessage(serverComm, queueComm);
         }
     if(items[0].revents & ZMQ_POLLIN)
@@ -200,8 +202,8 @@ void poll(remus::worker::ServerConnection server_info,
         //handle accepting messages from the worker and forwarding
         //them to the server
         bool shouldSutdown = this->handleWorkerMessage(workerComm,
-                                                                                    serverComm,
-                                                                                    queueComm);
+                                                       serverComm,
+                                                       queueComm);
         if(shouldSutdown)
           {
           //we are shutting down so we mark that we will not accept any
@@ -227,8 +229,8 @@ void poll(remus::worker::ServerConnection server_info,
 //------------------------------------------------------------------------------
 //handles taking messages from the worker
 bool handleWorkerMessage(zmq::socket_t& workerComm,
-                                        zmq::socket_t& serverComm,
-                                        zmq::socket_t& queueComm)
+                         zmq::socket_t& serverComm,
+                         zmq::socket_t& queueComm)
 {
   bool shouldSutdown = false;
   //first we take the message from the worker socket so it
@@ -259,7 +261,6 @@ bool handleWorkerMessage(zmq::socket_t& workerComm,
       }
     else
       {
-      // std::cout << "forward_Message" << this << std::endl;
       //just pass the message on to the server
       remus::proto::forward_Message(message,&serverComm);
       }
@@ -270,7 +271,7 @@ bool handleWorkerMessage(zmq::socket_t& workerComm,
 //------------------------------------------------------------------------------
 //handles taking messages from the server
 void handleServerMessage( zmq::socket_t& serverComm,
-                                       zmq::socket_t& queueComm)
+                          zmq::socket_t& queueComm)
 {
   remus::proto::Response response(&serverComm);
   const bool goodToForward = response.isFullyFormed() && response.isValidService();
@@ -284,7 +285,6 @@ void handleServerMessage( zmq::socket_t& serverComm,
         //the server has told us to terminate, which means that the server
         //might not exist so don't continue trying to send it messages
         this->ContinueForwardingToServer = false;
-        // std::cout << "ContinueForwardingToServer: false" << this <<  std::endl;
         break;
       case remus::TERMINATE_JOB:
         //send the terminate to the job queue since it holds the jobs
@@ -303,7 +303,7 @@ void handleServerMessage( zmq::socket_t& serverComm,
 //------------------------------------------------------------------------------
 //handles sending heartbeat to the server
 void sendHeartBeat(zmq::socket_t& serverComm,
-                             const remus::common::PollingMonitor& monitor)
+                   const remus::common::PollingMonitor& monitor)
 {
   //First we check if we should be talking to the server, if we aren't forwarding
   //messages to the server than sending heartbeats is pointless
@@ -317,9 +317,9 @@ void sendHeartBeat(zmq::socket_t& serverComm,
     const boost::int64_t polldur = monitor.maxTimeOut();
     //send the heartbeat to the server
     remus::proto::send_Message(remus::common::MeshIOType(),
-                                               remus::HEARTBEAT,
-                                               boost::lexical_cast<std::string>(polldur),
-                                               &serverComm);
+                               remus::HEARTBEAT,
+                               boost::lexical_cast<std::string>(polldur),
+                               &serverComm);
     }
 }
 
