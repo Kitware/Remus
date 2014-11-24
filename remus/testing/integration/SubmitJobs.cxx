@@ -52,17 +52,30 @@ namespace
   static std::size_t ascii_data_size = small_size;
   static std::size_t binary_data_size = small_size;
 
-//------------------------------------------------------------------------------
-struct FinishedOrFailed
-{
-  remus::Client* client;
-  FinishedOrFailed(remus::Client* c):client(c){}
-  inline bool operator()(const remus::proto::Job& job)
-    { //not good is failed or finished
-    remus::proto::JobStatus st = client->jobStatus(job);
-    return st.finished() || st.failed();
-    }
-};
+  //------------------------------------------------------------------------------
+  struct FinishedOrFailed
+  {
+    remus::Client* client;
+    unsigned int* num_finished_jobs;
+    FinishedOrFailed(remus::Client* c, unsigned int* numFinJobs):
+      client(c),
+      num_finished_jobs(numFinJobs)
+      {
+
+      }
+
+    inline bool operator()(const remus::proto::Job& job)
+      {
+      remus::proto::JobStatus st = client->jobStatus(job);
+      if(st.finished())
+        {
+        remus::proto::JobResult r = client->retrieveResults( job );
+        if( r.dataSize() > 0 )
+          { ++(*this->num_finished_jobs); }
+        }
+      return st.finished() || st.failed();
+      }
+  };
 
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
@@ -154,7 +167,6 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 
   //submit each job to the server, we know that the we have workers
   //attached to the server by this point so all jobs will be accepted
-  typedef std::vector< remus::proto::Job >::iterator It;
   std::vector< remus::proto::Job > jobs;
   std::cout << "submitting jobs" << std::endl;
   for( std::size_t i = 0; i < num_jobs_to_submit; ++i)
@@ -170,23 +182,11 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
     {
     //remove if moves all bad items to end of the vector and returns
     //an iterator to the new end. Remove if is easiest way to remove from middle
-    FinishedOrFailed fofJobs(client.get());
-    It newEnd = std::remove_if(jobs.begin(),jobs.end(),fofJobs);
-
-    //verify everything ready to be removed is valid
-    for(It i=newEnd; i != jobs.end(); ++i)
-      {
-      JobStatus status = client->jobStatus( *i );
-      std::cout << "status of job is: " << remus::to_string(status.status()) << std::endl;
-      if(status.finished())
-        {
-        JobResult r = client->retrieveResults( *i );
-        if( r.dataSize() >  0 )
-          { num_valid_finished_jobs++; }
-        }
-      }
-
-    jobs.erase(newEnd,jobs.end());
+    FinishedOrFailed fofJobs(client.get(), &num_valid_finished_jobs);
+    //You can't access the elements that remove_if shuffled as they aren't
+    //required to be valid
+    jobs.erase(std::remove_if(jobs.begin(),jobs.end(),fofJobs),
+               jobs.end());
     }
 
   std::cout << "num_valid_finished_jobs: " << num_valid_finished_jobs << std::endl;

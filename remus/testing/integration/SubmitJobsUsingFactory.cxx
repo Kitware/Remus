@@ -54,6 +54,31 @@ namespace
   static std::size_t binary_data_size = small_size;
 
 //------------------------------------------------------------------------------
+struct FinishedOrFailed
+{
+  remus::Client* client;
+  unsigned int* num_finished_jobs;
+  FinishedOrFailed(remus::Client* c, unsigned int* numFinJobs):
+    client(c),
+    num_finished_jobs(numFinJobs)
+    {
+
+    }
+
+  inline bool operator()(const remus::proto::Job& job)
+    {
+    remus::proto::JobStatus st = client->jobStatus(job);
+    if(st.finished())
+      {
+      remus::proto::JobResult r = client->retrieveResults( job );
+      if( r.dataSize() > 0 )
+        { ++(*this->num_finished_jobs); }
+      }
+    return st.finished() || st.failed();
+    }
+};
+
+//------------------------------------------------------------------------------
 remus::proto::JobRequirements make_Reqs()
 {
   using namespace remus::meshtypes;
@@ -137,27 +162,13 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
   unsigned int num_valid_finished_jobs = 0;
   while(jobs.size() > 0)
     {
-    for(std::size_t i=0; i < jobs.size(); ++i)
-      {
-      JobStatus status = client->jobStatus( jobs[i] );
-      if ( !status.good() )
-        {
-        if( status.finished() )
-          {
-          //mark the job as finished properly if the result are non zero
-          JobResult r = client->retrieveResults( jobs[i] );
-          if( r.dataSize() >  0  )
-            { num_valid_finished_jobs++; }
-          }
-        else
-          {
-          std::cout << "job failed with status: "
-                  <<  remus::to_string( status.status() ) << std::endl;
-          }
-        //remove the job from the list to poll
-        jobs.erase(jobs.begin()+i);
-        }
-      }
+    //remove if moves all bad items to end of the vector and returns
+    //an iterator to the new end. Remove if is easiest way to remove from middle
+    FinishedOrFailed fofJobs(client.get(), &num_valid_finished_jobs);
+    //You can't access the elements that remove_if shuffled as they aren't
+    //required to be valid
+    jobs.erase(std::remove_if(jobs.begin(),jobs.end(),fofJobs),
+               jobs.end());
     }
 
   //return true when the number of jobs that finished properly matches
