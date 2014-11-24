@@ -374,11 +374,15 @@ bool Server::Brokering(Server::SignalHandling sh)
 
     //see if we have a worker in the pool for the next job in the queue,
     //otherwise as the factory to generate a new worker to handle that job
-    this->FindWorkerForQueuedJob( workerChannel );
+    if(Thread->isBrokering())
+      {
+      this->FindWorkerForQueuedJob( workerChannel );
+      }
     }
 
   //this should only happen with interrupted threads is hit; lets make sure we close
   //down all workers.
+  this->WorkerFactory->setMaxWorkerCount(0);
   this->TerminateAllWorkers( workerChannel );
 
   if(sh == CAPTURE)
