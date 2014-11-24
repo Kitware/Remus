@@ -715,6 +715,18 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
     case remus::RETRIEVE_RESULT:
       //we need to store the mesh result, no response needed
       this->storeMesh(msg);
+
+      {
+      //now that we have stored the mesh we can tell the worker
+      //we have the results, which allows it to shutdown.
+      //We can't have a worker shutdown before the results are
+      //on the server or the results might be dropped by zmq
+      //linger settings
+      remus::proto::Response response(remus::RETRIEVE_RESULT,
+                                      remus::INVALID_MSG);
+      response.sendNonBlocking(&workerChannel, workerIdentity);
+      }
+
       break;
     case remus::HEARTBEAT:
       //pass along to the worker monitor what worker just sent a heartbeat
