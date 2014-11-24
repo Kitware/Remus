@@ -53,6 +53,18 @@ namespace
   static std::size_t binary_data_size = small_size;
 
 //------------------------------------------------------------------------------
+struct FinishedOrFailed
+{
+  remus::Client* client;
+  FinishedOrFailed(remus::Client* c):client(c){}
+  inline bool operator()(const remus::proto::Job& job)
+    { //not good is failed or finished
+    remus::proto::JobStatus st = client->jobStatus(job);
+    return st.finished() || st.failed();
+    }
+};
+
+//------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   //create the server and start brokering, with a factory that can launch
@@ -142,6 +154,7 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 
   //submit each job to the server, we know that the we have workers
   //attached to the server by this point so all jobs will be accepted
+  typedef std::vector< remus::proto::Job >::iterator It;
   std::vector< remus::proto::Job > jobs;
   std::cout << "submitting jobs" << std::endl;
   for( std::size_t i = 0; i < num_jobs_to_submit; ++i)
@@ -155,30 +168,28 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
   unsigned int num_valid_finished_jobs = 0;
   while(jobs.size() > 0)
     {
-    for(std::size_t i=0; i < jobs.size(); ++i)
+    //remove if moves all bad items to end of the vector and returns
+    //an iterator to the new end. Remove if is easiest way to remove from middle
+    FinishedOrFailed fofJobs(client.get());
+    It newEnd = std::remove_if(jobs.begin(),jobs.end(),fofJobs);
+
+    //verify everything ready to be removed is valid
+    for(It i=newEnd; i != jobs.end(); ++i)
       {
-      JobStatus status = client->jobStatus( jobs[i] );
-      if ( !status.good() )
+      JobStatus status = client->jobStatus( *i );
+      std::cout << "status of job is: " << remus::to_string(status.status()) << std::endl;
+      if(status.finished())
         {
-        if( status.finished() )
-          {
-          //mark the job as finished properly if the result are larger
-          //than the job we submitted.
-          JobResult r = client->retrieveResults( jobs[i] );
-          if( r.dataSize() >  binary_data_size  )
-            { num_valid_finished_jobs++; }
-          }
-        else
-          {
-          std::cout << "job failed with status: "
-                  <<  remus::to_string( status.status() ) << std::endl;
-          }
-        //remove the job from the list to poll
-        jobs.erase(jobs.begin()+i);
+        JobResult r = client->retrieveResults( *i );
+        if( r.dataSize() >  0 )
+          { num_valid_finished_jobs++; }
         }
       }
+
+    jobs.erase(newEnd,jobs.end());
     }
 
+  std::cout << "num_valid_finished_jobs: " << num_valid_finished_jobs << std::endl;
   //return true when the number of jobs that finished properly matches
   //the number of jobs submitted. We don't use REMUS_ASSERT in this
   //thread, but instead

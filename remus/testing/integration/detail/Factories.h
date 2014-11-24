@@ -189,7 +189,6 @@ private:
       this->HasConnection = true;
       }
 
-    std::size_t numCompleted = 0;
     try
       {
       //construct the worker and tell it to process a job
@@ -197,26 +196,24 @@ private:
                                                    this->Connection);
 
       //should be 1, could be zero
-      numCompleted = worker.numberOfCompletedJobs();
+      const std::size_t numCompleted = worker.numberOfCompletedJobs();
+
+      //mark the thread as having finished another job
+      if(this->JobsPerThread.find( boost::this_thread::get_id() ) != this->JobsPerThread.end())
+        {
+        this->JobsPerThread[ boost::this_thread::get_id() ]+= numCompleted;
+        }
+      else
+        {
+        this->JobsPerThread[ boost::this_thread::get_id() ] = 1;
+        }
       }
       catch(...)
       { //the worker crashed, just ignore it
       }
-
     //worker is finished so mark the thread as usable
     {
     boost::lock_guard< boost::mutex > lock( this->Mutex );
-
-    //mark the thread as having finished another job
-    if(this->JobsPerThread.find( boost::this_thread::get_id() ) != this->JobsPerThread.end())
-      {
-      this->JobsPerThread[ boost::this_thread::get_id() ]+= numCompleted;
-      }
-   else
-      {
-      this->JobsPerThread[ boost::this_thread::get_id() ] = 0;
-      }
-
     ++this->AvailableThreads;
     }
 

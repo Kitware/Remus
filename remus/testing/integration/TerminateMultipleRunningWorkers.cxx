@@ -49,6 +49,16 @@ namespace
   static std::size_t ascii_data_size = 1024;
   static std::size_t binary_data_size = 1024;
 
+//------------------------------------------------------------------------------
+struct FinishedOrFailed
+{
+  remus::Client* client;
+  FinishedOrFailed(remus::Client* c):client(c){}
+  inline bool operator()(const remus::proto::Job& job)
+    { //not good is failed or finished
+    return !client->jobStatus(job).good();
+    }
+};
 
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
@@ -103,6 +113,7 @@ void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
 
   //submit each job to the server, we know that the we have workers
   //attached to the server by this point so all jobs will be accepted
+  typedef std::vector< remus::proto::Job >::iterator It;
   std::vector< remus::proto::Job > jobs;
   std::cout << "submitting jobs" << std::endl;
   for( std::size_t i = 0; i < num_jobs_to_submit; ++i)
@@ -114,30 +125,36 @@ void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
   //query the server for the job completion
   std::cout << "querying job status" << std::endl;
   unsigned int num_finished_jobs = 0;
-
   while(jobs.size() > 0)
     {
-    for(std::size_t i=0; i < jobs.size(); ++i)
+    //remove if moves all bad items to end of the vector and returns
+    //an iterator to the new end. Remove if is easiest way to remove from middle
+    FinishedOrFailed fofJobs(client.get());
+    It newEnd = std::remove_if(jobs.begin(),jobs.end(),fofJobs);
+
+    //verify everything ready to be removed is valid
+    for(It i=newEnd; i != jobs.end(); ++i)
       {
-      JobStatus status = client->jobStatus( jobs[i] );
-      //once the first job is finished we kill all workers
-      if( !status.good() )
+      JobStatus status = client->jobStatus( *i );
+      std::cout << "status of job is: " << remus::to_string(status.status()) << std::endl;
+      if(status.finished())
         {
-        std::cout << "status is: " << status << std::endl;
-        }
-      if( status.finished() )
-        {
-        ++num_finished_jobs;
-        std::cout << "completed job" << std::endl;
-        }
-      if(num_finished_jobs >= num_jobs_to_terminate_at)
-        {
-        std::cout << "stopBrokering" << std::endl;
-        jobs.clear();
-        server->stopBrokering();
+        JobResult r = client->retrieveResults( *i );
+        if( r.dataSize() > 0 )
+          { num_finished_jobs++; }
         }
       }
+
+    jobs.erase(newEnd,jobs.end());
+
+    if(num_finished_jobs >= num_jobs_to_terminate_at)
+      {
+      std::cout << "stopBrokering" << std::endl;
+      jobs.clear();
+      server->stopBrokering();
+      }
     }
+    std::cout << "num_finished_jobs: " << num_finished_jobs << std::endl;
 }
 
 }
