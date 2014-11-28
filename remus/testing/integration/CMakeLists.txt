@@ -12,6 +12,7 @@
 
 set(unit_tests
   AlwaysAcceptServer.cxx
+  DifferentConnectionTypes.cxx
   QueryIOTypes.cxx
   ShareContext.cxx
   SimpleJobFlow.cxx
@@ -51,7 +52,7 @@ endfunction()
 add_SubmitJobs_test(small 1 1)
 add_SubmitJobs_test(small 2 4)
 add_SubmitJobs_test(small 4 2)
-add_SubmitJobs_test(small 6 60)
+add_SubmitJobs_test(small 6 32)
 
 add_SubmitJobs_test(large 1 1)
 add_SubmitJobs_test(large 2 4)

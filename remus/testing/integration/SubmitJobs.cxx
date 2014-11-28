@@ -167,8 +167,10 @@ boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& 
   using namespace remus::meshtypes;
   using namespace remus::proto;
 
+  //because the workers use inproc they need to share the same context
   remus::worker::ServerConnection conn =
               remus::worker::make_ServerConnection(ports.worker().endpoint());
+  conn.context(ports.context());
 
   remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
   JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
@@ -261,8 +263,12 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 //
 int main(int argc, char* argv[])
 {
-  //construct a simple worker and client
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
+  //construct a server which uses tcp/ip between the client and sever,
+  //and inproc between the server and workers
+  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::SERVER_CLIENT_PORT);
+  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,wi) );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
   boost::shared_ptr<remus::Client> client = make_Client( ports );
