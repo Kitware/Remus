@@ -56,6 +56,8 @@ namespace server{
     class JobQueue;
     class SocketMonitor;
     class WorkerPool;
+    class EventPublisher;
+
     struct ThreadManagement;
     struct UUIDManagement;
     }
@@ -199,8 +201,10 @@ protected:
                                const zmq::SocketIdentity &workerIdentity);
 
   //These methods are all to do with sending/recving to workers
-  void storeMeshStatus(const remus::proto::Message& msg);
-  void storeMesh(const remus::proto::Message& msg);
+  void storeMeshStatus(const zmq::SocketIdentity &workerIdentity,
+                       const remus::proto::Message& msg);
+  void storeMesh(const zmq::SocketIdentity &workerIdentity,
+                 const remus::proto::Message& msg);
   void assignJobToWorker(zmq::socket_t& workerChannel,
                          const zmq::SocketIdentity &workerIdentity,
                          const remus::worker::Job& job);
@@ -223,15 +227,17 @@ private:
 
   remus::server::ServerPorts PortInfo;
 
-protected:
-  //allow subclasses to override these detail containers
   boost::scoped_ptr<remus::server::detail::JobQueue> QueuedJobs;
   boost::scoped_ptr<remus::server::detail::SocketMonitor> SocketMonitor;
   boost::scoped_ptr<remus::server::detail::WorkerPool> WorkerPool;
   boost::scoped_ptr<remus::server::detail::ActiveJobs> ActiveJobs;
+
+  boost::scoped_ptr<remus::server::detail::EventPublisher> Publish;
+
   boost::scoped_ptr<detail::UUIDManagement> UUIDGenerator;
   boost::scoped_ptr<detail::ThreadManagement> Thread;
 
+protected:
   //needs to be a shared_ptr since we can be passed in a WorkerFactoryBase
   boost::shared_ptr<remus::server::WorkerFactoryBase> WorkerFactory;
 };
