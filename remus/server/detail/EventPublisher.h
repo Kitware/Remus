@@ -36,26 +36,40 @@ public:
 
   }
 
+  //needs its own status table of keys
+  //so job:<strings>
+  //and worker:<strings>
+  //so that people can easily build sub listeners
+
   //tell this EventPublisher  what socket to send all information out on.
   //the socket_t is merely used, not owned by this class so it's lifespan
   //must be externally managed.
   bool socketToUse( zmq::socket_t* s );
 
-  void post( const remus::proto::Job& j );
-  void post( const remus::proto::JobStatus& s,
-             const zmq::SocketIdentity &workerIdentity);
-  void post( const remus::proto::JobResult& r,
-             const zmq::SocketIdentity &workerIdentity);
-  void post( const remus::worker::Job& j,
-             const zmq::SocketIdentity &workerIdentity);
+  void jobQueued( const remus::proto::Job& j );
+  void jobStatus( const remus::proto::JobStatus& s,
+                  const zmq::SocketIdentity &workerIdentity);
+  void jobTerminated( const remus::proto::JobStatus& last_status,
+                      const zmq::SocketIdentity &workerIdentity);
+  void jobTerminated( const remus::proto::JobStatus& last_status );
+
+  void jobFinished( const remus::proto::JobResult& r,
+                    const zmq::SocketIdentity &workerIdentity);
+  void jobSentToWorker( const remus::worker::Job& j,
+                       const zmq::SocketIdentity &workerIdentity);
+
+  void workerReady(const zmq::SocketIdentity &workerIdentity);
+  void workerRegistered(const zmq::SocketIdentity &workerIdentity);
+  void workerHeartbeat(const zmq::SocketIdentity &workerIdentity);
+  void workerTerminate(const zmq::SocketIdentity &workerIdentity);
 
   void error(const std::string& msg);
 
   void stop();
 
 private:
-  void postJob(const std::string& st, const std::string suid, cJSON *root);
-  void postWorker(const std::string& st, const std::string suid, cJSON *root);
+  void pubJob(const std::string& st, const std::string suid, cJSON *root);
+  void pubWorker(const std::string& st, const std::string suid, cJSON *root);
 
   zmq::socket_t* socket;
   std::stringstream buffer;
