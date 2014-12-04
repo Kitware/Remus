@@ -214,6 +214,12 @@ protected:
   //of queued jobs and workers
   virtual void FindWorkerForQueuedJob(zmq::socket_t& workerChannel);
 
+  //remove any job that has expired, remove workers that have
+  //stated they are shutting down, mark workers that are
+  //not sending messages back to the server, and lastly
+  //publish this all through our event publisher
+  void CheckForExpiredWorkersAndJobs();
+
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers(zmq::socket_t& workerChannel);
 

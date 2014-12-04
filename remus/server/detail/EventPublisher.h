@@ -14,6 +14,7 @@
 #define remus_server_detail_EventPublisher_h
 
 
+//forward declares for all the remus class we use
 namespace remus{
 
 namespace proto{
@@ -30,17 +31,28 @@ namespace zmq
   struct SocketIdentity;
 }
 
+//forward declare the cjson struct
 struct cJSON;
 
-#include <vector>
-#include <sstream>
-#include <iostream>
 #include <remus/proto/zmq.hpp>
+
+#include <sstream>
+#include <vector>
+#include <set>
+
 
 namespace remus{
 namespace server{
 namespace detail{
 
+
+//Todo: We need to make this class waaaay faster
+//it does way to much json creation and deletion, we need to cache
+//those tables as much as possible on construction
+
+//We need to create look-ups for workerIdentities so we don't have
+//to hash those every time. Preferably the SocketIdentity will get that
+//ability
 class EventPublisher
 {
 public:
@@ -51,10 +63,26 @@ public:
 
   }
 
-  //needs its own status table of keys
-  //so job:<strings>
-  //and worker:<strings>
-  //so that people can easily build sub listeners
+  //Job status sections
+  //QUEUED
+  //MESH_STATUS
+  //TERMINATE_JOB
+  //EXPIRED
+  //COMPLETED
+  //ASSIGNED_TO_WORKER
+
+  //Worker status sections
+  //REGISTERED
+  //ASKING_FOR_JOB
+  //HEARTBEAT
+  //WORKER_STATE
+  //TERMINATE_WORKER
+
+  //The event publisher uses a multiple section key
+  //to allow listeners easy control over what they want to register for
+  //the key construction is:
+  //job:<status>:<jobId>
+  //worker:<status>:<workerId>
 
   //tell this EventPublisher  what socket to send all information out on.
   //the socket_t is merely used, not owned by this class so it's lifespan
@@ -70,25 +98,24 @@ public:
 
   void jobExpired( const remus::proto::JobStatus& expired_status );
 
-  //helper method
-  void jobExpired( const std::vector<remus::proto::JobStatus>& expired_status )
-    {
-      typedef std::vector<remus::proto::JobStatus>::const_iterator it;
-      for(it i = expired_status.begin(); i != expired_status.end(); ++i)
-        {
-        this->jobExpired( *i );
-        }
-    }
-
   void jobFinished( const remus::proto::JobResult& r,
                     const zmq::SocketIdentity &workerIdentity);
   void jobSentToWorker( const remus::worker::Job& j,
                        const zmq::SocketIdentity &workerIdentity);
 
+  //helper method for when we have a collection of events to publish
+  void jobsExpired( const std::vector<remus::proto::JobStatus>& expired_status );
+
+
   void workerReady(const zmq::SocketIdentity &workerIdentity);
   void workerRegistered(const zmq::SocketIdentity &workerIdentity);
   void workerHeartbeat(const zmq::SocketIdentity &workerIdentity);
-  void workerTerminate(const zmq::SocketIdentity &workerIdentity);
+  void workerResponsive(const zmq::SocketIdentity &workerIdentity);
+  void workerUnresponsive(const zmq::SocketIdentity &workerIdentity);
+  void workerTerminated(const zmq::SocketIdentity &workerIdentity);
+
+  //helper method for when we have a collection of events to publish
+  void unresponsiveWorkers( const std::set< zmq::SocketIdentity >& workers );
 
   void error(const std::string& msg);
 
