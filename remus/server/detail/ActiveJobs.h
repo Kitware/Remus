@@ -60,7 +60,8 @@ class ActiveJobs
 
     void updateResult(const remus::proto::JobResult& r);
 
-    void markExpiredJobs(remus::server::detail::SocketMonitor monitor);
+    std::vector< remus::proto::JobStatus > markExpiredJobs(
+                                 remus::server::detail::SocketMonitor monitor);
 
     std::set<zmq::SocketIdentity> activeWorkers() const;
 

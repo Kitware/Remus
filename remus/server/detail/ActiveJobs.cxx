@@ -146,8 +146,10 @@ void ActiveJobs::updateResult(const remus::proto::JobResult& r)
 }
 
 //-----------------------------------------------------------------------------
-void ActiveJobs::markExpiredJobs(remus::server::detail::SocketMonitor monitor)
+std::vector< remus::proto::JobStatus >
+ActiveJobs::markExpiredJobs(remus::server::detail::SocketMonitor monitor)
 {
+  std::vector< remus::proto::JobStatus > expiredJobs;
   for(InfoIt item = this->Info.begin(); item != this->Info.end(); ++item)
     {
     //we can only mark jobs that are IN_PROGRESS or QUEUED as failed.
@@ -161,8 +163,10 @@ void ActiveJobs::markExpiredJobs(remus::server::detail::SocketMonitor monitor)
       //marking the job status as expired
       item->second.jstatus =
           remus::proto::JobStatus( item->second.jstatus.id(),remus::EXPIRED);
+      expiredJobs.push_back( item->second.jstatus );
       }
     }
+  return expiredJobs;
 }
 
 //-----------------------------------------------------------------------------

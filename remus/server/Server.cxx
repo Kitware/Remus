@@ -373,13 +373,19 @@ bool Server::Brokering(Server::SignalHandling sh)
     //only purge dead workers every 250ms to reduce server load
     if(whenToCheckForDeadWorkers <= currentTime)
       {
-      // std::cout << "checking for dead workers" << std::endl;
       //mark all jobs whose worker haven't sent a heartbeat in time
-      //as a job that failed.
-      this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
+      //as a job that failed. We are returned the set of job's that are
+      //expired
+      std::vector< remus::proto::JobStatus > expiredJobs =
+                  this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
+
+      //publish the jobs that have failed
+      this->Publish->jobExpired( expiredJobs );
 
       //purge all pending workers with jobs that haven't sent a heartbeat
       this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
+
+      //publish which workers we have marked as dead
 
       whenToCheckForDeadWorkers = currentTime +
                       boost::posix_time::milliseconds(deadWorkersCheckInterval);

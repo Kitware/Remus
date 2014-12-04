@@ -41,6 +41,7 @@ void EventPublisher::jobQueued(const remus::proto::Job& j )
   buffer << j.id();
   const std::string suid = buffer.str(); buffer.str("");
   const std::string serv_t = remus::common::serv_types[(int)remus::QUEUED];
+  const std::string work_t = ""; //done for easier client parsing
 
   buffer << j.type();
   const std::string& mesh_t = buffer.str(); buffer.str("");
@@ -49,6 +50,7 @@ void EventPublisher::jobQueued(const remus::proto::Job& j )
   root=cJSON_CreateObject();
   cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str())); //kept for easier client parsing
   cJSON_AddItemToObject(root, "mesh_type", cJSON_CreateString(mesh_t.c_str()));
   this->pubJob(serv_t, suid, root);
 
@@ -129,6 +131,38 @@ void EventPublisher::jobTerminated(const remus::proto::JobStatus& s)
   cJSON_AddItemToObject(root, "last_status_type", cJSON_CreateString(status_t.c_str()));
   cJSON_AddItemToObject(root, "last_progress", cJSON_CreateString(progress_t.c_str()));
   this->pubJob(serv_t, suid, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::jobExpired(const remus::proto::JobStatus& s)
+{ //active job has been marked as expired as the worker it was assigned to
+  //has stopped heartbeating
+  buffer << s.id();
+  const std::string suid = buffer.str(); buffer.str("");
+  const std::string work_t = ""; //kept for easier parsing of the json message
+
+  const std::string serv_t = remus::common::stat_types[remus::EXPIRED];
+  const std::string status_t = remus::common::stat_types[(int)s.status()];
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str())); //kept for easier client parsing
+  this->pubJob(serv_t, suid, root);
+
+  //now that we have published it on jobs/EXPIRED we need to also publish it
+  //on jobs/STATUS
+  const std::string status_service = remus::common::serv_types[(int)remus::MESH_STATUS];
+
+  buffer << s.progress();
+  const std::string progress_t = buffer.str(); buffer.str("");
+
+  cJSON_AddItemToObject(root, "status_type", cJSON_CreateString(status_t.c_str()));
+  cJSON_AddItemToObject(root, "progress", cJSON_CreateString(progress_t.c_str()));
+  this->pubJob(status_service, suid, root);
 
   cJSON_Delete(root);
 }

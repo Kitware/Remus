@@ -53,6 +53,18 @@ public:
                       const zmq::SocketIdentity &workerIdentity);
   void jobTerminated( const remus::proto::JobStatus& last_status );
 
+  void jobExpired( const remus::proto::JobStatus& expired_status );
+
+  //helper method
+  void jobExpired( const std::vector<remus::proto::JobStatus>& expired_status )
+    {
+      typedef std::vector<remus::proto::JobStatus>::const_iterator it;
+      for(it i = expired_status.begin(); i != expired_status.end(); ++i)
+        {
+        this->jobExpired( *i );
+        }
+    }
+
   void jobFinished( const remus::proto::JobResult& r,
                     const zmq::SocketIdentity &workerIdentity);
   void jobSentToWorker( const remus::worker::Job& j,
