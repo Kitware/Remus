@@ -382,19 +382,8 @@ bool Server::Brokering(Server::SignalHandling sh)
     //only purge dead workers every 250ms to reduce server load
     if(whenToCheckForDeadWorkers <= currentTime)
       {
-      //mark all jobs whose worker haven't sent a heartbeat in time
-      //as a job that failed. We are returned the set of job's that are
-      //expired
-      std::vector< remus::proto::JobStatus > expiredJobs =
-                  this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
 
-      //publish the jobs that have failed
-      this->Publish->jobExpired( expiredJobs );
-
-      //purge all pending workers with jobs that haven't sent a heartbeat
-      this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
-
-      //publish which workers we have marked as dead
+      this->CheckForExpiredWorkersAndJobs();
 
       whenToCheckForDeadWorkers = currentTime +
                       boost::posix_time::milliseconds(deadWorkersCheckInterval);
@@ -802,7 +791,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //else as the WorkerPool and ActiveJobs will find out about the dead
       //worker by asking the SocketMonitor
       this->SocketMonitor->markAsDead(workerIdentity);
-      this->Publish->workerTerminate(workerIdentity);
+      this->Publish->workerTerminated(workerIdentity);
     default:
 
       break;
@@ -931,6 +920,51 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
     }
 }
 
+//------------------------------------------------------------------------------
+void Server::CheckForExpiredWorkersAndJobs()
+{
+//mark all jobs whose worker haven't sent a heartbeat in time
+  //as a job that failed. We are returned the set of job's that are
+  //expired
+  std::vector< remus::proto::JobStatus > expiredJobs =
+              this->ActiveJobs->markExpiredJobs((*this->SocketMonitor));
+
+  //publish the jobs that have failed
+  this->Publish->jobsExpired( expiredJobs );
+
+  //purge all pending workers that have been explicitly termianted
+  //with a TERMINATE service call. No need to publish this
+  //as we do that when the service call comes in. This also updates
+  //the responsive state of all workers.
+  // detail::ChangedWorkers updatedWorkers =
+          this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
+
+  // for( worker : updatedWorkers.workers())
+  //   {
+  //   if( worker->responsive() )
+  //     {
+  //     this->Publish->workerResponsive(  worker->address()  );
+  //     }
+  //   else
+  //     {
+  //     this->Publish->workerUnresponsive(  worker->address() );
+  //     }
+  //   }
+
+  // <socketIdentity, new_state>
+  //what we really want is to send notification for every worker whose
+  //state has changed since the last time we did a dead workers check
+  //that way we announce on the RESPONSIVE channel who has zombied
+  //and who has been cured
+
+  //this means that what we want is to grab all workers status before the purge
+
+  //than after the purge regather the status and check the difference.
+  //changes would be:
+  //  1. Dead
+  //  2. Zombie
+  //  3. Alive
+}
 
 //We are crashing we need to terminate all workers
 //------------------------------------------------------------------------------
@@ -950,7 +984,7 @@ void Server::TerminateAllWorkers( zmq::socket_t& workerChannel )
 
   //next we take workers from the worker pool and kill them all off
   std::set<zmq::SocketIdentity> pendingWorkers =
-                                              this->WorkerPool->allWorkers();
+                                              this->WorkerPool->allResponsiveWorkers();
 
   typedef std::set<zmq::SocketIdentity>::const_iterator iterator;
   for(iterator i=pendingWorkers.begin(); i != pendingWorkers.end(); ++i)

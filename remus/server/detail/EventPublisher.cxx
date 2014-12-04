@@ -183,7 +183,7 @@ void EventPublisher::jobFinished(const remus::proto::JobResult& r, const zmq::So
   const std::string suid = buffer.str(); buffer.str("");
   const std::string work_t = zmq::to_string(si);
 
-  const std::string serv_t = remus::common::serv_types[(int)remus::RETRIEVE_RESULT];
+  const std::string serv_t = "COMPLETED";
   cJSON *root;
   root=cJSON_CreateObject();
   cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
@@ -214,6 +214,16 @@ void EventPublisher::jobSentToWorker(const remus::worker::Job& j, const zmq::Soc
 
   cJSON_Delete(root);
 }
+
+//----------------------------------------------------------------------------
+void EventPublisher::jobsExpired( const std::vector<remus::proto::JobStatus>& expired_status )
+  {
+    typedef std::vector<remus::proto::JobStatus>::const_iterator it;
+    for(it i = expired_status.begin(); i != expired_status.end(); ++i)
+      {
+      this->jobExpired( *i );
+      }
+  }
 
 //----------------------------------------------------------------------------
 void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity)
@@ -263,10 +273,47 @@ void EventPublisher::workerHeartbeat(const zmq::SocketIdentity &workerIdentity)
   cJSON_Delete(root);
 }
 
+
 //----------------------------------------------------------------------------
-void EventPublisher::workerTerminate(const zmq::SocketIdentity &workerIdentity)
+void EventPublisher::workerResponsive(const zmq::SocketIdentity &workerIdentity)
 {
   const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t =  "WORKER_STATE";
+  const std::string state_t =  "Responsive";
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "state", cJSON_CreateString(state_t.c_str()));
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerUnresponsive(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t =  "WORKER_STATE";
+  const std::string state_t =  "Unresponsive";
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "state", cJSON_CreateString(state_t.c_str()));
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerTerminated(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+
+  {
   const std::string serv_t = remus::common::serv_types[(int)remus::TERMINATE_WORKER];
 
   cJSON *root;
@@ -275,10 +322,34 @@ void EventPublisher::workerTerminate(const zmq::SocketIdentity &workerIdentity)
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
 
   this->pubWorker(serv_t, work_t, root);
+  cJSON_Delete(root);
+  }
+
+  {
+  const std::string serv_t =  "WORKER_STATE";
+  const std::string state_t =  "Unresponsive";
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "state", cJSON_CreateString(state_t.c_str()));
+  this->pubWorker(serv_t, work_t, root);
 
   cJSON_Delete(root);
+  }
 }
 
+
+//----------------------------------------------------------------------------
+void EventPublisher::unresponsiveWorkers( const std::set< zmq::SocketIdentity >& workers )
+  {
+    typedef std::set<zmq::SocketIdentity>::const_iterator it;
+    for(it i = workers.begin(); i != workers.end(); ++i)
+      {
+      this->workerUnresponsive( *i );
+      }
+  }
 
 //----------------------------------------------------------------------------
 void EventPublisher::error(const std::string& msg)
