@@ -24,6 +24,7 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 
+#include <remus/testing/integration/detail/Factories.h>
 #include <remus/testing/integration/detail/Workers.h>
 
 #include <utility>
@@ -41,9 +42,9 @@
 #endif
 namespace
 {
-  namespace workdetail
+  namespace factory
   {
-  using namespace remus::testing::integration::detail;
+  using remus::testing::integration::detail::ThreadPoolWorkerFactory;
   }
 
   static std::size_t small_size = 1024;
@@ -52,40 +53,51 @@ namespace
   static std::size_t ascii_data_size = small_size;
   static std::size_t binary_data_size = small_size;
 
-  //------------------------------------------------------------------------------
-  struct FinishedOrFailed
-  {
-    remus::Client* client;
-    unsigned int* num_finished_jobs;
-    FinishedOrFailed(remus::Client* c, unsigned int* numFinJobs):
-      client(c),
-      num_finished_jobs(numFinJobs)
-      {
+//------------------------------------------------------------------------------
+struct FinishedOrFailed
+{
+  remus::Client* client;
+  unsigned int* num_finished_jobs;
+  FinishedOrFailed(remus::Client* c, unsigned int* numFinJobs):
+    client(c),
+    num_finished_jobs(numFinJobs)
+    {
 
-      }
+    }
 
-    inline bool operator()(const remus::proto::Job& job)
+  inline bool operator()(const remus::proto::Job& job)
+    {
+    remus::proto::JobStatus st = client->jobStatus(job);
+    if(st.finished())
       {
-      remus::proto::JobStatus st = client->jobStatus(job);
-      if(st.finished())
-        {
-        remus::proto::JobResult r = client->retrieveResults( job );
-        if( r.dataSize() > 0 )
-          { ++(*this->num_finished_jobs); }
-        }
-      return st.finished() || st.failed();
+      remus::proto::JobResult r = client->retrieveResults( job );
+      if( r.dataSize() > 0 )
+        { ++(*this->num_finished_jobs); }
       }
-  };
+    return st.finished() || st.failed();
+    }
+};
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
+remus::proto::JobRequirements make_Reqs()
 {
-  //create the server and start brokering, with a factory that can launch
-  //no workers, so we have to use workers that connect in only
-  boost::shared_ptr<remus::server::WorkerFactory> factory(new remus::server::WorkerFactory());
-  factory->setMaxWorkerCount(0);
+  using namespace remus::meshtypes;
+  using namespace remus::proto;
+
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
+  return requirements;
+}
+
+//------------------------------------------------------------------------------
+boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports,
+                                              std::size_t num_workers)
+{
+  boost::shared_ptr<factory::ThreadPoolWorkerFactory> factory(
+            new factory::ThreadPoolWorkerFactory(make_Reqs(), num_workers));
 
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
+
   server->startBrokering();
   return server;
 }
@@ -101,61 +113,31 @@ boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& 
 }
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  //because the workers use inproc they need to share the same context
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
-}
-
-//------------------------------------------------------------------------------
 remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
                              remus::proto::JobContent binary_content)
 {
   using namespace remus::meshtypes;
   using namespace remus::proto;
 
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements reqs = make_JobRequirements(io_type, "SimpleWorker", "");
-
-  JobSubmission sub(reqs);
-  sub["binary"] = binary_content;
-
   std::stringstream ascii_data_size_buffer;
   ascii_data_size_buffer << ascii_data_size;
 
   JobContent asciiLength = JobContent(remus::common::ContentFormat::User,
                                       ascii_data_size_buffer.str());
+
+  JobSubmission sub( make_Reqs() );
+  sub["binary"] = binary_content;
   sub["ascii_data_size"] = asciiLength;
-
-
   remus::proto::Job job = client->submitJob(sub);
   REMUS_ASSERT(job.valid())
   return job;
-
 }
 
 //------------------------------------------------------------------------------
 bool verify_jobs(boost::shared_ptr<remus::Client> client,
-                 std::vector< workdetail::InfiniteWorkerController* >& processors,
                  std::size_t num_jobs_to_submit)
 {
   using namespace remus::proto;
-
-  //first task is to start all the worker controllers
-  std::cout << "starting up workers" << std::endl;
-  for( std::size_t i=0; i < processors.size(); ++i)
-    { processors[i]->start(); }
-  remus::common::SleepForMillisec( 125 ); //let workers connect to server
 
   //compute the binary data once, and than make a JobContent that is a zero copy
   //to keep the memory footprint low so we don't cause OOM issues on Travis
@@ -189,7 +171,6 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
                jobs.end());
     }
 
-  std::cout << "num_valid_finished_jobs: " << num_valid_finished_jobs << std::endl;
   //return true when the number of jobs that finished properly matches
   //the number of jobs submitted. We don't use REMUS_ASSERT in this
   //thread, but instead
@@ -201,16 +182,6 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 //
 int main(int argc, char* argv[])
 {
-  //construct a server which uses tcp/ip between the client and sever,
-  //and inproc between the server and workers
-  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::SERVER_CLIENT_PORT);
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
-
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,wi) );
-  const remus::server::ServerPorts& ports = server->serverPortInfo();
-
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
-
   //if no parameters just run with a single worker and single job
   std::size_t num_workers = 1;
   std::size_t num_jobs = 1;
@@ -235,31 +206,19 @@ int main(int argc, char* argv[])
   std::cout << "verifying " << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
 
-  std::vector < workdetail::InfiniteWorkerController* > processors;
-  for (std::size_t i=0; i < num_workers; ++i)
-    {
-    workdetail::InfiniteWorkerController* wc = new workdetail::InfiniteWorkerController( make_Worker( ports ) );
-    processors.push_back( wc );
-    }
+  //construct a threaded pool factory
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(),
+                                                         num_workers );
+  const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  const bool valid = verify_jobs(client, processors, num_jobs);
+  //construct the client interface
+  boost::shared_ptr<remus::Client> client = make_Client( ports );
+
+  const bool valid = verify_jobs(client, num_jobs);
 
   //now to cleanup the workers we tell the server to stop brokering
-  //your other option is to use a slow poll in the worker and send
-  //it a signal you want it to stop
+  //which will tell the workers to stop running
   server->stopBrokering();
-
-  //delete workers before validating the results
-  std::vector< std::size_t > jobsFinishedPerWorker;
-  for (std::size_t i=0; i < processors.size(); ++i)
-    {
-    workdetail::InfiniteWorkerController* wc = processors[i];
-    std::cout << "worker " << i << " completed " <<  wc->numberOfCompletedJobs() << " jobs " << std::endl;
-    jobsFinishedPerWorker.push_back( wc->numberOfCompletedJobs() );
-    wc->stop();
-    delete wc;
-    }
-  processors.clear();
 
   //now validate that all workers received a fair share of the jobs
 

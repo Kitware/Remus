@@ -374,11 +374,15 @@ bool Server::Brokering(Server::SignalHandling sh)
 
     //see if we have a worker in the pool for the next job in the queue,
     //otherwise as the factory to generate a new worker to handle that job
-    this->FindWorkerForQueuedJob( workerChannel );
+    if(Thread->isBrokering())
+      {
+      this->FindWorkerForQueuedJob( workerChannel );
+      }
     }
 
   //this should only happen with interrupted threads is hit; lets make sure we close
   //down all workers.
+  this->WorkerFactory->setMaxWorkerCount(0);
   this->TerminateAllWorkers( workerChannel );
 
   if(sh == CAPTURE)
@@ -711,6 +715,18 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
     case remus::RETRIEVE_RESULT:
       //we need to store the mesh result, no response needed
       this->storeMesh(msg);
+
+      {
+      //now that we have stored the mesh we can tell the worker
+      //we have the results, which allows it to shutdown.
+      //We can't have a worker shutdown before the results are
+      //on the server or the results might be dropped by zmq
+      //linger settings
+      remus::proto::Response response(remus::RETRIEVE_RESULT,
+                                      remus::INVALID_MSG);
+      response.sendNonBlocking(&workerChannel, workerIdentity);
+      }
+
       break;
     case remus::HEARTBEAT:
       //pass along to the worker monitor what worker just sent a heartbeat
@@ -784,13 +800,19 @@ void Server::assignJobToWorker(zmq::socket_t& workerChannel,
 //------------------------------------------------------------------------------
 void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
 {
-
   //We assume that a worker could possibly handle multiple jobs but all of the same type.
   //In order to prevent allocating more workers than needed we use a set instead of a vector.
   //This results in the server only creating one worker per job type.
   //This gives the new workers the opportunity of getting assigned multiple jobs.
   this->WorkerFactory->updateWorkerCount();
 
+  if(this->QueuedJobs->numJobsWaitingForWorkers() == 0 &&
+     this->QueuedJobs->numJobsJustQueued() == 0)
+    {
+    //we have no jobs waiting for work so no need to do
+    //all the heavy queries below
+    return;
+    }
 
   typedef remus::proto::JobRequirementsSet::const_iterator it;
   remus::proto::JobRequirementsSet types;

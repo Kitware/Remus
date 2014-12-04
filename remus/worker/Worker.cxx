@@ -13,6 +13,7 @@
 #include <remus/worker/Worker.h>
 
 #include <remus/proto/Message.h>
+#include <remus/proto/Response.h>
 #include <remus/proto/zmqHelper.h>
 #include <remus/worker/detail/JobQueue.h>
 #include <remus/worker/detail/MessageRouter.h>
@@ -200,6 +201,13 @@ void Worker::returnResult(const remus::proto::JobResult& result)
                              remus::RETRIEVE_RESULT,
                              msg,
                              &this->Zmq->Server);
+
+  //we need to block on waiting for the server to notify it has our result.
+  //Otherwise it is possible to delete a worker before it is done transimiting
+  //really large results to the server. Don't worry if the server terminates
+  //the worker before this is over the MessageRouter spoofs the response.
+  remus::proto::Response response(&this->Zmq->Server);
+  (void) response;
 }
 
 //-----------------------------------------------------------------------------
