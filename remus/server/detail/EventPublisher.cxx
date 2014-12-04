@@ -36,7 +36,7 @@ bool EventPublisher::socketToUse( zmq::socket_t* s )
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::post(const remus::proto::Job& j )
+void EventPublisher::jobQueued(const remus::proto::Job& j )
 { //queue job
   buffer << j.id();
   const std::string suid = buffer.str(); buffer.str("");
@@ -47,16 +47,16 @@ void EventPublisher::post(const remus::proto::Job& j )
 
   cJSON *root;
   root=cJSON_CreateObject();
-  cJSON_AddItemToObject(root, "id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
   cJSON_AddItemToObject(root, "mesh_type", cJSON_CreateString(mesh_t.c_str()));
-  this->postJob(serv_t, suid, root);
+  this->pubJob(serv_t, suid, root);
 
   cJSON_Delete(root);
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::post(const remus::proto::JobStatus& s, const zmq::SocketIdentity &si)
+void EventPublisher::jobStatus(const remus::proto::JobStatus& s, const zmq::SocketIdentity &si)
 { //status
   buffer << s.id();
   const std::string suid = buffer.str(); buffer.str("");
@@ -70,19 +70,71 @@ void EventPublisher::post(const remus::proto::JobStatus& s, const zmq::SocketIde
 
   cJSON *root;
   root=cJSON_CreateObject();
-  cJSON_AddItemToObject(root, "id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
   cJSON_AddItemToObject(root, "status_type", cJSON_CreateString(status_t.c_str()));
   cJSON_AddItemToObject(root, "progress", cJSON_CreateString(progress_t.c_str()));
-  this->postJob(serv_t, suid, root);
-  this->postWorker(serv_t, work_t, root);
+  this->pubJob(serv_t, suid, root);
+  this->pubWorker(serv_t, work_t, root);
 
   cJSON_Delete(root);
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::post(const remus::proto::JobResult& r, const zmq::SocketIdentity &si)
+void EventPublisher::jobTerminated(const remus::proto::JobStatus& s,
+                                   const zmq::SocketIdentity &si)
+{ //job assigned to a worker has been terminated
+  buffer << s.id();
+  const std::string suid = buffer.str(); buffer.str("");
+  const std::string work_t = zmq::to_string(si);
+
+  const std::string serv_t = remus::common::serv_types[(int)remus::TERMINATE_JOB];
+  const std::string status_t = remus::common::stat_types[(int)s.status()];
+
+  buffer << s.progress();
+  const std::string progress_t = buffer.str(); buffer.str("");
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "last_status_type", cJSON_CreateString(status_t.c_str()));
+  cJSON_AddItemToObject(root, "last_progress", cJSON_CreateString(progress_t.c_str()));
+  this->pubJob(serv_t, suid, root);
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::jobTerminated(const remus::proto::JobStatus& s)
+{ //job queued has been terminated
+  buffer << s.id();
+  const std::string suid = buffer.str(); buffer.str("");
+  const std::string work_t = ""; //kept for easier parsing of the json message
+
+  const std::string serv_t = remus::common::serv_types[(int)remus::TERMINATE_JOB];
+  const std::string status_t = remus::common::stat_types[(int)s.status()];
+
+  buffer << s.progress();
+  const std::string progress_t = buffer.str(); buffer.str("");
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str())); //kept for easier client parsing
+  cJSON_AddItemToObject(root, "last_status_type", cJSON_CreateString(status_t.c_str()));
+  cJSON_AddItemToObject(root, "last_progress", cJSON_CreateString(progress_t.c_str()));
+  this->pubJob(serv_t, suid, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::jobFinished(const remus::proto::JobResult& r, const zmq::SocketIdentity &si)
 { //have result to fetch
   buffer << r.id();
   const std::string suid = buffer.str(); buffer.str("");
@@ -91,34 +143,99 @@ void EventPublisher::post(const remus::proto::JobResult& r, const zmq::SocketIde
   const std::string serv_t = remus::common::serv_types[(int)remus::RETRIEVE_RESULT];
   cJSON *root;
   root=cJSON_CreateObject();
-  cJSON_AddItemToObject(root, "id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
-  this->postJob(serv_t, suid, root);
-  this->postWorker(serv_t, work_t, root);
+  this->pubJob(serv_t, suid, root);
+  this->pubWorker(serv_t, work_t, root);
 
   cJSON_Delete(root);
 }
 
   //----------------------------------------------------------------------------
-void EventPublisher::post(const remus::worker::Job& j, const zmq::SocketIdentity &si)
+void EventPublisher::jobSentToWorker(const remus::worker::Job& j, const zmq::SocketIdentity &si)
 { //assign job to worker
   buffer << j.id();
   const std::string suid = buffer.str(); buffer.str("");
   const std::string work_t = zmq::to_string(si);
 
-  const std::string serv_t = remus::common::serv_types[(int)remus::MAKE_MESH];
+  const std::string serv_t = "ASSIGNED_TO_WORKER";
 
   cJSON *root;
   root=cJSON_CreateObject();
-  cJSON_AddItemToObject(root, "id", cJSON_CreateString(suid.c_str()));
+  cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
-  this->postJob(serv_t, suid, root);
-  this->postWorker(serv_t, work_t, root);
+  this->pubJob(serv_t, suid, root);
+  this->pubWorker(serv_t, work_t, root);
 
   cJSON_Delete(root);
 }
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t = "REGISTERED";
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerRegistered(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t = "ASKING_FOR_JOB";
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerHeartbeat(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t = remus::common::serv_types[(int)remus::HEARTBEAT];
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
+//----------------------------------------------------------------------------
+void EventPublisher::workerTerminate(const zmq::SocketIdentity &workerIdentity)
+{
+  const std::string work_t = zmq::to_string(workerIdentity);
+  const std::string serv_t = remus::common::serv_types[(int)remus::TERMINATE_WORKER];
+
+  cJSON *root;
+  root=cJSON_CreateObject();
+  cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
+  cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+
+  this->pubWorker(serv_t, work_t, root);
+
+  cJSON_Delete(root);
+}
+
 
 //----------------------------------------------------------------------------
 void EventPublisher::error(const std::string& msg)
@@ -152,7 +269,7 @@ void EventPublisher::stop()
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::postJob(const std::string& st, const std::string suid, cJSON *root)
+void EventPublisher::pubJob(const std::string& st, const std::string suid, cJSON *root)
 {
   //we use job/service/id over job/id/service since the latter is
   //impossible to monitor for only submit/status/queue by using zmq
@@ -173,7 +290,7 @@ void EventPublisher::postJob(const std::string& st, const std::string suid, cJSO
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::postWorker(const std::string& st, const std::string suid, cJSON *root)
+void EventPublisher::pubWorker(const std::string& st, const std::string suid, cJSON *root)
 {
   //we use worker/service/id over worker/id/service since the latter is
   //impossible to monitor for only submit/status/queue by using zmq

@@ -644,7 +644,7 @@ std::string Server::queueJob(const remus::proto::Message& msg)
   const remus::proto::Job validJob(jobUUID,msg.MeshIOType());
 
   //publish the job has been queued
-  this->Publish->post(validJob);
+  this->Publish->jobQueued(validJob);
 
   //return the UUID
   return remus::proto::to_string(validJob);
@@ -674,34 +674,41 @@ std::string Server::terminateJob(zmq::socket_t& workerChannel,
 {
   remus::proto::Job job = remus::proto::to_Job(msg.data(),msg.dataSize());
 
-  const bool removedFromQueue = this->QueuedJobs->remove(job.id());
-  bool removed = removedFromQueue;
-  bool isActiveJob = false;
+  const bool currentlyInQueue = this->QueuedJobs->haveUUID(job.id());
+  const bool currentlyActive = this->ActiveJobs->haveUUID(job.id());
+  const bool eligableForTermination = currentlyInQueue || currentlyActive;
 
-  zmq::SocketIdentity worker;
-
-  if(!removedFromQueue)
+  if(!eligableForTermination)
     {
-    worker = this->ActiveJobs->workerAddress(job.id());
-    isActiveJob = this->ActiveJobs->remove(job.id());
+    //state that the job can't be terminated since it is not active
+    //or queued ( either an invalid job id or job is completed )
+    remus::proto::JobStatus jstatus(job.id(),remus::INVALID_STATUS);
+    return remus::proto::to_string(jstatus);
+    }
 
+  remus::proto::JobStatus jstatus(job.id(),remus::FAILED);
+  if(currentlyInQueue)
+    {
+    this->QueuedJobs->remove(job.id());
+
+    //publish that this job is now terminated and what it's last status was
+    remus::proto::JobStatus lastStatus(job.id(),remus::QUEUED);
+    this->Publish->jobTerminated(lastStatus);
+    }
+  else
+    {
     //send an out of band message to the worker to terminate a job
     //if the job is in the worker queue it will be removed, if the worker
     //is currently processing the job, we will just ignore the result
     //when they are submitted
-    if(isActiveJob && worker.size() > 0)
-      {
-      detail::send_terminateJob(job.id(), workerChannel, worker);
-      removed = true;
-      }
-    }
+    zmq::SocketIdentity worker = this->ActiveJobs->workerAddress(job.id());
+    const remus::proto::JobStatus lastStatus = this->ActiveJobs->status(job.id());
 
-  remus::STATUS_TYPE status_type = (removed) ? remus::FAILED : remus::INVALID_STATUS;
-  remus::proto::JobStatus jstatus(job.id(),status_type);
+    detail::send_terminateJob(job.id(), workerChannel, worker);
 
-  if(removed)
-    {
-    this->Publish->post(jstatus, worker);
+    //publish that this terminate call was sent to to the worker, and
+    //what was the last status we had for the job
+    this->Publish->jobTerminated(lastStatus, worker);
     }
 
   return remus::proto::to_string(jstatus);
@@ -736,6 +743,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->addWorker(workerIdentity,reqs);
+      this->Publish->workerRegistered(workerIdentity);
       }
       break;
     case remus::MAKE_MESH:
@@ -746,6 +754,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->readyForWork(workerIdentity,reqs);
+      this->Publish->workerReady(workerIdentity);
       }
       break;
     case remus::MESH_STATUS:
@@ -755,6 +764,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       break;
     case remus::RETRIEVE_RESULT:
       //we need to store the mesh result, no response needed
+      //store mesh does it's own notification
       this->storeMesh(workerIdentity, msg);
       {
       //now that we have stored the mesh we can tell the worker
@@ -777,6 +787,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       boost::int64_t dur_in_milli = boost::lexical_cast<boost::int64_t>(
                                                               msgPayload);
       this->SocketMonitor->heartbeat(workerIdentity,dur_in_milli);
+      this->Publish->workerHeartbeat(workerIdentity);
       }
       break;
     case remus::TERMINATE_WORKER:
@@ -785,6 +796,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //else as the WorkerPool and ActiveJobs will find out about the dead
       //worker by asking the SocketMonitor
       this->SocketMonitor->markAsDead(workerIdentity);
+      this->Publish->workerTerminate(workerIdentity);
     default:
 
       break;
@@ -808,7 +820,7 @@ void Server::storeMeshStatus(const zmq::SocketIdentity &workerIdentity,
                                                           msg.dataSize());
   this->ActiveJobs->updateStatus(js);
 
-  this->Publish->post(js, workerIdentity);
+  this->Publish->jobStatus(js, workerIdentity);
 }
 
 //------------------------------------------------------------------------------
@@ -819,7 +831,7 @@ void Server::storeMesh(const zmq::SocketIdentity &workerIdentity,
                                                             msg.dataSize());
   this->ActiveJobs->updateResult(jr);
 
-  this->Publish->post(jr, workerIdentity);
+  this->Publish->jobFinished(jr, workerIdentity);
 }
 
 //------------------------------------------------------------------------------
@@ -840,7 +852,7 @@ void Server::assignJobToWorker(zmq::socket_t& workerChannel,
 
     //we should encode the worker id as part of the string
     std::string wi(workerIdentity.data(), workerIdentity.size());
-    this->Publish->post(job, workerIdentity);
+    this->Publish->jobSentToWorker(job, workerIdentity);
     }
 
 }
