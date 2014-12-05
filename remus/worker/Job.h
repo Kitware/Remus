@@ -146,8 +146,7 @@ inline remus::worker::Job to_Job(const std::string& msg)
 inline remus::worker::Job to_Job(const char* data, int size)
 {
   //convert a job from a string, used as a hack to serialize
-  std::string temp(size,char());
-  std::copy( data, data+size, temp.begin() );
+  const std::string temp(data,size);
   return to_Job( temp );
 }
 
