@@ -12,49 +12,26 @@
 #ifndef remus_proto_zmqSocketIdentity_h
 #define remus_proto_zmqSocketIdentity_h
 
-#include <algorithm>
 #include <cstddef>
 #include <string>
-#include <remus/common/MD5Hash.h>
 
-#ifdef _MSC_VER
-# pragma warning(push)
-//disable warning about using std::copy with pointers
-# pragma warning(disable: 4996)
-#endif
+//included for export symbols
+#include <remus/proto/ProtoExports.h>
 
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq
 {
 //holds the identity of a zero mq socket in a way that is
 //easier to copy around
-struct SocketIdentity
+struct REMUSPROTO_EXPORT SocketIdentity
 {
-  SocketIdentity(const char* d, std::size_t s):
-    Size(s)
-    {
-    std::copy(d,d+s,this->Data);
-    }
+  SocketIdentity(const char* d, std::size_t s);
 
-  SocketIdentity():
-    Size(0)
-    {}
+  SocketIdentity();
 
-  bool operator ==(const SocketIdentity& b) const
-  {
-    if(this->size() != b.size()) { return false; }
-    return std::equal(this->data(),this->data()+this->size(),b.data());
-  }
+  bool operator ==(const SocketIdentity& b) const;
 
-  bool operator<(const SocketIdentity& b) const
-  {
-    //sort first on size
-    if(this->Size != b.size()) { return this->Size < b.size(); }
-
-    //second sort on content.
-    return std::lexicographical_compare(this->data(),this->data()+this->size(),
-                                        b.data(), b.data()+b.size());
-  }
+  bool operator<(const SocketIdentity& b) const;
 
   const char* data() const { return &Data[0]; }
   std::size_t size() const { return Size; }
@@ -64,16 +41,8 @@ private:
   char Data[256];
 };
 
-inline std::string to_string(const zmq::SocketIdentity& add)
-{
-  return remus::common::MD5Hash(add.data(),add.size());
-}
+REMUSPROTO_EXPORT std::string to_string(const zmq::SocketIdentity& add);
 
 }
-
-//reset our warnings to the original level
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 
 #endif // remus_proto_zmqSocketIdentity_h
