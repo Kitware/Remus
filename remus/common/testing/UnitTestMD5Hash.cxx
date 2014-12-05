@@ -13,6 +13,7 @@
 #include <string>
 
 #include <remus/common/MD5Hash.h>
+#include <remus/common/ConditionalStorage.h>
 
 #include <remus/testing/Testing.h>
 

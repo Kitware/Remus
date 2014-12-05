@@ -14,7 +14,6 @@
 #define remus_proto_JobResult_h
 
 #include <string>
-#include <sstream>
 
 #include <boost/shared_ptr.hpp>
 
@@ -120,12 +119,8 @@ inline remus::proto::JobResult make_JobResult(const boost::uuids::uuid& id,
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobResult& result)
-{
-  std::ostringstream buffer;
-  buffer << result;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT
+std::string to_string(const remus::proto::JobResult& result);
 
 //------------------------------------------------------------------------------
 REMUSPROTO_EXPORT

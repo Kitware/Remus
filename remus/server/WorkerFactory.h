@@ -13,8 +13,6 @@
 #ifndef remus_server_WorkeryFactory_h
 #define remus_server_WorkeryFactory_h
 
-#include <vector>
-
 //included for export symbols
 #include <remus/server/ServerExports.h>
 #include <remus/server/WorkerFactoryBase.h>

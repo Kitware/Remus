@@ -13,7 +13,6 @@
 #ifndef remus_worker_Job_h
 #define remus_worker_Job_h
 
-#include <algorithm>
 #include <string>
 #include <sstream>
 

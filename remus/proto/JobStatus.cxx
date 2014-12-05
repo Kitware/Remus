@@ -14,6 +14,8 @@
 
 #include <remus/proto/conversionHelpers.h>
 
+#include <sstream>
+
 namespace remus {
 namespace proto {
 
@@ -59,6 +61,22 @@ JobStatus::JobStatus(std::istream& buffer)
   buffer >> t;
   buffer >> this->Progress;
   this->Status = static_cast<remus::STATUS_TYPE>(t);
+}
+
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::JobStatus& status)
+{
+  //convert a job status to a string. We will always send the progress
+  std::ostringstream buffer;
+  buffer << status;
+  return buffer.str();
+}
+
+//------------------------------------------------------------------------------
+remus::proto::JobStatus to_JobStatus(const std::string& msg)
+{
+  std::istringstream buffer(msg);
+  return remus::proto::JobStatus(buffer);
 }
 
 

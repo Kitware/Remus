@@ -115,12 +115,8 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobSubmission& sub)
-{
-  std::ostringstream buffer;
-  buffer << sub;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT
+std::string to_string(const remus::proto::JobSubmission& sub);
 
 //------------------------------------------------------------------------------
 REMUSPROTO_EXPORT

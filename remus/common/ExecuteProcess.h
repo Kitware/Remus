@@ -14,7 +14,6 @@
 #define remus_common__ExecuteProcess_h
 
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 

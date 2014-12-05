@@ -35,6 +35,7 @@
 #endif
 
 #include <algorithm>
+#include <sstream>
 
 namespace remus {
 namespace proto {
@@ -207,6 +208,14 @@ JobResult::JobResult(std::istream& buffer)
     this->Implementation = boost::make_shared<InternalImpl>(
                                                 contents, contentsSize);
     }
+}
+
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::JobResult& result)
+{
+  std::ostringstream buffer;
+  buffer << result;
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------

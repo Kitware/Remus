@@ -14,7 +14,6 @@
 #define remus_proto_JobStatus_h
 
 #include <string>
-#include <sstream>
 
 #include <boost/uuid/uuid.hpp>
 
@@ -142,13 +141,8 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobStatus& status)
-{
-  //convert a job status to a string. We will always send the progress
-  std::ostringstream buffer;
-  buffer << status;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT
+std::string to_string(const remus::proto::JobStatus& status);
 
 //----------------------------------------------------------------------------
 inline remus::proto::JobStatus make_JobStatus(const boost::uuids::uuid jid,
@@ -180,12 +174,8 @@ inline remus::proto::JobStatus make_FailedJobStatus(
 }
 
 //------------------------------------------------------------------------------
-inline remus::proto::JobStatus to_JobStatus(const std::string& msg)
-{
-  std::istringstream buffer(msg);
-  return remus::proto::JobStatus(buffer);
-}
-
+REMUSPROTO_EXPORT
+remus::proto::JobStatus to_JobStatus(const std::string& msg);
 
 //------------------------------------------------------------------------------
 inline remus::proto::JobStatus to_JobStatus(const char* data, std::size_t size)

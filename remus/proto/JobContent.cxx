@@ -18,6 +18,7 @@
 
 #include <boost/make_shared.hpp>
 
+#include <sstream>
 #include <algorithm>
 
 namespace remus{
@@ -269,6 +270,14 @@ JobContent::JobContent(std::istream& buffer)
     this->Implementation = boost::make_shared<InternalImpl>(
                                                 contents, contentsSize);
     }
+}
+
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::JobContent& content)
+{
+  std::ostringstream buffer;
+  buffer << content;
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------

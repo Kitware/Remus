@@ -12,6 +12,8 @@
 
 #include <remus/server/WorkerFactoryBase.h>
 
+#include <remus/server/ServerPorts.h>
+
 
 namespace remus{
 namespace server{
@@ -29,6 +31,12 @@ WorkerFactoryBase::WorkerFactoryBase():
 WorkerFactoryBase::~WorkerFactoryBase()
 {
 
+}
+
+//----------------------------------------------------------------------------
+void WorkerFactoryBase::portForWorkersToUse(const remus::server::PortConnection& port)
+{
+  this->WorkerEndpoint = port.endpoint();
 }
 
 }

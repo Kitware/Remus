@@ -13,6 +13,8 @@
 #ifndef remus_common_MeshIOType_h
 #define remus_common_MeshIOType_h
 
+//we include MeshTypes so that people can just include
+//MeshIOType and get all the mesh types
 #include <remus/common/MeshTypes.h>
 #include <remus/common/remusGlobals.h>
 
