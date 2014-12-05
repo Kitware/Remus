@@ -13,14 +13,29 @@
 #ifndef remus_server_detail_EventPublisher_h
 #define remus_server_detail_EventPublisher_h
 
-#include <remus/proto/Job.h>
-#include <remus/proto/JobResult.h>
-#include <remus/proto/JobStatus.h>
-#include <remus/proto/zmqSocketIdentity.h>
-#include <remus/worker/Job.h>
 
+namespace remus{
+
+namespace proto{
+  class Job;
+  class JobStatus;
+  class JobResult;
+  }
+
+namespace worker{ class Job;   }
+}
+
+namespace zmq
+{
+  struct SocketIdentity;
+}
+
+struct cJSON;
+
+#include <vector>
+#include <sstream>
+#include <iostream>
 #include <remus/proto/zmq.hpp>
-#include "cJSON.h"
 
 namespace remus{
 namespace server{
