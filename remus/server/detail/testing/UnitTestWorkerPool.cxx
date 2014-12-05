@@ -162,6 +162,8 @@ void verify_purge_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type2D) == true) );
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == true) );
 
+  REMUS_ASSERT( (pool.allWorkers().size() == 1) );
+  REMUS_ASSERT( (pool.allResponsiveWorkers().size() == 0) );
 
   //refresh the work will make it active on the next check to purge workers
   monitor.refresh(worker1_id);
@@ -172,6 +174,7 @@ void verify_purge_workers()
   REMUS_ASSERT( (pool.haveWorker(worker1_id, worker_type3D) == true) );
 
   REMUS_ASSERT( (pool.allWorkers().size() == 1) );
+  REMUS_ASSERT( (pool.allResponsiveWorkers().size() == 1) );
   REMUS_ASSERT( (pool.allWorkersWantingWork().size() == 1) );
 }
 
