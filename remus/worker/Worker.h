@@ -15,10 +15,11 @@
 
 #include <remus/common/MeshIOType.h>
 
+//Workers include everything from proto, so that
+//users don't need as many includes
 #include <remus/proto/JobRequirements.h>
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
-#include <remus/proto/zmqSocketIdentity.h>
 
 #include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>

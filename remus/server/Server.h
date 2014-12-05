@@ -14,7 +14,6 @@
 #define remus_server_Server_h
 
 #include <remus/common/SignalCatcher.h>
-#include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -32,6 +31,10 @@
 
 //included for export symbols
 #include <remus/server/ServerExports.h>
+
+
+//forward declaration of classes only the implementation needs
+namespace zmq { struct SocketIdentity; }
 
 namespace remus {
   //forward declaration of classes only the implementation needs

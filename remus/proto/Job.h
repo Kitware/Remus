@@ -13,8 +13,6 @@
 #ifndef remus_proto_Job_h
 #define remus_proto_Job_h
 
-#include <sstream>
-
 #include <boost/uuid/uuid.hpp>
 #include <remus/common/MeshIOType.h>
 
@@ -71,13 +69,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::Job& job)
-{
-  //convert a job to a string.
-  std::ostringstream buffer;
-  buffer << job;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT std::string to_string(const remus::proto::Job& job);
 
 //------------------------------------------------------------------------------
 inline remus::proto::Job to_Job(const std::string& msg)

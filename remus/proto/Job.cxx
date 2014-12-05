@@ -98,5 +98,14 @@ void Job::deserialize(std::istream& buffer)
   this->CachedSerializedForm = cache_buffer.str();
 }
 
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::Job& job)
+{
+  //convert a job to a string.
+  std::ostringstream buffer;
+  buffer << job;
+  return buffer.str();
+}
+
 }
 }

@@ -17,6 +17,8 @@
 
 #include <boost/make_shared.hpp>
 
+#include <sstream>
+
 namespace remus{
 namespace proto{
 
@@ -241,6 +243,14 @@ JobRequirements::JobRequirements(std::istream& buffer)
     this->Implementation = boost::make_shared<InternalImpl>(
                                                 contents, contentsSize);
     }
+}
+
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::JobRequirements& reqs)
+{
+  std::ostringstream buffer;
+  buffer << reqs;
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------

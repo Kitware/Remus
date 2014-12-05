@@ -13,7 +13,6 @@
 #ifndef remus_common_MeshTypes_h
 #define remus_common_MeshTypes_h
 
-#include <string>
 #include <remus/common/MeshRegistrar.h>
 
 //Remus reserves the right to first 100 meshtypes

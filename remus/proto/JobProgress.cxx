@@ -12,6 +12,7 @@
 #include <remus/proto/JobProgress.h>
 
 #include <algorithm>
+#include <sstream>
 
 #include <remus/proto/conversionHelpers.h>
 

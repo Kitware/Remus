@@ -15,6 +15,7 @@
 #include <remus/proto/conversionHelpers.h>
 
 #include <algorithm>
+#include <sstream>
 
 namespace remus{
 namespace proto{
@@ -117,6 +118,14 @@ JobSubmission::JobSubmission(std::istream& buffer)
     buffer >> value;
     this->Content[key]=value;
     }
+}
+
+//------------------------------------------------------------------------------
+std::string to_string(const remus::proto::JobSubmission& sub)
+{
+  std::ostringstream buffer;
+  buffer << sub;
+  return buffer.str();
 }
 
 //------------------------------------------------------------------------------

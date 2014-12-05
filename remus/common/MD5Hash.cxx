@@ -12,6 +12,8 @@
 
 #include <remus/common/MD5Hash.h>
 
+#include <remus/common/ConditionalStorage.h>
+
 #include <RemusSysTools/MD5.h>
 
 namespace

@@ -14,8 +14,6 @@
 #define remus_proto_JobContent_h
 
 #include <string>
-#include <sstream>
-
 #include <boost/shared_ptr.hpp>
 
 //for ContentFormat and ContentSource
@@ -114,12 +112,13 @@ inline remus::proto::JobContent make_JobContent(
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobContent& content)
-{
-  std::ostringstream buffer;
-  buffer << content;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT
+std::string to_string(const remus::proto::JobContent& content);
+// {
+//   std::ostringstream buffer;
+//   buffer << content;
+//   return buffer.str();
+// }
 
 //------------------------------------------------------------------------------
 REMUSPROTO_EXPORT

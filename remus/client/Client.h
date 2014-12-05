@@ -13,13 +13,14 @@
 #ifndef remus_client_Client_h
 #define remus_client_Client_h
 
-#include <string>
-#include <set>
-
 #include <boost/scoped_ptr.hpp>
 
 #include <remus/client/ServerConnection.h>
 
+#include <remus/common/MeshIOType.h>
+
+//Clients include everything from proto, so that
+//users don't need as many includes
 #include <remus/proto/Job.h>
 #include <remus/proto/JobRequirements.h>
 #include <remus/proto/JobResult.h>

@@ -22,10 +22,12 @@
 
 //included for export symbols
 #include <remus/server/ServerExports.h>
-#include <remus/server/ServerPorts.h>
 
 namespace remus{
 namespace server{
+
+//forward declare the port connection class
+class PortConnection;
 
 
 //The Worker Factory Base task.
@@ -55,7 +57,7 @@ public:
   void addCommandLineArgument(const std::string& argument)
     { this->GlobalCommandLineArguments.push_back(argument); }
 
-  const std::vector< std::string > commandLineArguments() const
+  const std::vector< std::string >& commandLineArguments() const
     { return this->GlobalCommandLineArguments; }
 
   //remove all command line arguments to be passed to all workers
@@ -64,8 +66,7 @@ public:
 
   //specify the port/endpoint that workers need to use to connect to the
   //running server
-  void portForWorkersToUse(const remus::server::PortConnection& port)
-    { this->WorkerEndpoint = port.endpoint(); }
+  void portForWorkersToUse(const remus::server::PortConnection& port);
 
   const std::string& workerEndpoint() const
     { return this->WorkerEndpoint; }

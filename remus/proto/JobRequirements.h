@@ -14,7 +14,6 @@
 #define remus_proto_JobRequirements_h
 
 #include <string>
-#include <sstream>
 #include <set>
 
 #include <boost/shared_ptr.hpp>
@@ -209,12 +208,8 @@ inline remus::proto::JobRequirements make_JobRequirements(
 }
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::proto::JobRequirements& reqs)
-{
-  std::ostringstream buffer;
-  buffer << reqs;
-  return buffer.str();
-}
+REMUSPROTO_EXPORT
+std::string to_string(const remus::proto::JobRequirements& reqs);
 
 //------------------------------------------------------------------------------
 REMUSPROTO_EXPORT
