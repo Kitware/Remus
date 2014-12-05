@@ -32,6 +32,7 @@ set(srcs
     JobSubmission.cxx
     Message.cxx
     Response.cxx
+    zmqSocketIdentity.cxx
     )
 
 #setup the protocol library
