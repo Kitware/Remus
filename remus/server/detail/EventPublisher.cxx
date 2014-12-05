@@ -12,6 +12,15 @@
 
 #include <remus/server/detail/EventPublisher.h>
 
+
+#include <remus/proto/Job.h>
+#include <remus/proto/JobResult.h>
+#include <remus/proto/JobStatus.h>
+#include <remus/proto/zmqSocketIdentity.h>
+#include <remus/worker/Job.h>
+
+#include "cJSON.h"
+
 namespace
 {
 //------------------------------------------------------------------------------
