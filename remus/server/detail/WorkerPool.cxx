@@ -181,6 +181,20 @@ std::set<zmq::SocketIdentity> WorkerPool::allWorkers() const
     }
   return workerAddresses;
 }
+//------------------------------------------------------------------------------
+std::set<zmq::SocketIdentity> WorkerPool::allResponsiveWorkers() const
+{
+  std::set<zmq::SocketIdentity> workerAddresses;
+  for(ConstIt i=this->Pool.begin(); i != this->Pool.end(); ++i)
+    {
+    if(i->IsResponsive)
+      {
+      workerAddresses.insert(i->Address);
+      }
+    }
+  return workerAddresses;
+}
+
 
 //------------------------------------------------------------------------------
 std::set<zmq::SocketIdentity> WorkerPool::allWorkersWantingWork() const

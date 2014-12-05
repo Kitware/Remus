@@ -65,8 +65,12 @@ public:
   //remove all workers that haven't responded based on the passed in monitor
   void purgeDeadWorkers(remus::server::detail::SocketMonitor monitor);
 
-  //return the socket identity of all workers
+  //return the socket identity of all workers including workers that are
+  //unresponsive
   std::set<zmq::SocketIdentity> allWorkers() const;
+
+  //return the socket identity of all responsive workers
+  std::set<zmq::SocketIdentity> allResponsiveWorkers() const;
 
   //return the socket identity of all workers that want to work on a job
   std::set<zmq::SocketIdentity> allWorkersWantingWork() const;
