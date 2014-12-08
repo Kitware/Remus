@@ -631,7 +631,7 @@ std::string Server::queueJob(const remus::proto::Message& msg)
   const remus::proto::Job validJob(jobUUID,msg.MeshIOType());
 
   //publish the job has been queued
-  this->Publish->jobQueued(validJob);
+  this->Publish->jobQueued(validJob, submission.requirements() );
 
   //return the UUID
   return remus::proto::to_string(validJob);
@@ -732,7 +732,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->addWorker(workerIdentity,reqs);
-      this->Publish->workerRegistered(workerIdentity);
+      this->Publish->workerRegistered(workerIdentity, reqs);
       }
       break;
     case remus::MAKE_MESH:
@@ -743,7 +743,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       const remus::proto::JobRequirements reqs =
             remus::proto::to_JobRequirements(msg.data(),msg.dataSize());
       this->WorkerPool->readyForWork(workerIdentity,reqs);
-      this->Publish->workerReady(workerIdentity);
+      this->Publish->workerReady(workerIdentity, reqs);
       }
       break;
     case remus::MESH_STATUS:
