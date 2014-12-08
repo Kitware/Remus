@@ -11,39 +11,68 @@
 //=============================================================================
 #include <remus/proto/zmqSocketIdentity.h>
 
+#include <boost/cstdint.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <algorithm>
 
-#include <remus/common/MD5Hash.h>
+#include <remus/proto/zmq.hpp>
 
-#ifdef _MSC_VER
-# pragma warning(push)
-//disable warning about using std::copy with pointers
-# pragma warning(disable: 4996)
-#endif
+namespace
+{
+boost::uint32_t  convertBEToUnsignedInteger(const char buffer[256])
+{
+  //convert from big endian encoding of an integer to the host integer. We skip
+  //buffer[0] as that is holding the null byte signifiying that this is a zmq be uint32
+  return static_cast<uint32_t>(buffer[1]) << 24 |
+              static_cast<uint32_t>(buffer[2]) << 16 |
+              static_cast<uint32_t>(buffer[3]) << 8   |
+              static_cast<uint32_t>(buffer[4]);
+}
 
-//inject some basic zero MQ helper functions into the namespace
+}
+
 namespace zmq
 {
 
 //------------------------------------------------------------------------------
-SocketIdentity::SocketIdentity(const char* d, std::size_t s):
-    Size(s)
-  {
-    std::copy(d,d+s,this->Data);
-  }
+SocketIdentity::SocketIdentity( const char* start, std::size_t size )
+{
+  this->Size = size;
+  std::memcpy(this->Data, start, size);
+
+  if(this->Data[0] == '\0' && this->Size == 5 )
+    {
+    //by default zmq reserves all id's that start with '\0', and they use an unsigned 32 bit
+    //int in big endian form to represent the identity of the socket. If we detect this we convert this to a human
+    //readable name
+    boost::uint32_t integerId = convertBEToUnsignedInteger(this->Data);
+    this->Name = boost::lexical_cast<std::string>( integerId );
+    }
+  else
+    {
+    //somebody has set a custom socket identity so we need to respect that
+    this->Name = std::string(start,this->Size);
+    }
+
+}
 
 //------------------------------------------------------------------------------
 SocketIdentity::SocketIdentity():
-  Size(0)
+Size(0),
+Data(),
+Name()
 {
-
 }
 
 //------------------------------------------------------------------------------
 bool SocketIdentity::operator ==(const SocketIdentity& b) const
 {
-    if(this->size() != b.size()) { return false; }
-    return std::equal(this->data(),this->data()+this->size(),b.data());
+  //this can't just compare names, as the names are unique. You could have a user
+  //encode a string of "1" as the unique id of the socket and have a zmq provided
+  //id be 1 which would produce the name of "1", while the actual Data blocks aren't the same
+  if(this->size() != b.size()) { return false; }
+  return std::equal(this->data(),this->data()+this->size(),b.data());
 }
 
 //------------------------------------------------------------------------------
@@ -57,15 +86,5 @@ bool SocketIdentity::operator<(const SocketIdentity& b) const
                                         b.data(), b.data()+b.size());
 }
 
-//------------------------------------------------------------------------------
-std::string to_string(const zmq::SocketIdentity& add)
-{
-  return remus::common::MD5Hash(add.data(),add.size());
-}
 
 }
-
-//reset our warnings to the original level
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
