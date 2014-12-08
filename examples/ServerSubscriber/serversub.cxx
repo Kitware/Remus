@@ -28,18 +28,25 @@ int main(int argc, char* argv[])
   //bind the socket
   zmq::connectToAddress(subscriber,default_sub);
 
-  //state we will take only job messages
-  std::string workerSub = "worker:REGISTERED";
-  std::string workerSub2 = "worker:ASKING_FOR_JOB";
-  std::string jobSub = "job:ASSIGNED_TO_WORKER";
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, workerSub.c_str(), workerSub.size());
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, workerSub2.c_str(), workerSub2.size());
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, jobSub.c_str(), jobSub.size());
+  //state we will take only requested messages
+  if (argc < 2)
+    {
+    //take all messages when no arguments are passed to main().
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, NULL, 0);
+    }
 
+  // Examples you can pass on the command line:
+  //   worker:REGISTERED
+  //   worker:ASKING_FOR_JOB
+  //   job:ASSIGNED_TO_WORKER
 
+  for (int arg = 1; arg < argc; ++arg)
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE,
+      argv[arg], strlen(argv[arg]));
+
+  // Always listen for "stop"
   std::string stopSub = "stop";
   zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, stopSub.c_str(), stopSub.size());
-
 
   //dump all messages
   const std::string termination_message = "END";
@@ -60,7 +67,7 @@ int main(int argc, char* argv[])
   cJSON *root = cJSON_Parse( reinterpret_cast<char*>(data.data()) );
   char *rendered = cJSON_Print(root);
   std::cout << "key: " << keyStr << std::endl;
-  std::cout << "value:" << rendered << std::endl;
+  std::cout << "value:" << (rendered ? rendered : "(empty)") << std::endl;
 
   free(rendered);
   cJSON_Delete(root);
