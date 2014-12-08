@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   zmq::connectToAddress(subscriber,default_sub);
 
   //state we will take only job messages
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "worker", 1);
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "job", 1);
 
   //dump all messages
   const std::string termination_message = "END";
