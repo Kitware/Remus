@@ -28,8 +28,11 @@ int main(int argc, char* argv[])
   //bind the socket
   zmq::connectToAddress(subscriber,default_sub);
 
-  //state we will take only job messages
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "job", 1);
+  //state we will take only requested messages
+  //(or all when no arguments are passed to main()).
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE,
+    argc > 1 ? argv[1] : NULL,
+    argc > 1 ?       1 :    0);
 
   //dump all messages
   const std::string termination_message = "END";
@@ -45,7 +48,8 @@ int main(int argc, char* argv[])
 
   cJSON *root = cJSON_Parse( reinterpret_cast<char*>(data.data()) );
   char *rendered = cJSON_Print(root);
-  std::cout << rendered << std::endl;
+  if (rendered)
+    std::cout << rendered << std::endl;
 
   free(rendered);
   cJSON_Delete(root);
