@@ -18,6 +18,7 @@ set(unit_tests
   UnitTestJobResult.cxx
   UnitTestJobStatus.cxx
   UnitTestJobSubmission.cxx
+  UnitTestSocketIdentity.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}

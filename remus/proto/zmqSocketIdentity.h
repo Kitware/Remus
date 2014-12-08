@@ -36,12 +36,15 @@ struct REMUSPROTO_EXPORT SocketIdentity
   const char* data() const { return &Data[0]; }
   std::size_t size() const { return Size; }
 
+  //returns this socket identity as a human
+  //readable name
+  const std::string& name() const { return this->Name; }
+
 private:
   std::size_t Size;
   char Data[256];
+  std::string Name;
 };
-
-REMUSPROTO_EXPORT std::string to_string(const zmq::SocketIdentity& add);
 
 }
 
