@@ -415,27 +415,33 @@ void EventPublisher::error(const std::string& msg)
   //error key is "error:server", this is to allow in the future for
   //us to send specific component level failure messages
   static const std::string error_key = "error:server";
-  socket->send(error_key.data(), error_key.size(), ZMQ_SNDMORE);
+  zmq::message_t keyMsg(error_key.size());
+  std::memcpy(keyMsg.data(), error_key.data(), error_key.size());
+  socket->send(keyMsg, ZMQ_SNDMORE);
 
-  //send the actual data of the message to publish
-  socket->send(msg.data(), msg.size());
+  zmq::message_t valueMsg(msg.size());
+  std::memcpy(valueMsg.data(), msg.data(), msg.size());
+  socket->send(valueMsg);
 }
 
 //----------------------------------------------------------------------------
 void EventPublisher::stop()
 {
+  //first send a message on error that the server is ending
+  this->error("END");
+
   //publish
-  const std::string error_key = "error";
   const std::string stop_key = "stop";
   const std::string stop_value = "END";
 
-  //first send a message on error that the server is ending
-  socket->send(error_key.data(), error_key.size(), ZMQ_SNDMORE);
-  socket->send(stop_value.data(), stop_value.size());
-
   //now send the same message on the stop channel
-  socket->send(stop_key.data(), stop_key.size(), ZMQ_SNDMORE);
-  socket->send(stop_value.data(), stop_value.size());
+  zmq::message_t keyMsg(stop_key.size());
+  std::memcpy(keyMsg.data(), stop_key.data(), stop_key.size());
+  socket->send(keyMsg, ZMQ_SNDMORE);
+
+  zmq::message_t valueMsg(stop_value.size());
+  std::memcpy(valueMsg.data(), stop_value.data(), stop_value.size());
+  socket->send(valueMsg);
 }
 
 //----------------------------------------------------------------------------
@@ -447,7 +453,9 @@ void EventPublisher::pubJob(const std::string& st, const std::string suid, cJSON
   //job ( with a bit of setup ), and allows somebody to watch for all messages
   //of a given status type
   std::string key = "job:" + st + ":" + suid;
-  socket->send(key.data(), key.size(), ZMQ_SNDMORE);
+  zmq::message_t keyMsg(key.size());
+  std::memcpy(keyMsg.data(), key.data(), key.size());
+  socket->send(keyMsg, ZMQ_SNDMORE);
 
   //send the actual data of the message to publish
   char *json_str = cJSON_PrintUnformatted(root);
@@ -468,7 +476,9 @@ void EventPublisher::pubWorker(const std::string& st, const std::string suid, cJ
   //job ( with a bit of setup ), and allows somebody to watch for all messages
   //of a given status type
   std::string key = "worker:" + st + ":" + suid;
-  socket->send(key.data(), key.size(), ZMQ_SNDMORE);
+  zmq::message_t keyMsg(key.size());
+  std::memcpy(keyMsg.data(), key.data(), key.size());
+  socket->send(keyMsg, ZMQ_SNDMORE);
 
   //send the actual data of the message to publish
   char *json_str = cJSON_PrintUnformatted(root);
