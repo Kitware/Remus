@@ -29,7 +29,17 @@ int main(int argc, char* argv[])
   zmq::connectToAddress(subscriber,default_sub);
 
   //state we will take only job messages
-  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "job", 1);
+  std::string workerSub = "worker:REGISTERED";
+  std::string workerSub2 = "worker:ASKING_FOR_JOB";
+  std::string jobSub = "job:ASSIGNED_TO_WORKER";
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, workerSub.c_str(), workerSub.size());
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, workerSub2.c_str(), workerSub2.size());
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, jobSub.c_str(), jobSub.size());
+
+
+  std::string stopSub = "stop";
+  zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, stopSub.c_str(), stopSub.size());
+
 
   //dump all messages
   const std::string termination_message = "END";
@@ -40,12 +50,17 @@ int main(int argc, char* argv[])
   zmq::recv_harder(subscriber, &key);
   zmq::recv_harder(subscriber, &data);
 
-
   std::string keyStr( reinterpret_cast<char*>(key.data()), key.size() );
+
+  if(keyStr == stopSub)
+    {
+    return 0;
+    }
 
   cJSON *root = cJSON_Parse( reinterpret_cast<char*>(data.data()) );
   char *rendered = cJSON_Print(root);
-  std::cout << rendered << std::endl;
+  std::cout << "key: " << keyStr << std::endl;
+  std::cout << "value:" << rendered << std::endl;
 
   free(rendered);
   cJSON_Delete(root);
