@@ -14,6 +14,7 @@
 
 
 #include <remus/proto/Job.h>
+#include <remus/proto/JobRequirements.h>
 #include <remus/proto/JobResult.h>
 #include <remus/proto/JobStatus.h>
 #include <remus/proto/zmqSocketIdentity.h>
@@ -28,6 +29,16 @@ void json_free(void *data, void *hint)
 { //cjson memory is malloced
   free(data);
   (void)hint;
+}
+
+//------------------------------------------------------------------------------
+template <typename T, typename BufferType>
+std::string as_string(const T& t, BufferType& bt )
+{
+  bt << t;
+  const std::string result = bt.str();
+  bt.str("");
+  return result;
 }
 
 }
@@ -45,22 +56,34 @@ bool EventPublisher::socketToUse( zmq::socket_t* s )
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::jobQueued(const remus::proto::Job& j )
+void EventPublisher::jobQueued(const remus::proto::Job& j,
+                                                        const remus::proto::JobRequirements& reqs)
 { //queue job
-  buffer << j.id();
-  const std::string suid = buffer.str(); buffer.str("");
-  const std::string serv_t = remus::common::serv_types[(int)remus::QUEUED];
+  const std::string suid = as_string(j.id(), buffer);
+  const std::string serv_t = remus::common::stat_types[(int)remus::QUEUED];
   const std::string work_t = ""; //done for easier client parsing
-
-  buffer << j.type();
-  const std::string& mesh_t = buffer.str(); buffer.str("");
 
   cJSON *root;
   root=cJSON_CreateObject();
   cJSON_AddItemToObject(root, "job_id", cJSON_CreateString(suid.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str())); //kept for easier client parsing
-  cJSON_AddItemToObject(root, "mesh_type", cJSON_CreateString(mesh_t.c_str()));
+
+  const std::string source_type = as_string(reqs.sourceType(), buffer);
+  const std::string format_type = as_string(reqs.formatType(), buffer);
+  const std::string mesh_type = as_string(reqs.meshTypes(), buffer);
+  const std::string worker_name = as_string(reqs.workerName(), buffer);
+  const std::string tag = as_string(reqs.tag(), buffer);
+
+  cJSON *jsonReqs;
+  cJSON_AddItemToObject(root, "requirements", jsonReqs=cJSON_CreateObject());
+  cJSON_AddItemToObject(jsonReqs, "source_type",   cJSON_CreateString(source_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "format_type",   cJSON_CreateString(format_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "mesh_type",   cJSON_CreateString(mesh_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "worker_name",   cJSON_CreateString(worker_name.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "tag",   cJSON_CreateString(tag.c_str()));
+
+
   this->pubJob(serv_t, suid, root);
 
   cJSON_Delete(root);
@@ -226,7 +249,8 @@ void EventPublisher::jobsExpired( const std::vector<remus::proto::JobStatus>& ex
   }
 
 //----------------------------------------------------------------------------
-void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity)
+void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity,
+                                                           const remus::proto::JobRequirements& reqs)
 {
   const std::string work_t = zmq::to_string(workerIdentity);
   const std::string serv_t = "REGISTERED";
@@ -236,13 +260,30 @@ void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity)
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
 
+
+  const std::string source_type = as_string(reqs.sourceType(), buffer);
+  const std::string format_type = as_string(reqs.formatType(), buffer);
+  const std::string mesh_type = as_string(reqs.meshTypes(), buffer);
+  const std::string worker_name = as_string(reqs.workerName(), buffer);
+  const std::string tag = as_string(reqs.tag(), buffer);
+
+  cJSON *jsonReqs;
+  cJSON_AddItemToObject(root, "requirements", jsonReqs=cJSON_CreateObject());
+  cJSON_AddItemToObject(jsonReqs, "source_type",   cJSON_CreateString(source_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "format_type",   cJSON_CreateString(format_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "mesh_type",   cJSON_CreateString(mesh_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "worker_name",   cJSON_CreateString(worker_name.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "tag",   cJSON_CreateString(tag.c_str()));
+
+
   this->pubWorker(serv_t, work_t, root);
 
   cJSON_Delete(root);
 }
 
 //----------------------------------------------------------------------------
-void EventPublisher::workerRegistered(const zmq::SocketIdentity &workerIdentity)
+void EventPublisher::workerRegistered(const zmq::SocketIdentity &workerIdentity,
+                                                                  const remus::proto::JobRequirements& reqs)
 {
   const std::string work_t = zmq::to_string(workerIdentity);
   const std::string serv_t = "ASKING_FOR_JOB";
@@ -251,6 +292,21 @@ void EventPublisher::workerRegistered(const zmq::SocketIdentity &workerIdentity)
   root=cJSON_CreateObject();
   cJSON_AddItemToObject(root, "worker_id", cJSON_CreateString(work_t.c_str()));
   cJSON_AddItemToObject(root, "msg_type", cJSON_CreateString(serv_t.c_str()));
+
+
+  const std::string source_type = as_string(reqs.sourceType(), buffer);
+  const std::string format_type = as_string(reqs.formatType(), buffer);
+  const std::string mesh_type = as_string(reqs.meshTypes(), buffer);
+  const std::string worker_name = as_string(reqs.workerName(), buffer);
+  const std::string tag = as_string(reqs.tag(), buffer);
+
+  cJSON *jsonReqs;
+  cJSON_AddItemToObject(root, "requirements", jsonReqs=cJSON_CreateObject());
+  cJSON_AddItemToObject(jsonReqs, "source_type",   cJSON_CreateString(source_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "format_type",   cJSON_CreateString(format_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "mesh_type",   cJSON_CreateString(mesh_type.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "worker_name",   cJSON_CreateString(worker_name.c_str()));
+  cJSON_AddItemToObject(jsonReqs, "tag",   cJSON_CreateString(tag.c_str()));
 
   this->pubWorker(serv_t, work_t, root);
 

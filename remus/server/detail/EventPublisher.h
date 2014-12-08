@@ -19,8 +19,9 @@ namespace remus{
 
 namespace proto{
   class Job;
-  class JobStatus;
+  class JobRequirements;
   class JobResult;
+  class JobStatus;
   }
 
 namespace worker{ class Job;   }
@@ -89,7 +90,9 @@ public:
   //must be externally managed.
   bool socketToUse( zmq::socket_t* s );
 
-  void jobQueued( const remus::proto::Job& j );
+  void jobQueued( const remus::proto::Job& j,
+                                const remus::proto::JobRequirements& reqs);
+
   void jobStatus( const remus::proto::JobStatus& s,
                   const zmq::SocketIdentity &workerIdentity);
   void jobTerminated( const remus::proto::JobStatus& last_status,
@@ -107,8 +110,11 @@ public:
   void jobsExpired( const std::vector<remus::proto::JobStatus>& expired_status );
 
 
-  void workerReady(const zmq::SocketIdentity &workerIdentity);
-  void workerRegistered(const zmq::SocketIdentity &workerIdentity);
+  void workerReady(const zmq::SocketIdentity &workerIdentity,
+                                 const remus::proto::JobRequirements& reqs);
+  void workerRegistered(const zmq::SocketIdentity &workerIdentity,
+                                 const remus::proto::JobRequirements& reqs);
+
   void workerHeartbeat(const zmq::SocketIdentity &workerIdentity);
   void workerResponsive(const zmq::SocketIdentity &workerIdentity);
   void workerUnresponsive(const zmq::SocketIdentity &workerIdentity);
