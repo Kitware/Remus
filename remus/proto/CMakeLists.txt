@@ -1,6 +1,7 @@
 project(Remus_Proto)
 
 set(headers
+    EventTypes.h
     Job.h
     JobContent.h
     JobProgress.h

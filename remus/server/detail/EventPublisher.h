@@ -36,6 +36,7 @@ namespace zmq
 struct cJSON;
 
 #include <remus/proto/zmq.hpp>
+#include <remus/proto/EventTypes.h>
 
 #include <sstream>
 #include <vector>
@@ -46,23 +47,10 @@ namespace remus{
 namespace server{
 namespace detail{
 
-
-//Todo: We need to make this class waaaay faster
-//it does way to much json creation and deletion, we need to cache
-//those tables as much as possible on construction
-
-//We need to create look-ups for workerIdentities so we don't have
-//to hash those every time. Preferably the SocketIdentity will get that
-//ability
 class EventPublisher
 {
 public:
-  EventPublisher():
-    socket(NULL),
-    buffer()
-  {
-
-  }
+  EventPublisher();
 
   //Job status sections
   //QUEUED
