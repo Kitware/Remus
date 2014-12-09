@@ -11,9 +11,10 @@
 //=============================================================================
 
 #include <remus/common/MeshIOType.h>
+
 //I don't know if this means that MeshIOType should be moved into
 //remus proto or not
-#include <remus/proto/conversionHelpers.h>
+#include <remus/common/conversionHelper.h>
 
 namespace remus {
 namespace common {

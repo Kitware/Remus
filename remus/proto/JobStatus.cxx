@@ -12,7 +12,7 @@
 
 #include <remus/proto/JobStatus.h>
 
-#include <remus/proto/conversionHelpers.h>
+#include <remus/common/conversionHelper.h>
 
 #include <sstream>
 

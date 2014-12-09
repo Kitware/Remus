@@ -13,7 +13,7 @@
 #include <remus/proto/JobRequirements.h>
 
 #include <remus/common/ConditionalStorage.h>
-#include <remus/proto/conversionHelpers.h>
+#include <remus/common/conversionHelper.h>
 
 #include <boost/make_shared.hpp>
 

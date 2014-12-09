@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include <remus/proto/conversionHelpers.h>
+#include <remus/common/conversionHelper.h>
 
 namespace remus {
 namespace proto {
