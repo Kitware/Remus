@@ -1,7 +1,6 @@
 project(Remus_Proto)
 
 set(headers
-    conversionHelpers.h
     Job.h
     JobContent.h
     JobProgress.h

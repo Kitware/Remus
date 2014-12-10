@@ -12,7 +12,7 @@
 
 #include <remus/proto/JobSubmission.h>
 
-#include <remus/proto/conversionHelpers.h>
+#include <remus/common/conversionHelper.h>
 
 #include <algorithm>
 #include <sstream>

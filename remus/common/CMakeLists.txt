@@ -19,6 +19,7 @@ set(headers
 #are needed by other remus libraries
 set(private_headers
     PollingMonitor.h
+    conversionHelper.h
     )
 
 set(srcs
