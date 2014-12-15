@@ -46,7 +46,7 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.isAlive());
   REMUS_ASSERT(!example.kill());
 
-  //start the process in non-detached mode
+  //start the process in attached mode
   example.execute(attached);
 
   //validate the program is running, and than terminate it
@@ -81,7 +81,7 @@ int UnitTestExecuteProcess(int, char *[])
   args.push_back("SLEEP_AND_EXIT");
   remus::common::ExecuteProcess example(eapp.name, args);
 
-  //start the process in non detached-mode
+  //start the process in attached-mode
   example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
@@ -199,7 +199,7 @@ int UnitTestExecuteProcess(int, char *[])
   //kill the process, and make sure it is terminated
   REMUS_ASSERT(example.kill());
 
-  //start the process in non-detached mode
+  //start the process in attached mode
   example.execute(attached);
   REMUS_ASSERT(example.isAlive());
 
