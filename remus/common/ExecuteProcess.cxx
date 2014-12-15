@@ -108,7 +108,7 @@ ExecuteProcess::~ExecuteProcess()
 }
 
 //-----------------------------------------------------------------------------
-void ExecuteProcess::execute(DetachMode mode)
+void ExecuteProcess::execute()
 {
   //allocate array large enough for command str, args, and null entry
   const std::size_t size(this->Args.size() + 2);
@@ -144,8 +144,6 @@ void ExecuteProcess::execute(DetachMode mode)
   RemusSysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
   RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             RemusSysToolsProcess_Option_HideWindow, true);
-  RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
-                              RemusSysToolsProcess_Option_Detach, (mode==Detached) );
   RemusSysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   // Now that the process has been created, reset the environment.

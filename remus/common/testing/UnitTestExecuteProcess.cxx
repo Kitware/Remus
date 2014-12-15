@@ -18,15 +18,6 @@
 
 #include <iostream>
 
-namespace
-{
-  const remus::common::ExecuteProcess::DetachMode detached =
-      remus::common::ExecuteProcess::Detached;
-
-  const remus::common::ExecuteProcess::DetachMode attached =
-      remus::common::ExecuteProcess::Attached;
-}
-
 int UnitTestExecuteProcess(int, char *[])
 {
   ExampleApplication eapp;
@@ -46,20 +37,8 @@ int UnitTestExecuteProcess(int, char *[])
   REMUS_ASSERT(!example.isAlive());
   REMUS_ASSERT(!example.kill());
 
-  //start the process in attached mode
-  example.execute(attached);
-
-  //validate the program is running, and than terminate it
-  REMUS_ASSERT(example.isAlive());
-  REMUS_ASSERT(example.kill()); //kill
-
-  //make sure the program terminated
-  REMUS_ASSERT(!example.isAlive());
-  REMUS_ASSERT(!example.exitedNormally());
-  REMUS_ASSERT(!example.kill()); //can't kill twice
-
-  //start the process in detached mode
-  example.execute(detached);
+  //start the process
+  example.execute();
 
   //validate the program is running, and than terminate it
   REMUS_ASSERT(example.isAlive());
@@ -81,19 +60,8 @@ int UnitTestExecuteProcess(int, char *[])
   args.push_back("SLEEP_AND_EXIT");
   remus::common::ExecuteProcess example(eapp.name, args);
 
-  //start the process in attached-mode
-  example.execute(attached);
-  REMUS_ASSERT(example.isAlive());
-
-  //wait for the example program to close itself
-  while(example.isAlive()){}
-
-  REMUS_ASSERT(example.exitedNormally());
-  //make sure we can't kill a program that has stopped
-  REMUS_ASSERT(!example.kill());
-
-  //start the process in detached-mode
-  example.execute(detached);
+  //start the process
+  example.execute();
   REMUS_ASSERT(example.isAlive());
 
   //wait for the example program to close itself
@@ -117,8 +85,8 @@ int UnitTestExecuteProcess(int, char *[])
   env["REMUS_TEST"] = "TRUE";
   remus::common::ExecuteProcess example(eapp.name, args, env);
 
-  //start the process in attached mode, and test polling
-  example.execute(attached);
+  //start the process, and test polling
+  example.execute();
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
@@ -147,8 +115,8 @@ int UnitTestExecuteProcess(int, char *[])
   args.push_back("CERR_OUTPUT");
   remus::common::ExecuteProcess example(eapp.name, args );
 
-  //start the process in attached mode, and test polling
-  example.execute(attached);
+  //start the process, and test polling
+  example.execute();
   REMUS_ASSERT(example.isAlive());
 
   //verify the polling results
@@ -180,27 +148,8 @@ int UnitTestExecuteProcess(int, char *[])
   remus::common::ProcessPipe noPoll = example.poll(0.1);
   REMUS_ASSERT(!noPoll.valid());
 
-  //start the process in detached mode
-  example.execute(detached);
-  REMUS_ASSERT(example.isAlive());
-
-  //try polling for different lengths of time
-  //all should fail
-  //The timeout's unit of time is SECONDS.
-  noPoll = example.poll(0.5);
-  REMUS_ASSERT(!noPoll.valid());
-
-  noPoll = example.poll(0.001);
-  REMUS_ASSERT(!noPoll.valid());
-
-  noPoll = example.poll(0);
-  REMUS_ASSERT(!noPoll.valid());
-
-  //kill the process, and make sure it is terminated
-  REMUS_ASSERT(example.kill());
-
-  //start the process in attached mode
-  example.execute(attached);
+  //start the process
+  example.execute();
   REMUS_ASSERT(example.isAlive());
 
   //try polling for different lengths of time
