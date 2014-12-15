@@ -75,9 +75,10 @@ namespace
   {
     void operator()(RunningProcessInfo& process) const
       {
+      is_dead isDead;
       const bool can_be_killed =
         (process.second == remus::server::WorkerFactoryBase::KillOnFactoryDeletion);
-      const bool is_alive = !is_dead()(process);
+      const bool is_alive = !isDead(process);
       if(can_be_killed && is_alive)
         {
         process.first->kill();
@@ -316,18 +317,10 @@ bool WorkerFactory::addWorker(
       )
     );
 
-  //we set the detached behavior based on if we want the worker to last
-  //longer than us. We also need to store the lifespan flag, so that
-  //we can hard terminate workers when we leave that have the
-  //KillOnFactoryDeletion otherwise we hang while the continue to run
-  if(lifespan == WorkerFactoryBase::KillOnFactoryDeletion)
-    {
-    ep->execute( remus::common::ExecuteProcess::Detached );
-    }
-  else
-    {
-    ep->execute( remus::common::ExecuteProcess::Attached );
-    }
+  //launch all process in attached mode, that way we can determine if
+  //they are still alive or not. Once a process goes to detached mode
+  //it is impossible to
+  ep->execute( );
 
   RunningProcessInfo p_info(ep,lifespan);
 

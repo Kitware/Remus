@@ -175,7 +175,7 @@ void test_factory_worker_args_env_tag()
   REMUS_ASSERT( (w.hasRequirements() == false) );
 
   const remus::server::WorkerFactoryBase::FactoryDeletionBehavior live =
-    remus::server::WorkerFactoryBase::LiveOnFactoryDeletion;
+    remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
 
   //lets try to launch a worker with limit at 1
   f_def.setMaxWorkerCount(1);
