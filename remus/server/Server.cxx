@@ -59,22 +59,31 @@ namespace server{
 namespace detail{
 
 //------------------------------------------------------------------------------
-remus::proto::Response make_terminateWorker(boost::uuids::uuid jobId)
+void send_terminateWorker(boost::uuids::uuid jobId,
+                          zmq::socket_t& socket,
+                          const zmq::SocketIdentity& workerId)
 {
   remus::worker::Job terminateJob(jobId,
                                   remus::proto::JobSubmission());
 
-  return remus::proto::Response(remus::TERMINATE_WORKER,
-                                remus::worker::to_string(terminateJob));
+  remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
+                                         remus::worker::to_string(terminateJob),
+                                         &socket,
+                                         workerId);
 }
 
 //------------------------------------------------------------------------------
-remus::proto::Response make_terminateJob(boost::uuids::uuid jobId)
+void send_terminateJob(boost::uuids::uuid jobId,
+                          zmq::socket_t& socket,
+                          const zmq::SocketIdentity& workerId)
 {
   remus::worker::Job terminateJob(jobId,
                                   remus::proto::JobSubmission());
-  return remus::proto::Response(remus::TERMINATE_JOB,
-                                remus::worker::to_string(terminateJob));
+
+  remus::proto::send_NonBlockingResponse(remus::TERMINATE_JOB,
+                                         remus::worker::to_string(terminateJob),
+                                         &socket,
+                                         workerId);
 }
 
 //------------------------------------------------------------------------------
@@ -434,9 +443,10 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
   if(!msg.isValid())
     {
     //send an invalid response.
-    remus::proto::Response response(remus::INVALID_SERVICE,
-                                    remus::INVALID_MSG);
-    response.sendNonBlocking(&clientChannel, clientIdentity);
+    remus::proto::send_NonBlockingResponse(remus::INVALID_SERVICE,
+                                           remus::INVALID_MSG,
+                                           &clientChannel,
+                                           clientIdentity);
     return; //no need to continue
     }
 
@@ -505,9 +515,8 @@ void Server::DetermineClientResponse(zmq::socket_t& clientChannel,
   //now that we have the proper service_type and data send it in a non
   //blocking manner so the server doesn't stall out sending to a client
   //that has disconnected
-  remus::proto::Response response(response_service,response_data);
-  response.sendNonBlocking(&clientChannel, clientIdentity);
-
+  remus::proto::send_NonBlockingResponse(response_service, response_data,
+                                         &clientChannel,   clientIdentity);
   return;
 }
 
@@ -657,8 +666,7 @@ std::string Server::terminateJob(zmq::socket_t& workerChannel,
     //when they are submitted
     if(removed && worker.size() > 0)
       {
-      remus::proto::Response response = detail::make_terminateJob(job.id());
-      response.sendNonBlocking(&workerChannel, worker);
+      detail::send_terminateJob(job.id(), workerChannel, worker);
       }
     }
 
@@ -722,9 +730,10 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //We can't have a worker shutdown before the results are
       //on the server or the results might be dropped by zmq
       //linger settings
-      remus::proto::Response response(remus::RETRIEVE_RESULT,
-                                      remus::INVALID_MSG);
-      response.sendNonBlocking(&workerChannel, workerIdentity);
+      remus::proto::send_NonBlockingResponse(remus::RETRIEVE_RESULT,
+                                             remus::INVALID_MSG,
+                                             &workerChannel,
+                                             workerIdentity);
       }
 
       break;
@@ -783,12 +792,12 @@ void Server::assignJobToWorker(zmq::socket_t& workerChannel,
 {
   this->ActiveJobs->add( workerIdentity, job.id() );
 
-  remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(job));
-
-  const bool job_sent = response.sendNonBlocking(&workerChannel,
-                                                 workerIdentity);
-  if(job_sent)
+  remus::proto::Response response =
+        remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                               remus::worker::to_string(job),
+                                               &workerChannel,
+                                               workerIdentity);
+  if(response.isValid())
     { //consider sending the job to be refreshing the worker
     this->SocketMonitor->refresh(workerIdentity);
     }
@@ -890,10 +899,7 @@ void Server::TerminateAllWorkers( zmq::socket_t& workerChannel )
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = (*this->UUIDGenerator)();
 
-    remus::proto::Response response =
-                          detail::make_terminateWorker(jobId);
-
-    response.sendNonBlocking(&workerChannel, (*i));
+    detail::send_terminateWorker(jobId, workerChannel, *i);
     }
 
   //lastly we will kill any still active worker
@@ -905,11 +911,7 @@ void Server::TerminateAllWorkers( zmq::socket_t& workerChannel )
     {
     //make a fake id and send that with the terminate command
     const boost::uuids::uuid jobId = (*this->UUIDGenerator)();
-
-    remus::proto::Response response =
-                          detail::make_terminateWorker(jobId);
-
-    response.sendNonBlocking(&workerChannel, (*i));
+    detail::send_terminateWorker(jobId, workerChannel, *i);
     }
 
 }

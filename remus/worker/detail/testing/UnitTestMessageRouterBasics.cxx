@@ -58,9 +58,14 @@ void test_job_routing(MessageRouter& mr,
                              remus::proto::JobSubmission());
 
   //now send it a terminate message over the server channel
-  remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob));
-  response.sendNonBlocking(&serverSocket,sid);
+  {
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                             remus::worker::to_string(fakeJob),
+                                             &serverSocket,
+                                             sid);
+  REMUS_ASSERT( (r.isValid()) );
+  }
 
   while(jq.size()<1)
     {
@@ -80,22 +85,34 @@ void test_job_routing(MessageRouter& mr,
   remus::proto::JobSubmission sub(reqs);
 
   remus::worker::Job fakeJob2(remus::testing::UUIDGenerator(), sub);
-  remus::proto::Response response2(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob2));
-  response2.sendNonBlocking(&serverSocket,sid);
+  {
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                             remus::worker::to_string(fakeJob2),
+                                             &serverSocket,sid);
+  REMUS_ASSERT( (r.isValid()) );
+  }
 
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
-  remus::proto::Response response3(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob3));
-  response3.sendNonBlocking(&serverSocket,sid);
+  {
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                             remus::worker::to_string(fakeJob3),
+                                             &serverSocket,sid);
+  REMUS_ASSERT( (r.isValid()) );
+  }
 
   //now send a terminate job command for the first job
   //and verify that the correct job was terminated by pulling
   //all the jobs off the stack
+  {
   remus::worker::Job terminateJob(jobId, sub);
-  remus::proto::Response response4(remus::TERMINATE_JOB,
-                                  remus::worker::to_string(terminateJob));
-  response4.sendNonBlocking(&serverSocket,sid);
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_JOB,
+                                             remus::worker::to_string(terminateJob),
+                                             &serverSocket,sid);
+  REMUS_ASSERT( (r.isValid()) );
+  }
 
   //gotta wait for all three messages to come in
   remus::common::SleepForMillisec(2000);

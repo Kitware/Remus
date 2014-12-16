@@ -58,10 +58,12 @@ void test_server_terminate_routing_call(MessageRouter& mr,
                                   remus::proto::JobSubmission());
 
   //now send it a terminate message over the server channel
-  remus::proto::Response response (remus::TERMINATE_WORKER,
-                                   remus::worker::to_string(terminateJob));
-  bool sent = response.sendNonBlocking(&serverSocket,sid);
-  REMUS_ASSERT(sent)
+  remus::proto::Response response =
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
+                                             remus::worker::to_string(terminateJob),
+                                             &serverSocket,
+                                             sid);
+  REMUS_ASSERT(response.isValid())
 
   //cheap block while we wait for the router thread to get the message
   for(int i=0; i < 10 && jq.size() == 0; ++i)

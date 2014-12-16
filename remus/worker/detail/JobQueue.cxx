@@ -149,9 +149,10 @@ void pollForJobs(zmq::context_t* context,
     zmq::poll(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
-      remus::proto::Response response(&serverComm);
-      if(!response.isFullyFormed())
-        { //ignore this response if it isn't fully formed
+      remus::proto::Response response =
+          remus::proto::receive_Response(&serverComm);
+      if(!response.isValid())
+        { //ignore this response if it isn't valid
         continue;
         }
 

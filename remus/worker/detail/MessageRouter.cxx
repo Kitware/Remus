@@ -251,9 +251,10 @@ void handleWorkerMessage(zmq::socket_t& workerComm,
       //send the terminate worker message to the job queue so it
       //shuts down
       remus::worker::Job terminateJob;
-      remus::proto::Response termJob( remus::TERMINATE_WORKER,
-                                       remus::worker::to_string(terminateJob));
-      termJob.sendNonBlocking(&queueComm, (zmq::SocketIdentity()) );
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
+                                             remus::worker::to_string(terminateJob),
+                                             &queueComm,
+                                             (zmq::SocketIdentity()) );
 
       //we are in the process of cleaning up we need to stop everything.
       //we first check if we have any outstanding job results that
@@ -285,11 +286,8 @@ void handleServerMessage( zmq::socket_t& workerComm,
                           zmq::socket_t& serverComm,
                           zmq::socket_t& queueComm)
 {
-
-  //
-  remus::proto::Response response(&serverComm);
-  const bool goodToForward = response.isFullyFormed() &&
-                             response.isValidService();
+  remus::proto::Response response = remus::proto::receive_Response(&serverComm);
+  const bool goodToForward = response.isValid();
 
   //determine if we can send onto the job queue
   const bool goodToForwardToQueue = goodToForward &&
@@ -304,13 +302,15 @@ void handleServerMessage( zmq::socket_t& workerComm,
       //send that first
       while(this->OutstandingResults > 0)
         {
-        remus::proto::Response resultResponse(remus::RETRIEVE_RESULT,
-                                        remus::INVALID_MSG);
-        resultResponse.sendNonBlocking(&workerComm, (zmq::SocketIdentity()));
+        remus::proto::send_NonBlockingResponse(remus::RETRIEVE_RESULT,
+                                               remus::INVALID_MSG,
+                                               &workerComm,
+                                               (zmq::SocketIdentity()));
         --this->OutstandingResults;
         }
-
-      response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
+      remus::proto::forward_Response(response,
+                                     &queueComm,
+                                     zmq::SocketIdentity());
 
       //the server has told us to terminate, which means that the server
       //might not exist so don't continue trying to send it messages
@@ -320,13 +320,17 @@ void handleServerMessage( zmq::socket_t& workerComm,
             ( response.serviceType() == remus::TERMINATE_JOB ||
               response.serviceType() == remus::MAKE_MESH ) )
       {
-      response.sendNonBlocking(&queueComm, (zmq::SocketIdentity()));
+      remus::proto::forward_Response(response,
+                                     &queueComm,
+                                     zmq::SocketIdentity());
       }
     else if ( response.serviceType() == remus::RETRIEVE_RESULT)
       { //the worker is notifying us that it recieved our results, so decrement
         //our outstanding results, and forward the message to the worker so
         //it can stop blocking
-        response.sendNonBlocking(&workerComm, (zmq::SocketIdentity()));
+      remus::proto::forward_Response(response,
+                                     &workerComm,
+                                     zmq::SocketIdentity());
         --this->OutstandingResults;
       }
       // do nothing if it isn't terminate_job, terminate_worker,
