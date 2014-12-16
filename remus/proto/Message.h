@@ -95,7 +95,7 @@ public:
   const char* data() const;
   std::size_t dataSize() const;
 
-  //is true if all the message was sent, or all the message was received.
+  //is true if all the message was sent, or all of the message was received.
   bool isValid() const { return Valid; }
 
 private:

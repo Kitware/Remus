@@ -51,9 +51,12 @@ void verify_basic_comms(zmq::context_t& context)
                              remus::proto::JobSubmission());
 
   {
-  remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob));
-  response.sendNonBlocking(&jobSocket,sid);
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                             remus::worker::to_string(fakeJob),
+                                             &jobSocket,
+                                             sid);
+  REMUS_ASSERT( (r.isValid()) );
   }
 
   while(jq.size()<1){}
@@ -74,15 +77,21 @@ void verify_basic_comms(zmq::context_t& context)
   remus::worker::Job fakeJob3(remus::testing::UUIDGenerator(), sub);
 
   {
-  remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob2));
-  response.sendNonBlocking(&jobSocket,sid);
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                             remus::worker::to_string(fakeJob2),
+                                             &jobSocket,
+                                             sid);
+  REMUS_ASSERT( (r.isValid()) );
   }
 
   {
-  remus::proto::Response response(remus::MAKE_MESH,
-                                  remus::worker::to_string(fakeJob3));
-  response.sendNonBlocking(&jobSocket,sid);
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::MAKE_MESH,
+                                            remus::worker::to_string(fakeJob3),
+                                            &jobSocket,
+                                            sid);
+  REMUS_ASSERT( (r.isValid()) );
   }
 
   //now send a terminate job command for the first job
@@ -91,9 +100,12 @@ void verify_basic_comms(zmq::context_t& context)
   {
   remus::worker::Job terminateJob(jobId,
                                   remus::proto::JobSubmission());
-  remus::proto::Response response(remus::TERMINATE_JOB,
-                                  remus::worker::to_string(terminateJob));
-  response.sendNonBlocking(&jobSocket, sid);
+  remus::proto::Response r =
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_JOB,
+                                             remus::worker::to_string(terminateJob),
+                                             &jobSocket,
+                                             sid);
+  REMUS_ASSERT( (r.isValid()) );
   }
 
   //gotta wait for all three messages to come in
@@ -130,9 +142,12 @@ void verify_term(zmq::context_t& context)
 
   //now send it a terminate message over the worker channel
   remus::worker::Job terminateJob;
-    remus::proto::Response response(remus::TERMINATE_WORKER,
-                                  remus::worker::to_string(terminateJob));
-  response.sendNonBlocking(&jobSocket, (zmq::SocketIdentity()));
+  remus::proto::Response r=
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
+                                             remus::worker::to_string(terminateJob),
+                                             &jobSocket,
+                                             (zmq::SocketIdentity()));
+  REMUS_ASSERT( (r.isValid()) );
 
   //cheap block while we wait for the router thread to get the message
   while(jq.size()<1){}

@@ -206,7 +206,8 @@ void Worker::returnResult(const remus::proto::JobResult& result)
   //Otherwise it is possible to delete a worker before it is done transimiting
   //really large results to the server. Don't worry if the server terminates
   //the worker before this is over the MessageRouter spoofs the response.
-  remus::proto::Response response(&this->Zmq->Server);
+  remus::proto::Response response =
+      remus::proto::receive_Response(&this->Zmq->Server);
   (void) response;
 }
 
