@@ -18,19 +18,63 @@
 namespace remus{
 namespace proto{
 
+
 //----------------------------------------------------------------------------
-Response::Response(remus::SERVICE_TYPE stype, const std::string& rdata):
+Response send_Response(remus::SERVICE_TYPE stype,
+                       const std::string& data,
+                       zmq::socket_t* socket,
+                       const zmq::SocketIdentity& client)
+{
+  return Response(stype,data,socket,client,Response::Blocking);
+}
+
+//----------------------------------------------------------------------------
+Response send_NonBlockingResponse(remus::SERVICE_TYPE stype,
+                                  const std::string& data,
+                                  zmq::socket_t* socket,
+                                  const zmq::SocketIdentity& client)
+{
+  return Response(stype,data,socket,client,Response::NonBlocking);
+}
+
+//----------------------------------------------------------------------------
+//parse a response from a socket
+Response receive_Response( zmq::socket_t* socket )
+{
+  return Response(socket);
+}
+
+//----------------------------------------------------------------------------
+//forward a response that has been received to another socket
+bool forward_Response(const remus::proto::Response& response,
+                      zmq::socket_t* socket,
+                      const zmq::SocketIdentity& client)
+{
+  return response.send_impl(socket,client,Response::Blocking);
+}
+
+//----------------------------------------------------------------------------
+Response::Response(remus::SERVICE_TYPE stype,
+                   const std::string& rdata,
+                   zmq::socket_t* socket,
+                   const zmq::SocketIdentity& client,
+                   Response::SendMode mode):
   SType(stype),
-  FullyFormed(true),
+  Valid(true), //need to be initially valid to be sent
   Storage( boost::make_shared<zmq::message_t>(rdata.size()) )
 {
   std::memcpy(this->Storage->data(),rdata.data(),rdata.size());
+
+  //send_impl wants us to be valid before we are sent, that way it knows
+  //that we are in a good state. This allows it to determine if it can forward
+  //itself to different sockets.
+  this->Valid = this->send_impl(socket, client, mode);
 }
 
 //----------------------------------------------------------------------------
 Response::Response(zmq::socket_t* socket):
   SType(remus::INVALID_SERVICE),
-  FullyFormed(false), //false by default in case we failed to recv everything
+  Valid(false), //need to be initially valid to be sent
   Storage( boost::make_shared<zmq::message_t>() )
 {
 
@@ -46,7 +90,7 @@ Response::Response(zmq::socket_t* socket):
 
       //if recvStorage is true than we received every chunk of data and we
       //are valid
-      this->FullyFormed = recvStorage;
+      this->Valid = recvStorage;
       }
     }
 }
@@ -64,25 +108,17 @@ std::size_t Response::dataSize() const
 }
 
 //------------------------------------------------------------------------------
-bool Response::send(zmq::socket_t *socket,
-                    const zmq::SocketIdentity& client) const
-{
-  return this->send_impl(socket,client);
-}
-
-//------------------------------------------------------------------------------
-bool Response::sendNonBlocking(zmq::socket_t *socket,
-                               const zmq::SocketIdentity& client) const
-{
-  return this->send_impl(socket,client,ZMQ_DONTWAIT);
-}
-
-//------------------------------------------------------------------------------
 bool Response::send_impl(zmq::socket_t* socket,
                          const zmq::SocketIdentity& client,
-                         int flags) const
+                         SendMode mode) const
 {
-  //we are sending our selves as a multi part message
+  int flags = 0;
+  if(mode == Response::NonBlocking)
+    {
+    flags = ZMQ_DONTWAIT;
+    }
+
+  //we are sending our selves as a multi part response
   //frame 0: client address we need to route too [Optional]
   //frame 1: fake rep spacer
   //frame 2: Service Type we are responding too

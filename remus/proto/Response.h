@@ -30,25 +30,48 @@ namespace zmq
 
 namespace remus{
 namespace proto{
+
+//forward declare response class;
+class Response;
+
+//----------------------------------------------------------------------------
+//pass in a std::string that we will copy and send.
+//The response returned will have a copy of the data given to it.
+REMUSPROTO_EXPORT
+Response send_Response(remus::SERVICE_TYPE stype,
+                       const std::string& data,
+                       zmq::socket_t* socket,
+                       const zmq::SocketIdentity& client);
+
+//----------------------------------------------------------------------------
+//pass in a std::string that we will copy and send.
+//The response returned will have a copy of the data given to it.
+REMUSPROTO_EXPORT
+Response send_NonBlockingResponse(remus::SERVICE_TYPE stype,
+                                  const std::string& data,
+                                  zmq::socket_t* socket,
+                                  const zmq::SocketIdentity& client);
+
+//----------------------------------------------------------------------------
+//parse a response from a socket
+//The response returned will have data associated with if it is valid
+REMUSPROTO_EXPORT
+Response receive_Response( zmq::socket_t* socket );
+
+//----------------------------------------------------------------------------
+//forward a response that has been received to another socket
+//
+REMUSPROTO_EXPORT
+bool forward_Response(const remus::proto::Response& response,
+                      zmq::socket_t* socket,
+                      const zmq::SocketIdentity& client);
+
 class REMUSPROTO_EXPORT Response
 {
 public:
-  //----------------------------------------------------------------------------
-  //construct a response, the contents of the string will copied and sent.
-  Response(remus::SERVICE_TYPE stype, const std::string& data);
+  enum SendMode{Blocking=0, NonBlocking=1};
 
-  //----------------------------------------------------------------------------
-  //create a response from reading from the socket
-  explicit Response(zmq::socket_t* socket);
-
-  remus::SERVICE_TYPE serviceType() const { return SType; }
-
-  //returns true if the service for this response is a valid service
-  bool isValidService() const { return SType != remus::INVALID_SERVICE; }
-
-  bool send(zmq::socket_t* socket, const zmq::SocketIdentity& client) const;
-
-  bool sendNonBlocking(zmq::socket_t* socket, const zmq::SocketIdentity& client) const;
+  const remus::SERVICE_TYPE& serviceType() const { return SType; }
 
   //the data should never be NULL, but could point to a filler string
   //you should always check isFullyFormed and isValidService before
@@ -56,17 +79,43 @@ public:
   const char* data() const;
   std::size_t dataSize() const;
 
-  //Returns true if the message has all its contents. This only
-  //makes sense when we construct a Response from a socket and want
-  //to make sure we have everything
-  bool isFullyFormed() const { return FullyFormed; }
-
+  //is true if all the response was sent, or all of the response was received.
+  bool isValid() const { return Valid; }
 private:
-  bool send_impl(zmq::socket_t* socket,  const zmq::SocketIdentity& client,
-                 int flags = 0) const;
+
+  friend Response send_Response(remus::SERVICE_TYPE stype,
+                                const std::string& data,
+                                zmq::socket_t* socket,
+                                const zmq::SocketIdentity& client);
+
+
+  friend Response send_NonBlockingResponse(remus::SERVICE_TYPE stype,
+                                           const std::string& data,
+                                           zmq::socket_t* socket,
+                                           const zmq::SocketIdentity& client);
+
+  friend Response receive_Response( zmq::socket_t* socket );
+
+  friend bool forward_Response(const remus::proto::Response& response,
+                               zmq::socket_t* socket,
+                               const zmq::SocketIdentity& client);
+
+  //----------------------------------------------------------------------------
+  //construct a response, the contents of the string will copied and sent.
+  Response(remus::SERVICE_TYPE stype,
+           const std::string& data,
+           zmq::socket_t* socket,
+           const zmq::SocketIdentity& client,
+           SendMode mode);
+
+  //----------------------------------------------------------------------------
+  //create a response from reading from the socket
+  explicit Response(zmq::socket_t* socket);
+
+  bool send_impl(zmq::socket_t* socket,  const zmq::SocketIdentity& client, SendMode mode) const;
 
   remus::SERVICE_TYPE SType;
-  bool FullyFormed;
+  bool Valid; //tells if the response is valid
 
   boost::shared_ptr<zmq::message_t> Storage;
 };
