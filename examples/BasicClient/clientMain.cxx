@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
           if(newStatus.finished())
             {
             remus::proto::JobResult r = c.retrieveResults(jobs.at(i));
-            std::cout << r.data() << std::endl;
+            std::cout << std::string(r.data(),r.dataSize()) << std::endl;
             }
           else
             {
