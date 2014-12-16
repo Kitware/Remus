@@ -303,6 +303,62 @@ void test_factory_worker_launching()
     }
 }
 
+void test_shutdown_with_active_killOnFactoryDel_workers()
+{
+  //give our worker factory a unique extension to look for
+  const remus::server::WorkerFactoryBase::FactoryDeletionBehavior kill =
+                remus::server::WorkerFactoryBase::KillOnFactoryDeletion;
+
+  remus::server::WorkerFactory f_def(".tst");
+  f_def.setMaxWorkerCount(1);
+  f_def.addCommandLineArgument("LOOP_FOREVER");
+
+  f_def.addWorkerSearchDirectory(
+                  remus::server::testing::worker_factory::locationToSearch() );
+
+  //we should only support raw_edges and mesh2d, otherwise the rest
+  //should return false
+  remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
+
+  REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
+
+  //lets try to launch a worker with limit at 1
+  REMUS_ASSERT( (f_def.createWorker(raw_edges,kill) == true) );
+
+  //assert only 1 is created
+  REMUS_ASSERT( (f_def.currentWorkerCount() == 1) );
+
+  //now exit with worker still active
+}
+
+
+void test_shutdown_with_active_liveOnFactoryDel_workers()
+{
+  //give our worker factory a unique extension to look for
+  const remus::server::WorkerFactoryBase::FactoryDeletionBehavior live =
+                remus::server::WorkerFactoryBase::LiveOnFactoryDeletion;
+  remus::server::WorkerFactory f_def(".tst");
+  f_def.setMaxWorkerCount(1);
+  f_def.addCommandLineArgument("LOOP_FOREVER");
+
+  f_def.addWorkerSearchDirectory(
+                  remus::server::testing::worker_factory::locationToSearch() );
+
+  //we should only support raw_edges and mesh2d, otherwise the rest
+  //should return false
+  remus::proto::JobRequirements raw_edges = make_Reqs(Edges(),Mesh2D());
+
+  REMUS_ASSERT( (f_def.haveSupport(raw_edges)) );
+
+  //lets try to launch a worker with limit at 1
+  REMUS_ASSERT( (f_def.createWorker(raw_edges,live) == true) );
+
+  //assert only 1 is created
+  REMUS_ASSERT( (f_def.currentWorkerCount() == 1) );
+
+  //now exit with worker still active
+}
+
 
 }//namespace
 
@@ -323,7 +379,12 @@ int UnitTestWorkerFactory(int, char *[])
 
   test_factory_worker_launching();
 
+  std::cout << __LINE__ << std::endl;
+  test_shutdown_with_active_killOnFactoryDel_workers();
 
-  //if we have reached this line we have a proper server
+  std::cout << __LINE__ << std::endl;
+  test_shutdown_with_active_liveOnFactoryDel_workers();
+
+  //if we have reached this line we have a proper worker factory
   return 0;
 }

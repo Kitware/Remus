@@ -76,10 +76,10 @@ namespace
     void operator()(RunningProcessInfo& process) const
       {
       is_dead isDead;
-      const bool can_be_killed =
+      const bool shouldBeTerminated =
         (process.second == remus::server::WorkerFactoryBase::KillOnFactoryDeletion);
       const bool is_alive = !isDead(process);
-      if(can_be_killed && is_alive)
+      if(shouldBeTerminated && is_alive)
         {
         process.first->kill();
         }
@@ -301,6 +301,12 @@ bool WorkerFactory::addWorker(
   const FactoryWorkerSpecification& spec,
   WorkerFactoryBase::FactoryDeletionBehavior lifespan)
 {
+  //we currently can't support detached processes.
+  if(lifespan == WorkerFactoryBase::LiveOnFactoryDeletion)
+    {
+    return false;
+    }
+
   //add this workers
   std::vector< std::string > arguments;
   if ( !this->workerEndpoint().empty() )
@@ -319,7 +325,7 @@ bool WorkerFactory::addWorker(
 
   //launch all process in attached mode, that way we can determine if
   //they are still alive or not. Once a process goes to detached mode
-  //it is impossible to
+  //it is impossible to determine if it is still running or not
   ep->execute( );
 
   RunningProcessInfo p_info(ep,lifespan);
