@@ -243,18 +243,22 @@ void handleWorkerMessage(zmq::socket_t& workerComm,
   //use block on destruction of the socket
   if( this->ContinueForwardingToServer )
     {
+    //first we need to forward all message to the server
+    remus::proto::forward_Message(message,&serverComm);
+
     //if the worker is telling use to submit a TERMINATE_WORKER
     //job that means it is in the process of shutting down.
     //so we need to prepare for that
     if(message.serviceType()==remus::TERMINATE_WORKER)
       {
       //send the terminate worker message to the job queue so it
-      //shuts down
+      //shuts down. This has to be blocking so we know that it has
+      //received the message.
       remus::worker::Job terminateJob;
-      remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
-                                             remus::worker::to_string(terminateJob),
-                                             &queueComm,
-                                             (zmq::SocketIdentity()) );
+      remus::proto::send_Response(remus::TERMINATE_WORKER,
+                                  remus::worker::to_string(terminateJob),
+                                  &queueComm,
+                                  (zmq::SocketIdentity()) );
 
       //we are in the process of cleaning up we need to stop everything.
       //we first check if we have any outstanding job results that
@@ -263,19 +267,12 @@ void handleWorkerMessage(zmq::socket_t& workerComm,
       }
     else if(message.serviceType()==remus::RETRIEVE_RESULT)
       {
-      remus::proto::forward_Message(message,&serverComm);
-
       //Mark that we need a response from the server, this is required so that
       //we can send back really large result data. When we don't wait for the
       //server to get our data, we will drop the results as the socket linger
       //time is less than the amount of time it takes to transmit the results
       //to the server.
       ++this->OutstandingResults;
-      }
-    else
-      {
-      //just pass the message on to the server
-      remus::proto::forward_Message(message,&serverComm);
       }
     }
 }
