@@ -90,15 +90,12 @@ int main(int argc, char* argv[])
                                            (remus::meshtypes::Mesh2D()) );
 
   bool valid_mesher_found = false;
-  std::vector<remus::proto::JobSubmission> subs;
+  remus::proto::JobSubmission sub;
 
   if(c.canMesh(requestIOType))
     {
     remus::proto::JobRequirementsSet reqSet =
                                   c.retrieveRequirements(requestIOType);
-
-    valid_mesher_found = (reqSet.size() > 0);
-
 
     //for each matching worker make a job submission for it
     for(remus::proto::JobRequirementsSet::const_iterator i=reqSet.begin();
@@ -106,12 +103,12 @@ int main(int argc, char* argv[])
         ++i)
       {
       const std::string& name = i->workerName();
-      if(name == "BasicWorker" || name == "InfiniteWorker")
+      if(name == "BasicWorker")
         {
-        remus::proto::JobSubmission current_sub(*i);
-        current_sub["data"] = remus::proto::make_JobContent(
+        valid_mesher_found = true;
+        sub = remus::proto::JobSubmission(*i);
+        sub["data"] = remus::proto::make_JobContent(
                               remus::testing::AsciiStringGenerator(2097152) );
-        subs.push_back( current_sub );
         }
       }
     }
@@ -128,7 +125,7 @@ int main(int argc, char* argv[])
       {
       //balance job submissions between the different matching
       //workers
-      remus::proto::Job job = c.submitJob(subs[ i % subs.size() ]);
+      remus::proto::Job job = c.submitJob(sub);
       jobs.push_back(job);
       }
 
