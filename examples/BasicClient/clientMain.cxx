@@ -105,11 +105,14 @@ int main(int argc, char* argv[])
         i != reqSet.end();
         ++i)
       {
-      remus::proto::JobSubmission current_sub(*i);
-      current_sub["data"] = remus::proto::make_JobContent(
-                            remus::testing::AsciiStringGenerator(2097152) );
-      subs.push_back( current_sub );
-
+      const std::string& name = i->workerName();
+      if(name == "BasicWorker" || name == "InfiniteWorker")
+        {
+        remus::proto::JobSubmission current_sub(*i);
+        current_sub["data"] = remus::proto::make_JobContent(
+                              remus::testing::AsciiStringGenerator(2097152) );
+        subs.push_back( current_sub );
+        }
       }
     }
 
