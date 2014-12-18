@@ -25,7 +25,7 @@ script:
   - ctest -S travis.cmake -V
 
 after_success:
-  - curl http://cbadges.com/Remus/pullRequest/robertmaynard/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
+  - curl http://cbadges.com/Remus/pullRequest/Kitware/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
 
 notifications:
   email:
