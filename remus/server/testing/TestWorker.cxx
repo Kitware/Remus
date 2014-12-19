@@ -28,6 +28,13 @@ int main(int argc, char** argv)
       {
       remus::common::SleepForMillisec(1000);
       }
+    else if( prog_type.find("LOOP_FOREVER") == 0)
+      {
+      while(true)
+        {
+        remus::common::SleepForMillisec(1000);
+        }
+      }
     else
       {
       return 1;

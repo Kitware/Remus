@@ -95,7 +95,7 @@ void worker::launchProcess(const AssygenInput& job)
       new remus::common::ExecuteProcess( executePath.string(), args);
 
   //actually launch the new process
-  this->Process->execute(remus::common::ExecuteProcess::Attached);
+  this->Process->execute();
 
   //move back to the proper directory
   boost::filesystem::current_path(cwd);
