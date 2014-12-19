@@ -12,7 +12,18 @@
 #include <remus/proto/zmqSocketIdentity.h>
 
 #include <boost/cstdint.hpp>
+
+//suppress warnings inside boost headers for gcc, clang and MSVC
+#ifndef _MSC_VER
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
 #include <boost/lexical_cast.hpp>
+
+#ifndef _MSC_VER
+  #pragma GCC diagnostic pop
+#endif
 
 #include <algorithm>
 
@@ -24,10 +35,10 @@ boost::uint32_t  convertBEToUnsignedInteger(const char buffer[256])
 {
   //convert from big endian encoding of an integer to the host integer. We skip
   //buffer[0] as that is holding the null byte signifiying that this is a zmq be uint32
-  return static_cast<uint32_t>(buffer[1]) << 24 |
-              static_cast<uint32_t>(buffer[2]) << 16 |
-              static_cast<uint32_t>(buffer[3]) << 8   |
-              static_cast<uint32_t>(buffer[4]);
+  return static_cast<boost::uint32_t>(buffer[1]) << 24 |
+              static_cast<boost::uint32_t>(buffer[2]) << 16 |
+              static_cast<boost::uint32_t>(buffer[3]) << 8   |
+              static_cast<boost::uint32_t>(buffer[4]);
 }
 
 }
