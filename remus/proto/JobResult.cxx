@@ -20,18 +20,12 @@
 
 //suppress warnings inside boost headers for gcc, clang and MSVC
 #ifndef _MSC_VER
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wshadow"
-#else
-# pragma warning(push)
-//disable warning about using std::copy with pointers
-# pragma warning(disable: 4996)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include <boost/uuid/uuid_io.hpp>
 #ifndef _MSC_VER
   #pragma GCC diagnostic pop
-#else
-# pragma warning(pop)
 #endif
 
 #include <algorithm>
