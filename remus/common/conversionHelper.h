@@ -60,7 +60,7 @@ inline void extractArray(BufferType& buffer, char* msg_data,
 
 //------------------------------------------------------------------------------
 template<typename BufferType>
-inline std::string extractString(BufferType& buffer, int size)
+inline std::string extractString(BufferType& buffer, std::size_t size)
 {
   std::vector<char> msg(size);
   extractVector(buffer,msg);

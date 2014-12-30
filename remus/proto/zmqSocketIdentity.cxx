@@ -68,6 +68,13 @@ SocketIdentity::SocketIdentity( const char* start, std::size_t size )
 
 }
 
+//disable warning about elements of array 'Data' will be default initialized
+//this is only a warning on msvc, since previously it was broken and wouldn't
+//default initialize member arrays
+# ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable: 4351)
+# endif
 //------------------------------------------------------------------------------
 SocketIdentity::SocketIdentity():
 Size(0),
@@ -75,6 +82,10 @@ Data(),
 Name()
 {
 }
+//reset our warnings to the original level
+# ifdef _MSC_VER
+#   pragma warning(pop)
+# endif
 
 //------------------------------------------------------------------------------
 bool SocketIdentity::operator ==(const SocketIdentity& b) const

@@ -49,7 +49,7 @@ inline bool address_send(zmq::socket_t & socket, const zmq::SocketIdentity& addr
 # endif
   std::copy(address.data(),
             address.data()+address.size(),
-            static_cast<unsigned char*>(message.data()));
+            static_cast<char*>(message.data()));
 //reset our warnings to the original level
 # ifdef _MSC_VER
 #   pragma warning(pop)

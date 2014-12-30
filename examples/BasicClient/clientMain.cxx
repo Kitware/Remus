@@ -32,13 +32,13 @@ public:
 
   void Reset() { this->StartTime = this->GetCurrentTime(); }
 
-  float GetElapsedTime()
+  double GetElapsedTime()
     {
     TimeStamp currentTime = this->GetCurrentTime();
-    float elapsedTime;
-    elapsedTime = currentTime.Seconds - this->StartTime.Seconds;
+    double elapsedTime;
+    elapsedTime = static_cast<double>(currentTime.Seconds - this->StartTime.Seconds);
     elapsedTime += ((currentTime.Microseconds - this->StartTime.Microseconds)
-                    /float(1000000));
+                    /double(1000000));
     return elapsedTime;
     }
 
