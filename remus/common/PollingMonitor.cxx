@@ -113,7 +113,7 @@ public:
     time_duration sum = std::accumulate(this->PollingFrequency.begin(),
                                         this->PollingFrequency.end(),
                                         time_duration() );
-    time_duration avg = sum / this->PollingFrequency.size();
+    time_duration avg = sum / static_cast<int>(this->PollingFrequency.size());
 
     //update the member vars
     this->LastPollTime = time;

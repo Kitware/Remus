@@ -60,11 +60,11 @@ public:
   remus::proto::JobRequirementsSet queuedJobRequirements() const;
 
   //return the number of jobs waiting for workers
-  unsigned int numJobsWaitingForWorkers() const
+  std::size_t numJobsWaitingForWorkers() const
     { return QueuedJobsForWorkers.size(); }
 
   //return the number of jobs queued but not waiting for a worker
-  unsigned int numJobsJustQueued() const
+  std::size_t numJobsJustQueued() const
     { return QueuedJobs.size(); }
 
   //marks the first job with the given type as having
