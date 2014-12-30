@@ -48,6 +48,13 @@ target_link_libraries(IntegrationTests_SubmitJobsUsingFactory
                         ${Boost_LIBRARIES}
                       )
 
+#The integration tests use boost::asio which has an optional dependency on
+#boost::regex. We need to state explicitly that we don't use boost regex
+#so that MSVC doesn't try to link to it.
+target_compile_definitions(IntegrationTests_remus_testing_integration PRIVATE BOOST_REGEX_NO_LIB)
+target_compile_definitions(IntegrationTests_SubmitJobs PRIVATE BOOST_REGEX_NO_LIB)
+target_compile_definitions(IntegrationTests_SubmitJobsUsingFactory PRIVATE BOOST_REGEX_NO_LIB)
+
 ##### Helper function to easily add submit job tests
 function(add_SubmitJobs_test size workers jobs)
   set(tname "SubmitJobs${workers}by${jobs}_${size}")
