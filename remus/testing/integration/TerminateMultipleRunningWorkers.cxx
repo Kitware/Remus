@@ -161,8 +161,11 @@ void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
 }
 
 //
-int TerminateMultipleRunningWorkers(int, char**)
+int TerminateMultipleRunningWorkers(int argc, char* argv[])
 {
+  (void) argc;
+  (void) argv;
+
   using namespace remus::meshtypes;
   using namespace remus::proto;
 
