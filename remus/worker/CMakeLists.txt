@@ -24,6 +24,11 @@ target_link_libraries(RemusWorker
                       LINK_PRIVATE ${Boost_LIBRARIES}
                                    ${CMAKE_THREAD_LIBS_INIT} )
 
+#disable checked iterators in RemusWorker
+if(MSVC)
+  target_compile_definitions(RemusWorker PRIVATE _SCL_SECURE_NO_WARNINGS)
+endif()
+
 #create the export header symbol exporting
 remus_export_header(RemusWorker WorkerExports.h)
 

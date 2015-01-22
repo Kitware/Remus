@@ -35,6 +35,11 @@ target_link_libraries(RemusServer
                                    ${CMAKE_THREAD_LIBS_INIT}
                                    )
 
+#disable checked iterators in RemusServer
+if(MSVC)
+  target_compile_definitions(RemusServer PRIVATE _SCL_SECURE_NO_WARNINGS)
+endif()
+
 #create the export header symbol exporting
 remus_export_header(RemusServer ServerExports.h)
 
