@@ -39,21 +39,9 @@ inline bool address_send(zmq::socket_t & socket, const zmq::SocketIdentity& addr
 {
   zmq::message_t message(address.size());
 
-
-  //disable warning about using std::copy with pointers
-  //doing this inline to the method as an attempt to keep the rest of
-  //the headers complexity reduced
-# ifdef _MSC_VER
-#   pragma warning(push)
-#   pragma warning(disable: 4996)
-# endif
   std::copy(address.data(),
             address.data()+address.size(),
             static_cast<char*>(message.data()));
-//reset our warnings to the original level
-# ifdef _MSC_VER
-#   pragma warning(pop)
-# endif
 
   return socket.send(message);
 }

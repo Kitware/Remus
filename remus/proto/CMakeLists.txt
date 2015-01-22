@@ -45,6 +45,11 @@ target_include_directories(RemusProto
                            PUBLIC  ${ZeroMQ_INCLUDE_DIRS}
                                    ${Boost_INCLUDE_DIRS})
 
+#disable checked iterators in RemusProto
+if(MSVC)
+  target_compile_definitions(RemusProto PRIVATE _SCL_SECURE_NO_WARNINGS)
+endif()
+
 #create the export header symbol exporting
 remus_export_header(RemusProto ProtoExports.h)
 

@@ -16,6 +16,11 @@ target_link_libraries(RemusClient
                       LINK_PUBLIC RemusProto
                       )
 
+#disable checked iterators in RemusClient
+if(MSVC)
+  target_compile_definitions(RemusClient PRIVATE _SCL_SECURE_NO_WARNINGS)
+endif()
+
 #create the export header symbol exporting
 remus_export_header(RemusClient ClientExports.h)
 
