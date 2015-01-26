@@ -40,6 +40,12 @@ function(ms_add_header_test name dir_prefix)
           PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
           PRIVATE ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
           )
+    if(MSVC)
+      target_compile_definitions(TestBuild_${name} PRIVATE
+       _SCL_SECURE_NO_WARNINGS
+       _CRT_SECURE_NO_WARNINGS
+      )
+    endif()
 
     set_source_files_properties(${hfiles}
       PROPERTIES HEADER_FILE_ONLY TRUE

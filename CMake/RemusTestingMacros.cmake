@@ -23,6 +23,12 @@ function(remus_unit_tests)
     add_executable(${test_prog} ${TestSources} ${Remus_ut_EXTRA_SOURCES})
     target_link_libraries(${test_prog} LINK_PRIVATE ${Remus_ut_LIBRARIES})
     target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    if(MSVC)
+      target_compile_definitions(${test_prog} PRIVATE
+       _SCL_SECURE_NO_WARNINGS
+       _CRT_SECURE_NO_WARNINGS
+      )
+    endif()
     foreach (test ${Remus_ut_SOURCES})
       get_filename_component(tname ${test} NAME_WE)
       add_test(NAME ${tname}
@@ -214,6 +220,13 @@ function(remus_integration_tests)
                           RemusServer
                           ${Remus_it_LIBRARIES})
     target_include_directories(${test_prog} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    if(MSVC)
+      target_compile_definitions(${test_prog} PRIVATE
+       _SCL_SECURE_NO_WARNINGS
+       _CRT_SECURE_NO_WARNINGS
+      )
+    endif()
+
     foreach (test ${Remus_it_SOURCES})
       get_filename_component(tname ${test} NAME_WE)
       add_test(NAME ${tname} COMMAND ${test_prog} ${tname})

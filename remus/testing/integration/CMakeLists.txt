@@ -55,6 +55,21 @@ target_compile_definitions(IntegrationTests_remus_testing_integration PRIVATE BO
 target_compile_definitions(IntegrationTests_SubmitJobs PRIVATE BOOST_REGEX_NO_LIB)
 target_compile_definitions(IntegrationTests_SubmitJobsUsingFactory PRIVATE BOOST_REGEX_NO_LIB)
 
+#disable SCL and CRT warnings on windows for integration tests.
+#remus_integration_tests macro adds these defines by default
+if(MSVC)
+  target_compile_definitions(IntegrationTests_SubmitJobs
+    PRIVATE
+    _SCL_SECURE_NO_WARNINGS
+    _CRT_SECURE_NO_WARNINGS
+  )
+  target_compile_definitions(IntegrationTests_SubmitJobsUsingFactory
+    PRIVATE
+    _SCL_SECURE_NO_WARNINGS
+    _CRT_SECURE_NO_WARNINGS
+  )
+  endif()
+
 ##### Helper function to easily add submit job tests
 function(add_SubmitJobs_test size workers jobs)
   set(tname "SubmitJobs${workers}by${jobs}_${size}")
