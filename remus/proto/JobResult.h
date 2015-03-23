@@ -88,7 +88,7 @@ public:
     { submission = JobResult(is); return is; }
 
 private:
-  friend remus::proto::JobResult to_JobResult(const char* data, std::size_t size);
+  friend REMUSPROTO_EXPORT remus::proto::JobResult to_JobResult(const char* data, std::size_t size);
   //serialize function
   void serialize(std::ostream& buffer) const;
 
