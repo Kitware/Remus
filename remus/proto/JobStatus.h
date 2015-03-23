@@ -121,7 +121,7 @@ public:
     { status = JobStatus(is); return is; }
 
 private:
-  friend remus::proto::JobStatus to_JobStatus(const std::string& msg);
+  friend REMUSPROTO_EXPORT remus::proto::JobStatus to_JobStatus(const std::string& msg);
 
   //serialize function
   void serialize(std::ostream& buffer) const;
