@@ -41,8 +41,11 @@ public:
   //get the mesh type of the job
   const remus::common::MeshIOType& type() const { return Type; }
 
+  bool operator <(const Job& b) const
+    { return this->Id < b.Id; }
+
   bool operator ==(const Job& b) const
-    { return this->Id == b.Id && this->Type == b.Type; }
+    { return this->Id == b.Id; }
 
   bool operator !=(const Job& b) const
     { return !(this->operator ==(b)); }
