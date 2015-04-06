@@ -43,6 +43,10 @@ class MessageRouter::MessageRouterImplementation
   std::string QueueEndpoint;
   std::size_t OutstandingResults;
 
+  //kept as a member variable so that we can allow the user to specify
+  //custom polling rates for workers
+  remus::common::PollingMonitor PollMonitor;
+
   //thread our polling method
   mutable boost::mutex ThreadMutex;
   boost::condition_variable ThreadStatusChanged;
@@ -66,6 +70,7 @@ MessageRouterImplementation(
   WorkerEndpoint(worker_info.endpoint()),
   QueueEndpoint(queue_info.endpoint()),
   OutstandingResults(0),
+  PollMonitor(boost::int64_t(250), boost::int64_t(60000)), //assign a low floor for faster testing
   ThreadMutex(),
   ThreadStatusChanged(),
   PollingThread(new boost::thread()),
@@ -85,6 +90,9 @@ MessageRouterImplementation(
     this->PollingThread->join();
     }
 }
+
+//------------------------------------------------------------------------------
+remus::common::PollingMonitor monitor() const { return PollMonitor; }
 
 //-----------------------------------------------------------------------------
 bool isTalking() const
@@ -177,11 +185,6 @@ void poll(remus::worker::ServerConnection server_info,
                                 { serverComm,  0, ZMQ_POLLIN, 0 }
                               };
 
-  //we specify a new polling rate so that the polling monitor is more responsive
-  //plus allows testing of the monitor to be quicker. In the future we could
-  //expose this option in the MessageRouter class.
-  remus::common::PollingMonitor monitor(boost::int64_t(250),
-                                        boost::int64_t(60000) );
 
   //We need to notify the Thread management that polling is about to start.
   //This allows the calling thread to resume, as it has been waiting for this
@@ -190,8 +193,8 @@ void poll(remus::worker::ServerConnection server_info,
   this->setIsTalking(true);
   while( this->isTalking() )
     {
-    zmq::poll(&items[0],2,monitor.current());
-    monitor.pollOccurred();
+    zmq::poll(&items[0],2,this->PollMonitor.current());
+    this->PollMonitor.pollOccurred();
 
     //handle taking
     bool notSentToServer = true;
@@ -221,7 +224,7 @@ void poll(remus::worker::ServerConnection server_info,
         {
         //we are going to send a heartbeat now since we have gone long enough
         //without sending a message to the server
-        this->sendHeartBeat(serverComm, monitor);
+        this->sendHeartBeat(serverComm, this->PollMonitor);
         }
     }
 }
@@ -393,6 +396,12 @@ bool MessageRouter::start(const remus::worker::ServerConnection& server_info,
 {
   return this->Implementation->startTalking(server_info,
                                             internal_inproc_context);
+}
+
+//-----------------------------------------------------------------------------
+remus::common::PollingMonitor MessageRouter::pollingMonitor() const
+{
+  return this->Implementation->monitor();
 }
 
 }
