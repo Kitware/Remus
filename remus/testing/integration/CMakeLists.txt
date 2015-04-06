@@ -20,6 +20,7 @@ set(unit_tests
   TerminateRunningJob.cxx
   TerminateRunningWorker.cxx
   TerminateMultipleRunningWorkers.cxx
+  WorkerMessagePerformance.cxx
   )
 
 remus_integration_tests(SOURCES ${unit_tests}
