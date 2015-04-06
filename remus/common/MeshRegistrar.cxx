@@ -34,8 +34,12 @@ namespace
       remus::common::MeshRegistrar d( (remus::meshtypes::Mesh3DSurface()) );
       remus::common::MeshRegistrar e( (remus::meshtypes::SceneFile()) );
       remus::common::MeshRegistrar f( (remus::meshtypes::Model()) );
-      remus::common::MeshRegistrar g( (remus::meshtypes::Edges()) );
-      remus::common::MeshRegistrar h( (remus::meshtypes::PiecewiseLinearComplex()) );
+      remus::common::MeshRegistrar g( (remus::meshtypes::DiscreteModel()) );
+      remus::common::MeshRegistrar h( (remus::meshtypes::DiscreteModel1D()) );
+      remus::common::MeshRegistrar i( (remus::meshtypes::DiscreteModel2D()) );
+      remus::common::MeshRegistrar j( (remus::meshtypes::DiscreteModel3D()) );
+      remus::common::MeshRegistrar k( (remus::meshtypes::Edges()) );
+      remus::common::MeshRegistrar l( (remus::meshtypes::PiecewiseLinearComplex()) );
 
       }
   }

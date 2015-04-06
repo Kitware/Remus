@@ -46,6 +46,10 @@ namespace
     VerifySame(Mesh3DSurface::create(), to_meshType("Mesh3DSurface"));
     VerifySame(SceneFile::create(), to_meshType("SceneFile"));
     VerifySame(Model::create(), to_meshType("Model"));
+    VerifySame(DiscreteModel::create(), to_meshType("DiscreteModel"));
+    VerifySame(DiscreteModel1D::create(), to_meshType("DiscreteModel1D"));
+    VerifySame(DiscreteModel2D::create(), to_meshType("DiscreteModel2D"));
+    VerifySame(DiscreteModel3D::create(), to_meshType("DiscreteModel3D"));
     VerifySame(Edges::create(), to_meshType("Edges"));
     VerifySame(PiecewiseLinearComplex::create(), to_meshType("PiecewiseLinearComplex"));
   }
@@ -56,7 +60,7 @@ namespace
 
   std::set<MeshType> all_types = remus::common::MeshRegistrar::allRegisteredTypes();
   REMUS_ASSERT( (all_types.size() > 0) );
-  REMUS_ASSERT( (all_types.size() == 8) );
+  REMUS_ASSERT( (all_types.size() == 12) );
 
 
   for(std::set<MeshType>::const_iterator i = all_types.begin();

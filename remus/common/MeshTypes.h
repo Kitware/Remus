@@ -62,6 +62,34 @@ struct Model : remus::meshtypes::MeshTypeBase
     std::string name() const { return "Model"; }
 };
 
+struct DiscreteModel : remus::meshtypes::MeshTypeBase
+{
+    static boost::shared_ptr<MeshTypeBase> create()
+      { return boost::shared_ptr<MeshTypeBase>(new DiscreteModel()); }
+    std::string name() const { return "DiscreteModel"; }
+};
+
+struct DiscreteModel1D : remus::meshtypes::MeshTypeBase
+{
+    static boost::shared_ptr<MeshTypeBase> create()
+      { return boost::shared_ptr<MeshTypeBase>(new DiscreteModel1D()); }
+    std::string name() const { return "DiscreteModel1D"; }
+};
+
+struct DiscreteModel2D : remus::meshtypes::MeshTypeBase
+{
+    static boost::shared_ptr<MeshTypeBase> create()
+      { return boost::shared_ptr<MeshTypeBase>(new DiscreteModel2D()); }
+    std::string name() const { return "DiscreteModel2D"; }
+};
+
+struct DiscreteModel3D : remus::meshtypes::MeshTypeBase
+{
+    static boost::shared_ptr<MeshTypeBase> create()
+      { return boost::shared_ptr<MeshTypeBase>(new DiscreteModel3D()); }
+    std::string name() const { return "DiscreteModel3D"; }
+};
+
 struct Edges : remus::meshtypes::MeshTypeBase
 {
     static boost::shared_ptr<MeshTypeBase> create()
