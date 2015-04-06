@@ -12,6 +12,7 @@
 
 set(unit_tests
   AlwaysAcceptServer.cxx
+  ClientMessagePerformance.cxx
   DifferentConnectionTypes.cxx
   QueryIOTypes.cxx
   ShareContext.cxx
