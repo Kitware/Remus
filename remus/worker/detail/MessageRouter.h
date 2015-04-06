@@ -16,6 +16,8 @@
 #include <remus/proto/zmqSocketInfo.h>
 #include <remus/worker/ServerConnection.h>
 
+#include <remus/common/PollingMonitor.h>
+
 #include <boost/scoped_ptr.hpp>
 #include <string>
 
@@ -53,6 +55,10 @@ public:
   //or worker
   bool start(const remus::worker::ServerConnection& server_info,
              zmq::context_t& internal_inproc_context);
+
+  //Returns the polling monitor, modifications of the returned object will
+  //modify the message router instance.
+  remus::common::PollingMonitor pollingMonitor() const;
 
 private:
   class MessageRouterImplementation;

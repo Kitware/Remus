@@ -128,6 +128,37 @@ void test_job_routing(MessageRouter& mr,
     }
 }
 
+//------------------------------------------------------------------------------
+void test_polling_rates(MessageRouter& mr)
+{
+  //verify that we get valid numbers for the polling rates by default
+  remus::common::PollingMonitor monitor = mr.pollingMonitor();
+  REMUS_ASSERT( (monitor.minTimeOut() > 0) )
+  REMUS_ASSERT( (monitor.minTimeOut() < monitor.maxTimeOut()) )
+
+  //verify that we can't pass negative polling values, but instead
+  //clamp to zero
+  monitor.changeTimeOutRates(-4, -20);
+  REMUS_ASSERT( (mr.pollingMonitor().minTimeOut() == 0 ) )
+  REMUS_ASSERT( (mr.pollingMonitor().maxTimeOut() == 0 ) )
+
+  //verify that we properly invert polling numbers
+  monitor.changeTimeOutRates(400, 20);
+  REMUS_ASSERT( (mr.pollingMonitor().minTimeOut() == 20 ) )
+  REMUS_ASSERT( (mr.pollingMonitor().maxTimeOut() == 400 ) )
+
+  //verify that we properly invert polling numbers and handle
+  //negative and the same time
+  monitor.changeTimeOutRates(100, -20);
+  REMUS_ASSERT( (mr.pollingMonitor().minTimeOut() == 0 ) )
+  REMUS_ASSERT( (mr.pollingMonitor().maxTimeOut() == 100 ) )
+
+  //verify that valid polling rates are kept by the worker
+  monitor.changeTimeOutRates(30,120);
+  REMUS_ASSERT( (mr.pollingMonitor().minTimeOut() == 30 ) )
+  REMUS_ASSERT( (mr.pollingMonitor().maxTimeOut() == 120 ) )
+}
+
 }
 
 int UnitTestMessageRouterBasics(int, char *[])
@@ -173,5 +204,14 @@ int UnitTestMessageRouterBasics(int, char *[])
 
   //verify that we route messages to the job queue
   test_job_routing(mr,serverConn,serverSocket,jq);
+
+
+  //verify that we can change the polling rages of the Message Router
+  {
+  MessageRouter invalid_mr(worker_channel, queue_channel);
+  test_polling_rates(invalid_mr);
+
+  test_polling_rates(mr);
+  }
   return 0;
 }
