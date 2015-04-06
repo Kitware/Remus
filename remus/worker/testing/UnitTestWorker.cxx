@@ -176,6 +176,52 @@ void verify_server_connection_ipc()
 
 }
 
+void verify_polling_rates()
+{
+  using namespace remus::meshtypes;
+  const remus::common::MeshIOType mtype =
+                          remus::common::make_MeshIOType(Model(),Model());
+
+  zmq::socketInfo<zmq::proto::tcp> local_socket("127.0.0.1",
+                                        remus::SERVER_WORKER_PORT+101);
+  remus::worker::ServerConnection tcp_ip_conn(local_socket);
+
+  //start up server to talk to worker
+  fake_server fake_def_server(local_socket, tcp_ip_conn.context());
+  remus::worker::Worker worker(mtype,tcp_ip_conn);
+
+  //verify that we get valid numbers for the polling rates by default
+  remus::worker::PollingRates current_rates = worker.pollingRates();
+  REMUS_ASSERT( (current_rates.minRate() > 0) )
+  REMUS_ASSERT( (current_rates.minRate() < current_rates.maxRate()) )
+
+  //verify that we can't pass negative polling values, but instead
+  //clamp to zero
+  remus::worker::PollingRates invalid_rates(-4, -20);
+  worker.pollingRates( invalid_rates );
+  REMUS_ASSERT( (worker.pollingRates().minRate() == 0 ) )
+  REMUS_ASSERT( (worker.pollingRates().maxRate() == 0 ) )
+
+  //verify that we properly invert incorrect polling min and maxes
+  remus::worker::PollingRates inverted_rates(400, 20);
+  worker.pollingRates( inverted_rates );
+  REMUS_ASSERT( (worker.pollingRates().minRate() == 20 ) )
+  REMUS_ASSERT( (worker.pollingRates().maxRate() == 400 ) )
+
+  //verify that we inverted rates combined with a negative value
+  //are inverted and clamped
+  remus::worker::PollingRates inverted_negative_rates(100, -20);
+  worker.pollingRates( inverted_negative_rates );
+  REMUS_ASSERT( (worker.pollingRates().minRate() == 0 ) )
+  REMUS_ASSERT( (worker.pollingRates().maxRate() == 100 ) )
+
+  //verify that valid polling rates are kept by the worker
+  remus::worker::PollingRates proper_rates(30,120);
+  worker.pollingRates( proper_rates );
+  REMUS_ASSERT( (worker.pollingRates().minRate() == 30 ) )
+  REMUS_ASSERT( (worker.pollingRates().maxRate() == 120 ) )
+}
+
 } //namespace
 
 
@@ -186,5 +232,8 @@ int UnitTestWorker(int, char *[])
 #ifndef _WIN32
   verify_server_connection_ipc();
 #endif
+
+  verify_polling_rates();
+
   return 0;
 }

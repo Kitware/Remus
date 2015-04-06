@@ -133,6 +133,27 @@ const remus::worker::ServerConnection& Worker::connection() const
   return this->ConnectionInfo;
 }
 
+//------------------------------------------------------------------------------
+void Worker::pollingRates(const remus::worker::PollingRates& rates)
+{
+
+  //setup a new polling monitor on the already created MessageRouter.
+  //A MessageRouter instance has local state information that needs to exist,
+  //so rather than create a new MessageRouter we just changing the existing
+  //ones behavior
+  this->MessageRouter->pollingMonitor().changeTimeOutRates(rates.minRate(),
+                                                           rates.maxRate());
+}
+
+//------------------------------------------------------------------------------
+remus::worker::PollingRates Worker::pollingRates() const
+{
+  remus::common::PollingMonitor monitor = this->MessageRouter->pollingMonitor();
+  const boost::int64_t low =  monitor.minTimeOut();
+  const boost::int64_t high = monitor.maxTimeOut();
+  return remus::worker::PollingRates(low,high);
+}
+
 //-----------------------------------------------------------------------------
 void Worker::askForJobs( unsigned int numberOfJobs )
 {

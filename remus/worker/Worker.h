@@ -39,6 +39,26 @@ namespace worker{
   struct ZmqManagement;
   }
 
+//helper class that allows users to set and get the polling rates for
+//a server instance
+class REMUSWORKER_EXPORT PollingRates
+{
+public:
+  PollingRates(boost::int64_t min_millisec, boost::int64_t max_mill):
+    MinRateMillisec(min_millisec),
+    MaxRateMillisec(max_mill)
+    {
+    }
+
+  const boost::int64_t& minRate() const { return MinRateMillisec; }
+  const boost::int64_t& maxRate() const { return MaxRateMillisec; }
+
+private:
+  boost::int64_t MinRateMillisec;
+  boost::int64_t MaxRateMillisec;
+};
+
+
 //The worker class is the interface for accepting jobs to process from a
 // remus server. Once you get a job from the server you process the given
 // job reporting back the status of the job, and than once finished the
@@ -64,6 +84,18 @@ public:
   //return the connection info that was used to connect to the
   //remus server
   const remus::worker::ServerConnection& connection() const;
+
+  //Modify the polling interval rates for the worker. The worker uses a
+  //a dynamic polling monitor that adjusts the frequency of the polling rate
+  //based on the amount of traffic it receives. These controls allow users
+  //to determine what the floor and ceiling are on the polling timeout rates.
+  //If you are creating a server that requires a short lifespan or
+  //needs to be highly responsive, changing these will be required.
+  //
+  //Note: All rates are in milliseconds
+  //Note: will return false if rates are non positive values
+  void pollingRates( const remus::worker::PollingRates& rates );
+  remus::worker::PollingRates pollingRates() const;
 
   //send a message to the server stating how many jobs
   //that we want to be sent to process
