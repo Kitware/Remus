@@ -135,7 +135,7 @@ void client_query_performance(remus::proto::Job job,
   //we should never be below 300KB per second for our send. If you add
   //code and this line starts returning false, you need to improve the
   //performance of your feature
-  REMUS_ASSERT( (kb_sent_per_sec >= 300))
+  REMUS_ASSERT( (kb_sent_per_sec >= 375))
 
   //we should never be below 3750KB per second for our recv. If you add
   //code and this line starts returning false, you need to improve the
@@ -145,8 +145,18 @@ void client_query_performance(remus::proto::Job job,
   //Okay, we have this test here, so in case we improve performance, that means
   //we can update the baseline performance. So if you start seeing this line
   //starting to fail, you should increase both our ceiling and floor for performance
-  REMUS_ASSERT( (kb_sent_per_sec <= 450))
-  REMUS_ASSERT( (kb_recv_per_sec <= 4250))
+#if defined(__APPLE__)
+  REMUS_ASSERT( (kb_sent_per_sec <= 550))
+  REMUS_ASSERT( (kb_recv_per_sec <= 5500))
+#elif defined(_WIN32)
+  REMUS_ASSERT( (kb_sent_per_sec <= 550))
+  REMUS_ASSERT( (kb_recv_per_sec <= 5500))
+#else
+  //unix just does better with loopback
+  REMUS_ASSERT( (kb_sent_per_sec <= 850))
+  REMUS_ASSERT( (kb_recv_per_sec <= 8500))
+#endif
+
 }
 
 
