@@ -151,7 +151,7 @@ void worker_transfer_performance( boost::shared_ptr< remus::Worker > worker)
   REMUS_ASSERT( (mb_per_sec <= 25))
 #else
   //unix just does better with loopback
-  REMUS_ASSERT( (mb_per_sec <= 55))
+  REMUS_ASSERT( (mb_per_sec <= 65))
 #endif
 }
 

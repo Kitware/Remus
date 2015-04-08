@@ -153,8 +153,8 @@ void client_query_performance(remus::proto::Job job,
   REMUS_ASSERT( (kb_recv_per_sec <= 5500))
 #else
   //unix just does better with loopback
-  REMUS_ASSERT( (kb_sent_per_sec <= 850))
-  REMUS_ASSERT( (kb_recv_per_sec <= 8500))
+  REMUS_ASSERT( (kb_sent_per_sec <= 900))
+  REMUS_ASSERT( (kb_recv_per_sec <= 9000))
 #endif
 
 }
