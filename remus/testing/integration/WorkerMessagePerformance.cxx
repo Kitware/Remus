@@ -138,9 +138,16 @@ void worker_transfer_performance( boost::shared_ptr< remus::Worker > worker)
   std::cout << "Bandwidth per sec " << mb_per_sec << " (MB/sec) "<< std::endl;
 
 
-  //we should never be below 14MB per second. If you add code and this line
+  //we should never be below this rage. If you add code and this line
   //starts returning false, you need to improve the performance of your feature
+#if defined(__APPLE__)
+  REMUS_ASSERT( (mb_per_sec >= 10))
+#elif defined(_WIN32)
+  REMUS_ASSERT( (mb_per_sec >= 10))
+#else
+  //unix just does better with loopback
   REMUS_ASSERT( (mb_per_sec >= 14))
+#endif
 
   //Okay, we have this test here, so in case we improve performance, that means
   //we can update the baseline performance. So if you start seeing this line
