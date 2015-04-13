@@ -132,15 +132,20 @@ void client_query_performance(remus::proto::Job job,
   std::cout << "Bandwidth sent per sec " << kb_sent_per_sec << " (KB/sec) "<< std::endl;
   std::cout << "Bandwidth recv per sec " << kb_recv_per_sec << " (KB/sec) "<< std::endl;
 
-  //we should never be below 300KB per second for our send. If you add
-  //code and this line starts returning false, you need to improve the
-  //performance of your feature
+  //This is to make sure that our baseline performance doesn't degrade below
+  //a certain level
+#if defined(__APPLE__)
+  REMUS_ASSERT( (kb_sent_per_sec >= 275))
+  REMUS_ASSERT( (kb_recv_per_sec >= 2750))
+#elif defined(_WIN32)
+  REMUS_ASSERT( (kb_sent_per_sec >= 275))
+  REMUS_ASSERT( (kb_recv_per_sec >= 2750))
+#else
+  //unix just does better with loopback
   REMUS_ASSERT( (kb_sent_per_sec >= 375))
-
-  //we should never be below 3750KB per second for our recv. If you add
-  //code and this line starts returning false, you need to improve the
-  //performance of your feature
   REMUS_ASSERT( (kb_recv_per_sec >= 3750))
+#endif
+
 
   //Okay, we have this test here, so in case we improve performance, that means
   //we can update the baseline performance. So if you start seeing this line
