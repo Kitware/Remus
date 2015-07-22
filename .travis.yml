@@ -24,9 +24,6 @@ script:
   - mkdir build
   - ctest -S travis.cmake -V
 
-after_success:
-  - curl http://cbadges.com/Remus/pullRequest/Kitware/Remus/${TRAVIS_PULL_REQUEST}/${TRAVIS_COMMIT}
-
 notifications:
   email:
     - robert.maynard@kitware.com
