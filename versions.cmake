@@ -20,7 +20,8 @@ add_revision(boost
   URL_MD5 8c54705c424513fa2be0042696a3a162
   )
 
+#use the tweaked cmake build of zeroMQ
 add_revision(zeroMQ
-  GIT_REPOSITORY "https://github.com/robertmaynard/zeromq3-x.git"
-  GIT_TAG "master"
-  )
+   GIT_REPOSITORY "https://github.com/robertmaynard/zeromq4-x.git"
+   GIT_TAG "master"
+   )
