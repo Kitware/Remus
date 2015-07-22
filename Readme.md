@@ -1,9 +1,6 @@
 ## Remus: A Remote Mesh/Model Service Framework
 
 [![Imgur](http://i.imgur.com/8zsK3vl.png?2)](http://open.cdash.org/index.php?project=Remus)
-[![Build Status](http://cbadges.com/Remus/build/Kitware/Remus/master)](http://open.cdash.org/index.php?project=Remus)
-[![Test Status](http://cbadges.com/Remus/test/Kitware/Remus/master)](http://open.cdash.org/index.php?project=Remus)
-[![Coverage Status](http://cbadges.com/Remus/coverage/Kitware/Remus/master)](http://open.cdash.org/index.php?project=Remus)
 
 Remus' goal is to make meshing 2 and 3 dimensional meshes easy.
 We accomplish this by insulating your program from the instability and licenses
