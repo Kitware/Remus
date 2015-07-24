@@ -313,17 +313,10 @@ bool Server::Brokering(Server::SignalHandling sh)
   zmq::socket_t workerChannel(*(this->PortInfo.context()),ZMQ_ROUTER);
   zmq::socket_t statusChannel(*(this->PortInfo.context()),ZMQ_PUB);
 
-
   //attempts to bind to the sockets to the desired ports
   this->PortInfo.bindClient(&clientChannel);
   this->PortInfo.bindWorker(&workerChannel);
-
-  //todo this needs to go into the PortInfo as it handles all binding
-  //of sockets
-  zmq::socketInfo<zmq::proto::tcp> default_sub("127.0.0.1",
-                                               remus::SERVER_SUB_PORT);
-  zmq::bindToAddress(statusChannel, default_sub);
-
+  this->PortInfo.bindStatus(&statusChannel);
 
   //tell the StatusPublisher what socket to use
   this->Publish->socketToUse(&statusChannel);

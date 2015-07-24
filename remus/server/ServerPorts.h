@@ -85,11 +85,24 @@ public:
   ServerPorts(const std::string& clientHostName, unsigned int clientPort,
               const std::string& workerHostName, unsigned int workerPort);
 
+  //explicitly state the host name and port for both the client and worker
+  //this will explicitly create tcp connection for booth client and worker
+  ServerPorts(const std::string& clientHostName, unsigned int clientPort,
+              const std::string& workerHostName, unsigned int workerPort,
+              const std::string& statusHostName, unsigned int statusPort);
+
   //explicitly state the connection type, this can handle inproc, ipc,
-  //and tcp connection types
+  //and tcp connection types. Defaults to basic status port
   template<typename ClientType, typename WorkerType>
   ServerPorts(const zmq::socketInfo<ClientType>&  c,
               const zmq::socketInfo<WorkerType>&  w);
+
+  //explicitly state the connection type, this can handle inproc, ipc,
+  //and tcp connection types
+  template<typename ClientType, typename WorkerType, typename StatusType>
+  ServerPorts(const zmq::socketInfo<ClientType>&  c,
+              const zmq::socketInfo<WorkerType>&  w,
+              const zmq::socketInfo<StatusType>&  s);
 
   //will attempt to bind the passed in socket to client port connection endpoint
   //that we where constructed with. If that is a tcp-ip endpoing and the bind
@@ -105,10 +118,19 @@ public:
   //Requires: socket to be non NULL
   void bindWorker(zmq::socket_t* socket);
 
+  //will attempt to bind the passed in socket to status port connection endpoint
+  //that we where constructed with. If that is a tcp-ip endpoing and the bind
+  //fails we will continue increasing the port number intill we find
+  //a valid port. We will update our status socket info with the new valid information
+  //Requires: socket to be non NULL
+  void bindStatus(zmq::socket_t* socket);
+
   const PortConnection& client() const
     { return this->Client; }
   const PortConnection& worker() const
     { return this->Worker; }
+  const PortConnection& status() const
+    { return this->Status; }
 
   //we have to leak some details to support inproc communication
   boost::shared_ptr<zmq::context_t> context() const { return this->Context; }
@@ -121,6 +143,7 @@ private:
   boost::shared_ptr<zmq::context_t> Context;
   PortConnection Client;
   PortConnection Worker;
+  PortConnection Status;
 };
 
 //construct a context that is used for both the client and worker comms
@@ -128,12 +151,26 @@ REMUSSERVER_EXPORT
 boost::shared_ptr<zmq::context_t> make_Context(std::size_t num_threads=1);
 
 //------------------------------------------------------------------------------
- template<typename ClientType, typename WorkerType>
+template<typename ClientType, typename WorkerType>
 ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
                          zmq::socketInfo<WorkerType> const& w):
   Context( remus::server::make_Context() ),
   Client(c),
-  Worker(w)
+  Worker(w),
+  Status(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
+                                          remus::SERVER_SUB_PORT))
+{
+}
+
+//------------------------------------------------------------------------------
+template<typename ClientType, typename WorkerType, typename StatusType>
+ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
+                         zmq::socketInfo<WorkerType> const& w,
+                         zmq::socketInfo<StatusType> const& s):
+  Context( remus::server::make_Context() ),
+  Client(c),
+  Worker(w),
+  Status(s)
 {
 }
 
