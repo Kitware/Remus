@@ -8,10 +8,14 @@
 =========================================================================*/
 
 #include <remus/client/Client.h>
+#include <remus/proto/zmqHelper.h>
+#include <remus/proto/zmq.hpp>
 
 #include <vector>
 #include <iostream>
 #include <map>
+
+#include "cJSON.h"
 
 void dumpSupportedIOTypes(remus::Client& client)
 {
@@ -40,6 +44,49 @@ void dumpCanMeshInfo(remus::Client& client)
       {
       std::cout << "\t from " << i->inputType() << " to " << i->outputType() << std::endl;
       }
+    }
+}
+
+void monitorServer(remus::Client& client, const std::string& hostname)
+{
+  //for now we are going to have to presume a default status port
+  //binding
+  remus::client::ServerConnection conn = client.connection();
+  zmq::socket_t monitor(*conn.context(),ZMQ_SUB);
+
+  //bind the socket
+  zmq::socketInfo<zmq::proto::tcp> default_sub(hostname,
+                                               remus::SERVER_STATUS_PORT);
+  zmq::connectToAddress(monitor,default_sub);
+
+  //subscribe to everything
+  zmq_setsockopt (monitor, ZMQ_SUBSCRIBE, NULL, 0);
+  // Always listen for "stop"
+  std::string stopSub = "stop";
+  zmq_setsockopt (monitor, ZMQ_SUBSCRIBE, stopSub.c_str(), stopSub.size());
+
+  std::cout << "Starting to monitor all status from server " << hostname << std::endl;
+  zmq::message_t key;
+  zmq::message_t data;
+  while (true)
+    {
+    zmq::recv_harder(monitor, &key);
+    zmq::recv_harder(monitor, &data);
+
+    std::string keyStr( reinterpret_cast<char*>(key.data()), key.size() );
+
+    if(keyStr == stopSub)
+      {
+      return;
+      }
+
+    cJSON *root = cJSON_Parse( reinterpret_cast<char*>(data.data()) );
+    char *rendered = cJSON_Print(root);
+    std::cout << "key: " << keyStr << std::endl;
+    std::cout << "value:" << (rendered ? rendered : "(empty)") << std::endl;
+
+    free(rendered);
+    cJSON_Delete(root);
     }
 }
 
@@ -148,17 +195,22 @@ void submitJob(remus::Client& client)
   return;
 }
 
-void changeConnection(remus::Client*& c)
+void changeConnection(remus::Client*& c, std::string& hostname)
 {
+  hostname="127.0.0.1";
+  int portNumber=remus::SERVER_CLIENT_PORT;
 
-  std::cout << "What is the ip to connect too: " << std::endl;
-  std::string hostname;
-  std::cin >> hostname;
+  std::cout << "Would you like to connect to the default server[y/n]:" << std::endl;
+  std::string use_default="y";
+  std::cin >> use_default;
+  if(use_default[0] == 'n' || use_default[0] == 'n')
+    {
+    std::cout << "What is the ip to connect too [default=127.0.0.1]:" << std::endl;
+    std::cin >> hostname;
 
-  std::cout << "What is the port you are connecting to: " << std::endl;
-  int portNumber;
-  std::cin >> portNumber;
-
+    std::cout << "What is the port you are connecting to[default=50505]:" << std::endl;
+    std::cin >> portNumber;
+    }
 
   remus::client::ServerConnection conn(hostname,portNumber);
   if(c != NULL)
@@ -175,8 +227,9 @@ int showMenu()
   std::cout << "Options Are:" << std::endl;
   std::cout << "1: Get Servers Supported MeshIO Types" << std::endl;
   std::cout << "2: Get Servers MeshIO Types that have ready workers" << std::endl;
-  std::cout << "3: Get Info On a Job" << std::endl;
-  std::cout << "4: Submit Job" << std::endl;
+  std::cout << "3: Monitor Server Status" << std::endl;
+  std::cout << "4: Get Info On a Job" << std::endl;
+  std::cout << "5: Submit Job" << std::endl;
   std::cout << "9: Connect to different server" << std::endl;
   std::cout << std::endl;
   std::cout << "Any other non-whitespace character will quit application." << std::endl;
@@ -187,8 +240,9 @@ int showMenu()
 
 int main ()
 {
+  std::string hostname;
   remus::Client *c = NULL;
-  changeConnection(c);
+  changeConnection(c, hostname);
 
   bool wantInfo=true;
   while(wantInfo)
@@ -202,13 +256,16 @@ int main ()
         dumpCanMeshInfo(*c);
         break;
       case 3:
-        dumpJobInfo(*c);
+        monitorServer(*c, hostname);
         break;
       case 4:
+        dumpJobInfo(*c);
+        break;
+      case 5:
         submitJob(*c);
         break;
       case 9:
-        changeConnection(c);
+        changeConnection(c, hostname);
       default:
         wantInfo=false;
         break;
