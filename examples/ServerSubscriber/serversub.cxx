@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   //manually connect to the server pub socket
   //bind the sockets manually and verify that the binding works.
   zmq::socketInfo<zmq::proto::tcp> default_sub("127.0.0.1",
-                                               remus::SERVER_SUB_PORT);
+                                               remus::SERVER_STATUS_PORT);
   zmq::context_t context(1);
   zmq::socket_t subscriber(context,ZMQ_SUB);
 
@@ -49,7 +49,6 @@ int main(int argc, char* argv[])
   zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, stopSub.c_str(), stopSub.size());
 
   //dump all messages
-  const std::string termination_message = "END";
   zmq::message_t key;
   zmq::message_t data;
   while (true)
