@@ -60,15 +60,15 @@ ServerPorts::ServerPorts():
   Worker(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
                                           remus::SERVER_WORKER_PORT)),
   Status(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_SUB_PORT))
+                                          remus::SERVER_STATUS_PORT))
 {
   assert(remus::SERVER_CLIENT_PORT > 0 && remus::SERVER_CLIENT_PORT < 65536);
   assert(remus::SERVER_WORKER_PORT > 0 && remus::SERVER_WORKER_PORT < 65536);
-  assert(remus::SERVER_SUB_PORT > 0 && remus::SERVER_SUB_PORT < 65536);
+  assert(remus::SERVER_STATUS_PORT > 0 && remus::SERVER_STATUS_PORT < 65536);
 
   assert(remus::SERVER_CLIENT_PORT != remus::SERVER_WORKER_PORT);
-  assert(remus::SERVER_SUB_PORT != remus::SERVER_CLIENT_PORT);
-  assert(remus::SERVER_SUB_PORT != remus::SERVER_WORKER_PORT);
+  assert(remus::SERVER_STATUS_PORT != remus::SERVER_CLIENT_PORT);
+  assert(remus::SERVER_STATUS_PORT != remus::SERVER_WORKER_PORT);
 }
 
 //------------------------------------------------------------------------------
@@ -79,8 +79,8 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
   Context( remus::server::make_Context() ),
   Client(zmq::socketInfo<zmq::proto::tcp>(clientHostName,clientPort)),
   Worker(zmq::socketInfo<zmq::proto::tcp>(workerHostName,workerPort)),
-  Status(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_SUB_PORT))
+  Status(zmq::socketInfo<zmq::proto::tcp>(clientHostName,
+                                          remus::SERVER_STATUS_PORT))
 {
   assert(clientHostName.size() > 0);
   assert(clientPort > 0 && clientPort < 65536);
@@ -94,14 +94,13 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
 //------------------------------------------------------------------------------
 ServerPorts::ServerPorts(const std::string& clientHostName,
                          unsigned int clientPort,
+                         unsigned int statusPort,
                          const std::string& workerHostName,
-                         unsigned int workerPort,
-                         const std::string& statusHostName,
-                         unsigned int statusPort):
+                         unsigned int workerPort):
   Context( remus::server::make_Context() ),
   Client(zmq::socketInfo<zmq::proto::tcp>(clientHostName,clientPort)),
   Worker(zmq::socketInfo<zmq::proto::tcp>(workerHostName,workerPort)),
-  Status(zmq::socketInfo<zmq::proto::tcp>(statusHostName,statusPort))
+  Status(zmq::socketInfo<zmq::proto::tcp>(clientHostName,statusPort))
 {
   assert(clientHostName.size() > 0);
   assert(clientPort > 0 && clientPort < 65536);
@@ -109,12 +108,16 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
   assert(workerHostName.size() > 0);
   assert(workerPort > 0 && workerPort < 65536);
 
-  assert(statusHostName.size() > 0);
   assert(statusPort > 0 && statusPort < 65536);
 
+  //verify that when worker and client host name are the same we dont
+  //have any ports that are the same value
   assert(!(workerHostName == clientHostName && workerPort == clientPort));
-  assert(!(statusHostName == workerHostName && statusPort == workerPort));
-  assert(!(statusHostName == clientHostName && statusPort == clientPort));
+  assert(!(workerHostName == clientHostName && workerPort == statusPort));
+
+  //the status and client port can never be the same as they always share
+  //the same host name
+  assert(statusPort != clientPort);
 }
 
 //------------------------------------------------------------------------------

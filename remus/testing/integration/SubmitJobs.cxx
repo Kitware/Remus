@@ -204,9 +204,10 @@ int main(int argc, char* argv[])
   //construct a server which uses tcp/ip between the client and sever,
   //and inproc between the server and workers
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::SERVER_CLIENT_PORT);
+  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::SERVER_STATUS_PORT);
   zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
 
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,wi) );
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi) );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
   boost::shared_ptr<remus::Client> client = make_Client( ports );

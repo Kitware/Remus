@@ -69,40 +69,49 @@ private:
 //A class that holds the recommend ports for a remus server to bind too.
 //This might not be the actual ports the server binds too, as they might
 //be in use. This does allow the server though a starting point which
-//if it can't bind tooo, it will sequentially try to bind to the next larger
+//if it can't bind too, it will sequentially try to bind to the next larger
 //port number.
-
+//
+//Remus is designed so that the client needs to access both the client
+//connection and the status connection. So for this to happen properly the
+//ServerPorts will force the status port to use the clientHostName when
+//using tcp-ip connection. When using the zmq::socketInfo constructor
+//we require the client and status port to shared the same type
+//
+//
 //------------------------------------------------------------------------------
 class REMUSSERVER_EXPORT ServerPorts
 {
 
 public:
-  //default to loopback tcp connection for client and worker
+  //default to loopback tcp connection for client, worker, and status
   ServerPorts();
 
   //explicitly state the host name and port for both the client and worker
   //this will explicitly create tcp connection for booth client and worker
+  //this will cause the status port to use the clientHostName and the
+  //default status port.
+  //Note: The status port uses the clientHostName so that
+  //clients can access the status feed
   ServerPorts(const std::string& clientHostName, unsigned int clientPort,
               const std::string& workerHostName, unsigned int workerPort);
 
-  //explicitly state the host name and port for both the client and worker
-  //this will explicitly create tcp connection for booth client and worker
-  ServerPorts(const std::string& clientHostName, unsigned int clientPort,
-              const std::string& workerHostName, unsigned int workerPort,
-              const std::string& statusHostName, unsigned int statusPort);
-
-  //explicitly state the connection type, this can handle inproc, ipc,
-  //and tcp connection types. Defaults to basic status port
-  template<typename ClientType, typename WorkerType>
-  ServerPorts(const zmq::socketInfo<ClientType>&  c,
-              const zmq::socketInfo<WorkerType>&  w);
+  //explicitly state the host name and port for the client, status and worker
+  //this will explicitly create tcp connections for all ports, and
+  //will make the status port bind to the clientHostName
+  //Note: The status port uses the clientHostName so that
+  //clients can access the status feed
+  ServerPorts(const std::string& clientHostName,
+              unsigned int clientPort,
+              unsigned int statusPort, //uses client host name
+              const std::string& workerHostName, unsigned int workerPort);
 
   //explicitly state the connection type, this can handle inproc, ipc,
   //and tcp connection types
-  template<typename ClientType, typename WorkerType, typename StatusType>
+  template<typename ClientType, typename WorkerType>
   ServerPorts(const zmq::socketInfo<ClientType>&  c,
-              const zmq::socketInfo<WorkerType>&  w,
-              const zmq::socketInfo<StatusType>&  s);
+              const zmq::socketInfo<ClientType>&  s,
+              const zmq::socketInfo<WorkerType>&  w);
 
   //will attempt to bind the passed in socket to client port connection endpoint
   //that we where constructed with. If that is a tcp-ip endpoing and the bind
@@ -150,23 +159,12 @@ private:
 REMUSSERVER_EXPORT
 boost::shared_ptr<zmq::context_t> make_Context(std::size_t num_threads=1);
 
+
 //------------------------------------------------------------------------------
 template<typename ClientType, typename WorkerType>
 ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
+                         zmq::socketInfo<ClientType> const& s,
                          zmq::socketInfo<WorkerType> const& w):
-  Context( remus::server::make_Context() ),
-  Client(c),
-  Worker(w),
-  Status(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_SUB_PORT))
-{
-}
-
-//------------------------------------------------------------------------------
-template<typename ClientType, typename WorkerType, typename StatusType>
-ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
-                         zmq::socketInfo<WorkerType> const& w,
-                         zmq::socketInfo<StatusType> const& s):
   Context( remus::server::make_Context() ),
   Client(c),
   Worker(w),
