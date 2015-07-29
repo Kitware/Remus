@@ -12,6 +12,7 @@ set(headers
 
 set(server_srcs
    detail/ActiveJobs.cxx
+   detail/EventPublisher.cxx
    detail/JobQueue.cxx
    detail/SocketMonitor.cxx
    detail/WorkerFinder.cxx

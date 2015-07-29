@@ -1,6 +1,7 @@
 
 set(headers
   ActiveJobs.h
+  EventPublisher.h
   JobQueue.h
   SocketMonitor.h
   WorkerPool.h

@@ -27,6 +27,11 @@ static const int SERVER_CLIENT_PORT = 50505;
 //Workers also use the SERVER_WORKER_PORT for heart beating
 static const int SERVER_WORKER_PORT = 50510;
 
+//SERVER_STATUS_PORT is the port the server publishes all forms of async
+//notifications onto. Clients, Loggers, and Monitors can connect to this
+//port to watch the status of jobs, see the health of the server, etc.
+static const int SERVER_STATUS_PORT = 50550;
+
 static const std::string INVALID_MSG = "INVALID_MSG";
 
 //------------------------------------------------------------------------------

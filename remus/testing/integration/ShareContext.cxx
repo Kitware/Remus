@@ -112,8 +112,9 @@ int ShareContext(int argc, char* argv[])
   //this will verify that the server has zmq thread management, and that we
   //can have multiple server bound from the same instance
   zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
+  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
   zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
-  remus::server::ServerPorts inproc_ports(ci,wi);
+  remus::server::ServerPorts inproc_ports(ci,si,wi);
 
   boost::shared_ptr<remus::Server> inproc_server( new remus::Server(inproc_ports) );
   inproc_server->startBrokering();
