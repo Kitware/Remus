@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_proto_EventPublisher_h
-#define remus_proto_EventPublisher_h
+#ifndef remus_proto_EventTypes_h
+#define remus_proto_EventTypes_h
 
 #include <string>
 
@@ -52,6 +52,8 @@ inline std::string to_string(remus::proto::jobevents::EVENT_TYPE ev)
 
 namespace workevents {
 
+//We need to use REGISTER over REGISTERED as with MSVC, there is a global
+//macro named REGISTERED already
 #define WorkEventTypeMacros() \
      WorkEventTypeMacro(INVALID, 0,"INVALID"), \
      WorkEventTypeMacro(NOT_USED_1, 1, "NOT USED"), \
@@ -60,7 +62,7 @@ namespace workevents {
      WorkEventTypeMacro(NOT_USED_4, 4, "NOT USED"), \
      WorkEventTypeMacro(COMPLETED, 5, "COMPLETED"), \
      WorkEventTypeMacro(ASSIGNED_TO_WORKER, 6, "ASSIGNED TO WORKER"), \
-     WorkEventTypeMacro(REGISTERED, 7,"REGISTERED"), \
+     WorkEventTypeMacro(REGISTER, 7,"REGISTER"), \
      WorkEventTypeMacro(ASKING_FOR_JOB, 8, "ASKING_FOR_JOB"), \
      WorkEventTypeMacro(HEARTBEAT, 9, "HEARTBEAT"), \
      WorkEventTypeMacro(WORKER_STATE, 10, "WORKER STATE"), \
@@ -93,4 +95,4 @@ inline std::string to_string(remus::proto::workevents::EVENT_TYPE ev)
 }
 }
 
-#endif //remus_proto_EventPublisher_h
+#endif //remus_proto_EventTypes_h

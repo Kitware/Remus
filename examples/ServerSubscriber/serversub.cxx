@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     }
 
   // Examples you can pass on the command line:
-  //   worker:REGISTERED
+  //   worker:REGISTER
   //   worker:ASKING_FOR_JOB
   //   job:ASSIGNED_TO_WORKER
 
