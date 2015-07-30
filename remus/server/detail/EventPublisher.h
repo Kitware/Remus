@@ -61,7 +61,7 @@ public:
   //ASSIGNED_TO_WORKER
 
   //Worker status sections
-  //REGISTERED
+  //REGISTER
   //ASKING_FOR_JOB
   //HEARTBEAT
   //WORKER_STATE

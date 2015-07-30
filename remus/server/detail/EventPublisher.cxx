@@ -263,7 +263,7 @@ void EventPublisher::workerReady(const zmq::SocketIdentity &workerIdentity,
                                                            const remus::proto::JobRequirements& reqs)
 {
   const std::string work_t = workerIdentity.name();
-  const std::string serv_t = remus::proto::workevents::event_types[ remus::proto::workevents::REGISTERED ];
+  const std::string serv_t = remus::proto::workevents::event_types[ remus::proto::workevents::REGISTER ];
 
   cJSON *root;
   root=cJSON_CreateObject();
