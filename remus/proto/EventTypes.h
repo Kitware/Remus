@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_proto_EventPublisher_h
-#define remus_proto_EventPublisher_h
+#ifndef remus_proto_EventTypes_h
+#define remus_proto_EventTypes_h
 
 #include <string>
 
@@ -93,4 +93,4 @@ inline std::string to_string(remus::proto::workevents::EVENT_TYPE ev)
 }
 }
 
-#endif //remus_proto_EventPublisher_h
+#endif //remus_proto_EventTypes_h
