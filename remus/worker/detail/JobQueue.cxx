@@ -146,7 +146,7 @@ void pollForJobs(zmq::context_t* context,
   zmq::pollitem_t item  = { serverComm,  0, ZMQ_POLLIN, 0 };
   while( this->ContinuePolling )
     {
-    zmq::poll(&item,1,250);
+    zmq::poll_safely(&item,1,250);
     if(item.revents & ZMQ_POLLIN)
       {
       remus::proto::Response response =

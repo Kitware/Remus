@@ -80,7 +80,7 @@ private:
     zmq::pollitem_t item  = { this->WorkerComm,  0, ZMQ_POLLIN, 0 };
     while( this->ContinuePolling )
       {
-      zmq::poll(&item,1,250);
+      zmq::poll_safely(&item,1,250);
       }
   }
 

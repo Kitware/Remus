@@ -352,7 +352,7 @@ bool Server::Brokering(Server::SignalHandling sh)
   Thread->setIsBrokering(true);
   while (Thread->isBrokering())
     {
-    zmq::poll(&items[0], 2, static_cast<long>(monitor.current()) );
+    zmq::poll_safely(&items[0], 2, monitor.current());
     monitor.pollOccurred();
 
     //update the current time
