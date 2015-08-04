@@ -12,6 +12,7 @@ set(headers
     remusGlobals.h
     SignalCatcher.h
     SleepFor.h
+    Timer.h
     )
 
 #private common files that don't need
@@ -28,6 +29,7 @@ set(srcs
     MD5Hash.cxx
     MeshRegistrar.cxx
     PollingMonitor.cxx
+    Timer.cxx
     )
 
 #setup the common library
