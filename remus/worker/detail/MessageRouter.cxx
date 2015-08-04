@@ -193,7 +193,7 @@ void poll(remus::worker::ServerConnection server_info,
   this->setIsTalking(true);
   while( this->isTalking() )
     {
-    zmq::poll(&items[0],2,this->PollMonitor.current());
+    zmq::poll_safely(&items[0],2,this->PollMonitor.current());
     this->PollMonitor.pollOccurred();
 
     //handle taking

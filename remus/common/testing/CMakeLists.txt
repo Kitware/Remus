@@ -38,6 +38,7 @@ set(unit_tests
   UnitTestPollingMonitor.cxx
   UnitTestRemusGlobals.cxx
   UnitTestSignalCatcher.cxx
+  UnitTestTimer.cxx
   )
 
 remus_unit_tests(SOURCES ${unit_tests}

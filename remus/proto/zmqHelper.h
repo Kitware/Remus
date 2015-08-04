@@ -26,6 +26,8 @@
   #pragma GCC diagnostic pop
 #endif
 
+#include <remus/common/Timer.h>
+
 //We now provide our own zmq.hpp since it has been removed from zmq 3, and
 //made its own project
 #include <remus/proto/zmq.hpp>
@@ -132,6 +134,43 @@ inline void connectToAddress(zmq::socket_t &socket,const zmq::socketInfo<T> &sIn
 {
   const std::string endpoint = sInfo.endpoint();
   connectToAddress(socket,endpoint);
+}
+
+//A wrapper around zeroMQ poll. When we call the standard poll call
+//we can experience high number of system level interrupts which
+//cause zero to throw an exception.
+//So we keep track of how long we desire to poll for, and keep going
+//through interrupts until we hit out timeout
+//Note: poll_safely doesn't support infinite polling
+inline void poll_safely(zmq_pollitem_t *items,
+                        int nitems,
+                        boost::int64_t timeout)
+{
+  assert(timeout > 0);
+
+  remus::common::Timer timer;
+  int rc = -1;
+
+  while(timeout >= 0 && rc < 0)
+    {
+    rc = zmq_poll(items, nitems, timeout);
+    if(rc < 0 && zmq_errno() == EINTR)
+      {
+      //figure out how long we polled for, subtract that from our timeout
+      //and continue to poll
+      boost::int64_t delta = timer.elapsed();
+      timeout -= delta;
+      }
+    else if( rc < 0)
+      {
+      //not an EINTR, so cascade this up to the calling code
+      throw zmq::error_t();
+      }
+
+    //reset the time each time so that the delta we compute is only
+    //for this single iteration
+    timer.reset();
+    }
 }
 
 //A wrapper around zeroMQ send. When we call the standard send call
