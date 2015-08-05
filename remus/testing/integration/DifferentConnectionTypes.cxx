@@ -241,11 +241,17 @@ int DifferentConnectionTypes(int argc, char* argv[])
   //verify using the default tcp/ip connection
   verify_different_connection_types( remus::server::ServerPorts() );
 
+  //generate random names for the channels
+  boost::uuids::random_generator generator;
+  std::string client_channel = boost::uuids::to_string(generator());
+  std::string status_channel = boost::uuids::to_string(generator());
+  std::string worker_channel = boost::uuids::to_string(generator());
+
   {
   std::cout << "verify using inproc everywhere" << std::endl;
-  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
-  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
+  zmq::socketInfo<zmq::proto::inproc> si(status_channel);
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
   verify_different_connection_types( remus::server::ServerPorts(ci,si,wi) );
   }
 
@@ -253,14 +259,14 @@ int DifferentConnectionTypes(int argc, char* argv[])
   std::cout << "verify using tcp/ip on client -> server, and inproc for worker -> server" << std::endl;
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::SERVER_CLIENT_PORT);
   zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::SERVER_STATUS_PORT);
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
   verify_different_connection_types( remus::server::ServerPorts(ci,si,wi) );
   }
 
   {
   std::cout << "verify using inproc on client -> server, and tcp/ip for worker -> server" << std::endl;
-  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
-  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
+  zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
+  zmq::socketInfo<zmq::proto::inproc> si(status_channel);
   zmq::socketInfo<zmq::proto::tcp> wi("127.0.0.1", remus::SERVER_WORKER_PORT);
 
   verify_different_connection_types( remus::server::ServerPorts(ci,si,wi) );

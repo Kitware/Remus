@@ -12,7 +12,6 @@
 
 set(unit_tests
   AlwaysAcceptServer.cxx
-  ClientMessagePerformance.cxx
   DifferentConnectionTypes.cxx
   QueryIOTypes.cxx
   ShareContext.cxx
@@ -21,12 +20,10 @@ set(unit_tests
   TerminateRunningJob.cxx
   TerminateRunningWorker.cxx
   TerminateMultipleRunningWorkers.cxx
-  WorkerMessagePerformance.cxx
   )
 
 remus_integration_tests(SOURCES ${unit_tests}
                         LIBRARIES ${Boost_LIBRARIES})
-
 
 #also add other permutation for SubmitJobs where
 #we modify the number of workers and jobs
@@ -36,19 +33,20 @@ add_executable(IntegrationTests_SubmitJobsUsingFactory
                SubmitJobsUsingFactory.cxx)
 
 target_link_libraries(IntegrationTests_SubmitJobs
-                      LINK_PRIVATE
-                        RemusClient
-                        RemusWorker
-                        RemusServer
-                        ${Boost_LIBRARIES}
-                      )
+    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
 target_link_libraries(IntegrationTests_SubmitJobsUsingFactory
-                      LINK_PRIVATE
-                        RemusClient
-                        RemusWorker
-                        RemusServer
-                        ${Boost_LIBRARIES}
-                      )
+    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
+
+#add in the Performance benchmarks as standalone executables that
+#aren't part of the testing infrastructure for now
+add_executable(WorkerMessagePerformance WorkerMessagePerformance.cxx)
+add_executable(ClientMessagePerformance ClientMessagePerformance.cxx)
+target_link_libraries(WorkerMessagePerformance
+    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
+target_link_libraries(ClientMessagePerformance
+    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
+
+
 
 #The integration tests use boost::asio which has an optional dependency on
 #boost::regex. We need to state explicitly that we don't use boost regex

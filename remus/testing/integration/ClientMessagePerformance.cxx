@@ -164,11 +164,9 @@ void client_query_performance(remus::proto::Job job,
 
 }
 
-
-
 }
 
-int ClientMessagePerformance(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
   (void) argc;
   (void) argv;
