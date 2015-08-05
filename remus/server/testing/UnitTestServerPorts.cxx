@@ -142,10 +142,16 @@ int UnitTestServerPorts(int, char *[])
   //verify everything works with dual tcp-ip
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts()) );
 
+  //generate random names for the channels
+  boost::uuids::random_generator generator;
+  std::string client_channel = boost::uuids::to_string(generator());
+  std::string status_channel = boost::uuids::to_string(generator());
+  std::string worker_channel = boost::uuids::to_string(generator());
+
   //verify everything works with dual inproc
-  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
-  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
+  zmq::socketInfo<zmq::proto::inproc> si(status_channel);
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(ci,si,wi)) );
 
   //now mix ipc and tcp-ip
@@ -161,9 +167,9 @@ int UnitTestServerPorts(int, char *[])
 
   #ifndef _WIN32
   //verify everything works with dual ipc
-  zmq::socketInfo<zmq::proto::ipc> c("client_channel");
-  zmq::socketInfo<zmq::proto::ipc> s("status_channel");
-  zmq::socketInfo<zmq::proto::ipc> w("worker_channel");
+  zmq::socketInfo<zmq::proto::ipc> c(client_channel);
+  zmq::socketInfo<zmq::proto::ipc> s(status_channel);
+  zmq::socketInfo<zmq::proto::ipc> w(worker_channel);
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(c,s,w)) );
 
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,

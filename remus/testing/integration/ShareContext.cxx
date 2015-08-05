@@ -108,12 +108,18 @@ int ShareContext(int argc, char* argv[])
   swap_worker_connection( make_Worker( tcp_ports ) );
   swap_worker_connection( tcp_worker2 );
 
+  //generate random names for the channels
+  boost::uuids::random_generator generator;
+  std::string client_channel = boost::uuids::to_string(generator());
+  std::string status_channel = boost::uuids::to_string(generator());
+  std::string worker_channel = boost::uuids::to_string(generator());
+
   //Create a second server, and make client and workers based on it
   //this will verify that the server has zmq thread management, and that we
   //can have multiple server bound from the same instance
-  zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
-  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
+  zmq::socketInfo<zmq::proto::inproc> si(status_channel);
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
   remus::server::ServerPorts inproc_ports(ci,si,wi);
 
   boost::shared_ptr<remus::Server> inproc_server( new remus::Server(inproc_ports) );

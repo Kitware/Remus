@@ -33,9 +33,15 @@ namespace {
 //------------------------------------------------------------------------------
 remus::server::ServerPorts make_inproc_ports()
 {
-zmq::socketInfo<zmq::proto::inproc> ci("client_channel");
-  zmq::socketInfo<zmq::proto::inproc> si("status_channel");
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
+  //generate random names for the channels
+  boost::uuids::random_generator generator;
+  std::string client_channel = boost::uuids::to_string(generator());
+  std::string status_channel = boost::uuids::to_string(generator());
+  std::string worker_channel = boost::uuids::to_string(generator());
+
+  zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
+  zmq::socketInfo<zmq::proto::inproc> si(status_channel);
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
   return remus::server::ServerPorts(ci,si,wi);
 }
 
