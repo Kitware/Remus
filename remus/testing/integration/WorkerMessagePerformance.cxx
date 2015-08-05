@@ -166,7 +166,7 @@ void worker_transfer_performance( boost::shared_ptr< remus::Worker > worker)
 
 }
 
-int WorkerMessagePerformance(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
   (void) argc;
   (void) argv;
