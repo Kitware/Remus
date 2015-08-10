@@ -95,6 +95,7 @@ void verify_can_mesh(boost::shared_ptr<remus::Client> client,
   using namespace remus::meshtypes;
   using namespace remus::proto;
 
+  std::cout << client->supportedIOTypes() << std::endl;
   remus::common::MeshIOType bad_IOType( (Mesh3D()), (Mesh2D()) );
   REMUS_ASSERT( (client->canMesh(bad_IOType) == false) );
 
@@ -220,6 +221,9 @@ void verify_different_connection_types( remus::server::ServerPorts serverPorts )
   //construct a simple worker and client
   boost::shared_ptr<remus::Client> client = make_Client( ports );
   boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
+
+  //make sure the previous test's server has gone
+  remus::common::SleepForMillisec(250);
 
   //now that everything is up and running verify that the simple
   //submit,query status, get results logic flow works properly
