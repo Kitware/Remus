@@ -95,7 +95,7 @@ Worker::Worker(remus::common::MeshIOType mtype,
 Worker::Worker(const remus::proto::JobRequirements& requirements,
                remus::worker::ServerConnection const& conn):
   MeshRequirements(requirements),
-  ConnectionInfo(),
+  ConnectionInfo(conn),
   Zmq( new detail::ZmqManagement( conn ) ),
   MessageRouter( new remus::worker::detail::MessageRouter(
                     zmq::socketInfo<zmq::proto::inproc>(Zmq->WorkerChannelUUID),
