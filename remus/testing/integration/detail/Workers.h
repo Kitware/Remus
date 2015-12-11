@@ -69,9 +69,6 @@ private:
   //----------------------------------------------------------------------------
   void start_impl()
   {
-  typedef boost::posix_time::ptime ptime;
-  typedef boost::posix_time::time_duration time_duration;
-
   //this is used to generate artificial server messaging load.
   const std::size_t numberOfMessagesToSend = randomInt(250, 1000);
 
