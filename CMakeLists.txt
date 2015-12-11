@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 2.8.12)
 
 #setup policy rules for CMake 3.0 while we have a minimum required of 2.8.X
 if(POLICY CMP0025)
@@ -15,6 +15,7 @@ endif()
 if(POLICY CMP0063)
   cmake_policy(SET CMP0063 NEW)#Honor visibility properties for all targets
 endif()
+
 
 project(Remus)
 
@@ -121,7 +122,6 @@ endif()
 #--------------- Setup Library and Executable build locations -----------------
 #------------------------------------------------------------------------------
 
-
 ## Set the directory where the binaries will be stored
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY
   ${PROJECT_BINARY_DIR}/bin
@@ -138,6 +138,15 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY
 mark_as_advanced(
   CMAKE_RUNTIME_OUTPUT_DIRECTORY
   CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+
+#------------------------------------------------------------------------------
+#--------------------------- Setup Install Rules ------------------------------
+#------------------------------------------------------------------------------
+
+# enable @rpath in the install name for any shared library being built
+# note: this is overwritten by INSTALL_NAME_DIR
+set(CMAKE_MACOSX_RPATH 1)
+
 
 #------------------------------------------------------------------------------
 #--------------------------- Setup Include paths ------------------------------
