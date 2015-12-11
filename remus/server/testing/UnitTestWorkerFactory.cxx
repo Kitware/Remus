@@ -13,17 +13,10 @@
 #include <iostream>
 #include <remus/server/WorkerFactory.h>
 #include <remus/testing/Testing.h>
+#include <remus/common/SleepFor.h>
 
 //configured file that gives us the path to the worker to test with
 #include "UnitTestWorkerFactoryPaths.h"
-
-#if !defined(_WIN32) || defined(__CYGWIN__)
-#  include <unistd.h> // for usleep
-static void remusNap(int msec) { usleep(msec * 1000); }
-#else
-#  include <windows.h> // for Sleep
-static void remusNap(int msec) { Sleep(msec); }
-#endif
 
 namespace {
 
@@ -188,7 +181,7 @@ void test_factory_worker_args_env_tag()
   // This doesn't guarantee it was successful.
   while (f_def.currentWorkerCount() == 1)
     {
-    remusNap(5);
+    SleepForMillisec(5);
     f_def.updateWorkerCount();
     }
 }
@@ -298,7 +291,7 @@ void test_factory_worker_launching()
   // This doesn't guarantee it was successful.
   while (f_def.currentWorkerCount() == 1)
     {
-    remusNap(5);
+    SleepForMillisec(5);
     f_def.updateWorkerCount();
     }
 }
