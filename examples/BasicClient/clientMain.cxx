@@ -53,7 +53,7 @@ public:
     TimeStamp retval;
 #ifdef _WIN32
     _timeb currentTime;
-    ::_ftime(&currentTime);
+    ::_ftime64_s(&currentTime);
     retval.Seconds = currentTime.time;
     retval.Microseconds = 1000*currentTime.millitm;
 #else
