@@ -121,7 +121,8 @@ remus::worker::ServerConnection make_ServerConnection(const std::string& dest)
 //------------------------------------------------------------------------------
 boost::shared_ptr<zmq::context_t> make_ServerContext(std::size_t threads)
 {
-  return boost::make_shared<zmq::context_t>(threads);
+  const int num_threads = static_cast<int>(threads);
+  return boost::make_shared<zmq::context_t>( num_threads );
 }
 
 

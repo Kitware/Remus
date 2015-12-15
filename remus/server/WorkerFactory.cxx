@@ -291,9 +291,9 @@ void WorkerFactory::updateWorkerCount()
 }
 
 //----------------------------------------------------------------------------
-unsigned int  WorkerFactory::currentWorkerCount() const
+unsigned int WorkerFactory::currentWorkerCount() const
 {
-  return this->Tracker->CurrentProcesses.size();
+  return static_cast<unsigned int>(this->Tracker->CurrentProcesses.size());
 }
 
 //----------------------------------------------------------------------------
