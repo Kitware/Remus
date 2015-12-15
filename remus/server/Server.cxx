@@ -90,11 +90,10 @@ void send_terminateJob(boost::uuids::uuid jobId,
 struct UUIDManagement
 {
   //----------------------------------------------------------------------------
-  UUIDManagement():
-  twister( static_cast<unsigned int>(std::time(0)) ),
-  generator(&this->twister)
+  UUIDManagement()
   {
-
+    this->twister = boost::mt19937( static_cast<unsigned int>(std::time(0)) );
+    this->generator = boost::uuids::basic_random_generator<boost::mt19937>(&this->twister);
   }
 
   inline boost::uuids::uuid operator()()
