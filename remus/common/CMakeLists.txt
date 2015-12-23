@@ -1,6 +1,7 @@
 project(Remus_Common)
 
 set(headers
+    CompilerInformation.h
     ConditionalStorage.h
     ContentTypes.h
     ExecuteProcess.h
