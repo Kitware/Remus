@@ -1,6 +1,7 @@
 project(Remus_Common)
 
 set(headers
+    CompilerInformation.h
     ConditionalStorage.h
     ContentTypes.h
     ExecuteProcess.h
@@ -28,6 +29,7 @@ set(srcs
     ExecuteProcess.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
+    SleepFor.cxx
     PollingMonitor.cxx
     Timer.cxx
     )
