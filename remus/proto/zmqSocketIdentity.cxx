@@ -11,23 +11,16 @@
 //=============================================================================
 #include <remus/proto/zmqSocketIdentity.h>
 
-#include <boost/cstdint.hpp>
+#include <remus/common/CompilerInformation.h>
+#include <remus/proto/zmq.hpp>
 
 //suppress warnings inside boost headers for gcc, clang and MSVC
-#ifndef _MSC_VER
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wshadow"
-#endif
-
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
-
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
-
-#include <remus/proto/zmq.hpp>
 
 namespace
 {

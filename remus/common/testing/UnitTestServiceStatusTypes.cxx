@@ -12,12 +12,13 @@
 
 #include <string>
 
-#include <remus/common/remusGlobals.h>
+#include <remus/common/ServiceTypes.h>
+#include <remus/common/StatusTypes.h>
 
 #include <remus/testing/Testing.h>
 
 
-int UnitTestRemusGlobals(int, char *[])
+int UnitTestServiceStatusTypes(int, char *[])
 {
   //verify all service types
  for(int i=1; i <=9; i++)

@@ -12,15 +12,9 @@
 
 #include <remus/server/Server.h>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <boost/make_shared.hpp>
 #include <boost/thread/locks.hpp>

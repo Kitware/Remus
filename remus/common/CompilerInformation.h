@@ -49,7 +49,7 @@
 // but boost does not.
 #if (defined(REMUS_GCC) || defined(REMUS_CLANG)) && !defined(REMUS_PGI)
 
-#define VTK_M_THIRDPARTY_GCC_WARNING_PRAGMAS \
+#define REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS \
   _Pragma("GCC diagnostic ignored \"-Wconversion\"") \
   _Pragma("GCC diagnostic ignored \"-Wshadow\"") \
   _Pragma("GCC diagnostic ignored \"-Wcast-align\"") \
@@ -67,8 +67,7 @@
 
 #define REMUS_THIRDPARTY_PRE_INCLUDE \
   REMUS_THIRDPARTY_WARNINGS_PUSH \
-  REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS \
-  REMUS_THIRDPARTY_CLANG_WARNING_PRAGMAS
+  REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS
 #define REMUS_THIRDPARTY_POST_INCLUDE \
   REMUS_THRIDPARTY_WARNINGS_POP
 
@@ -77,4 +76,10 @@
 #define REMUS_THIRDPARTY_POST_INCLUDE
 #endif
 
+#endif
+
+//Now define some global windows suppressions
+#if defined(REMUS_MSVC) // Visual studio
+# pragma warning ( disable : 4251 ) //missing DLL-interface
+# pragma warning ( disable : 4514 ) //unreferenced inline function
 #endif

@@ -14,7 +14,7 @@
 #define remus_proto_JobProgress_h
 
 #include <string>
-#include <remus/common/remusGlobals.h>
+#include <remus/common/StatusTypes.h>
 
 //included for export symbols
 #include <remus/proto/ProtoExports.h>

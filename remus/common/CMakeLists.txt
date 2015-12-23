@@ -10,9 +10,10 @@ set(headers
     MeshIOType.h
     MeshRegistrar.h
     MeshTypes.h
-    remusGlobals.h
+    ServiceTypes.h
     SignalCatcher.h
     SleepFor.h
+    StatusTypes.h
     Timer.h
     )
 
@@ -21,7 +22,7 @@ set(headers
 #are needed by other remus libraries
 set(private_headers
     PollingMonitor.h
-    conversionHelper.h
+    ConversionHelper.h
     )
 
 set(srcs

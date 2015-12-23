@@ -8,6 +8,7 @@
 =========================================================================*/
 
 #include <remus/client/Client.h>
+#include <remus/server/PortNumbers.h>
 #include <remus/proto/zmqHelper.h>
 #include <remus/proto/zmq.hpp>
 
@@ -56,7 +57,7 @@ void monitorServer(remus::Client& client, const std::string& hostname)
 
   //bind the socket
   zmq::socketInfo<zmq::proto::tcp> default_sub(hostname,
-                                               remus::SERVER_STATUS_PORT);
+                                               remus::server::STATUS_PORT);
   zmq::connectToAddress(monitor,default_sub);
 
   //subscribe to everything
@@ -198,7 +199,7 @@ void submitJob(remus::Client& client)
 void changeConnection(remus::Client*& c, std::string& hostname)
 {
   hostname="127.0.0.1";
-  int portNumber=remus::SERVER_CLIENT_PORT;
+  int portNumber=remus::server::CLIENT_PORT;
 
   std::cout << "Would you like to connect to the default server[y/n]:" << std::endl;
   std::string use_default="y";

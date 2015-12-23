@@ -13,18 +13,14 @@
 #ifndef remus_server_Server_h
 #define remus_server_Server_h
 
+#include <remus/common/CompilerInformation.h>
 #include <remus/common/SignalCatcher.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-#endif
 #include <boost/uuid/random_generator.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/server/WorkerFactoryBase.h>
 #include <remus/server/ServerPorts.h>

@@ -21,24 +21,18 @@
 //required to use custom contexts
 #include <remus/proto/zmq.hpp>
 
+#include <remus/server/PortNumbers.h>
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 
 #include <remus/testing/integration/detail/Workers.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/thread.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <utility>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-#include <boost/thread.hpp>
-
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
 namespace
 {
   namespace workdetail
@@ -203,8 +197,8 @@ int main(int argc, char* argv[])
 {
   //construct a server which uses tcp/ip between the client and sever,
   //and inproc between the server and workers
-  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::SERVER_CLIENT_PORT);
-  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::SERVER_STATUS_PORT);
+  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT);
+  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT);
   zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
 
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi) );

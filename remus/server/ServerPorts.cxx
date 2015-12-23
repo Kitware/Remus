@@ -11,6 +11,7 @@
 //=============================================================================
 
 #include <remus/server/ServerPorts.h>
+#include <remus/server/PortNumbers.h>
 #include <remus/proto/zmqHelper.h>
 
 #include <boost/make_shared.hpp>
@@ -56,19 +57,19 @@ namespace server{
 ServerPorts::ServerPorts():
   Context( remus::server::make_Context() ),
   Client(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_CLIENT_PORT)),
+                                          remus::server::CLIENT_PORT)),
   Worker(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_WORKER_PORT)),
+                                          remus::server::WORKER_PORT)),
   Status(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                                          remus::SERVER_STATUS_PORT))
+                                          remus::server::STATUS_PORT))
 {
-  assert(remus::SERVER_CLIENT_PORT > 0 && remus::SERVER_CLIENT_PORT < 65536);
-  assert(remus::SERVER_WORKER_PORT > 0 && remus::SERVER_WORKER_PORT < 65536);
-  assert(remus::SERVER_STATUS_PORT > 0 && remus::SERVER_STATUS_PORT < 65536);
+  assert(remus::server::CLIENT_PORT > 0 && remus::server::CLIENT_PORT < 65536);
+  assert(remus::server::WORKER_PORT > 0 && remus::server::WORKER_PORT < 65536);
+  assert(remus::server::STATUS_PORT > 0 && remus::server::STATUS_PORT < 65536);
 
-  assert(remus::SERVER_CLIENT_PORT != remus::SERVER_WORKER_PORT);
-  assert(remus::SERVER_STATUS_PORT != remus::SERVER_CLIENT_PORT);
-  assert(remus::SERVER_STATUS_PORT != remus::SERVER_WORKER_PORT);
+  assert(remus::server::CLIENT_PORT != remus::server::WORKER_PORT);
+  assert(remus::server::STATUS_PORT != remus::server::CLIENT_PORT);
+  assert(remus::server::STATUS_PORT != remus::server::WORKER_PORT);
 }
 
 //------------------------------------------------------------------------------
@@ -80,7 +81,7 @@ ServerPorts::ServerPorts(const std::string& clientHostName,
   Client(zmq::socketInfo<zmq::proto::tcp>(clientHostName,clientPort)),
   Worker(zmq::socketInfo<zmq::proto::tcp>(workerHostName,workerPort)),
   Status(zmq::socketInfo<zmq::proto::tcp>(clientHostName,
-                                          remus::SERVER_STATUS_PORT))
+                                          remus::server::STATUS_PORT))
 {
   assert(clientHostName.size() > 0);
   assert(clientPort > 0 && clientPort < 65536);

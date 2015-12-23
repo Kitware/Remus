@@ -10,8 +10,8 @@
 //
 //=============================================================================
 
-#ifndef remus_common_conversionHelper_h
-#define remus_common_conversionHelper_h
+#ifndef remus_common_ConversionHelper_h
+#define remus_common_ConversionHelper_h
 
 #include <string>
 #include <ostream>

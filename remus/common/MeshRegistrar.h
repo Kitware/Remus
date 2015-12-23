@@ -15,20 +15,16 @@
 #include <string>
 #include <set>
 
+#include <remus/common/CommonExports.h>
+#include <remus/common/CompilerInformation.h>
+
 //suppress warnings inside boost headers for gcc and clang
 //as clang supports pragma GCC diagnostic
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wcast-align"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/cstdint.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
-#include <remus/common/CommonExports.h>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus {
 namespace meshtypes {

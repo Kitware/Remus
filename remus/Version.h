@@ -9,10 +9,10 @@
 //  PURPOSE.  See the above copyright notice for more information.
 //
 //=============================================================================
-//  Remus version.h
+//  Remus Version.h
 
-#ifndef remus_version_h
-#define remus_version_h
+#ifndef remus_Version_h
+#define remus_Version_h
 
 //  This header will change with every official release.
 

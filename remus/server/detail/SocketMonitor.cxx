@@ -12,14 +12,9 @@
 
 #include <remus/server/detail/SocketMonitor.h>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/date_time/posix_time/posix_time.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
 

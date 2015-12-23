@@ -16,7 +16,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <remus/common/MeshIOType.h>
-#include <remus/common/remusGlobals.h>
+#include <remus/common/ServiceTypes.h>
+#include <remus/common/StatusTypes.h>
 #include <remus/proto/zmqSocketIdentity.h>
 
 //for export symbols

@@ -13,26 +13,22 @@
 #ifndef remus_proto_zmqHelper_h
 #define remus_proto_zmqHelper_h
 
-#include <algorithm>
-#include <cstddef>
-#include <sstream>
-
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/lexical_cast.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
+#include <remus/common/CompilerInformation.h>
 #include <remus/common/Timer.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/lexical_cast.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //We now provide our own zmq.hpp since it has been removed from zmq 3, and
 //made its own project
 #include <remus/proto/zmq.hpp>
 #include <remus/proto/zmqSocketIdentity.h>
 #include <remus/proto/zmqSocketInfo.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <sstream>
 
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq

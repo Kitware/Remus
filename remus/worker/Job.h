@@ -19,16 +19,11 @@
 #include <remus/common/MeshIOType.h>
 #include <remus/proto/JobSubmission.h>
 
-#include <boost/uuid/uuid.hpp>
 //suppress warnings inside boost headers for gcc and clang
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //The remus::worker::Job class.
 // For the server the Job object represents all the information required to

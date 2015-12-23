@@ -11,7 +11,7 @@
 //=============================================================================
 
 #include <remus/client/ServerConnection.h>
-#include <remus/common/remusGlobals.h>
+#include <remus/server/PortNumbers.h>
 #include <remus/testing/Testing.h>
 
 #include <string>
@@ -44,7 +44,7 @@ int UnitTestClientServerConnection(int, char *[])
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_CLIENT_PORT);
+                                                  remus::server::CLIENT_PORT);
 
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );

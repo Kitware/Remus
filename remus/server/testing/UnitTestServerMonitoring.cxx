@@ -15,18 +15,10 @@
 #include <remus/testing/Testing.h>
 #include <remus/common/SleepFor.h>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
 #include <boost/thread/locks.hpp>
-
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace {
 

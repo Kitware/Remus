@@ -12,21 +12,16 @@
 
 #include <remus/proto/JobResult.h>
 
+#include <remus/common/CompilerInformation.h>
 #include <remus/common/ConditionalStorage.h>
 #include <remus/common/MD5Hash.h>
-#include <remus/common/conversionHelper.h>
-
-#include <boost/make_shared.hpp>
+#include <remus/common/ConversionHelper.h>
 
 //suppress warnings inside boost headers for gcc, clang and MSVC
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/make_shared.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
 #include <sstream>

@@ -12,12 +12,14 @@
 
 #include <remus/worker/detail/MessageRouter.h>
 
+#include <remus/server/PortNumbers.h>
 #include <remus/common/SleepFor.h>
+
 #include <remus/proto/Message.h>
 #include <remus/proto/Response.h>
-#include <remus/worker/detail/JobQueue.h>
-
 #include <remus/proto/zmqHelper.h>
+
+#include <remus/worker/detail/JobQueue.h>
 
 #include <remus/testing/Testing.h>
 
@@ -33,7 +35,7 @@ remus::worker::ServerConnection bindToTCPSocket(zmq::socket_t &socket)
   //try a new port each time we are called this is to help speed up the test
   int port_offset = 72;
   zmq::socketInfo<zmq::proto::tcp> socketInfo("127.0.0.1",
-                              remus::SERVER_WORKER_PORT + port_offset);
+                              remus::server::WORKER_PORT + port_offset);
   socketInfo = zmq::bindToAddress(socket,socketInfo);
 
   return remus::worker::ServerConnection(socketInfo);

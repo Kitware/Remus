@@ -9,6 +9,8 @@
 #include <remus/server/Server.h>
 #include <remus/server/WorkerFactory.h>
 
+#include <remus/server/PortNumbers.h>
+
 #include <iostream>
 int main (int argc, char* argv[])
 {
@@ -17,8 +19,8 @@ int main (int argc, char* argv[])
   if(argc>=2)
     {
     std::string hostname(argv[1]);
-    ports = remus::server::ServerPorts(hostname,remus::SERVER_CLIENT_PORT,
-                                       hostname,remus::SERVER_WORKER_PORT);
+    ports = remus::server::ServerPorts(hostname,remus::server::CLIENT_PORT,
+                                       hostname,remus::server::WORKER_PORT);
     }
 
   //create a custom worker factory that creates children processes

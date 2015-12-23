@@ -15,7 +15,7 @@
 #include <assert.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
-#include <remus/common/remusGlobals.h>
+#include <remus/server/PortNumbers.h>
 #include <remus/proto/zmq.hpp>
 
 namespace remus{
@@ -25,7 +25,7 @@ namespace client{
 ServerConnection::ServerConnection():
   Context( remus::client::make_ServerContext() ),
   Endpoint(zmq::socketInfo<zmq::proto::tcp>("127.0.0.1",
-                          remus::SERVER_CLIENT_PORT).endpoint()),
+                          remus::server::CLIENT_PORT).endpoint()),
   IsLocalEndpoint(true) //no need to call zmq::isLocalEndpoint
 {
 }

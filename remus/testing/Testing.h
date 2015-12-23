@@ -25,26 +25,14 @@
 #include <string>
 #include <vector>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
-//suppress warnings inside boost headers for gcc and clang
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-#endif
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus {
 namespace testing {
