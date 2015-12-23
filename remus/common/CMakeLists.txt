@@ -29,6 +29,7 @@ set(srcs
     ExecuteProcess.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
+    SleepFor.cxx
     PollingMonitor.cxx
     Timer.cxx
     )
