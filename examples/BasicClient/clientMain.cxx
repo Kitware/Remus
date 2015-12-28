@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 
 
   //keep track of the number of queries to do a rough test
-  const int num_submitted_jobs = 18;
+  const int num_submitted_jobs = 256;
   int queries = 0;
   int failed_jobs = 0;
 
@@ -150,21 +150,21 @@ int main(int argc, char* argv[])
         remus::proto::JobStatus oldStatus = js.at(i);
         js[i]=newStatus;
 
-        //if the status or progress value has changed report it to the cout stream
-        if(newStatus.status() != oldStatus.status() ||
-           newStatus.progress() != oldStatus.progress())
-          {
-          std::cout << "job id " << newStatus.id() << std::endl;
-          std::cout << " status of job is: " << remus::to_string(newStatus.status())  << std::endl;
-          if(!newStatus.progress().message().empty())
-            {
-            std::cout << " Progress Msg: " << newStatus.progress().message() << std::endl;
-            }
-          if(newStatus.progress().value() >= 0)
-            {
-            std::cout << " Progress Value: " << newStatus.progress().value() << std::endl;
-            }
-          }
+        // //if the status or progress value has changed report it to the cout stream
+        // if(newStatus.status() != oldStatus.status() ||
+        //    newStatus.progress() != oldStatus.progress())
+        //   {
+        //   std::cout << "job id " << newStatus.id() << std::endl;
+        //   std::cout << " status of job is: " << remus::to_string(newStatus.status())  << std::endl;
+        //   if(!newStatus.progress().message().empty())
+        //     {
+        //     std::cout << " Progress Msg: " << newStatus.progress().message() << std::endl;
+        //     }
+        //   if(newStatus.progress().value() >= 0)
+        //     {
+        //     std::cout << " Progress Value: " << newStatus.progress().value() << std::endl;
+        //     }
+        //   }
 
         //when the job has entered any of the finished states we remove it
         //from the jobs we are checking
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
           if(newStatus.finished())
             {
             remus::proto::JobResult r = c.retrieveResults(jobs.at(i));
-            std::cout << std::string(r.data(),r.dataSize()) << std::endl;
+            // std::cout << std::string(r.data(),r.dataSize()) << std::endl;
             }
           else
             {
@@ -182,9 +182,9 @@ int main(int argc, char* argv[])
           jobs.erase(jobs.begin()+i);
           js.erase(js.begin()+i);
 
-          std::cout << "outstanding jobs are: " << std::endl;
-          for(std::size_t j=0; j < jobs.size(); ++j)
-            { std::cout << "  " << jobs.at(j).id() << std::endl; }
+          // std::cout << "outstanding jobs are: " << std::endl;
+          // for(std::size_t j=0; j < jobs.size(); ++j)
+          //   { std::cout << "  " << jobs.at(j).id() << std::endl; }
           }
         }
       }
