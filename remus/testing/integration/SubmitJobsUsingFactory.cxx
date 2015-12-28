@@ -27,19 +27,12 @@
 #include <remus/testing/integration/detail/Factories.h>
 #include <remus/testing/integration/detail/Workers.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/thread.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <utility>
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wshadow"
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
-#include <boost/thread.hpp>
-
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
 namespace
 {
   namespace factory

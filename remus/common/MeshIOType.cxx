@@ -14,7 +14,7 @@
 
 //I don't know if this means that MeshIOType should be moved into
 //remus proto or not
-#include <remus/common/conversionHelper.h>
+#include <remus/common/ConversionHelper.h>
 
 namespace remus {
 namespace common {

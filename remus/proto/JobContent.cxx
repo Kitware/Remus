@@ -14,7 +14,7 @@
 
 #include <remus/common/ConditionalStorage.h>
 #include <remus/common/MD5Hash.h>
-#include <remus/common/conversionHelper.h>
+#include <remus/common/ConversionHelper.h>
 
 #include <boost/make_shared.hpp>
 

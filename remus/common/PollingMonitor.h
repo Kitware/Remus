@@ -13,15 +13,12 @@
 #ifndef remus_common_PollingMonitor_h
 #define remus_common_PollingMonitor_h
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wcast-align"
-#endif
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/cstdint.hpp>
 #include <boost/shared_ptr.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/common/CommonExports.h>
 

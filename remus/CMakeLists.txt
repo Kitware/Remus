@@ -14,7 +14,7 @@ add_subdirectory(server)
 add_subdirectory(worker)
 
 set(headers
-  version.h
+  Version.h
   )
 
 remus_public_headers(${headers})

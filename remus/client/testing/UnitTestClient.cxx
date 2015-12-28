@@ -10,8 +10,9 @@
 //
 //=============================================================================
 
-#include <remus/client/ServerConnection.h>
 #include <remus/client/Client.h>
+#include <remus/client/ServerConnection.h>
+#include <remus/server/PortNumbers.h>
 #include <remus/testing/Testing.h>
 
 #include <remus/proto/zmqHelper.h>
@@ -45,7 +46,7 @@ void verify_server_connection_inproc()
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_CLIENT_PORT);
+                                                  remus::server::CLIENT_PORT);
 
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
@@ -91,7 +92,7 @@ void verify_server_connection_ipc()
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_CLIENT_PORT);
+                                                  remus::server::CLIENT_PORT);
 
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );
@@ -118,7 +119,7 @@ void verify_server_connection_tcp()
   const std::string default_endpoint = sc.endpoint();
 
   zmq::socketInfo<zmq::proto::tcp> default_socket("127.0.0.1",
-                                                  remus::SERVER_CLIENT_PORT);
+                                                  remus::server::CLIENT_PORT);
 
 
   REMUS_ASSERT( (sc.endpoint() == default_socket.endpoint()) );

@@ -13,19 +13,14 @@
 #ifndef remus_client_ServerConnection_h
 #define remus_client_ServerConnection_h
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <remus/proto/zmqSocketInfo.h>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
-#include <boost/shared_ptr.hpp>
-
+#include <remus/common/CompilerInformation.h>
 //included for export symbols
 #include <remus/client/ClientExports.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/shared_ptr.hpp>
+#include <remus/proto/zmqSocketInfo.h>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 
 //forward declare the context

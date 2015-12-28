@@ -13,25 +13,20 @@
 #ifndef remus_proto_JobStatus_h
 #define remus_proto_JobStatus_h
 
-#include <string>
-
-#include <boost/uuid/uuid.hpp>
-
-//suppress warnings inside boost headers for gcc, clang and MSVC
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/uuid/uuid_io.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
-#include <remus/common/remusGlobals.h>
+#include <remus/common/CompilerInformation.h>
 #include <remus/proto/JobProgress.h>
 
 //included for export symbols
 #include <remus/proto/ProtoExports.h>
+
+//suppress warnings inside boost headers for gcc, clang and MSVC
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
+#include <string>
+
 
 namespace remus {
 namespace proto {

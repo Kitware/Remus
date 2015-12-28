@@ -17,16 +17,11 @@
 #include <sstream>
 
 //suppress warnings inside boost headers for gcc, clang and MSVC
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/string_generator.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus{
 namespace proto{

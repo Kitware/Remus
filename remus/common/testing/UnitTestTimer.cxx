@@ -10,18 +10,12 @@
 //
 //=============================================================================
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/date_time/posix_time/posix_time.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
 #include <remus/common/Timer.h>
-
 #include <remus/testing/Testing.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/date_time/posix_time/posix_time.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace
 {

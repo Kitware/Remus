@@ -16,7 +16,6 @@
 //we include MeshTypes so that people can just include
 //MeshIOType and get all the mesh types
 #include <remus/common/MeshTypes.h>
-#include <remus/common/remusGlobals.h>
 
 #include <remus/common/CommonExports.h>
 

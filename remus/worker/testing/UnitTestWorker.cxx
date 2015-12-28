@@ -10,24 +10,18 @@
 //
 //=============================================================================
 
+#include <remus/server/PortNumbers.h>
 #include <remus/common/SleepFor.h>
+#include <remus/proto/zmqHelper.h>
 #include <remus/worker/ServerConnection.h>
 #include <remus/worker/Worker.h>
+
 #include <remus/testing/Testing.h>
 
-#include <remus/proto/zmqHelper.h>
-
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/scoped_ptr.hpp>
-
-#ifndef _MSC_VER
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wshadow"
-#  pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
 #include <boost/thread.hpp>
-#ifndef _MSC_VER
-#  pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 
 #include <string>
@@ -96,7 +90,7 @@ void verify_server_connection_tcpip()
                           remus::common::make_MeshIOType(Model(),Model());
 
   zmq::socketInfo<zmq::proto::tcp> local_socket("127.0.0.1",
-                                        remus::SERVER_WORKER_PORT+101);
+                                        remus::server::WORKER_PORT+101);
   remus::worker::ServerConnection tcp_ip_conn(local_socket);
 
   //start up server to talk to worker
@@ -108,7 +102,7 @@ void verify_server_connection_tcpip()
   REMUS_ASSERT( (sc.endpoint().size() > 0) );
   REMUS_ASSERT( (sc.endpoint() == local_socket.endpoint()) );
   REMUS_ASSERT( (sc.endpoint() ==
-       make_tcp_socket("127.0.0.1",remus::SERVER_WORKER_PORT+101).endpoint()) );
+       make_tcp_socket("127.0.0.1",remus::server::WORKER_PORT+101).endpoint()) );
 
   REMUS_ASSERT( (sc.isLocalEndpoint()==true) );
 }
@@ -183,7 +177,7 @@ void verify_polling_rates()
                           remus::common::make_MeshIOType(Model(),Model());
 
   zmq::socketInfo<zmq::proto::tcp> local_socket("127.0.0.1",
-                                        remus::SERVER_WORKER_PORT+101);
+                                        remus::server::WORKER_PORT+101);
   remus::worker::ServerConnection tcp_ip_conn(local_socket);
 
   //start up server to talk to worker

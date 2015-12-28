@@ -12,6 +12,7 @@
 
 #include <remus/server/ServerPorts.h>
 
+#include <remus/server/PortNumbers.h>
 #include <remus/proto/zmqHelper.h>
 #include <remus/testing/Testing.h>
 
@@ -125,8 +126,8 @@ int UnitTestServerPorts(int, char *[])
   //verify the defaults
   REMUS_ASSERT( verify_ports(
                 remus::server::ServerPorts(),
-                "127.0.0.1",remus::SERVER_CLIENT_PORT,
-                "127.0.0.1",remus::SERVER_WORKER_PORT)
+                "127.0.0.1",remus::server::CLIENT_PORT,
+                "127.0.0.1",remus::server::WORKER_PORT)
                 );
 
   //verify the explicit constructor
@@ -156,9 +157,9 @@ int UnitTestServerPorts(int, char *[])
 
   //now mix ipc and tcp-ip
   zmq::socketInfo<zmq::proto::tcp> default_ctcp("127.0.0.1",
-                                               remus::SERVER_CLIENT_PORT);
+                                               remus::server::CLIENT_PORT);
   zmq::socketInfo<zmq::proto::tcp> default_stcp("127.0.0.1",
-                                               remus::SERVER_STATUS_PORT);
+                                               remus::server::STATUS_PORT);
 
   //now mix inproc and tcp-ip
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts(default_ctcp,

@@ -13,16 +13,12 @@
 #ifndef remus_proto_zmqSocketInfo_h
 #define remus_proto_zmqSocketInfo_h
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <boost/lexical_cast.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
+#include <remus/common/CompilerInformation.h>
 #include <remus/proto/zmqTraits.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/lexical_cast.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //inject some basic zero MQ helper functions into the namespace
 namespace zmq

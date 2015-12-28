@@ -12,6 +12,8 @@
 
 #include <remus/server/detail/EventPublisher.h>
 
+#include <remus/common/ServiceTypes.h>
+
 #include <remus/proto/EventTypes.h>
 #include <remus/proto/Job.h>
 #include <remus/proto/JobRequirements.h>

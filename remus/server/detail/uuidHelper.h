@@ -13,22 +13,16 @@
 #ifndef remus_server_detail_uuidHelper_h
 #define remus_server_detail_uuidHelper_h
 
+#include <remus/common/CompilerInformation.h>
+#include <remus/proto/Message.h>
 
 //suppress warnings inside boost headers for gcc and clang
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/uuid/uuid.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
-
-#include <remus/proto/Message.h>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus
 {

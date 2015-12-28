@@ -13,21 +13,16 @@
 #ifndef remus_server_ServerPorts_h
 #define remus_server_ServerPorts_h
 
-#ifndef _MSC_VER
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+#include <remus/common/CompilerInformation.h>
+#include <remus/server/ServerExports.h>
+
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/shared_ptr.hpp>
 #include <remus/proto/zmqSocketInfo.h>
-#ifndef _MSC_VER
-  #pragma GCC diagnostic pop
-#endif
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <string>
-#include <remus/common/remusGlobals.h>
-#include <boost/shared_ptr.hpp>
-
-//included for export symbols
-#include <remus/server/ServerExports.h>
 
 namespace zmq { class context_t; class socket_t; }
 

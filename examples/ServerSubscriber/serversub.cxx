@@ -7,6 +7,7 @@
 =========================================================================*/
 
 #include <remus/client/Client.h>
+#include <remus/server/PortNumbers.h>
 
 #include <remus/proto/zmqHelper.h>
 #include <remus/proto/zmq.hpp>
@@ -21,7 +22,7 @@ int main(int argc, char* argv[])
   //manually connect to the server pub socket
   //bind the sockets manually and verify that the binding works.
   zmq::socketInfo<zmq::proto::tcp> default_sub("127.0.0.1",
-                                               remus::SERVER_STATUS_PORT);
+                                               remus::server::STATUS_PORT);
   zmq::context_t context(1);
   zmq::socket_t subscriber(context,ZMQ_SUB);
 
