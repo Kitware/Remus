@@ -79,21 +79,27 @@ remus::worker::Job JobQueue::takeJob(const remus::proto::JobRequirements& reqs)
 //------------------------------------------------------------------------------
 remus::proto::JobRequirementsSet JobQueue::waitingJobRequirements() const
 {
-  JobQueue::CollectRequirements result =
-         std::for_each(this->QueuedJobsForWorkers.begin(),
-                       this->QueuedJobsForWorkers.end(),
-                       JobQueue::CollectRequirements());
-  return result.types;
+  remus::proto::JobRequirementsSet result;
+  for(std::vector<QueuedJob>::const_iterator i= this->QueuedJobsForWorkers.begin();
+      i != this->QueuedJobsForWorkers.end();
+      ++i)
+    {
+    result.insert(i->Submission.requirements());
+    }
+  return result;
 }
 
 //------------------------------------------------------------------------------
 remus::proto::JobRequirementsSet JobQueue::queuedJobRequirements() const
 {
-  JobQueue::CollectRequirements result =
-          std::for_each(this->QueuedJobs.begin(),
-                        this->QueuedJobs.end(),
-                        JobQueue::CollectRequirements());
-  return result.types;
+  remus::proto::JobRequirementsSet result;
+  for(std::vector<QueuedJob>::const_iterator i= this->QueuedJobs.begin();
+      i != this->QueuedJobs.end();
+      ++i)
+    {
+    result.insert(i->Submission.requirements());
+    }
+  return result;
 }
 
 //------------------------------------------------------------------------------

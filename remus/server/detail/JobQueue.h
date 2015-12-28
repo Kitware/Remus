@@ -97,13 +97,6 @@ private:
 
   };
 
-  struct CollectRequirements
-  {
-    void operator()( const QueuedJob& job )
-      { types.insert(job.Submission.requirements()); }
-    remus::proto::JobRequirementsSet types;
-  };
-
   struct JobIdMatches
   {
     JobIdMatches(boost::uuids::uuid id):
