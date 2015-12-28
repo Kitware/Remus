@@ -15,7 +15,9 @@
 #include <remus/common/ConditionalStorage.h>
 #include <remus/common/ConversionHelper.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <sstream>
 
@@ -144,7 +146,7 @@ const char* JobRequirements::requirements() const
 }
 
 //------------------------------------------------------------------------------
- bool JobRequirements::operator<(const JobRequirements& other) const
+bool JobRequirements::operator<(const JobRequirements& other) const
 {
   //the sort order as follows.
   //first comes mesh input & output type, this allows us to group all
@@ -174,14 +176,20 @@ const char* JobRequirements::requirements() const
 }
 
 //------------------------------------------------------------------------------
- bool JobRequirements::operator==(const JobRequirements& other) const
- {
+bool JobRequirements::operator==(const JobRequirements& other) const
+{
   return ((this->meshTypes() == other.meshTypes()) &&
           (this->sourceType() == other.sourceType()) &&
           (this->formatType() == other.formatType()) &&
           (this->workerName() == other.workerName()) &&
           (this->tag() == other.tag()));
- }
+}
+
+//------------------------------------------------------------------------------
+bool JobRequirements::operator!=(const JobRequirements& other) const
+{
+  return !(*this == other);
+}
 
 //------------------------------------------------------------------------------
 void JobRequirements::serialize(std::ostream& buffer) const
@@ -274,6 +282,18 @@ JobRequirementsSet::JobRequirementsSet(const ContainerType& container):
 Container(container)
 {
 }
+
+//------------------------------------------------------------------------------
+ bool JobRequirementsSet::operator==(const JobRequirementsSet& other) const
+ {
+  return (this->Container == other.Container);
+ }
+
+//------------------------------------------------------------------------------
+ bool JobRequirementsSet::operator!=(const JobRequirementsSet& other) const
+ {
+  return !(this->Container == other.Container);
+ }
 
 //------------------------------------------------------------------------------
 void JobRequirementsSet::serialize(std::ostream& buffer) const
