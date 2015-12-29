@@ -858,12 +858,13 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
     }
 
   typedef remus::proto::JobRequirementsSet::const_iterator it;
-  remus::proto::JobRequirementsSet types;
+  remus::proto::JobRequirementsSet waiting_types;
+  remus::proto::JobRequirementsSet queued_types;
 
   //find all the jobs that have been marked as waiting for a worker
   //and ask if we have a worker in the poll that can mesh that job
-  types = this->QueuedJobs->waitingJobRequirements();
-  for(it type = types.begin(); type != types.end(); ++type)
+  waiting_types = this->QueuedJobs->waitingJobRequirements();
+  for(it type = waiting_types.begin(); type != waiting_types.end(); ++type)
     {
     if(this->WorkerPool->haveWaitingWorker(*type))
       {
@@ -877,8 +878,8 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
 
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
-  types = this->QueuedJobs->queuedJobRequirements();
-  for(it type = types.begin(); type != types.end(); ++type)
+  queued_types = this->QueuedJobs->queuedJobRequirements();
+  for(it type = queued_types.begin(); type != queued_types.end(); ++type)
     {
     if(this->WorkerPool->haveWaitingWorker(*type))
       {
@@ -893,8 +894,8 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
   //make sure we ask the worker pool what its limit on number of pending
   //workers is before creating more. We have to requery to get the updated
   //job types since the worker pool might have taken some.
-  types = this->QueuedJobs->queuedJobRequirements();
-  for(it type = types.begin(); type != types.end(); ++type)
+  queued_types = this->QueuedJobs->queuedJobRequirements();
+  for(it type = queued_types.begin(); type != queued_types.end(); ++type)
     {
     //check if we have a waiting worker, if we don't than try
     //ask the factory to create a worker of that type.

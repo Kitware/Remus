@@ -31,6 +31,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
                             newQueuedJob ),
           newQueuedJob);
     this->QueuedIds.insert(id);
+    this->CachedQueuedJobRequirements.insert( submission.requirements() );
     }
   return can_add;
 }
@@ -38,7 +39,7 @@ bool JobQueue::addJob(const boost::uuids::uuid &id,
 //------------------------------------------------------------------------------
 remus::worker::Job JobQueue::takeJob(const remus::proto::JobRequirements& reqs)
 {
-  std::vector<QueuedJob>* searched_vector = &this->QueuedJobsForWorkers;
+  std::vector<QueuedJob>* searched_vector = &this->JobsWaitingForWorker;
   typedef std::vector<QueuedJob>::iterator iter;
 
   JobTypeMatches pred(reqs);
@@ -54,6 +55,11 @@ remus::worker::Job JobQueue::takeJob(const remus::proto::JobRequirements& reqs)
       //return an invalid job
       return remus::worker::Job();
       }
+
+    //the job is from the queue, so invalidate the cache. This is overaggressive
+    //but to fix it we would need to track the number of jobs that each requirement
+    //maps too
+    this->CachedQueuedJobRequirements.clear();
     }
 
   //we need to copy the id and the contents of item now into a job
@@ -69,9 +75,10 @@ remus::worker::Job JobQueue::takeJob(const remus::proto::JobRequirements& reqs)
                                 searched_vector->end(),
                                 id_pred);
   searched_vector->erase(new_end,searched_vector->end());
+
   this->QueuedIds.erase(job.id());
 
-  // std::cout << "JobQueue::takeJob " << job.id() << std::endl;
+  //clear the queued job cache
 
   return job;
 }
@@ -80,8 +87,8 @@ remus::worker::Job JobQueue::takeJob(const remus::proto::JobRequirements& reqs)
 remus::proto::JobRequirementsSet JobQueue::waitingJobRequirements() const
 {
   remus::proto::JobRequirementsSet result;
-  for(std::vector<QueuedJob>::const_iterator i= this->QueuedJobsForWorkers.begin();
-      i != this->QueuedJobsForWorkers.end();
+  for(std::vector<QueuedJob>::const_iterator i= this->JobsWaitingForWorker.begin();
+      i != this->JobsWaitingForWorker.end();
       ++i)
     {
     result.insert(i->Submission.requirements());
@@ -90,16 +97,19 @@ remus::proto::JobRequirementsSet JobQueue::waitingJobRequirements() const
 }
 
 //------------------------------------------------------------------------------
-remus::proto::JobRequirementsSet JobQueue::queuedJobRequirements() const
+remus::proto::JobRequirementsSet JobQueue::queuedJobRequirements()
 {
-  remus::proto::JobRequirementsSet result;
-  for(std::vector<QueuedJob>::const_iterator i= this->QueuedJobs.begin();
+  if(this->CachedQueuedJobRequirements.size() == 0)
+    {
+    for(std::vector<QueuedJob>::const_iterator i= this->QueuedJobs.begin();
       i != this->QueuedJobs.end();
       ++i)
-    {
-    result.insert(i->Submission.requirements());
+      {
+      this->CachedQueuedJobRequirements.insert(i->Submission.requirements());
+      }
     }
-  return result;
+
+  return CachedQueuedJobRequirements;
 }
 
 //------------------------------------------------------------------------------
@@ -113,8 +123,9 @@ bool JobQueue::workerDispatched(const remus::proto::JobRequirements& reqs)
   const bool found = this->QueuedJobs.end() != item;
   if(found)
     {
-    this->QueuedJobsForWorkers.push_back(*item);
+    this->JobsWaitingForWorker.push_back(*item);
     this->QueuedJobs.erase(item);
+    this->CachedQueuedJobRequirements.clear();
     }
   return found;
 }
@@ -131,16 +142,31 @@ bool JobQueue::remove(const boost::uuids::uuid& id)
   typedef std::vector<QueuedJob>::iterator iter;
   JobIdMatches pred(id);
 
+  bool id_found = false;
+
   iter new_end = std::remove_if(this->QueuedJobs.begin(),
                                 this->QueuedJobs.end(),
                                 pred);
-  this->QueuedJobs.erase(new_end,this->QueuedJobs.end());
 
-  new_end = std::remove_if(this->QueuedJobsForWorkers.begin(),
-                           this->QueuedJobsForWorkers.end(),
-                           pred);
-  this->QueuedJobsForWorkers.erase(new_end,this->QueuedJobsForWorkers.end());
+  id_found = (new_end != this->QueuedJobs.end());
+  if( id_found )
+    {
+    this->QueuedJobs.erase(new_end,this->QueuedJobs.end());
+    this->CachedQueuedJobRequirements.clear();
+    }
+  else
+    {
+    new_end = std::remove_if(this->JobsWaitingForWorker.begin(),
+                            this->JobsWaitingForWorker.end(),
+                            pred);
 
+    id_found = (new_end != this->JobsWaitingForWorker.end());
+
+    if( id_found )
+      {
+      this->JobsWaitingForWorker.erase(new_end,this->JobsWaitingForWorker.end());
+      }
+    }
   return this->QueuedIds.erase(id)==1;
 }
 
@@ -150,6 +176,7 @@ void JobQueue::clear()
   this->QueuedIds.clear();
   this->QueuedJobs.clear();
   this->QueuedJobs.clear();
+  this->CachedQueuedJobRequirements.clear();
 }
 
 }
