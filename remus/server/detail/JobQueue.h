@@ -30,16 +30,17 @@ namespace remus{
 namespace server{
 namespace detail{
 
-//A FIFO queue. each mesh type has its own queue
-//where we keep jobs. The uuid for each job
-//must be unique.
-
+//A job id based queue. When jobs are added they are inserted based on
+//the uuid of the job. We use the uuid as the priority of the queue to
+//help alleviate the issue of a single client submitting many jobs and
+//stopping any other client from getting a job finished in a reasonable
+//amount of time.
 class JobQueue
 {
 public:
   JobQueue():
     QueuedJobs(),
-    QueuedJobsForWorkers(),
+    JobsWaitingForWorker(),
     QueuedIds()
   {}
 
@@ -57,11 +58,11 @@ public:
   remus::proto::JobRequirementsSet waitingJobRequirements() const;
 
   //returns the types of jobs that are queued and aren't waiting for a worker
-  remus::proto::JobRequirementsSet queuedJobRequirements() const;
+  remus::proto::JobRequirementsSet queuedJobRequirements();
 
   //return the number of jobs waiting for workers
   std::size_t numJobsWaitingForWorkers() const
-    { return QueuedJobsForWorkers.size(); }
+    { return JobsWaitingForWorker.size(); }
 
   //return the number of jobs queued but not waiting for a worker
   std::size_t numJobsJustQueued() const
@@ -97,13 +98,6 @@ private:
 
   };
 
-  struct CollectRequirements
-  {
-    void operator()( const QueuedJob& job )
-      { types.insert(job.Submission.requirements()); }
-    remus::proto::JobRequirementsSet types;
-  };
-
   struct JobIdMatches
   {
     JobIdMatches(boost::uuids::uuid id):
@@ -135,9 +129,10 @@ private:
   //kept in the order that the jobs are added since this is a real queue
   //we want the priority of queued jobs that have a working incoming to
   //match the dispatch order
-  std::vector<QueuedJob> QueuedJobsForWorkers;
+  std::vector<QueuedJob> JobsWaitingForWorker;
 
   std::set<boost::uuids::uuid> QueuedIds;
+  std::set<remus::proto::JobRequirements> CachedQueuedJobRequirements;
 
   //make copying not possible
   JobQueue (const JobQueue&);

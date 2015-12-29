@@ -54,7 +54,7 @@ int main (int argc, char* argv[])
     {
     if(progress%20==0)
       {
-      remus::common::SleepForMillisec(1000);
+      remus::common::SleepForMillisec(512);
 
       jprogress.setValue(progress);
       jprogress.setMessage("Example Message With Random Content");

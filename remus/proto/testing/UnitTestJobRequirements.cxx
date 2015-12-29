@@ -274,13 +274,13 @@ void verify_req_set()
     to_wire.insert( make_random_MeshReqs() );
     }
 
+  REMUS_ASSERT( (to_wire != from_wire) );
+
   std::stringstream buffer;
   buffer << to_wire;
   buffer >> from_wire;
 
-  const bool same = std::equal(to_wire.begin(),
-                               to_wire.end(),
-                               from_wire.begin());
+  const bool same = (to_wire == from_wire);
   REMUS_ASSERT( same );
 }
 

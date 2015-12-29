@@ -13,11 +13,6 @@
 #ifndef remus_proto_JobRequirements_h
 #define remus_proto_JobRequirements_h
 
-#include <string>
-#include <set>
-
-#include <boost/shared_ptr.hpp>
-
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
 #include <remus/common/FileHandle.h>
@@ -25,6 +20,15 @@
 
 //for export symbols
 #include <remus/proto/ProtoExports.h>
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
+#include <boost/shared_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
+#include <string>
+#include <set>
+
 
 namespace  remus { namespace worker { class Worker; } }
 
@@ -102,6 +106,7 @@ public:
   //can use the class in containers and algorithms
   bool operator<(const JobRequirements& other) const;
   bool operator==(const JobRequirements& other) const;
+  bool operator!=(const JobRequirements& other) const;
 
   friend std::ostream& operator<<(std::ostream &os,
                                   const JobRequirements &reqs)
@@ -173,6 +178,9 @@ struct REMUSPROTO_EXPORT JobRequirementsSet
 
   std::size_t count( const value_type& item ) const
     { return this->Container.count(item); }
+
+bool operator==(const JobRequirementsSet& other) const;
+bool operator!=(const JobRequirementsSet& other) const;
 
 private:
   void serialize(std::ostream& buffer) const;
