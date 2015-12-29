@@ -215,9 +215,9 @@ protected:
 
   //remove any job that has expired, remove workers that have
   //stated they are shutting down, mark workers that are
-  //not sending messages back to the server, and lastly
-  //publish this all through our event publisher
-  void CheckForExpiredWorkersAndJobs();
+  //not sending messages back to the server, update the worker factory
+  //for changes, and lastly publish this all through our event publisher
+  void CheckForChangeInWorkersAndJobs();
 
   //terminate all workers that are doing jobs or waiting for jobs
   void TerminateAllWorkers(zmq::socket_t& workerChannel);

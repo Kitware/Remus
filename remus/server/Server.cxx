@@ -333,10 +333,10 @@ bool Server::Brokering(Server::SignalHandling sh)
   boost::posix_time::ptime currentTime =
                             boost::posix_time::microsec_clock::local_time();
 
-  const boost::int64_t deadWorkersCheckInterval(250);
-  boost::posix_time::ptime whenToCheckForDeadWorkers =
+  const boost::int64_t workerCheckInterval(250);
+  boost::posix_time::ptime whenToCheckForDeadOrCompletedWorkers =
                       boost::posix_time::microsec_clock::local_time() +
-                      boost::posix_time::milliseconds(deadWorkersCheckInterval);
+                      boost::posix_time::milliseconds(workerCheckInterval);
 
   //We need to notify the Thread management that brokering is about to start.
   //This allows the calling thread to resume, as it has been waiting for this
@@ -366,13 +366,11 @@ bool Server::Brokering(Server::SignalHandling sh)
       }
 
     //only purge dead workers every 250ms to reduce server load
-    if(whenToCheckForDeadWorkers <= currentTime)
+    if(whenToCheckForDeadOrCompletedWorkers <= currentTime)
       {
-
-      this->CheckForExpiredWorkersAndJobs();
-
-      whenToCheckForDeadWorkers = currentTime +
-                      boost::posix_time::milliseconds(deadWorkersCheckInterval);
+      this->CheckForChangeInWorkersAndJobs();
+      whenToCheckForDeadOrCompletedWorkers = currentTime +
+                      boost::posix_time::milliseconds(workerCheckInterval);
       }
 
     //see if we have a worker in the pool for the next job in the queue,
@@ -847,7 +845,6 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
   //In order to prevent allocating more workers than needed we use a set instead of a vector.
   //This results in the server only creating one worker per job type.
   //This gives the new workers the opportunity of getting assigned multiple jobs.
-  this->WorkerFactory->updateWorkerCount();
 
   if(this->QueuedJobs->numJobsWaitingForWorkers() == 0 &&
      this->QueuedJobs->numJobsJustQueued() == 0)
@@ -908,9 +905,9 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
 }
 
 //------------------------------------------------------------------------------
-void Server::CheckForExpiredWorkersAndJobs()
+void Server::CheckForChangeInWorkersAndJobs()
 {
-//mark all jobs whose worker haven't sent a heartbeat in time
+  //mark all jobs whose worker haven't sent a heartbeat in time
   //as a job that failed. We are returned the set of job's that are
   //expired
   std::vector< remus::proto::JobStatus > expiredJobs =
@@ -919,12 +916,16 @@ void Server::CheckForExpiredWorkersAndJobs()
   //publish the jobs that have failed
   this->Publish->jobsExpired( expiredJobs );
 
-  //purge all pending workers that have been explicitly termianted
+  //purge all pending workers that have been explicitly terminated
   //with a TERMINATE service call. No need to publish this
   //as we do that when the service call comes in. This also updates
   //the responsive state of all workers.
   // detail::ChangedWorkers updatedWorkers =
           this->WorkerPool->purgeDeadWorkers((*this->SocketMonitor));
+
+  //Resync the worker factory with the updated status of workers. If we have
+  //purged dead workers, the factory itself needs to become aware of this!
+  this->WorkerFactory->updateWorkerCount();
 
   // for( worker : updatedWorkers.workers())
   //   {
