@@ -345,6 +345,11 @@ bool Server::Brokering(Server::SignalHandling sh)
   Thread->setIsBrokering(true);
   while (Thread->isBrokering())
     {
+    //dirty flags for keep track of when a worker shuts down. This is used tell
+    //us when we need to explicitly tell the worker factory to update the
+    //number of living workers. This is done
+    bool worker_shutting_down = false;
+
     zmq::poll_safely(&items[0], 2, monitor.current());
     monitor.pollOccurred();
 
@@ -362,11 +367,11 @@ bool Server::Brokering(Server::SignalHandling sh)
       //a worker is registering
       //we need to strip the worker address from the message
       zmq::SocketIdentity workerIdentity = zmq::address_recv(workerChannel);
-      this->DetermineWorkerResponse(workerChannel,workerIdentity);
+      this->DetermineWorkerResponse(workerChannel,workerIdentity,worker_shutting_down  );
       }
 
-    //only purge dead workers every 250ms to reduce server load
-    if(whenToCheckForDeadOrCompletedWorkers <= currentTime)
+    //only purge dead workers every 250ms or every time a worker shuts down
+    if(whenToCheckForDeadOrCompletedWorkers <= currentTime || worker_shutting_down)
       {
       this->CheckForChangeInWorkersAndJobs();
       whenToCheckForDeadOrCompletedWorkers = currentTime +
@@ -695,7 +700,8 @@ std::string Server::terminateJob(zmq::socket_t& workerChannel,
 
 //------------------------------------------------------------------------------
 void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
-                                     const zmq::SocketIdentity &workerIdentity)
+                                     const zmq::SocketIdentity &workerIdentity,
+                                     bool& workerTerminated )
 {
   remus::proto::Message msg = remus::proto::receive_Message(&workerChannel);
   //if we have an invalid message just ignore it
@@ -776,6 +782,7 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       //worker by asking the SocketMonitor
       this->SocketMonitor->markAsDead(workerIdentity);
       this->Publish->workerTerminated(workerIdentity);
+      workerTerminated = true;
     default:
 
       break;
@@ -876,6 +883,7 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
   queued_types = this->QueuedJobs->queuedJobRequirements();
+  bool assignedJob = false;
   for(it type = queued_types.begin(); type != queued_types.end(); ++type)
     {
     if(this->WorkerPool->haveWaitingWorker(*type))
@@ -884,22 +892,31 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
       this->assignJobToWorker(workerChannel,
                               this->WorkerPool->takeWorker(*type),
                               this->QueuedJobs->takeJob(*type));
+      assignedJob = true;
       }
     }
 
-  //now if we have room in our worker pool for more pending workers create some
-  //make sure we ask the worker pool what its limit on number of pending
-  //workers is before creating more. We have to requery to get the updated
-  //job types since the worker pool might have taken some.
-  queued_types = this->QueuedJobs->queuedJobRequirements();
-  for(it type = queued_types.begin(); type != queued_types.end(); ++type)
+  const bool workerFactoryHasSpace =
+        this->WorkerFactory->currentWorkerCount() < this->WorkerFactory->maxWorkerCount();
+  if(workerFactoryHasSpace)
     {
-    //check if we have a waiting worker, if we don't than try
-    //ask the factory to create a worker of that type.
-    if(this->WorkerFactory->createWorker(*type,
-                           WorkerFactoryBase::KillOnFactoryDeletion))
+    if(assignedJob)
+      { //since we have assigned a job to a worker, we need to recompute
+        //the set of valid requirements
+        queued_types = this->QueuedJobs->queuedJobRequirements();
+      }
+    //We now query the worker factory and see if it has the ability to spawn
+    //any new workers that match the requirements that we have queued.
+    //We are not going to assign the job to the worker now, instead we will
+    //move the job to the waiting queue, and give it to the worker once
+    //it has registered with us through the worker port.
+    for(it type = queued_types.begin(); type != queued_types.end(); ++type)
       {
-      this->QueuedJobs->workerDispatched(*type);
+      if(this->WorkerFactory->createWorker(*type,
+                           WorkerFactoryBase::KillOnFactoryDeletion))
+        {
+        this->QueuedJobs->workerDispatched(*type);
+        }
       }
     }
 }
