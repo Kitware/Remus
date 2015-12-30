@@ -13,5 +13,6 @@ if(Remus_ENABLE_TESTING)
       "-DRemus_SOURCE_DIR=${Remus_SOURCE_DIR}" -P "${Remus_SOURCE_DIR}/CMake/CheckCopyright.cmake"
     )
 
+  add_subdirectory(benchmarks)
   add_subdirectory(integration)
 endif()
