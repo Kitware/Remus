@@ -194,7 +194,8 @@ protected:
 
   //Methods for processing Worker queries
   void DetermineWorkerResponse(zmq::socket_t& clientChannel,
-                               const zmq::SocketIdentity &workerIdentity);
+                               const zmq::SocketIdentity &workerIdentity,
+                               bool& workerTerminated);
 
   //These methods are all to do with sending/recving to workers
   void storeMeshStatus(const zmq::SocketIdentity &workerIdentity,
