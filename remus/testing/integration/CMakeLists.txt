@@ -37,16 +37,6 @@ target_link_libraries(IntegrationTests_SubmitJobs
 target_link_libraries(IntegrationTests_SubmitJobsUsingFactory
     LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
 
-#add in the Performance benchmarks as standalone executables that
-#aren't part of the testing infrastructure for now
-add_executable(WorkerMessagePerformance WorkerMessagePerformance.cxx)
-add_executable(ClientMessagePerformance ClientMessagePerformance.cxx)
-target_link_libraries(WorkerMessagePerformance
-    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
-target_link_libraries(ClientMessagePerformance
-    LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
-
-
 
 #The integration tests use boost::asio which has an optional dependency on
 #boost::regex. We need to state explicitly that we don't use boost regex

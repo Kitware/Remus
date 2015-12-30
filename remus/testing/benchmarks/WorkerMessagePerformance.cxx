@@ -124,35 +124,35 @@ void worker_transfer_performance( boost::shared_ptr< remus::Worker > worker)
   std::cout << "Single message size " <<  status_byte_size << std::endl;
   std::cout << "Total bytes sent " <<  total_bytes_sent << " across  " << num_messages << " messages." << std::endl;
 
-  const boost::int64_t messages_per_msec = (num_messages/dur.total_milliseconds());
-  std::cout << "Messages per sec " << (messages_per_msec * 1000)  << std::endl;
+  const boost::int64_t messages_per_msec = num_messages/dur.total_milliseconds();
+  std::cout << "Messages per msec " << (messages_per_msec * 1000)  << std::endl;
 
-  const boost::int64_t bytes_per_sec = 1000 * (total_bytes_sent / dur.total_milliseconds() );
-  const boost::int64_t mb_per_sec = bytes_per_sec / 1048576;
-  std::cout << "Bandwidth per sec " << mb_per_sec << " (MB/sec) "<< std::endl;
+  const boost::int64_t bytes_per_msec = (total_bytes_sent / dur.total_milliseconds() );
+  const boost::int64_t kb_per_msec = bytes_per_msec / 1024;
+  std::cout << "Bandwidth per KB/msec: " << kb_per_msec << std::endl;
 
 
   //we should never be below this rage. If you add code and this line
   //starts returning false, you need to improve the performance of your feature
 #if defined(__APPLE__)
-  REMUS_ASSERT( (mb_per_sec >= 10))
+  REMUS_ASSERT( (kb_per_msec >= 10))
 #elif defined(_WIN32)
-  REMUS_ASSERT( (mb_per_sec >= 10))
+  REMUS_ASSERT( (kb_per_msec >= 10))
 #else
   //unix just does better with loopback
-  REMUS_ASSERT( (mb_per_sec >= 14))
+  REMUS_ASSERT( (kb_per_msec >= 14))
 #endif
 
   //Okay, we have this test here, so in case we improve performance, that means
   //we can update the baseline performance. So if you start seeing this line
   //starting to fail, you should increase both our ceiling and floor for performance
 #if defined(__APPLE__)
-  REMUS_ASSERT( (mb_per_sec <= 25))
+  REMUS_ASSERT( (kb_per_msec <= 25))
 #elif defined(_WIN32)
-  REMUS_ASSERT( (mb_per_sec <= 25))
+  REMUS_ASSERT( (kb_per_msec <= 25))
 #else
   //unix just does better with loopback
-  REMUS_ASSERT( (mb_per_sec <= 65))
+  REMUS_ASSERT( (kb_per_msec <= 65))
 #endif
 }
 
