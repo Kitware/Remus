@@ -265,13 +265,19 @@ bool WorkerFactory::haveSupport(
 
 //----------------------------------------------------------------------------
 bool WorkerFactory::createWorker(const remus::proto::JobRequirements& reqs,
-                               WorkerFactoryBase::FactoryDeletionBehavior lifespan)
+                                 WorkerFactoryBase::FactoryDeletionBehavior lifespan)
 {
-  this->updateWorkerCount(); //remove dead workers
-  if(this->currentWorkerCount() < this->maxWorkerCount())
+  //we check if we can create a worker with a given set of requirements, before
+  //we check for space, since the 'updateWorkerCount' call is really really
+  //slow ( milliseconds ), while the 'ValidWorker' check is
+  //fast ( microseconds ).
+  //This is super important as 'Server::FindWorkerForQueuedJob' can really hammer
+  //this method
+  const ValidWorker w = find_worker_path(reqs, this->Tracker->PossibleWorkers);
+  if(w.valid)
     {
-    const ValidWorker w = find_worker_path(reqs, this->Tracker->PossibleWorkers);
-    if(w.valid)
+    this->updateWorkerCount(); //remove dead workers
+    if(this->currentWorkerCount() < this->maxWorkerCount())
       {
       return this->addWorker(w.spec, lifespan);
       }
