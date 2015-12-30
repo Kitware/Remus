@@ -876,6 +876,7 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
   //find all jobs that queued up and check if we can assign it to an item in
   //the worker pool
   queued_types = this->QueuedJobs->queuedJobRequirements();
+  bool assignedJob = false;
   for(it type = queued_types.begin(); type != queued_types.end(); ++type)
     {
     if(this->WorkerPool->haveWaitingWorker(*type))
@@ -884,24 +885,29 @@ void Server::FindWorkerForQueuedJob(zmq::socket_t& workerChannel)
       this->assignJobToWorker(workerChannel,
                               this->WorkerPool->takeWorker(*type),
                               this->QueuedJobs->takeJob(*type));
+      assignedJob = true;
       }
     }
 
-  //now if we have room in our worker pool for more pending workers create some
-  //make sure we ask the worker pool what its limit on number of pending
-  //workers is before creating more. We have to requery to get the updated
-  //job types since the worker pool might have taken some.
-  queued_types = this->QueuedJobs->queuedJobRequirements();
+  if(assignedJob)
+    { //since we have assigned a job to a worker, we need to recompute
+      //the set of valid requirements
+      queued_types = this->QueuedJobs->queuedJobRequirements();
+    }
+  //We now query the worker factory and see if it has the ability to spawn
+  //any new workers that match the requirements that we have queued.
+  //We are not going to assign the job to the worker now, instead we will
+  //move the job to the waiting queue, and give it to the worker once
+  //it has registered with us through the worker port.
   for(it type = queued_types.begin(); type != queued_types.end(); ++type)
     {
-    //check if we have a waiting worker, if we don't than try
-    //ask the factory to create a worker of that type.
     if(this->WorkerFactory->createWorker(*type,
-                           WorkerFactoryBase::KillOnFactoryDeletion))
+                         WorkerFactoryBase::KillOnFactoryDeletion))
       {
       this->QueuedJobs->workerDispatched(*type);
       }
     }
+
 }
 
 //------------------------------------------------------------------------------
