@@ -26,7 +26,7 @@ void verify_elapsed()
   boost::posix_time::ptime before_init =
                               boost::posix_time::microsec_clock::local_time();
   remus::common::Timer timer;
-  boost::int64_t milliE = timer.elapsed();
+  boost::int64_t milliE = 0;
   do
     {
     milliE = timer.elapsed();
