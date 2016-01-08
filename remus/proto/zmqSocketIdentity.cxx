@@ -40,10 +40,10 @@ namespace zmq
 {
 
 //------------------------------------------------------------------------------
-SocketIdentity::SocketIdentity( const char* start, std::size_t size )
+SocketIdentity::SocketIdentity( const char* start, std::size_t s )
 {
-  this->Size = size;
-  std::memcpy(this->Data, start, size);
+  this->Size = s;
+  std::memcpy(this->Data, start, s);
 
   if(this->Data[0] == '\0' && this->Size == 5 )
     {
