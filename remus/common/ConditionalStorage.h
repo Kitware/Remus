@@ -37,9 +37,9 @@ struct ConditionalStorage
   //that is passed in. This is a way to create a ConditionalStorage that
   //uses existing allocated memory
   ConditionalStorage(const boost::shared_array<char>& t,
-                     std::size_t size):
+                     std::size_t s):
     Space(t),
-    Size(size)
+    Size(s)
   {
   }
 
