@@ -18,11 +18,14 @@
 #include <iostream>
 #include <fstream>
 
+#include <remus/common/CompilerInformation.h>
 #include <remus/proto/JobStatus.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //----------------------------------------------------------------------------
 worker::worker( remus::worker::ServerConnection const& conn )
