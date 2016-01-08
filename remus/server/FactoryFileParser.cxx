@@ -12,14 +12,13 @@
 
 #include <remus/server/FactoryFileParser.h>
 
-//force to use filesystem version 3
-#define BOOST_FILESYSTEM_VERSION 3
-#include <boost/filesystem/fstream.hpp>
+#include <remus/common/CompilerInformation.h>
 
 //include cjson for parsing the mesh worker file
 #include "cJSON.h"
 
 #include <iostream>
+#include <fstream>
 
 namespace {
   //----------------------------------------------------------------------------

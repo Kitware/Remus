@@ -4,17 +4,11 @@ add_subdirectory(detail)
 
 set(headers
     FactoryFileParser.h
+    PortNumbers.h
     Server.h
     ServerPorts.h
     WorkerFactory.h
     WorkerFactoryBase.h
-    )
-
-#private server files that don't need
-#be given to the users of remus, but
-#are needed by other remus libraries
-set(private_headers
-    PortNumbers.h
     )
 
 set(server_srcs
@@ -56,7 +50,6 @@ remus_install_library(RemusServer)
 
 #install the headers
 remus_public_headers(${headers})
-remus_private_headers(${private_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusServer)

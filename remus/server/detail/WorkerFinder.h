@@ -14,13 +14,16 @@
 #define remus_server_detail_WorkerFinder_h
 
 #include <remus/proto/JobRequirements.h>
+#include <remus/common/CompilerInformation.h>
 #include <remus/server/FactoryFileParser.h>
 
-#include <vector>
-
 //force to use filesystem version 3
+REMUS_THIRDPARTY_PRE_INCLUDE
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
+#include <vector>
 
 namespace remus{
 namespace server{

@@ -12,18 +12,21 @@
 
 #include <remus/server/WorkerFactory.h>
 
+#include <remus/common/CompilerInformation.h>
 #include <remus/common/ExecuteProcess.h>
 #include <remus/common/MeshIOType.h>
 #include <remus/server/FactoryFileParser.h>
 #include <remus/server/detail/WorkerFinder.h>
 
-#include <algorithm>
-
 //force to use filesystem version 3
+REMUS_THIRDPARTY_PRE_INCLUDE
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
-
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
+#include <algorithm>
+
 
 namespace
 {

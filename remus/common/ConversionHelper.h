@@ -36,6 +36,7 @@ inline void extractVector(BufferType& buffer, std::vector<char>& msg)
     {
     const std::streamsize readLen = buffer.rdbuf()->sgetn(&msg[0],msg.size());
     assert(readLen == static_cast<std::streamsize>(msg.size()));
+    (void) readLen;
     }
 }
 
@@ -55,6 +56,7 @@ inline void extractArray(BufferType& buffer, char* msg_data,
     {
     const std::streamsize readLen = buffer.rdbuf()->sgetn(msg_data,msg_size);
     assert(readLen == static_cast<std::streamsize>(msg_size));
+    (void) readLen;
     }
 }
 

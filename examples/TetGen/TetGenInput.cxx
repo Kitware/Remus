@@ -12,10 +12,14 @@
 
 #include "TetGenInput.h"
 
+#include <remus/common/CompilerInformation.h>
+
 //force to use filesystem version 3
+REMUS_THIRDPARTY_PRE_INCLUDE
 #define BOOST_FILESYSTEM_VERSION 3
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 
 #include <sstream>

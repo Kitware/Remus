@@ -341,7 +341,7 @@ void handleServerMessage( zmq::socket_t& workerComm,
 //------------------------------------------------------------------------------
 //handles sending heartbeat to the server
 void sendHeartBeat(zmq::socket_t& serverComm,
-                   const remus::common::PollingMonitor& monitor)
+                   const remus::common::PollingMonitor& m)
 {
   //First we check if we should be talking to the server, if we aren't forwarding
   //messages to the server than sending heartbeats is pointless
@@ -352,7 +352,7 @@ void sendHeartBeat(zmq::socket_t& serverComm,
     //expect a message, rather than it guessing. We always send the max
     //time out since we don't know how long till we poll again. If a
     //super large job comes in we could be blocking for a very long time
-    const boost::int64_t polldur = monitor.maxTimeOut();
+    const boost::int64_t polldur = m.maxTimeOut();
     //send the heartbeat to the server
     remus::proto::send_Message(remus::common::MeshIOType(),
                                remus::HEARTBEAT,
