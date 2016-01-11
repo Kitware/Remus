@@ -16,26 +16,23 @@
 #ifndef remus_commmon_CompilerInformation_h
 #define remus_commmon_CompilerInformation_h
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #define REMUS_MSVC
-#endif
 
-#if defined(__clang__) && !defined(__INTEL_COMPILER)
-//On OSX the intel compiler uses clang as the front end
-#define REMUS_CLANG
-#endif
-
-#ifdef __INTEL_COMPILER
+#elif defined(__INTEL_COMPILER)
 #define REMUS_ICC
-#endif
 
-#ifdef __PGI
+#elif defined(__PGI)
 #define REMUS_PGI
-#endif
 
-// Several compilers pretend to be GCC but have minor differences. Try to
-// compensate for that.
-#if defined(__GNUC__) && !defined(REMUS_CLANG) && !defined(REMUS_ICC)
+#elif defined(__clang__)
+//On OSX the intel compiler uses clang as the front end
+//On Windows you can specify the clang compiler as front end to msvc
+#define REMUS_CLANG
+
+#elif defined(__GNUC__)
+//Now that we have gone through all other compilers that report as gcc/clang
+//we can safely say we have the 'real' gcc compiler
 #define REMUS_GCC
 #endif
 
@@ -47,7 +44,7 @@
 // that should be wrapped around any #include for a boost  header file. Mostly
 // this is used to set pragmas that disable warnings that Remus checks for
 // but boost does not.
-#if (defined(REMUS_GCC) || defined(REMUS_CLANG)) && !defined(REMUS_PGI)
+#if (defined(REMUS_GCC) || defined(REMUS_CLANG))
 
 #define REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS \
   _Pragma("GCC diagnostic ignored \"-Wconversion\"") \

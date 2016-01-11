@@ -16,21 +16,15 @@
 #include <remus/proto/Response.h>
 #include <remus/proto/zmqHelper.h>
 
+#include <remus/common/CompilerInformation.h>
 #include <remus/common/PollingMonitor.h>
 #include <remus/worker/Job.h>
 
-#ifndef _MSC_VER
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wshadow"
-#  pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
-#ifndef _MSC_VER
-#  pragma GCC diagnostic pop
-#endif
-
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus{
 namespace worker{
