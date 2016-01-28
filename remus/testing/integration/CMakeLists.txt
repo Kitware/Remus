@@ -13,13 +13,14 @@
 set(unit_tests
   AlwaysAcceptServer.cxx
   DifferentConnectionTypes.cxx
+  FailedJob.cxx
   QueryIOTypes.cxx
   ShareContext.cxx
   SimpleJobFlow.cxx
+  TerminateMultipleRunningWorkers.cxx
   TerminateQueuedJob.cxx
   TerminateRunningJob.cxx
   TerminateRunningWorker.cxx
-  TerminateMultipleRunningWorkers.cxx
   )
 
 remus_integration_tests(SOURCES ${unit_tests}
