@@ -209,6 +209,27 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
 }
 
 //-----------------------------------------------------------------------------
+void Worker::sendProgress(const remus::worker::Job& j,
+                          int progress, const std::string& message)
+{
+  const remus::proto::JobProgress jp(progress, message);
+  remus::proto::JobStatus status(j.id(),jp);
+  this->updateStatus(status);
+}
+
+//-----------------------------------------------------------------------------
+void Worker::sendJobFailure(const remus::worker::Job& j,
+                            const std::string& reason)
+{
+  const remus::proto::JobProgress jp(reason);
+  remus::proto::JobStatus status(j.id(),jp);
+  //create a status with a message marks us as IN_PROGRESS, so we need to move
+  //to a FAILED state.
+  status.markAsFailed();
+  this->updateStatus(status);
+}
+
+//-----------------------------------------------------------------------------
 void Worker::returnResult(const remus::proto::JobResult& result)
 {
   //send a message that contains, the path to the resulting file

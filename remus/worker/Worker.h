@@ -115,6 +115,16 @@ public:
   //update the status of the worker
   void updateStatus(const remus::proto::JobStatus& info);
 
+  //send a progress status update. This is a convenience method
+  //so the user doesn't have to manually create JobStatus object
+  void sendProgress( const remus::worker::Job&,
+                     int progress, const std::string& message );
+
+  //send a status update that the given job has failed, and include a message
+  //This is a convenience method so the user doesn't have to manually create
+  //JobStatus object and mark it as failed
+  void sendJobFailure( const remus::worker::Job&, const std::string& reason );
+
   //send to the server the mesh results.
   void returnResult(const remus::proto::JobResult& result);
 
