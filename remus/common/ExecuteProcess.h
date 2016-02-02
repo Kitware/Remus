@@ -58,11 +58,46 @@ public:
   //and wasn't set to run in detached mode
   virtual ~ExecuteProcess();
 
+  //Additional command and its args. The process's input pipe will be the output
+  //pipe of the preceding process.
+  void appendProcess(const std::string& command, const std::vector<std::string>& args);
+
+  //Additional command. The process's input pipe will be the output pipe of the
+  //preceding process.
+  void appendProcess(const std::string& command);
+
   //execute the process.
   virtual void execute();
 
   //kills the process if running
   virtual bool kill();
+
+  //Set whether the input pipe in the child is shared with the parent process.
+  //The default is yes.
+  void shareInPipeWithParent(bool choice)
+  { return this->sharePipeWithParent(ProcessPipe::STDIN, choice); }
+
+  //Set whether the output pipe in the child is shared with the parent process.
+  //The default is no.
+  void shareOutPipeWithParent(bool choice)
+  { return this->sharePipeWithParent(ProcessPipe::STDOUT, choice); }
+
+  //Set whether the error pipe in the child is shared with the parent process.
+  //The default is no.
+  void shareErrPipeWithParent(bool choice)
+  { return this->sharePipeWithParent(ProcessPipe::STDERR, choice); }
+
+  //Set input pipe to read from a file
+  void inPipeFromFile(const std::string& filename)
+  { return this->pipeToFile(ProcessPipe::STDIN, filename); }
+
+  //Set output pipe to write to a file
+  void outPipeToFile(const std::string& filename)
+  { return this->pipeToFile(ProcessPipe::STDOUT, filename); }
+
+  //Set error pipe to write to a file
+  void errPipeToFile(const std::string& filename)
+  { return this->pipeToFile(ProcessPipe::STDERR, filename); }
 
   //returns if the process is still alive
   bool isAlive();
@@ -84,8 +119,24 @@ private:
   ExecuteProcess(const ExecuteProcess&);
   void operator=(const ExecuteProcess&);
 
-  std::string Command;
-  std::vector<std::string> Args;
+  //Set whether the given pipe in the child is shared with the parent process.
+  //The default is no for Pipe_STDOUT and Pipe_STDERR and yes for Pipe_STDIN.
+  void sharePipeWithParent(ProcessPipe::PipeType pipe, bool choice);
+
+  //Set pipe output to a file
+  void pipeToFile(ProcessPipe::PipeType pipe, const std::string& filename);
+
+  struct Command
+  {
+    Command(const std::string& cmd, const std::vector<std::string>& args) :
+      Cmd(cmd), Args(args) {}
+    Command(const std::string& cmd) :
+      Cmd(cmd), Args() {}
+    std::string Cmd;
+    std::vector<std::string> Args;
+  };
+
+  std::vector<Command> CommandQueue;
   std::map<std::string,std::string> Env;
 
   struct Process;

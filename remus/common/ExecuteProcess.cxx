@@ -18,7 +18,7 @@
 
 namespace{
 
-remus::common::ProcessPipe::PipeType typeToType(int type)
+remus::common::ProcessPipe::PipeType toProcessPipeType(int type)
   {
   typedef remus::common::ProcessPipe PPipe;
   typedef remus::common::ProcessPipe::PipeType PipeType;
@@ -43,6 +43,34 @@ remus::common::ProcessPipe::PipeType typeToType(int type)
     case RemusSysToolsProcess_Pipe_None:
     default:
       pipeType = PPipe::None;
+      break;
+    }
+  return pipeType;
+  }
+
+int fromProcessPipeType(remus::common::ProcessPipe::PipeType type)
+  {
+  typedef remus::common::ProcessPipe PPipe;
+  typedef remus::common::ProcessPipe::PipeType PipeType;
+
+  RemusSysToolsProcess_Pipes_e pipeType;
+  switch(type)
+    {
+    case PPipe::STDIN:
+      pipeType = RemusSysToolsProcess_Pipe_STDIN;
+      break;
+    case PPipe::STDOUT:
+      pipeType = RemusSysToolsProcess_Pipe_STDOUT;
+      break;
+    case PPipe::STDERR:
+      pipeType = RemusSysToolsProcess_Pipe_STDERR;
+      break;
+    case PPipe::Timeout:
+      pipeType = RemusSysToolsProcess_Pipe_Timeout;
+      break;
+    case PPipe::None:
+    default:
+      pipeType = RemusSysToolsProcess_Pipe_None;
       break;
     }
   return pipeType;
@@ -77,8 +105,7 @@ ExecuteProcess::ExecuteProcess(
   const std::string& command,
   const std::vector<std::string>& args,
   const std::map<std::string,std::string>& env):
-  Command(command),
-  Args(args),
+  CommandQueue(1,ExecuteProcess::Command(command,args)),
   Env(env)
 {
   this->ExternalProcess = new ExecuteProcess::Process();
@@ -87,16 +114,14 @@ ExecuteProcess::ExecuteProcess(
 //-----------------------------------------------------------------------------
 ExecuteProcess::ExecuteProcess(const std::string& command,
                                const std::vector<std::string>& args):
-  Command(command),
-  Args(args)
+  CommandQueue(1,ExecuteProcess::Command(command,args))
   {
   this->ExternalProcess = new ExecuteProcess::Process();
   }
 
 //-----------------------------------------------------------------------------
 ExecuteProcess::ExecuteProcess(const std::string& command):
-  Command(command),
-  Args()
+  CommandQueue(1,ExecuteProcess::Command(command))
   {
   this->ExternalProcess = new ExecuteProcess::Process();
   }
@@ -108,17 +133,43 @@ ExecuteProcess::~ExecuteProcess()
 }
 
 //-----------------------------------------------------------------------------
+void ExecuteProcess::appendProcess(const std::string& command,
+                                   const std::vector<std::string>& args)
+{
+  this->CommandQueue.push_back(ExecuteProcess::Command(command,args));
+}
+
+//-----------------------------------------------------------------------------
+void ExecuteProcess::appendProcess(const std::string& command)
+{
+  this->CommandQueue.push_back(ExecuteProcess::Command(command));
+}
+
+//-----------------------------------------------------------------------------
 void ExecuteProcess::execute()
 {
-  //allocate array large enough for command str, args, and null entry
-  const std::size_t size(this->Args.size() + 2);
-  const char **cmds = new const char * [size];
-  cmds[0] = this->Command.c_str();
-  for(std::size_t i=0; i < this->Args.size();++i)
+  for (std::size_t cmdId=0;cmdId<this->CommandQueue.size();cmdId++)
+  {
+    //allocate array large enough for command str, args, and null entry
+    const std::size_t size(this->CommandQueue[cmdId].Args.size() + 2);
+    const char **cmds = new const char * [size];
+    cmds[0] = this->CommandQueue[cmdId].Cmd.c_str();
+    for(std::size_t i=0; i < this->CommandQueue[cmdId].Args.size();++i)
     {
-    cmds[1 + i] = this->Args[i].c_str();
+      cmds[1 + i] = this->CommandQueue[cmdId].Args[i].c_str();
     }
-  cmds[size-1]=NULL;
+    cmds[size-1]=NULL;
+
+    if (cmdId == 0)
+    {
+      RemusSysToolsProcess_SetCommand(this->ExternalProcess->Proc,cmds);
+    }
+    else
+    {
+      RemusSysToolsProcess_AddCommand(this->ExternalProcess->Proc,cmds);
+    }
+    delete[] cmds;
+  }
 
   // For each requested environment variable, save
   // the old value before setting the new one.
@@ -141,9 +192,9 @@ void ExecuteProcess::execute()
 #endif
     }
 
-  RemusSysToolsProcess_SetCommand(this->ExternalProcess->Proc, cmds);
   RemusSysToolsProcess_SetOption(this->ExternalProcess->Proc,
                             RemusSysToolsProcess_Option_HideWindow, true);
+
   RemusSysToolsProcess_Execute(this->ExternalProcess->Proc);
 
   // Now that the process has been created, reset the environment.
@@ -157,8 +208,6 @@ void ExecuteProcess::execute()
     }
 
   this->ExternalProcess->Created = true;
-
-  delete[] cmds;
 }
 
 
@@ -174,6 +223,23 @@ bool ExecuteProcess::kill()
     return true;
     }
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void ExecuteProcess::sharePipeWithParent(ProcessPipe::PipeType pipe,bool choice)
+{
+  RemusSysToolsProcess_SetPipeShared(this->ExternalProcess->Proc,
+                                     fromProcessPipeType(pipe),
+                                     choice);
+}
+
+//-----------------------------------------------------------------------------
+void ExecuteProcess::pipeToFile(ProcessPipe::PipeType pipe,
+                                const std::string& filename)
+{
+  RemusSysToolsProcess_SetPipeFile(this->ExternalProcess->Proc,
+                                   fromProcessPipeType(pipe),
+                                   filename.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -236,7 +302,7 @@ remus::common::ProcessPipe ExecuteProcess::poll(double timeout)
   char* data;
   int pipe = RemusSysToolsProcess_WaitForData(this->ExternalProcess->Proc,
                                           &data,&length,&realTimeOut);
-  PPipe::PipeType type = typeToType(pipe);
+  PPipe::PipeType type = toProcessPipeType(pipe);
 
   PPipe result(type);
   if(result.valid())
