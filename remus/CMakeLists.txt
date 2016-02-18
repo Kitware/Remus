@@ -19,6 +19,11 @@ set(headers
 
 remus_public_headers(${headers})
 
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/Remus-config.cmake.in"
+  "${Remus_BINARY_DIR}/Remus-config.cmake"
+  @ONLY)
+
 if (WIN32)
   set(cmakedir cmake)
 else ()
@@ -27,3 +32,6 @@ endif ()
 
 #setup the exports for the library when used from an installed location
 install(EXPORT Remus-targets DESTINATION ${cmakedir}/Remus)
+install(
+  FILES       "${Remus_BINARY_DIR}/Remus-config.cmake"
+  DESTINATION ${cmakedir}/Remus)
