@@ -209,8 +209,13 @@ endif()
 #------------------------------------------------------------------------------
 #-------------------------- Install Support Files -----------------------------
 #------------------------------------------------------------------------------
+if (WIN32)
+  set(cmakedir cmake)
+else ()
+  set(cmakedir lib)
+endif ()
 install(FILES ${CMAKE_MODULE_PATH}/RemusRegisterWorker.cmake
-        DESTINATION lib
+        DESTINATION ${cmakedir}/Remus
        )
 
 remus_make_build_exports()
