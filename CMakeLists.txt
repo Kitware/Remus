@@ -212,3 +212,5 @@ endif()
 install(FILES ${CMAKE_MODULE_PATH}/RemusRegisterWorker.cmake
         DESTINATION lib
        )
+
+remus_make_build_exports()
