@@ -39,6 +39,7 @@ function(ms_add_header_test name dir_prefix)
     target_include_directories(TestBuild_${name}
           PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
           PRIVATE ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
+                  ${Remus_SOURCE_DIR} ${Remus_BINARY_DIR}
           )
     if(MSVC)
       target_compile_definitions(TestBuild_${name} PRIVATE

@@ -42,6 +42,9 @@ target_link_libraries(RemusCommon
                       )
 target_include_directories(RemusCommon
                            PUBLIC  ${Boost_INCLUDE_DIRS}
+                                   $<BUILD_INTERFACE:${Remus_SOURCE_DIR}>
+                                   $<BUILD_INTERFACE:${Remus_BINARY_DIR}>
+                                   $<INSTALL_INTERFACE:include>
                            PRIVATE ${RemusSysTools_BINARY_DIR} )
 
 
