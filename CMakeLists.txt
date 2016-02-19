@@ -149,18 +149,6 @@ set(CMAKE_MACOSX_RPATH 1)
 
 
 #------------------------------------------------------------------------------
-#--------------------------- Setup Include paths ------------------------------
-#------------------------------------------------------------------------------
-
-#add this directory so we can include files like: <remus/internal/Test.h>
-#we should never call include_directories inside of the remus directory as
-#should always use absolute include paths rooted on the remus folder
-include_directories(
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
-
-#------------------------------------------------------------------------------
 #----------------------------- Setup ThirdParty -------------------------------
 #------------------------------------------------------------------------------
 
@@ -209,6 +197,13 @@ endif()
 #------------------------------------------------------------------------------
 #-------------------------- Install Support Files -----------------------------
 #------------------------------------------------------------------------------
+if (WIN32)
+  set(cmakedir cmake)
+else ()
+  set(cmakedir lib)
+endif ()
 install(FILES ${CMAKE_MODULE_PATH}/RemusRegisterWorker.cmake
-        DESTINATION lib
+        DESTINATION ${cmakedir}/Remus
        )
+
+remus_make_build_exports()

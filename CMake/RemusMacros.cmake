@@ -39,6 +39,7 @@ function(ms_add_header_test name dir_prefix)
     target_include_directories(TestBuild_${name}
           PUBLIC  ${CMAKE_CURRENT_BINARY_DIR}
           PRIVATE ${ZeroMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
+                  ${Remus_SOURCE_DIR} ${Remus_BINARY_DIR}
           )
     if(MSVC)
       target_compile_definitions(TestBuild_${name} PRIVATE
@@ -86,7 +87,20 @@ function(remus_install_library target)
                           INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
   endif()
 
+  set_property(GLOBAL APPEND
+    PROPERTY
+      remus_targets "${target}")
+
 endfunction(remus_install_library)
+
+function(remus_make_build_exports)
+  get_property(remus_targets GLOBAL
+    PROPERTY remus_targets)
+
+  export(
+    TARGETS ${remus_targets}
+    FILE    "${CMAKE_BINARY_DIR}/Remus-targets.cmake")
+endfunction ()
 
 function(remus_install_third_party_library target)
   install(TARGETS ${target} DESTINATION lib)
