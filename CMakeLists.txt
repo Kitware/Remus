@@ -200,7 +200,7 @@ endif()
 if (WIN32)
   set(cmakedir cmake)
 else ()
-  set(cmakedir lib)
+  set(cmakedir lib/cmake)
 endif ()
 install(FILES ${CMAKE_MODULE_PATH}/RemusRegisterWorker.cmake
         DESTINATION ${cmakedir}/Remus
