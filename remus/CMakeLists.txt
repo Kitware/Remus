@@ -20,8 +20,8 @@ set(headers
 remus_public_headers(${headers})
 
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/Remus-config.cmake.in"
-  "${Remus_BINARY_DIR}/Remus-config.cmake"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RemusConfig.cmake.in"
+  "${Remus_BINARY_DIR}/RemusConfig.cmake"
   @ONLY)
 
 if (WIN32)
