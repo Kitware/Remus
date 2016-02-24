@@ -24,7 +24,7 @@
 #
 # Variables defined by this module:
 #
-#  ZEROMQ_FOUND              System has ZeroMQ libs/headers
+#  ZeroMQ_FOUND              System has ZeroMQ libs/headers
 #  ZeroMQ_LIBRARIES          The ZeroMQ libraries
 #  ZeroMQ_INCLUDE_DIR        The location of ZeroMQ headers
 
@@ -103,6 +103,9 @@ find_package_handle_standard_args(ZeroMQ DEFAULT_MSG
   ZeroMQ_LIBRARY
   ZeroMQ_INCLUDE_DIR
   )
+if (NOT ZeroMQ_FOUND)
+  set(ZeroMQ_FOUND "${ZEROMQ_FOUND}")
+endif ()
 
 set(ZeroMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
 set(ZeroMQ_LIBRARIES ${ZeroMQ_LIBRARY})
