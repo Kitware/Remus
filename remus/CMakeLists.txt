@@ -33,5 +33,5 @@ endif ()
 #setup the exports for the library when used from an installed location
 install(EXPORT Remus-targets DESTINATION ${cmakedir}/Remus)
 install(
-  FILES       "${Remus_BINARY_DIR}/Remus-config.cmake"
+  FILES       "${Remus_BINARY_DIR}/RemusConfig.cmake"
   DESTINATION ${cmakedir}/Remus)
