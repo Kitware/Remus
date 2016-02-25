@@ -60,7 +60,9 @@ remus_private_headers(${private_headers})
 
 #setup the exports for the library when used from a build tree
 export(PACKAGE RemusCommon)
-export(TARGETS RemusCommon RemusSysTools FILE RemusCommon-exports.cmake)
+export(TARGETS RemusCommon
+               RemusSysTools
+               FILE RemusCommon-exports.cmake)
 
 if(Remus_ENABLE_TESTING)
   add_subdirectory(testing)
