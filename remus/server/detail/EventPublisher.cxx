@@ -476,7 +476,7 @@ void EventPublisher::pubJob(const std::string& st, const std::string suid, cJSON
   //zero copy zmq message
   void *hint = NULL;
   zmq::message_t msg(json_str, len, json_free, hint);
-  socket->send(msg.data(), msg.size());
+  socket->send(msg);
 }
 
 //----------------------------------------------------------------------------
@@ -499,7 +499,7 @@ void EventPublisher::pubWorker(const std::string& st, const std::string suid, cJ
   //zero copy zmq message
   void *hint = NULL;
   zmq::message_t msg(json_str, len, json_free, hint);
-  socket->send(msg.data(), msg.size());
+  socket->send(msg);
 }
 
 
