@@ -24,6 +24,7 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 #include <remus/testing/integration/detail/Factories.h>
+#include <remus/testing/integration/detail/Helpers.h>
 #include <remus/testing/integration/detail/Workers.h>
 
 REMUS_THIRDPARTY_PRE_INCLUDE
@@ -38,6 +39,12 @@ namespace
   {
   using remus::testing::integration::detail::ThreadPoolWorkerFactory;
   }
+
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
   static std::size_t ascii_data_size = 1024;
   static std::size_t binary_data_size = 1024;
 
@@ -66,15 +73,6 @@ struct FinishedOrFailed
     }
 };
 
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
 
 //------------------------------------------------------------------------------
 remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
@@ -180,7 +178,7 @@ int TerminateMultipleRunningWorkers(int argc, char* argv[])
 
   //construct a simple client
   const remus::server::ServerPorts& ports = server->serverPortInfo();
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   std::cout << "verifying "
             << num_workers << " workers "

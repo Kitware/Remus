@@ -25,6 +25,7 @@
 #include <remus/testing/Testing.h>
 
 #include <remus/testing/integration/detail/Factories.h>
+#include <remus/testing/integration/detail/Helpers.h>
 #include <remus/testing/integration/detail/Workers.h>
 
 REMUS_THIRDPARTY_PRE_INCLUDE
@@ -39,6 +40,12 @@ namespace
   {
   using remus::testing::integration::detail::ThreadPoolWorkerFactory;
   }
+
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
 
   static std::size_t small_size = 1024;
   static std::size_t large_size = 16777216;
@@ -93,16 +100,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports,
 
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
 }
 
 //------------------------------------------------------------------------------
@@ -205,7 +202,7 @@ int main(int argc, char* argv[])
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
   //construct the client interface
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   const bool valid = verify_jobs(client, num_jobs);
 

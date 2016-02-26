@@ -26,6 +26,7 @@
 #include <remus/testing/Testing.h>
 
 #include <remus/testing/integration/detail/Workers.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
@@ -82,33 +83,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  //because the workers use inproc they need to share the same context
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
 }
 
 //------------------------------------------------------------------------------
@@ -195,6 +169,8 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 //
 int main(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
+
   //construct a server which uses tcp/ip between the client and sever,
   //and inproc between the server and workers
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT);
@@ -204,7 +180,7 @@ int main(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi) );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   //if no parameters just run with a single worker and single job
   std::size_t num_workers = 1;
@@ -231,9 +207,11 @@ int main(int argc, char* argv[])
             << num_jobs << " jobs" << std::endl;
 
   std::vector < detail::InfiniteWorkerController* > processors;
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
   for (std::size_t i=0; i < num_workers; ++i)
     {
-    detail::InfiniteWorkerController* wc = new detail::InfiniteWorkerController( make_Worker( ports ) );
+    detail::InfiniteWorkerController* wc =
+            new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker" ) );
     processors.push_back( wc );
     }
 

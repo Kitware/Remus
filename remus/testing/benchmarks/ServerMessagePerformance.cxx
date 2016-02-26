@@ -23,8 +23,15 @@ REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/date_time/posix_time/posix_time.hpp>
 REMUS_THIRDPARTY_POST_INCLUDE
 
+#include <remus/testing/integration/detail/Helpers.h>
+
 namespace
 {
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
 
 static std::size_t blob_size = 512;
 static std::size_t num_messages = 1000000;
@@ -35,17 +42,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
   boost::shared_ptr<remus::Server> server( new remus::Server(ports) );
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-  // conn.context(ports.context());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +174,7 @@ int main(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( tcp_ports );
   tcp_ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( tcp_ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( tcp_ports );
 
   std::vector< boost::shared_ptr<remus::Worker> > workers;
   workers.push_back( make_Worker( tcp_ports ) );

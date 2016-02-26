@@ -53,34 +53,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 }
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-  conn.context(ports.context());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
-}
-
-//------------------------------------------------------------------------------
 void verify_can_mesh(boost::shared_ptr<remus::Client> client,
                      boost::shared_ptr<remus::Worker> worker)
 {
@@ -189,6 +161,7 @@ void verify_job_result(const remus::proto::Job& job,
                         boost::shared_ptr<remus::Client> client,
                         boost::shared_ptr<remus::Worker> worker)
 {
+  using namespace remus::meshtypes;
   using namespace remus::proto;
 
   const std::string ascii_data = remus::testing::AsciiStringGenerator(2097152);
@@ -211,13 +184,16 @@ void verify_job_result(const remus::proto::Job& job,
 
 void verify_different_connection_types( remus::server::ServerPorts serverPorts )
 {
+  using namespace remus::meshtypes;
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+
   //construct a server using the passed in server ports
   boost::shared_ptr<remus::Server> server = make_Server( serverPorts );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
   //construct a simple worker and client
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
-  boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports, true );
+  boost::shared_ptr<remus::Worker> worker = detail::make_Worker( ports, io_type, "SimpleWorker", true );
 
   //now that everything is up and running verify that the simple
   //submit,query status, get results logic flow works properly

@@ -17,41 +17,21 @@
 #include <remus/server/Server.h>
 #include <remus/worker/Worker.h>
 
+#include <remus/testing/integration/detail/Helpers.h>
+
 namespace
 {
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   boost::shared_ptr<remus::Server> server( new remus::Server(ports) );
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-  conn.context(ports.context());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
 }
 
 //------------------------------------------------------------------------------
@@ -86,6 +66,8 @@ void swap_client_connection( boost::shared_ptr<remus::Client> client )
 //Verify that we can share contexts between client, server and worker
 int ShareContext(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
+
   (void) argc;
   (void) argv;
 
@@ -94,18 +76,20 @@ int ShareContext(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( tcp_ports );
   tcp_ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> tcp_client = make_Client( tcp_ports );
-  boost::shared_ptr<remus::Worker> tcp_worker = make_Worker( tcp_ports );
-  boost::shared_ptr<remus::Worker> tcp_worker2 = make_Worker( tcp_ports );
+  boost::shared_ptr<remus::Client> tcp_client = detail::make_Client( tcp_ports, true );
+
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  boost::shared_ptr<remus::Worker> tcp_worker = detail::make_Worker( tcp_ports, io_type, "SimpleWorker", true );
+  boost::shared_ptr<remus::Worker> tcp_worker2 = detail::make_Worker( tcp_ports, io_type, "SimpleWorker", true );
 
   //verify we can create multiple client contexts and swap clients.
   //zmq context will seg-fault if this doesn't work.
-  swap_client_connection( make_Client( tcp_ports ) );
+  swap_client_connection( detail::make_Client( tcp_ports, true ) );
   swap_client_connection( tcp_client );
 
   //verify we can create multiple worker context and swap workers.
   //zmq context will seg-fault if this doesn't work.
-  swap_worker_connection( make_Worker( tcp_ports ) );
+  swap_worker_connection( detail::make_Worker( tcp_ports, io_type, "SimpleWorker", true ) );
   swap_worker_connection( tcp_worker2 );
 
   //generate random names for the channels
@@ -125,8 +109,8 @@ int ShareContext(int argc, char* argv[])
   boost::shared_ptr<remus::Server> inproc_server( new remus::Server(inproc_ports) );
   inproc_server->startBrokering();
 
-  boost::shared_ptr<remus::Client> in_procclient = make_Client( inproc_ports );
-  boost::shared_ptr<remus::Worker> in_procworker = make_Worker( inproc_ports );
+  boost::shared_ptr<remus::Client> in_procclient = detail::make_Client( inproc_ports, true );
+  boost::shared_ptr<remus::Worker> in_procworker = detail::make_Worker( inproc_ports, io_type, "SimpleWorker", true );
 
   swap_worker_connection( in_procworker );
   swap_client_connection( in_procclient );

@@ -52,31 +52,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 }
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
-}
-
-//------------------------------------------------------------------------------
 void verify_can_mesh(boost::shared_ptr<remus::Client> client,
                      boost::shared_ptr<remus::Worker> worker)
 {
@@ -174,11 +149,12 @@ void verify_job_processing(const remus::worker::Job& job,
 }
 
 //------------------------------------------------------------------------------
-void verifyt_job_failed(const remus::worker::Job& job,
+void verify_job_failed( const remus::worker::Job& job,
                         boost::shared_ptr<remus::Client> client,
                         boost::shared_ptr<remus::Worker> worker)
 {
   using namespace remus::proto;
+  using namespace remus::meshtypes;
 
   worker->sendJobFailure(job, "job failed");
 
@@ -204,6 +180,7 @@ void verifyt_job_failed(const remus::worker::Job& job,
 //runs, sends back status, and than reports the job as failed.
 int FailedJob(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
   (void) argc;
   (void) argv;
 
@@ -211,15 +188,16 @@ int FailedJob(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
-  boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  boost::shared_ptr<remus::Worker> worker = detail::make_Worker( ports, io_type, "SimpleWorker" );
 
   //now that everything is up and running verify that the simple
   //submit,query status, get failed status logic flow works properly
   verify_can_mesh(client,worker);
   remus::worker::Job job = verify_job_submission(client,worker);
   verify_job_processing(job,client,worker);
-  verifyt_job_failed(job,client,worker);
+  verify_job_failed(job,client,worker);
 
   return 0;
 }
