@@ -248,14 +248,15 @@ void handleWorkerMessage(zmq::socket_t& workerComm,
     //so we need to prepare for that
     if(message.serviceType()==remus::TERMINATE_WORKER)
       {
-      //send the terminate worker message to the job queue so it
-      //shuts down. This has to be blocking so we know that it has
-      //received the message.
+      //In theory the JobQueue will shutdown whenever the worker is destroyed.
+      //We don't care about blocking our shutdown based on if the job queue
+      //received this message, as it could already be shutting down, and has
+      //stopped polling.
       remus::worker::Job terminateJob;
-      remus::proto::send_Response(remus::TERMINATE_WORKER,
-                                  remus::worker::to_string(terminateJob),
-                                  &queueComm,
-                                  (zmq::SocketIdentity()) );
+      remus::proto::send_NonBlockingResponse(remus::TERMINATE_WORKER,
+                                             remus::worker::to_string(terminateJob),
+                                             &queueComm,
+                                             (zmq::SocketIdentity()) );
 
       //we are in the process of cleaning up we need to stop everything.
       //we first check if we have any outstanding job results that
