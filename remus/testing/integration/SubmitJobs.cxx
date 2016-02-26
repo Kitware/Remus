@@ -35,7 +35,7 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace
 {
-  namespace workdetail
+  namespace detail
   {
   using namespace remus::testing::integration::detail;
   }
@@ -140,7 +140,7 @@ remus::proto::Job submit_Job(boost::shared_ptr<remus::Client> client,
 
 //------------------------------------------------------------------------------
 bool verify_jobs(boost::shared_ptr<remus::Client> client,
-                 std::vector< workdetail::InfiniteWorkerController* >& processors,
+                 std::vector< detail::InfiniteWorkerController* >& processors,
                  std::size_t num_jobs_to_submit)
 {
   using namespace remus::proto;
@@ -230,10 +230,10 @@ int main(int argc, char* argv[])
   std::cout << "verifying " << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
 
-  std::vector < workdetail::InfiniteWorkerController* > processors;
+  std::vector < detail::InfiniteWorkerController* > processors;
   for (std::size_t i=0; i < num_workers; ++i)
     {
-    workdetail::InfiniteWorkerController* wc = new workdetail::InfiniteWorkerController( make_Worker( ports ) );
+    detail::InfiniteWorkerController* wc = new detail::InfiniteWorkerController( make_Worker( ports ) );
     processors.push_back( wc );
     }
 
@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
   std::vector< std::size_t > jobsFinishedPerWorker;
   for (std::size_t i=0; i < processors.size(); ++i)
     {
-    workdetail::InfiniteWorkerController* wc = processors[i];
+    detail::InfiniteWorkerController* wc = processors[i];
     std::cout << "worker " << i << " completed " <<  wc->numberOfCompletedJobs() << " jobs " << std::endl;
     jobsFinishedPerWorker.push_back( wc->numberOfCompletedJobs() );
     wc->stop();

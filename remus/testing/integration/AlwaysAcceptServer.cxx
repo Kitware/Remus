@@ -24,10 +24,11 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 #include <remus/testing/integration/detail/Factories.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 namespace
 {
-  namespace workdetail
+  namespace detail
   {
   using namespace remus::testing::integration::detail;
   }
@@ -81,7 +82,7 @@ std::vector< remus::common::MeshIOType > make_all_meshTypes()
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   //create the server and start brokering, with an empty factory
-  boost::shared_ptr<workdetail::AlwaysSupportFactory> factory(new workdetail::AlwaysSupportFactory("SimpleWorker"));
+  boost::shared_ptr<detail::AlwaysSupportFactory> factory(new detail::AlwaysSupportFactory("SimpleWorker"));
   factory->setMaxWorkerCount(1); //max worker needs to be higher than 0
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
@@ -167,19 +168,6 @@ remus::proto::Job verify_job_submission(boost::shared_ptr<remus::Client> client)
 }
 
 //------------------------------------------------------------------------------
-void verify_job_status(remus::proto::Job  job,
-                       boost::shared_ptr<remus::Client> client,
-                       remus::STATUS_TYPE statusType)
-{
-  using namespace remus::proto;
-
-  remus::common::SleepForMillisec(250);
-  JobStatus currentStatus = client->jobStatus(job);
-  const bool valid_status = (currentStatus.status() == statusType);
-  REMUS_ASSERT(valid_status)
-}
-
-//------------------------------------------------------------------------------
 remus::worker::Job verify_worker_take_job(remus::proto::Job  job,
                                           boost::shared_ptr<remus::Worker> worker)
 {
@@ -216,11 +204,23 @@ void verify_client_gets_correct_status(const remus::proto::Job& job,
                                        const remus::proto::JobStatus& workerStatus,
                                        boost::shared_ptr<remus::Client> client)
 {
-   using namespace remus::proto;
-   remus::common::SleepForMillisec(25); //wait for server to get worker status
-   const remus::proto::JobStatus clientStatus = client->jobStatus(job);
+  using namespace remus::proto;
+  //wait for server to get worker status, we try up to 4 more times to handle
+  //really slow test machines.
+  remus::common::SleepForMillisec(500);
+  remus::proto::JobStatus clientStatus = client->jobStatus(job);
+
+  bool valid_status = (clientStatus==workerStatus);
+  const int tries = 4;
+  for(int i=0; i < tries && !valid_status; ++i)
+    {
+    remus::common::SleepForMillisec(500);
+    clientStatus = client->jobStatus(job);
+    valid_status = (clientStatus==workerStatus);
+    }
    REMUS_ASSERT( (clientStatus==workerStatus) )
 }
+
 //------------------------------------------------------------------------------
 void verify_job_progress(const remus::proto::Job& job,
                          boost::shared_ptr<remus::Client> client,
@@ -229,7 +229,7 @@ void verify_job_progress(const remus::proto::Job& job,
   using namespace remus::proto;
 
   //no progress from the worker yet, should still be queued
-  verify_job_status(job,client,remus::QUEUED);
+  detail::verify_job_status(job,client,remus::QUEUED);
 
   {
   JobProgress workerProgress("starting work");
@@ -238,7 +238,7 @@ void verify_job_progress(const remus::proto::Job& job,
   verify_client_gets_correct_status(job,workerStatus,client);
   }
 
-  verify_job_status(job,client,remus::IN_PROGRESS);
+  detail::verify_job_status(job,client,remus::IN_PROGRESS);
 
   {
   //send another status message, and verify client side
@@ -247,7 +247,7 @@ void verify_job_progress(const remus::proto::Job& job,
         ( JobStatus(job.id(),(JobProgress(25,"working"))) ), client);
   }
 
-  verify_job_status(job,client,remus::IN_PROGRESS);
+  detail::verify_job_status(job,client,remus::IN_PROGRESS);
 
   {
   //send another status message, and verify client side
@@ -267,7 +267,7 @@ void verify_job_progress(const remus::proto::Job& job,
   verify_client_gets_correct_status(job,correctStatus,client);
   }
 
-  verify_job_status(job,client,remus::IN_PROGRESS);
+  detail::verify_job_status(job,client,remus::IN_PROGRESS);
 }
 
 //------------------------------------------------------------------------------
@@ -285,7 +285,7 @@ void verify_job_result(remus::proto::Job  job,
 
   //after the job result has been submitted back to the server
   //the status should be finished
-  verify_job_status(job,client,remus::FINISHED);
+  detail::verify_job_status(job,client,remus::FINISHED);
 
 
   remus::proto::JobResult client_results = client->retrieveResults(job);
@@ -314,7 +314,7 @@ int AlwaysAcceptServer(int argc, char* argv[])
 
   //verify that we can submit jobs to the server without any workers
   remus::proto::Job job = verify_job_submission(client);
-  verify_job_status(job,client,remus::QUEUED);
+  detail::verify_job_status(job,client,remus::QUEUED);
 
   //now create the worker
   boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
@@ -323,19 +323,19 @@ int AlwaysAcceptServer(int argc, char* argv[])
   verify_worker_take_job(job,worker);
   //since we haven't sent status from the worker the status
   //still should be QUEUED
-  verify_job_status(job,client,remus::QUEUED);
+  detail::verify_job_status(job,client,remus::QUEUED);
 
   //verify that worker can send progress events and the client will
   //get them
   verify_job_progress(job,client,worker);
-  verify_job_status(job,client,remus::IN_PROGRESS);
+  detail::verify_job_status(job,client,remus::IN_PROGRESS);
 
   //verify that the job result the worker sends is sent back to the
   //client properly
   verify_job_result(job,client,worker);
 
   //now job shouldn't exist on the server
-  verify_job_status(job,client,remus::INVALID_STATUS);
+  detail::verify_job_status(job,client,remus::INVALID_STATUS);
 
   return 0;
 }

@@ -24,10 +24,11 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 #include <remus/testing/integration/detail/Factories.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 namespace
 {
-  namespace workdetail
+  namespace detail
   {
   using namespace remus::testing::integration::detail;
   }
@@ -67,7 +68,7 @@ std::vector< remus::common::MeshIOType > make_all_meshTypes()
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   //create the server and start brokering, with an empty factory
-  boost::shared_ptr<workdetail::AlwaysSupportFactory> factory(new workdetail::AlwaysSupportFactory("AlwaysSupportWorker"));
+  boost::shared_ptr<detail::AlwaysSupportFactory> factory(new detail::AlwaysSupportFactory("AlwaysSupportWorker"));
   factory->setMaxWorkerCount(1); //max worker needs to be higher than 0
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
@@ -139,26 +140,13 @@ remus::proto::Job verify_job_submission(boost::shared_ptr<remus::Client> client)
 }
 
 //------------------------------------------------------------------------------
-void verify_job_status(remus::proto::Job  job,
-                       boost::shared_ptr<remus::Client> client,
-                       remus::STATUS_TYPE statusType)
-{
-  using namespace remus::proto;
-
-  remus::common::SleepForMillisec(25);
-  JobStatus currentStatus = client->jobStatus(job);
-  const bool valid_status = (currentStatus.status() == statusType);
-  REMUS_ASSERT(valid_status)
-}
-
-//------------------------------------------------------------------------------
 void verify_job_result(remus::proto::Job  job,
                        boost::shared_ptr<remus::Client> client)
 {
 
   remus::proto::JobResult results = client->retrieveResults(job);
   REMUS_ASSERT( (results.valid()==false) )
-  verify_job_status(job,client,remus::QUEUED);
+  detail::verify_job_status(job,client,remus::QUEUED);
 }
 
 //------------------------------------------------------------------------------
@@ -190,7 +178,7 @@ int TerminateQueuedJob(int argc, char* argv[])
 
   //verify that we can submit jobs to the server without any workers
   remus::proto::Job job = verify_job_submission(client);
-  verify_job_status(job,client,remus::QUEUED);
+  detail::verify_job_status(job,client,remus::QUEUED);
 
   //try to get results from a job that hasn't finished
   verify_job_result(job,client);
@@ -199,7 +187,7 @@ int TerminateQueuedJob(int argc, char* argv[])
   verify_terminate_job(job,client);
 
   //verify that you can't get back valid status for a terminated job
-  verify_job_status(job,client,remus::INVALID_STATUS);
+  detail::verify_job_status(job,client,remus::INVALID_STATUS);
 
   return 0;
 }

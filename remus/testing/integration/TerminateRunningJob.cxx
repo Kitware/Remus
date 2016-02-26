@@ -27,7 +27,7 @@
 
 namespace
 {
-   namespace workdetail
+   namespace detail
   {
   using namespace remus::testing::integration::detail;
   }
@@ -42,7 +42,7 @@ namespace
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
   //create the server and start brokering, with an empty factory
-  boost::shared_ptr<workdetail::AlwaysSupportFactory> factory(new workdetail::AlwaysSupportFactory("SimpleWorker"));
+  boost::shared_ptr<detail::AlwaysSupportFactory> factory(new detail::AlwaysSupportFactory("SimpleWorker"));
   factory->setMaxWorkerCount(1); //max worker needs to be higher than 0
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();

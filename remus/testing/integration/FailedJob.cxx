@@ -23,11 +23,16 @@
 
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 #include <utility>
 
 namespace
 {
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
 
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
@@ -70,20 +75,6 @@ boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& 
   boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
   return w;
 }
-
-//------------------------------------------------------------------------------
-void verify_job_status(remus::proto::Job  job,
-                       boost::shared_ptr<remus::Client> client,
-                       remus::STATUS_TYPE statusType)
-{
-  using namespace remus::proto;
-
-  remus::common::SleepForMillisec(250);
-  JobStatus currentStatus = client->jobStatus(job);
-  const bool valid_status = (currentStatus.status() == statusType);
-  REMUS_ASSERT(valid_status)
-}
-
 
 //------------------------------------------------------------------------------
 void verify_can_mesh(boost::shared_ptr<remus::Client> client,
@@ -133,7 +124,7 @@ remus::worker::Job verify_job_submission(boost::shared_ptr<remus::Client> client
   REMUS_ASSERT( clientJob.valid() )
 
   //verify the status of the job
-  verify_job_status(clientJob,client,remus::QUEUED);
+  detail::verify_job_status(clientJob,client,remus::QUEUED);
 
   //wait for the server to send the job to the worker
   std::size_t numPendingJobs = worker->pendingJobCount();
@@ -172,7 +163,7 @@ void verify_job_processing(const remus::worker::Job& job,
 
   //create a job progress to send to the client
   worker->sendProgress(job, 50, std::string());
-  verify_job_status(clientJob,client,remus::IN_PROGRESS);
+  detail::verify_job_status(clientJob,client,remus::IN_PROGRESS);
 
   //grab the status on the client and verify it matches the status we sent
   //for the worker
@@ -191,6 +182,8 @@ void verifyt_job_failed(const remus::worker::Job& job,
 
   worker->sendJobFailure(job, "job failed");
 
+  remus::common::SleepForMillisec(250);
+  remus::common::SleepForMillisec(250);
   remus::common::SleepForMillisec(250);
 
   //verify that we get a failed status msg on the client
