@@ -21,6 +21,8 @@ REMUS_THIRDPARTY_PRE_INCLUDE
 REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
+#include <iostream>
+#include <ios>
 
 namespace
 {
@@ -34,6 +36,20 @@ boost::uint32_t  convertBEToUnsignedInteger(const char buffer[256])
               static_cast<boost::uint32_t>(buffer[4]);
 }
 
+std::string convertDigestToHex(const char* input, std::size_t s)
+{
+  //presumes that s is divisible by 4!
+  const int* t = reinterpret_cast<const int*>(input);
+  const int size = s/4;
+  std::stringstream buffer;
+  buffer << std::hex << t[0] << "-";
+  buffer << std::hex << t[1] << "-";
+  buffer << std::hex << t[2] << "-";
+  buffer << std::hex << t[3];
+  return buffer.str();
+}
+
+
 }
 
 namespace zmq
@@ -45,13 +61,21 @@ SocketIdentity::SocketIdentity( const char* start, std::size_t s )
   this->Size = s;
   std::memcpy(this->Data, start, s);
 
+
   if(this->Data[0] == '\0' && this->Size == 5 )
     {
+    //this is most likely the new 4byte integer count from zmq 3.0+
     //by default zmq reserves all id's that start with '\0', and they use an unsigned 32 bit
-    //int in big endian form to represent the identity of the socket. If we detect this we convert this to a human
+    //int in big endian from to represent the identity of the socket. If we detect this we convert this to a human
     //readable name
     boost::uint32_t integerId = convertBEToUnsignedInteger(this->Data);
     this->Name = boost::lexical_cast<std::string>( integerId );
+    }
+ else if(this->Data[0] == '\0' && this->Size == 17 )
+    {
+    //this is most likely the old uuid generated version from zmq 2.0
+    //so lets us a slower path to generate the uuid
+    this->Name = convertDigestToHex(this->Data+1, this->Size-1);
     }
   else
     {
