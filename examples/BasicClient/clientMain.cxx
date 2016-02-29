@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
 
   //keep track of the number of queries to do a rough test
-  const int num_submitted_jobs = 18;
+  const std::size_t num_submitted_jobs = 18;
   int queries = 0;
   int failed_jobs = 0;
 
