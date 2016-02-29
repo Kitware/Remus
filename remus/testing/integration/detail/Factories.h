@@ -100,10 +100,10 @@ public:
     Connection(),
     HasConnection(false),
     IOService(),
-    Work( IOService ),
+    IOWork( IOService ),
     ThreadPool(),
     Mutex(),
-    AvailableThreads( maxThreadCount ),
+    CurrentWorkerCount( 0 ),
     JobsPerThread()
   {
     this->setMaxWorkerCount(maxThreadCount);
@@ -150,23 +150,21 @@ public:
   bool createWorker(const remus::proto::JobRequirements& reqs,
                     remus::server::WorkerFactoryBase::FactoryDeletionBehavior /*lifespan*/)
   {
-    {
     boost::lock_guard< boost::mutex > lock( this->Mutex );
-    if(this->AvailableThreads == 0)
+    if(this->CurrentWorkerCount == this->maxWorkerCount())
       {
       return false;
       }
-
     if( !(reqs == this->WorkerReqs) )
       {
       return false;
       }
 
-    //mark a worker as being used
-    --this->AvailableThreads;
-    }
-
     IOService.post( boost::bind( &ThreadPoolWorkerFactory::LaunchWorker, this ) );
+
+    //mark a worker as being used
+    this->CurrentWorkerCount++;
+
     return true;
   }
 
@@ -178,7 +176,7 @@ public:
   unsigned int currentWorkerCount() const
   {
     boost::lock_guard< boost::mutex > lock( this->Mutex );
-    return this->maxWorkerCount() - this->AvailableThreads;
+    return this->CurrentWorkerCount;
   }
 
 private:
@@ -192,32 +190,42 @@ private:
       this->HasConnection = true;
       }
 
+    const boost::thread::id t_id = boost::this_thread::get_id();
+    std::size_t numCompleted = 0;
+
     try
       {
       //construct the worker and tell it to process a job
+      std::cout << "constructing a worker " << t_id << std::endl;
       integration::detail::SingleShotWorker worker(this->WorkerReqs,
                                                    this->Connection);
 
       //should be 1, could be zero
-      const std::size_t numCompleted = worker.numberOfCompletedJobs();
-
-      //mark the thread as having finished another job
-      if(this->JobsPerThread.find( boost::this_thread::get_id() ) != this->JobsPerThread.end())
-        {
-        this->JobsPerThread[ boost::this_thread::get_id() ]+= numCompleted;
-        }
-      else
-        {
-        this->JobsPerThread[ boost::this_thread::get_id() ] = 1;
-        }
+      numCompleted = worker.numberOfCompletedJobs();
       }
       catch(...)
       { //the worker crashed, just ignore it
+      std::cout << "ERROR: worker factory failed to make a SingleShotWorker!" << std::endl;
       }
+
+    //mark the thread as having finished another job
+    if(this->JobsPerThread.find( t_id ) != this->JobsPerThread.end())
+      {
+      boost::lock_guard< boost::mutex > lock( this->Mutex );
+      std::cout << t_id << " finished a job(" << numCompleted << ")"<< std::endl;
+      this->JobsPerThread[ t_id ]+= numCompleted;
+      }
+    else
+      {
+      boost::lock_guard< boost::mutex > lock( this->Mutex );
+      std::cout << t_id << " finished first job(" << numCompleted << ")"<< std::endl;
+      this->JobsPerThread[ t_id ] = numCompleted;
+      }
+
     //worker is finished so mark the thread as usable
     {
     boost::lock_guard< boost::mutex > lock( this->Mutex );
-    ++this->AvailableThreads;
+    this->CurrentWorkerCount--;
     }
   }
 
@@ -236,11 +244,11 @@ private:
   bool HasConnection;
 
   boost::asio::io_service IOService;
-  boost::asio::io_service::work Work;
+  boost::asio::io_service::work IOWork;
   boost::thread_group ThreadPool;
 
   mutable boost::mutex Mutex;
-  std::size_t AvailableThreads;
+  volatile unsigned int CurrentWorkerCount;
 
   std::map< ::boost::thread::id, std::size_t > JobsPerThread;
 };

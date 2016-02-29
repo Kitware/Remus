@@ -74,6 +74,11 @@ struct FinishedOrFailed
       if( r.dataSize() > 0 )
         { ++(*this->num_finished_jobs); }
       }
+    else if(st.failed())
+      {
+      std::cout << "job: " << job.id() << std::endl;
+      std::cout << "status: " << remus::to_string(st.status()) << std::endl;
+      }
     return st.finished() || st.failed();
     }
 };
@@ -159,6 +164,8 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
     //required to be valid
     jobs.erase(std::remove_if(jobs.begin(),jobs.end(),fofJobs),
                jobs.end());
+
+    remus::common::SleepForMillisec(125);
     }
 
   //return true when the number of jobs that finished properly matches
