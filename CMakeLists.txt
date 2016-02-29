@@ -92,14 +92,8 @@ endif()
 #------------------------------------------------------------------------------
 #-----------------------------Setup Build Flags  ------------------------------
 #------------------------------------------------------------------------------
-
 # include export header modules so that we can easily control symbol exporting
 # Remus is setup by default not to export symbols unless explicitly stated.
-# We prefer to only export symbols of a small set of user facing classes,
-# rather than exporting all symbols. In practice we will try to not export
-# symbols for any third party library
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 include(GenerateExportHeader)
 
 #-----------------------------------------------------------------------------
@@ -180,6 +174,20 @@ endif()
 
 #setup cJson as an object library
 add_subdirectory(thirdparty/cJson)
+
+
+#------------------------------------------------------------------------------
+#---------------------------  Setup Visibility Flags  -------------------------
+#------------------------------------------------------------------------------
+# Set the visibility for all of remus. We do this after setting up the
+# thirdparty code since it generates CMake warnings about visibility and static
+# libraries.
+# We prefer to only export symbols of a small set of user facing classes,
+# rather than exporting all symbols. In theory we will try to not export
+# symbols for any third party library
+#
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 
 #------------------------------------------------------------------------------
