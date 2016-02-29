@@ -19,9 +19,12 @@
 #include <remus/server/WorkerFactoryBase.h>
 #include <remus/worker/Worker.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/locks.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <map>
 
 #include <remus/testing/integration/detail/Workers.h>
