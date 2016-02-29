@@ -44,8 +44,8 @@ namespace
   static std::size_t small_size = 1024;
   static std::size_t large_size = 16777216;
 
-  static std::size_t ascii_data_size = small_size;
-  static std::size_t binary_data_size = small_size;
+  static std::size_t ascii_data_size = 0;
+  static std::size_t binary_data_size = 0;
 
   //------------------------------------------------------------------------------
   struct FinishedOrFailed
@@ -157,12 +157,14 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
                jobs.end());
     }
 
-  std::cout << "num_valid_finished_jobs: " << num_valid_finished_jobs << std::endl;
   //return true when the number of jobs that finished properly matches
   //the number of jobs submitted. We don't use REMUS_ASSERT in this
-  //thread, but instead
+  //thread, but instead return a valid/invalid flag
+  std::cout << "num_jobs_to_submit: " << num_jobs_to_submit << std::endl;
+  std::cout << "num_valid_finished_jobs: " << num_valid_finished_jobs << std::endl;
   return num_valid_finished_jobs == num_jobs_to_submit;
 }
+
 
 }
 
@@ -201,6 +203,11 @@ int main(int argc, char* argv[])
     {
     ascii_data_size = large_size;
     binary_data_size = large_size;
+    }
+  else
+    {
+    ascii_data_size = small_size;
+    binary_data_size = small_size;
     }
 
   std::cout << "verifying " << num_workers << " workers "
