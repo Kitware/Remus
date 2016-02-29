@@ -147,7 +147,9 @@ public:
   bool createWorker(const remus::proto::JobRequirements& reqs,
                     remus::server::WorkerFactoryBase::FactoryDeletionBehavior /*lifespan*/)
   {
-    if(this->currentWorkerCount() >= this->maxWorkerCount())
+    {
+    boost::lock_guard< boost::mutex > lock( this->Mutex );
+    if(this->AvailableThreads == 0)
       {
       return false;
       }
@@ -158,8 +160,6 @@ public:
       }
 
     //mark a worker as being used
-    {
-    boost::lock_guard< boost::mutex > lock( this->Mutex );
     --this->AvailableThreads;
     }
 
@@ -180,7 +180,7 @@ public:
 
 private:
   void LaunchWorker()
-    {
+  {
     using namespace remus::testing;
     //construct a shared connection for all workers to use
     if(!this->HasConnection)
@@ -216,8 +216,7 @@ private:
     boost::lock_guard< boost::mutex > lock( this->Mutex );
     ++this->AvailableThreads;
     }
-
-    }
+  }
 
   //when we are quickly starting up and shutting down
   //workers we can run into some zmq edge case bugs, mainly
@@ -225,7 +224,7 @@ private:
   //The issue is:
   //is sendlarge ZMQ_DONTWAIT message(s)
   //than close the socket and context immediately
-  //the destination willnever recieves anything, and if you do
+  //the destination will never receives anything, and if you do
   //it enough times you get that assertion failure.
   //The solution is to use a single connection so that all
   //workers use the same zmq context
