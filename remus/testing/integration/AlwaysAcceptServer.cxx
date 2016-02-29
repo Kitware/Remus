@@ -90,30 +90,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 }
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
-}
-
-//------------------------------------------------------------------------------
 void verify_can_mesh(boost::shared_ptr<remus::Client> client)
 {
   using namespace remus::meshtypes;
@@ -300,6 +276,8 @@ void verify_job_result(remus::proto::Job  job,
 //------------------------------------------------------------------------------
 int AlwaysAcceptServer(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
+
   (void) argc;
   (void) argv;
 
@@ -307,7 +285,7 @@ int AlwaysAcceptServer(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   //verify that the servers says that we can mesh without any workers connected
   verify_can_mesh(client);
@@ -317,7 +295,8 @@ int AlwaysAcceptServer(int argc, char* argv[])
   detail::verify_job_status(job,client,remus::QUEUED);
 
   //now create the worker
-  boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  boost::shared_ptr<remus::Worker> worker = detail::make_Worker( ports, io_type, "SimpleWorker" );
 
   //verify the worker accepts the correct job
   verify_worker_take_job(job,worker);

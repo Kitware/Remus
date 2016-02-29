@@ -76,16 +76,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 }
 
 //------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
 void verify_can_mesh(boost::shared_ptr<remus::Client> client)
 {
   using namespace remus::meshtypes;
@@ -171,7 +161,7 @@ int TerminateQueuedJob(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   //verify that the servers says that we can mesh without any workers connected
   verify_can_mesh(client);

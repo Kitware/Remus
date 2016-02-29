@@ -24,6 +24,7 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 #include <remus/testing/integration/detail/Factories.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 namespace
 {
@@ -47,31 +48,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker( const remus::server::ServerPorts& ports )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-
-  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +122,7 @@ void verify_job_is_terminated(boost::shared_ptr<remus::Worker> worker,
 
 int TerminateRunningJob(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
   (void) argc;
   (void) argv;
 
@@ -153,8 +130,9 @@ int TerminateRunningJob(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
-  boost::shared_ptr<remus::Worker> worker = make_Worker( ports );
+  remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
+  boost::shared_ptr<remus::Worker> worker = detail::make_Worker( ports, io_type, "SimpleWorker" );
 
   //have the client submit the job
   remus::proto::Job clientJob = submit_Job(client);

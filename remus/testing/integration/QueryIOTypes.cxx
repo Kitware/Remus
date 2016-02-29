@@ -23,6 +23,7 @@
 
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
+#include <remus/testing/integration/detail/Helpers.h>
 
 #include <utility>
 
@@ -75,6 +76,11 @@ public:
 
 namespace
 {
+  namespace detail
+  {
+  using namespace remus::testing::integration::detail;
+  }
+
 //------------------------------------------------------------------------------
 boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
 {
@@ -85,35 +91,6 @@ boost::shared_ptr<remus::Server> make_Server( remus::server::ServerPorts ports )
   boost::shared_ptr<remus::Server> server( new remus::Server(ports,factory) );
   server->startBrokering();
   return server;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Client> make_Client( const remus::server::ServerPorts& ports )
-{
-  remus::client::ServerConnection conn =
-              remus::client::make_ServerConnection(ports.client().endpoint());
-  conn.context(ports.context());
-
-  boost::shared_ptr<remus::Client> c(new remus::client::Client(conn));
-  return c;
-}
-
-//------------------------------------------------------------------------------
-boost::shared_ptr<remus::Worker> make_Worker(const remus::server::ServerPorts& ports,
-                                             std::string input_type,
-                                             std::string output_type )
-{
-  using namespace remus::meshtypes;
-  using namespace remus::proto;
-
-  remus::worker::ServerConnection conn =
-              remus::worker::make_ServerConnection(ports.worker().endpoint());
-  conn.context(ports.context());
-
-  remus::common::MeshIOType io_type(input_type,output_type);
-  JobRequirements requirements = make_JobRequirements(io_type, "SimpleWorker", "");
-  boost::shared_ptr<remus::Worker> w(new remus::Worker(requirements,conn));
-  return w;
 }
 
 //------------------------------------------------------------------------------
@@ -140,6 +117,8 @@ void verify_supportsIOType(boost::shared_ptr<remus::Client> client,
 //can retrieve those types from the server
 int QueryIOTypes(int argc, char* argv[])
 {
+  using namespace remus::meshtypes;
+
   (void) argc;
   (void) argv;
 
@@ -148,7 +127,7 @@ int QueryIOTypes(int argc, char* argv[])
   boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts() );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
-  boost::shared_ptr<remus::Client> client = make_Client( ports );
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   //verify right now that the server MeshIOType of Model:Bridge which was
   //part of the factory
@@ -164,7 +143,8 @@ int QueryIOTypes(int argc, char* argv[])
 
   for(std::size_t i=0; i <3; ++i)
     {
-    handles.push_back( make_Worker( ports, "Model", output_types[i] ) );
+    remus::common::MeshIOType io_type("Model",output_types[i]);
+    handles.push_back( detail::make_Worker( ports, io_type, "SimpleWorker", true ) );
     handles[i]->askForJobs(1);
     }
   remus::common::SleepForMillisec(35);
