@@ -51,7 +51,6 @@ remus::common::ProcessPipe::PipeType toProcessPipeType(int type)
 int fromProcessPipeType(remus::common::ProcessPipe::PipeType type)
   {
   typedef remus::common::ProcessPipe PPipe;
-  typedef remus::common::ProcessPipe::PipeType PipeType;
 
   RemusSysToolsProcess_Pipes_e pipeType;
   switch(type)
