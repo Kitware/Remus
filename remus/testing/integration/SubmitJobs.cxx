@@ -68,6 +68,11 @@ namespace
         if( r.dataSize() > 0 )
           { ++(*this->num_finished_jobs); }
         }
+      else if(st.failed())
+        {
+        std::cout << "job: " << job.id() << std::endl;
+        std::cout << "status: " << remus::to_string(st.status()) << std::endl;
+        }
       return st.finished() || st.failed();
       }
   };
@@ -218,7 +223,7 @@ int main(int argc, char* argv[])
   for (std::size_t i=0; i < num_workers; ++i)
     {
     detail::InfiniteWorkerController* wc =
-            new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker" ) );
+            new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker", true ) );
     processors.push_back( wc );
     }
 
