@@ -68,6 +68,11 @@ namespace
         if( r.dataSize() > 0 )
           { ++(*this->num_finished_jobs); }
         }
+      else if(st.failed())
+        {
+        std::cout << "job: " << job.id() << std::endl;
+        std::cout << "status: " << remus::to_string(st.status()) << std::endl;
+        }
       return st.finished() || st.failed();
       }
   };
