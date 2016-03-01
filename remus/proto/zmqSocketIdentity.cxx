@@ -36,11 +36,10 @@ boost::uint32_t  convertBEToUnsignedInteger(const char buffer[256])
               static_cast<boost::uint32_t>(buffer[4]);
 }
 
-std::string convertDigestToHex(const char* input, std::size_t s)
+std::string convertDigestToHex(const char* input)
 {
   //presumes that s is divisible by 4!
   const int* t = reinterpret_cast<const int*>(input);
-  const int size = s/4;
   std::stringstream buffer;
   buffer << std::hex << t[0] << "-";
   buffer << std::hex << t[1] << "-";
@@ -75,7 +74,7 @@ SocketIdentity::SocketIdentity( const char* start, std::size_t s )
     {
     //this is most likely the old uuid generated version from zmq 2.0
     //so lets us a slower path to generate the uuid
-    this->Name = convertDigestToHex(this->Data+1, this->Size-1);
+    this->Name = convertDigestToHex(this->Data+1);
     }
   else
     {
