@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
   for (std::size_t i=0; i < num_workers; ++i)
     {
     detail::InfiniteWorkerController* wc =
-            new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker" ) );
+            new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker", true ) );
     processors.push_back( wc );
     }
 
