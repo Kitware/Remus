@@ -174,12 +174,13 @@ private:
   //----------------------------------------------------------------------------
   void start_impl()
   {
-  std::srand(static_cast<unsigned int>(std::time(0)));
 
   while(true)
     {
     //this is used to generate artificial server messaging load.
-    const std::size_t numberOfMessagesToSend = 10 + std::rand() % (100);
+    const std::size_t timeInc = 5;
+    const std::size_t numberOfMessagesToSend = randomInt(250, 1000);
+    const std::size_t numMessagePerTimeStep = numberOfMessagesToSend / (100/timeInc);
 
     //We rely on the server telling us to terminate for us to return
     //from get job. The job in that case should be a TERMINATE_WORKER
@@ -212,7 +213,7 @@ private:
 
     remus::proto::JobProgress jprogress;
     remus::proto::JobStatus status( jd.id(), remus::IN_PROGRESS );
-    for( std::size_t  progress=1; progress <= 100; progress+=5)
+    for( std::size_t  progress=1; progress <= 100; progress+=timeInc)
       {
 
       jprogress.setValue( progress );
@@ -222,7 +223,7 @@ private:
 
       status.updateProgress( jprogress );
 
-      for( std::size_t i=0; i < numberOfMessagesToSend; ++i)
+      for( std::size_t i=0; i < numMessagePerTimeStep; ++i)
         { //send multiple times to simulate load
         this->Worker->updateStatus( status );
         }
