@@ -20,7 +20,9 @@
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <iostream>
 
