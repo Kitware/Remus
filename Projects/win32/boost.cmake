@@ -9,6 +9,7 @@ set(boost_with_args
   --with-filesystem
   --with-system
   --with-thread
+  --with-atomic
   )
 
 #since we don't specify a prefix for the superbuild,
