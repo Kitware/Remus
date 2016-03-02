@@ -16,8 +16,7 @@
 
 #include <map>
 
-//initialize the static instance variable in signal catcher in the class
-//that inherits from it
+//initialize the static instance variable of the signal catcher
 remus::common::SignalCatcher* remus::common::SignalCatcher::Instance = NULL;
 
 namespace

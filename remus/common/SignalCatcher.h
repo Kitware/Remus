@@ -14,6 +14,7 @@
 #define remus_common_SignalCatcher_h
 
 #include <csignal>
+#include <cstddef>
 
 namespace remus{
 namespace common{
@@ -67,8 +68,6 @@ protected:
 
   void StopCatchingSignals()
   {
-    remus::common::SignalCatcher::Instance = this;
-
     //stop watching all signals that could cause the program to
     //abnormally terminate
     signal( SIGABRT, SIG_DFL );
@@ -77,6 +76,8 @@ protected:
     signal( SIGINT,  SIG_DFL );
     signal( SIGSEGV, SIG_DFL );
     signal( SIGTERM, SIG_DFL );
+
+    remus::common::SignalCatcher::Instance = NULL;
   }
 
   //method to override to pickup what signal was thrown
