@@ -106,7 +106,7 @@ public:
     CurrentWorkerCount( 0 ),
     JobsPerThread()
   {
-    this->setMaxWorkerCount(maxThreadCount);
+    this->setMaxWorkerCount( static_cast<unsigned int>(maxThreadCount) );
 
     for ( std::size_t i = 0; i < maxThreadCount; ++i )
     {

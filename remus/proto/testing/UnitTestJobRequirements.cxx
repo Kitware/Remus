@@ -63,7 +63,7 @@ T randomEnum(T min_t, T max_t)
 remus::common::MeshIOType randomMeshTypes()
 {
   remus::common::MeshIOTypeSet allTypes = remus::common::generateAllIOTypes();
-  int selected_index = randomInt(0,allTypes.size());
+  int selected_index = randomInt(0, static_cast<int>(allTypes.size()) );
 
   int index=0;
   typedef remus::common::MeshIOTypeSet::const_iterator cit;

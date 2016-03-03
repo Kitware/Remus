@@ -98,7 +98,7 @@ private:
   for(std::size_t progress=1; progress <= 100; progress+=timeInc)
     {
 
-    jprogress.setValue( progress );
+    jprogress.setValue( static_cast<int>(progress) );
 
     //send a random ascii status message back to the client
     jprogress.setMessage( remus::testing::AsciiStringGenerator(1024) );
@@ -215,10 +215,10 @@ private:
 
     remus::proto::JobProgress jprogress;
     remus::proto::JobStatus status( jd.id(), remus::IN_PROGRESS );
-    for( std::size_t  progress=1; progress <= 100; progress+=timeInc)
+    for(std::size_t progress=1; progress <= 100; progress+=timeInc)
       {
 
-      jprogress.setValue( progress );
+      jprogress.setValue( static_cast<int>(progress) );
 
       //send a random ascii status message back to the client
       jprogress.setMessage( remus::testing::AsciiStringGenerator(1024) );
