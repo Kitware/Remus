@@ -190,6 +190,8 @@ void verify_different_connection_types( remus::server::ServerPorts serverPorts )
   //construct a server using the passed in server ports
   boost::shared_ptr<remus::Server> server = make_Server( serverPorts );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
+  std::cout << "client port: " << ports.client().endpoint() << std::endl;
+  std::cout << "worker port: " << ports.worker().endpoint() << std::endl;
 
   //construct a simple worker and client
   boost::shared_ptr<remus::Client> client = detail::make_Client( ports, true );
@@ -217,11 +219,13 @@ int DifferentConnectionTypes(int argc, char* argv[])
 
   //generate random names for the channels
   boost::uuids::random_generator generator;
+
+  {
+  remus::common::SleepForMillisec(250);
   std::string client_channel = boost::uuids::to_string(generator());
   std::string status_channel = boost::uuids::to_string(generator());
   std::string worker_channel = boost::uuids::to_string(generator());
 
-  {
   std::cout << "verify using inproc everywhere" << std::endl;
   zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
   zmq::socketInfo<zmq::proto::inproc> si(status_channel);
@@ -233,6 +237,9 @@ int DifferentConnectionTypes(int argc, char* argv[])
   }
 
   {
+  remus::common::SleepForMillisec(250);
+  std::string worker_channel = boost::uuids::to_string(generator());
+
   std::cout << "verify using tcp/ip on client -> server, and inproc for worker -> server" << std::endl;
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT);
   zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT);
@@ -241,6 +248,10 @@ int DifferentConnectionTypes(int argc, char* argv[])
   }
 
   {
+  remus::common::SleepForMillisec(250);
+  std::string client_channel = boost::uuids::to_string(generator());
+  std::string status_channel = boost::uuids::to_string(generator());
+
   std::cout << "verify using inproc on client -> server, and tcp/ip for worker -> server" << std::endl;
   zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
   zmq::socketInfo<zmq::proto::inproc> si(status_channel);

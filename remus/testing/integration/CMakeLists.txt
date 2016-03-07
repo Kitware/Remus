@@ -26,6 +26,8 @@ set(unit_tests
 remus_integration_tests(SOURCES ${unit_tests}
                         LIBRARIES ${Boost_LIBRARIES})
 
+# set_tests_properties(DifferentConnectionTypes PROPERTIES RUN_SERIAL TRUE)
+
 #also add other permutation for SubmitJobs where
 #we modify the number of workers and jobs
 add_executable(IntegrationTests_SubmitJobs
