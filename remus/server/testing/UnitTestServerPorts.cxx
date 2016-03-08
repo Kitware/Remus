@@ -144,10 +144,9 @@ int UnitTestServerPorts(int, char *[])
   REMUS_ASSERT( verify_bindings(remus::server::ServerPorts()) );
 
   //generate random names for the channels
-  boost::uuids::random_generator generator;
-  std::string client_channel = boost::uuids::to_string(generator());
-  std::string status_channel = boost::uuids::to_string(generator());
-  std::string worker_channel = boost::uuids::to_string(generator());
+  std::string client_channel = remus::testing::UniqueString();
+  std::string status_channel = remus::testing::UniqueString();
+  std::string worker_channel = remus::testing::UniqueString();
 
   //verify everything works with dual inproc
   zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
