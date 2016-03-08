@@ -94,9 +94,9 @@ int ShareContext(int argc, char* argv[])
 
   //generate random names for the channels
   boost::uuids::random_generator generator;
-  std::string client_channel = boost::uuids::to_string(generator());
-  std::string status_channel = boost::uuids::to_string(generator());
-  std::string worker_channel = boost::uuids::to_string(generator());
+  std::string client_channel = remus::testing::UniqueString();
+  std::string status_channel = remus::testing::UniqueString();
+  std::string worker_channel = remus::testing::UniqueString();
 
   //Create a second server, and make client and workers based on it
   //this will verify that the server has zmq thread management, and that we
