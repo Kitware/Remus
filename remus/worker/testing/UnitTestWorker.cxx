@@ -229,5 +229,8 @@ int UnitTestWorker(int, char *[])
 
   verify_polling_rates();
 
+  //Keep the test running while the OS has time to unbind the sockets, this
+  //should help other tests from failing to bind to the now released socket
+  remus::common::SleepForMillisec(1000);
   return 0;
 }
