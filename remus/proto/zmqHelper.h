@@ -149,7 +149,7 @@ inline void poll_safely(zmq_pollitem_t *items,
 
   while(timeout >= 0 && rc < 0)
     {
-    rc = zmq_poll(items, nitems, static_cast<long>(timeout) );
+    rc = zmq_poll(items, nitems, static_cast<long>(ZMQ_POLL_MSEC*timeout) );
     if(rc < 0 && zmq_errno() == EINTR)
       {
       //figure out how long we polled for, subtract that from our timeout
