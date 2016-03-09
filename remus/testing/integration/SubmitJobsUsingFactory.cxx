@@ -21,6 +21,7 @@
 //required to use custom contexts
 #include <remus/proto/zmq.hpp>
 
+#include <remus/server/PortNumbers.h>
 #include <remus/common/SleepFor.h>
 #include <remus/testing/Testing.h>
 
@@ -210,8 +211,14 @@ int main(int argc, char* argv[])
   std::cout << "verifying " << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
 
+  //construct a server which uses tcp/ip between the client and sever,
+  //and inproc between the server and workers
+  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT + num_jobs);
+  zmq::socketInfo<zmq::proto::tcp> si("127.0.0.1", remus::server::STATUS_PORT + num_jobs);
+  zmq::socketInfo<zmq::proto::tcp> wi("127.0.0.1", remus::server::WORKER_PORT + num_jobs);
+
   //construct a threaded pool factory
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(),
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi),
                                                          num_workers );
   const remus::server::ServerPorts& ports = server->serverPortInfo();
 
