@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
   //construct a server which uses tcp/ip between the client and sever,
   //and inproc between the server and workers
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT + num_jobs);
-  zmq::socketInfo<zmq::proto::tcp> si("127.0.0.1", remus::server::STATUS_PORT + num_jobs);
+  zmq::socketInfo<zmq::proto::tcp> si("127.0.0.1", remus::server::STATUS_PORT);
   zmq::socketInfo<zmq::proto::tcp> wi("127.0.0.1", remus::server::WORKER_PORT + num_jobs);
 
   //construct a threaded pool factory

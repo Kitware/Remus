@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
   //construct a server which uses tcp/ip between the client and sever,
   //and inproc between the server and workers
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT + num_jobs);
-  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT + num_jobs);
+  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT);
 
   //make a unique worker channel name that won't be shared even if multiple
   //submit job tests are running in parallel
