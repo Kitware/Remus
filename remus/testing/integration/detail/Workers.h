@@ -189,7 +189,7 @@ private:
     //job.
 
     remus::worker::Job jd = this->Worker->getJob();
-    std::cout << "job " << jd.id() << "assigned to InfiniteWorkerController" << std::endl;
+    std::cout << "job " << jd.id() << " assigned to InfiniteWorkerController" << std::endl;
 
     switch(jd.validityReason())
       {

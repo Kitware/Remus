@@ -178,17 +178,6 @@ int main(int argc, char* argv[])
 {
   using namespace remus::meshtypes;
 
-  //construct a server which uses tcp/ip between the client and sever,
-  //and inproc between the server and workers
-  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT);
-  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT);
-  zmq::socketInfo<zmq::proto::inproc> wi("worker_channel");
-
-  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi) );
-  const remus::server::ServerPorts& ports = server->serverPortInfo();
-
-  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
-
   //if no parameters just run with a single worker and single job
   std::size_t num_workers = 1;
   std::size_t num_jobs = 1;
@@ -217,6 +206,21 @@ int main(int argc, char* argv[])
 
   std::cout << "verifying " << num_workers << " workers "
             << num_jobs << " jobs" << std::endl;
+
+  //construct a server which uses tcp/ip between the client and sever,
+  //and inproc between the server and workers
+  zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT + num_jobs);
+  zmq::socketInfo<zmq::proto::tcp> si(ci.host(), remus::server::STATUS_PORT);
+
+  //make a unique worker channel name that won't be shared even if multiple
+  //submit job tests are running in parallel
+  std::string worker_channel = "sj-" + remus::testing::UniqueString() + boost::lexical_cast<std::string>(num_workers);
+  zmq::socketInfo<zmq::proto::inproc> wi(worker_channel);
+
+  boost::shared_ptr<remus::Server> server = make_Server( remus::server::ServerPorts(ci,si,wi) );
+  const remus::server::ServerPorts& ports = server->serverPortInfo();
+
+  boost::shared_ptr<remus::Client> client = detail::make_Client( ports );
 
   std::vector < detail::InfiniteWorkerController* > processors;
   remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());

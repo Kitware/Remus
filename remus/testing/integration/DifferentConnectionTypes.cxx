@@ -219,9 +219,9 @@ int DifferentConnectionTypes(int argc, char* argv[])
 
   {
   remus::common::SleepForMillisec(250);
-  std::string client_channel = remus::testing::UniqueString();
-  std::string status_channel = remus::testing::UniqueString();
-  std::string worker_channel = remus::testing::UniqueString();
+  std::string client_channel = "dct-" + remus::testing::UniqueString();
+  std::string status_channel = "dct-" + remus::testing::UniqueString();
+  std::string worker_channel = "dct-" + remus::testing::UniqueString();
 
   std::cout << "verify using inproc everywhere" << std::endl;
   zmq::socketInfo<zmq::proto::inproc> ci(client_channel);
@@ -235,7 +235,7 @@ int DifferentConnectionTypes(int argc, char* argv[])
 
   {
   remus::common::SleepForMillisec(250);
-  std::string worker_channel = remus::testing::UniqueString();
+  std::string worker_channel = "dct-" + remus::testing::UniqueString();
 
   std::cout << "verify using tcp/ip on client -> server, and inproc for worker -> server" << std::endl;
   zmq::socketInfo<zmq::proto::tcp> ci("127.0.0.1", remus::server::CLIENT_PORT);
@@ -246,8 +246,8 @@ int DifferentConnectionTypes(int argc, char* argv[])
 
   {
   remus::common::SleepForMillisec(250);
-  std::string client_channel = remus::testing::UniqueString();
-  std::string status_channel = remus::testing::UniqueString();
+  std::string client_channel = "dct-" + remus::testing::UniqueString();
+  std::string status_channel = "dct-" + remus::testing::UniqueString();
 
   std::cout << "verify using inproc on client -> server, and tcp/ip for worker -> server" << std::endl;
   zmq::socketInfo<zmq::proto::inproc> ci(client_channel);

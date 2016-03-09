@@ -26,8 +26,6 @@ set(unit_tests
 remus_integration_tests(SOURCES ${unit_tests}
                         LIBRARIES ${Boost_LIBRARIES})
 
-# set_tests_properties(DifferentConnectionTypes PROPERTIES RUN_SERIAL TRUE)
-
 #also add other permutation for SubmitJobs where
 #we modify the number of workers and jobs
 add_executable(IntegrationTests_SubmitJobs
@@ -69,9 +67,6 @@ function(add_SubmitJobs_test size workers jobs)
   add_test(NAME ${tname}
            COMMAND IntegrationTests_SubmitJobs ${size} ${workers} ${jobs})
   set_tests_properties(${tname} PROPERTIES TIMEOUT 300)
-  #This test needs to be run serially as it binds to lots of ports and will
-  #be an issue to other tests
-  set_tests_properties(${tname} PROPERTIES RUN_SERIAL TRUE)
 endfunction()
 
 function(add_SubmitJobsFactory_test size workers jobs)
@@ -79,9 +74,6 @@ function(add_SubmitJobsFactory_test size workers jobs)
   add_test(NAME ${tname}
            COMMAND IntegrationTests_SubmitJobsUsingFactory ${size} ${workers} ${jobs})
   set_tests_properties(${tname} PROPERTIES TIMEOUT 300)
-  #This test needs to be run serially as it binds to lots of ports and will
-  #be an issue to other tests
-  set_tests_properties(${tname} PROPERTIES RUN_SERIAL TRUE)
 endfunction()
 
 add_SubmitJobs_test(small 1 1)

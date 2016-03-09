@@ -76,13 +76,20 @@ Worker::Worker(remus::common::MeshIOType mtype,
   JobQueue( new remus::worker::detail::JobQueue( *Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID)))
 {
-  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
-
+  //build the buffer before we start the message router. This shortens the
+  //duration that the worker is stalling, while the message router is active
+  //and sending/recv without a registered worker
+  std::string buffer_str;
+  {
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
+  buffer_str = input_buffer.str();
+  }
+
+  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
   remus::proto::send_Message(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH_REQUIREMENTS,
-                            input_buffer.str(),
+                            buffer_str,
                             &this->Zmq->Server);
 }
 
@@ -98,13 +105,20 @@ Worker::Worker(const remus::proto::JobRequirements& requirements,
   JobQueue( new remus::worker::detail::JobQueue( *Zmq->InterWorkerContext,
                     zmq::socketInfo<zmq::proto::inproc>(Zmq->JobChannelUUID)) )
 {
-  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
-
+  //build the buffer before we start the message router. This shortens the
+  //duration that the worker is stalling, while the message router is active
+  //and sending/recv without a registered worker
+  std::string buffer_str;
+  {
   std::ostringstream input_buffer;
   input_buffer << this->MeshRequirements;
+  buffer_str = input_buffer.str();
+  }
+
+  this->MessageRouter->start(conn, *Zmq->InterWorkerContext);
   remus::proto::send_Message(this->MeshRequirements.meshTypes(),
                             remus::CAN_MESH_REQUIREMENTS,
-                            input_buffer.str(),
+                            buffer_str,
                             &this->Zmq->Server);
 }
 
