@@ -183,8 +183,8 @@ bool verify_jobs(boost::shared_ptr<remus::Client> client,
 int main(int argc, char* argv[])
 {
   //if no parameters just run with a single worker and single job
-  std::size_t num_workers = 1;
-  std::size_t num_jobs = 1;
+  int num_workers = 1;
+  int num_jobs = 1;
   std::string data_size_flag = "small";
   if( argc == 4)
     {
