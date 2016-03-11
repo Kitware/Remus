@@ -10,9 +10,10 @@
 //
 //=============================================================================
 
+#include <remus/common/CompilerInformation.h>
 #if defined(REMUS_MSVC)
- __pragma(warning(push))
- __pragma(warning(disable:4996))  /*using non checked iterators*/
+ #pragma warning(push)
+ #pragma warning(disable:4996)  /*using non checked iterators*/
 #endif
 
 #include <remus/proto/WorkerJob.h>
@@ -101,5 +102,5 @@ remus::proto::WorkerJob to_WorkerJob(const std::string& msg)
 }
 
 #if defined(REMUS_MSVC)
- __pragma(warning(pop))
+#pragma warning(pop)ß
 #endif
