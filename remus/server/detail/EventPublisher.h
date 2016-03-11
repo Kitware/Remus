@@ -22,9 +22,12 @@ namespace proto{
   class JobRequirements;
   class JobResult;
   class JobStatus;
+  class WorkerJob;
   }
 
-namespace worker{ class Job;   }
+namespace worker{
+  typedef remus::proto::WorkerJob Job;
+  }
 }
 
 namespace zmq

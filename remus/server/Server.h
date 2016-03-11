@@ -35,11 +35,12 @@ namespace zmq { struct SocketIdentity; }
 namespace remus {
   //forward declaration of classes only the implementation needs
   namespace proto {
+  class WorkerJob;
   class Message;
   }
 
   namespace worker {
-  class Job;
+  typedef remus::proto::WorkerJob Job;
   }
 }
 

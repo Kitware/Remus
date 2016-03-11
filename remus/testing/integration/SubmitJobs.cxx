@@ -179,8 +179,8 @@ int main(int argc, char* argv[])
   using namespace remus::meshtypes;
 
   //if no parameters just run with a single worker and single job
-  std::size_t num_workers = 1;
-  std::size_t num_jobs = 1;
+  int num_workers = 1;
+  int num_jobs = 1;
   std::string data_size_flag = "small";
   if( argc == 4)
     {
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
   std::vector < detail::InfiniteWorkerController* > processors;
   remus::common::MeshIOType io_type = remus::common::make_MeshIOType(Mesh2D(),Mesh3D());
-  for (std::size_t i=0; i < num_workers; ++i)
+  for (int i=0; i < num_workers; ++i)
     {
     detail::InfiniteWorkerController* wc =
             new detail::InfiniteWorkerController( detail::make_Worker( ports, io_type, "SimpleWorker", true ) );
