@@ -68,15 +68,19 @@
 #define REMUS_THIRDPARTY_POST_INCLUDE \
   REMUS_THRIDPARTY_WARNINGS_POP
 
+#elif defined(REMUS_MSVC)
+#define REMUS_THIRDPARTY_PRE_INCLUDE \
+ __pragma(warning(push)) \
+ __pragma(warning(disable:4996))  /*using non checked iterators*/ \
+ __pragma(warning(disable:4267))  /*from size_t to type*/ \
+ __pragma(warning(disable:4251))  /*missing DLL-interface*/ \
+ __pragma(warning(disable:4267))  /*unreferenced inline function*/
+#define REMUS_THIRDPARTY_POST_INCLUDE \
+ __pragma(warning(pop))
+
 #else
 #define REMUS_THIRDPARTY_PRE_INCLUDE
 #define REMUS_THIRDPARTY_POST_INCLUDE
 #endif
 
-#endif
-
-//Now define some global windows suppressions
-#if defined(REMUS_MSVC) // Visual studio
-# pragma warning ( disable : 4251 ) //missing DLL-interface
-# pragma warning ( disable : 4514 ) //unreferenced inline function
 #endif
