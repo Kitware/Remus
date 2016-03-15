@@ -9,13 +9,11 @@ add_subdirectory(detail)
 
 set(headers
     Job.h
-    LocateFile.h
     ServerConnection.h
     Worker.h
     )
 
 set(worker_srcs
-   LocateFile.cxx
    ServerConnection.cxx
    Worker.cxx
    detail/JobQueue.cxx
@@ -30,11 +28,6 @@ target_link_libraries(RemusWorker
                       LINK_PUBLIC RemusProto
                       LINK_PRIVATE ${Boost_LIBRARIES}
                                    ${CMAKE_THREAD_LIBS_INIT} )
-
-if(APPLE)
-  find_library(COREFOUNDATION_LIBRARY CoreFoundation )
-  target_link_libraries(RemusWorker LINK_PRIVATE ${COREFOUNDATION_LIBRARY} )
-endif()
 
 #disable checked iterators in RemusWorker
 if(MSVC)

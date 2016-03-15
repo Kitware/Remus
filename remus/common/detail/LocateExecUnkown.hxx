@@ -11,7 +11,8 @@
 //=============================================================================
 
 namespace  remus {
-namespace  worker {
+namespace  common {
+namespace  detail {
 
 //------------------------------------------------------------------------------
 boost::filesystem::path getOSExecLocation()
@@ -21,5 +22,6 @@ boost::filesystem::path getOSExecLocation()
   return boost::filesystem::canonical(execLoc);
 }
 
+}
 }
 }

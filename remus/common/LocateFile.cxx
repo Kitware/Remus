@@ -10,7 +10,7 @@
 //
 //=============================================================================
 
-#include <remus/worker/LocateFile.h>
+#include <remus/common/LocateFile.h>
 #include <remus/common/CompilerInformation.h>
 
 REMUS_THIRDPARTY_PRE_INCLUDE
@@ -20,23 +20,23 @@ REMUS_THIRDPARTY_PRE_INCLUDE
 REMUS_THIRDPARTY_POST_INCLUDE
 
 #if  defined(__APPLE__)
-  #include <remus/worker/detail/LocateExecOSX.hxx>
+  #include <remus/common/detail/LocateExecOSX.hxx>
 #elif defined(_WIN32)
-  #include <remus/worker/detail/LocateExecWin.hxx>
+  #include <remus/common/detail/LocateExecWin.hxx>
 #elif defined(REMUS_HAVE_AUXV_H)
-  #include <remus/worker/detail/LocateExecUnix.hxx>
+  #include <remus/common/detail/LocateExecUnix.hxx>
 #else
-  #include <remus/worker/detail/LocateExecUnkown.hxx>
+  #include <remus/common/detail/LocateExecUnkown.hxx>
 #endif
 
 namespace  remus {
-namespace  worker {
+namespace  common {
 
 //------------------------------------------------------------------------------
 std::string getExecutableLocation()
 {
   //ask the per OS specific code where the executable is located
-  boost::filesystem::path execLoc = remus::worker::getOSExecLocation();
+  boost::filesystem::path execLoc = remus::common::detail::getOSExecLocation();
   if(boost::filesystem::is_empty(execLoc))
     {
     //we default our guess of the executable location to be the current working
@@ -83,9 +83,9 @@ remus::common::FileHandle findFile( const std::string& name,
                                     const std::string& ext )
 {
   std::vector< std::string > absoluteLocations;
-  absoluteLocations.push_back( remus::worker::getExecutableLocation() );
+  absoluteLocations.push_back( remus::common::getExecutableLocation() );
 
-  std::vector<std::string> relLocations = remus::worker::locationsToSearch();
+  std::vector<std::string> relLocations = remus::common::locationsToSearch();
 
   return findFile( name, ext, relLocations, absoluteLocations );
 }
@@ -138,5 +138,5 @@ remus::common::FileHandle findFile( const std::string& name,
   return handle;
 }
 
-} //namespace worker
+} //namespace common
 } //namespace remus

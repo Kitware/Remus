@@ -10,7 +10,7 @@
 //
 //=============================================================================
 
-#include <remus/worker/LocateFile.h>
+#include <remus/common/LocateFile.h>
 #include <remus/testing/Testing.h>
 
 #include <string>
@@ -23,12 +23,12 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace {
 
-using namespace remus::worker;
+using namespace remus::common;
 
 void verify_executable_path()
 {
   //Test that the path coming back is a valid directory
-  std::string path = remus::worker::getExecutableLocation();
+  std::string path = remus::common::getExecutableLocation();
   boost::filesystem::path folder(path);
 
   bool is_dir = boost::filesystem::is_directory(folder);
@@ -39,18 +39,18 @@ void verify_find_file()
 {
   // name = "", ext = "txt" = we don't search at all, we require a name
   {
-  remus::common::FileHandle fh = remus::worker::findFile("", "txt");
+  remus::common::FileHandle fh = remus::common::findFile("", "txt");
   REMUS_ASSERT( (fh.size() == 0) );
   }
 
   {
   //try to find our selves
-  std::string name("UnitTests_remus_worker_testing");
+  std::string name("UnitTests_remus_common_testing");
   std::string ext;
 #ifdef _WIN32
   ext += ".exe";
 #endif
-  remus::common::FileHandle fh = remus::worker::findFile(name, ext);
+  remus::common::FileHandle fh = remus::common::findFile(name, ext);
   REMUS_ASSERT( (fh.size() != 0) );
   }
 }

@@ -10,36 +10,36 @@
 //
 //=============================================================================
 
-#ifndef remus_worker_LocateFile_h
-#define remus_worker_LocateFile_h
+#ifndef remus_common_LocateFile_h
+#define remus_common_LocateFile_h
 
 #include <remus/common/FileHandle.h>
 //included for export symbol
-#include <remus/worker/WorkerExports.h>
+#include <remus/common/CommonExports.h>
 
 #include <string>
 #include <vector>
 
 namespace remus {
-namespace worker {
+namespace common {
 
-//One of the more common things a worker needs to do is locate and
+//One of the more common things remus needs to do is locate and
 //read a file from disk. This is a series of helper methods that
-//allow workers to do exactly that.
+//allow us to do exactly that.
 
 
-//This method returns the absolute location of this workers executable on disk
+//This method returns the absolute location of this executable on disk
 //this can than be used as starting location to find other files.
 //On most platforms this will be the current working directory, but for
 //OSX bundles we detect the proper root of the bundle
-REMUSWORKER_EXPORT
+REMUSCOMMON_EXPORT
 std::string getExecutableLocation();
 
 //This returns a collection of relative paths patterns that commonly
 //encountered when packaging or building executables. These when combined
 //with the executable location should build a very good set of places to
 //search for file both in an installed package, and as part of a build directory
-REMUSWORKER_EXPORT
+REMUSCOMMON_EXPORT
 std::vector<std::string> relativeLocationsToSearch();
 
 
@@ -54,7 +54,7 @@ std::vector<std::string> relativeLocationsToSearch();
 // name = "", ext = "txt" = we don't search at all, we require a name
 //
 //
-REMUSWORKER_EXPORT
+REMUSCOMMON_EXPORT
 remus::common::FileHandle findFile( const std::string& name,
                                     const std::string& ext );
 
@@ -73,7 +73,7 @@ remus::common::FileHandle findFile( const std::string& name,
 // name = "", ext = "txt" = we don't search at all, we require a name
 //
 //
-REMUSWORKER_EXPORT
+REMUSCOMMON_EXPORT
 remus::common::FileHandle findFile( const std::string& name,
                                     const std::string& ext,
                                     const std::vector<std::string>& relativeLocations,

@@ -6,6 +6,7 @@ set(headers
     ContentTypes.h
     ExecuteProcess.h
     FileHandle.h
+    LocateFile.h
     MD5Hash.h
     MeshIOType.h
     MeshRegistrar.h
@@ -28,6 +29,7 @@ set(private_headers
 set(srcs
     MeshIOType.cxx
     ExecuteProcess.cxx
+    LocateFile.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
     SleepFor.cxx
@@ -47,6 +49,11 @@ target_include_directories(RemusCommon
                                    $<INSTALL_INTERFACE:include>
                            PRIVATE ${RemusSysTools_BINARY_DIR} )
 
+if(APPLE)
+  #needed for LocateFile
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation )
+  target_link_libraries(RemusCommon LINK_PRIVATE ${COREFOUNDATION_LIBRARY} )
+endif()
 
 #create the export header symbol exporting
 remus_export_header(RemusCommon CommonExports.h)
