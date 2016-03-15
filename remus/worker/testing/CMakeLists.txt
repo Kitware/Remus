@@ -11,7 +11,6 @@
 #=============================================================================
 
 set(unit_tests
-  UnitTestLocateFile.cxx
   UnitTestWorker.cxx
   UnitTestWorkerJob.cxx
   UnitTestWorkerServerConnection.cxx
