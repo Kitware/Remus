@@ -6,7 +6,6 @@ add_subdirectory(BasicWorker)
 add_subdirectory(InfiniteWorker)
 add_subdirectory(InteractiveClient)
 add_subdirectory(NoWorkerServer)
-add_subdirectory(QtExample)
 add_subdirectory(ServerSubscriber)
 add_subdirectory(nuclear)
 
