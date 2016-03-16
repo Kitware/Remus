@@ -19,6 +19,16 @@
 #include <remus/server/WorkerFactoryBase.h>
 #include <remus/worker/Worker.h>
 
+// These lines need to come before we include boost ASIO!
+// Boost ASIO treats ICC 15+ on OSX as having support for lambda's
+// because the clang front-end reports them as supported ( when they aren't ).
+// So to work around this we explicit tell boost not to use this code
+// when we are compiling as C++98
+#include <remus/common/CompilerInformation.h>
+#if defined(REMUS_ICC) && !defined(REMUS_HAVE_CXX_11)
+#define BOOST_ASIO_DISABLE_MOVE 1
+#endif
+
 REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
