@@ -9,6 +9,8 @@
 #ifndef qcontrols_h
 #define qcontrols_h
 
+#include <memory>
+#include <utility>
 #include <QMainWindow>
 
 #include "qserver.h"

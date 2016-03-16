@@ -9,6 +9,8 @@
 #ifndef qjob_h
 #define qjob_h
 
+#include <memory>
+#include <utility>
 #include <QRunnable>
 
 class qjob : public QRunnable

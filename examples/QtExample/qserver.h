@@ -8,7 +8,8 @@
 #ifndef qserver_h
 #define qserver_h
 
-
+#include <memory>
+#include <utility>
 #include <QObject>
 #include <QScopedPointer>
 #include <QString>

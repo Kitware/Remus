@@ -9,9 +9,9 @@
 //  PURPOSE.  See the above copyright notice for more information.
 //
 //=============================================================================
-
+#include <memory>
+#include <utility>
 #include <QApplication>
-
 #include "qcontrols.h"
 
 
