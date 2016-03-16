@@ -39,6 +39,7 @@
 #ifndef remus_proto_zmq_h_
 #define remus_proto_zmq_h_
 
+#include <remus/common/CompilerInformation.h>
 #include <zmq.h>
 
 #include <algorithm>
@@ -46,28 +47,19 @@
 #include <cstring>
 #include <exception>
 
-//  Detect whether the compiler supports C++11 rvalue references.
-#if (defined(__GNUC__) && (__GNUC__ > 4 || \
-      (__GNUC__ == 4 && __GNUC_MINOR__ > 2)) && \
-      defined(__GXX_EXPERIMENTAL_CXX0X__))
+//  Detect whether the compiler supports C++11 rvalue references and deleted
+//  functions
+#if defined(REMUS_HAVE_CXX_11)
     #define ZMQ_HAS_RVALUE_REFS
     #define ZMQ_DELETED_FUNCTION = delete
-#elif defined(__clang__)
-    #if __has_feature(cxx_rvalue_references)
-        #define ZMQ_HAS_RVALUE_REFS
-    #endif
-
-    #if __has_feature(cxx_deleted_functions)
-        #define ZMQ_DELETED_FUNCTION = delete
-    #else
-        #define ZMQ_DELETED_FUNCTION
-    #endif
-#elif defined(_MSC_VER) && (_MSC_VER >= 1600)
+#elif defined(REMUS_MSVC) && (_MSC_VER >= 1600)
+    //MSVC 2010 support rvalue refs
     #define ZMQ_HAS_RVALUE_REFS
     #define ZMQ_DELETED_FUNCTION
 #else
     #define ZMQ_DELETED_FUNCTION
 #endif
+
 
 // In order to prevent unused variable warnings when building in non-debug
 // mode use this macro to make assertions.
