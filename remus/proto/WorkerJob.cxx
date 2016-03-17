@@ -102,5 +102,5 @@ remus::proto::WorkerJob to_WorkerJob(const std::string& msg)
 }
 
 #if defined(REMUS_MSVC)
-#pragma warning(pop)ß
+#pragma warning(pop)
 #endif
