@@ -84,22 +84,22 @@ public:
   bool isValid() const { return Valid; }
 private:
 
-  friend Response send_Response(remus::SERVICE_TYPE stype,
-                                const std::string& data,
-                                zmq::socket_t* socket,
-                                const zmq::SocketIdentity& client);
+  friend REMUSPROTO_EXPORT Response send_Response(remus::SERVICE_TYPE stype,
+                                                  const std::string& data,
+                                                  zmq::socket_t* socket,
+                                                  const zmq::SocketIdentity& client);
 
 
-  friend Response send_NonBlockingResponse(remus::SERVICE_TYPE stype,
-                                           const std::string& data,
-                                           zmq::socket_t* socket,
-                                           const zmq::SocketIdentity& client);
+  friend REMUSPROTO_EXPORT Response send_NonBlockingResponse(remus::SERVICE_TYPE stype,
+                                                             const std::string& data,
+                                                             zmq::socket_t* socket,
+                                                             const zmq::SocketIdentity& client);
 
-  friend Response receive_Response( zmq::socket_t* socket );
+  friend REMUSPROTO_EXPORT Response receive_Response( zmq::socket_t* socket );
 
-  friend bool forward_Response(const remus::proto::Response& response,
-                               zmq::socket_t* socket,
-                               const zmq::SocketIdentity& client);
+  friend REMUSPROTO_EXPORT bool forward_Response(const remus::proto::Response& response,
+                                                 zmq::socket_t* socket,
+                                                 const zmq::SocketIdentity& client);
 
   //----------------------------------------------------------------------------
   //construct a response, the contents of the string will copied and sent.

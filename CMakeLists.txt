@@ -78,6 +78,7 @@ set(Boost_NO_SYSTEM_PATHS ${Remus_NO_SYSTEM_BOOST})
 if(WIN32)
   find_package(Boost 1.48.0
                COMPONENTS thread chrono filesystem system date_time REQUIRED)
+  add_definitions(-DBOOST_ALL_NO_LIB)
 else()
   find_package(Boost 1.45.0
                COMPONENTS thread filesystem system date_time REQUIRED)
