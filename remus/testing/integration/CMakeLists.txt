@@ -39,13 +39,6 @@ target_link_libraries(IntegrationTests_SubmitJobsUsingFactory
     LINK_PRIVATE RemusClient RemusWorker RemusServer ${Boost_LIBRARIES} )
 
 
-#The integration tests use boost::asio which has an optional dependency on
-#boost::regex. We need to state explicitly that we don't use boost regex
-#so that MSVC doesn't try to link to it.
-target_compile_definitions(IntegrationTests_remus_testing_integration PRIVATE BOOST_REGEX_NO_LIB)
-target_compile_definitions(IntegrationTests_SubmitJobs PRIVATE BOOST_REGEX_NO_LIB)
-target_compile_definitions(IntegrationTests_SubmitJobsUsingFactory PRIVATE BOOST_REGEX_NO_LIB)
-
 #disable SCL and CRT warnings on windows for integration tests.
 #remus_integration_tests macro adds these defines by default
 if(MSVC)
