@@ -100,28 +100,28 @@ public:
   bool isValid() const { return Valid; }
 
 private:
-  friend Message send_Message(remus::common::MeshIOType mtype,
-                              remus::SERVICE_TYPE stype,
-                              const std::string& data,
-                              zmq::socket_t* socket);
+  friend REMUSPROTO_EXPORT Message send_Message(remus::common::MeshIOType mtype,
+                                                remus::SERVICE_TYPE stype,
+                                                const std::string& data,
+                                                zmq::socket_t* socket);
 
-  friend Message send_Message(remus::common::MeshIOType mtype,
-                              remus::SERVICE_TYPE stype,
-                              zmq::socket_t* socket);
+  friend REMUSPROTO_EXPORT Message send_Message(remus::common::MeshIOType mtype,
+                                                remus::SERVICE_TYPE stype,
+                                                zmq::socket_t* socket);
 
-  friend Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
-                                         remus::SERVICE_TYPE stype,
-                                         const std::string& data,
-                                         zmq::socket_t* socket);
+  friend REMUSPROTO_EXPORT Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
+                                                           remus::SERVICE_TYPE stype,
+                                                           const std::string& data,
+                                                           zmq::socket_t* socket);
 
-  friend Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
-                                         remus::SERVICE_TYPE stype,
-                                         zmq::socket_t* socket);
+  friend REMUSPROTO_EXPORT Message send_NonBlockingMessage(remus::common::MeshIOType mtype,
+                                                           remus::SERVICE_TYPE stype,
+                                                           zmq::socket_t* socket);
 
-  friend Message receive_Message( zmq::socket_t* socket );
+  friend REMUSPROTO_EXPORT Message receive_Message( zmq::socket_t* socket );
 
-  friend bool forward_Message(const remus::proto::Message& message,
-                              zmq::socket_t* socket);
+  friend REMUSPROTO_EXPORT bool forward_Message(const remus::proto::Message& message,
+                                                zmq::socket_t* socket);
 
 
   //----------------------------------------------------------------------------
