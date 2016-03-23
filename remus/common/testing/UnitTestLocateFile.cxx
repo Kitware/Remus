@@ -55,11 +55,36 @@ void verify_find_file()
   }
 }
 
+void verify_relative_locations_to_search()
+{
+  std::string exec_path = remus::common::getExecutableLocation();
+  std::vector<std::string> locations = remus::common::relativeLocationsToSearch();
+
+  typedef std::vector<std::string>::const_iterator It;
+  bool is_dir = false;
+  for(It i = locations.begin(); i != locations.end() && !is_dir;++i)
+    {
+      //at least 1 of these paths should be valid
+    std::stringstream buffer;
+    buffer << exec_path << "/" << *i;
+
+    boost::filesystem::path folder(buffer.str());
+    is_dir = boost::filesystem::is_directory(folder);
+    std::cout << "folder: " << folder << " is valid : " << is_dir << std::endl;
+    }
+  REMUS_ASSERT( (is_dir==true) );
+
+
+
+}
+
 }
 
 int UnitTestLocateFile(int, char *[])
 {
   verify_executable_path();
   verify_find_file();
+
+  verify_relative_locations_to_search();
   return 0;
 }

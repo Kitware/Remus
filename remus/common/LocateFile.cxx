@@ -47,7 +47,7 @@ std::string getExecutableLocation()
 }
 
 //------------------------------------------------------------------------------
-std::vector<std::string> locationsToSearch()
+std::vector<std::string> relativeLocationsToSearch()
 {
   std::vector<std::string> locations;
   locations.push_back("bin/");
@@ -58,7 +58,7 @@ std::vector<std::string> locationsToSearch()
   locations.push_back("../../../bin/");
   locations.push_back("../../../");
 
-  //a search locations over to the plugin directory
+  //a search locations for OSX packages Plugin directory
   locations.push_back("../Plugins/");
   locations.push_back("../../Plugins/");
   locations.push_back("../../../Plugins/");
@@ -85,7 +85,7 @@ remus::common::FileHandle findFile( const std::string& name,
   std::vector< std::string > absoluteLocations;
   absoluteLocations.push_back( remus::common::getExecutableLocation() );
 
-  std::vector<std::string> relLocations = remus::common::locationsToSearch();
+  std::vector<std::string> relLocations = remus::common::relativeLocationsToSearch();
 
   return findFile( name, ext, relLocations, absoluteLocations );
 }
