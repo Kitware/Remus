@@ -86,17 +86,17 @@ bool JobSubmission::operator==(const JobSubmission& other) const
 
 //------------------------------------------------------------------------------
 void JobSubmission::serialize(std::ostream& buffer) const
-{
-  buffer << this->MeshType << std::endl;
-  buffer << this->Requirements << std::endl;
-  buffer << this->Content.size() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->MeshType << '\n';
+  buffer << this->Requirements << '\n';
+  buffer << this->Content.size() << '\n';
   for(JobSubmission::const_iterator i = this->begin();
       i != this->end();
       ++i)
     {
-    buffer << i->first.size() << std::endl;;
+    buffer << i->first.size() << '\n';;
     remus::internal::writeString(buffer,i->first);
-    buffer << i->second << std::endl;
+    buffer << i->second << '\n';
     }
 }
 

@@ -219,14 +219,14 @@ bool JobContent::operator==(const JobContent& other) const
 
 //------------------------------------------------------------------------------
 void JobContent::serialize(std::ostream& buffer) const
-{
-  buffer << this->sourceType() << std::endl;
-  buffer << this->formatType() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->sourceType() << '\n';
+  buffer << this->formatType() << '\n';
 
-  buffer << this->tag().size() << std::endl;
+  buffer << this->tag().size() << '\n';
   remus::internal::writeString(buffer,this->tag());
 
-  buffer << this->Implementation->size() << std::endl;
+  buffer << this->Implementation->size() << '\n';
   remus::internal::writeString( buffer,
                                 this->Implementation->data(),
                                 this->Implementation->size() );

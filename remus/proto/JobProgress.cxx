@@ -62,9 +62,9 @@ int JobProgress::valid_progress_value(int v)
 
 //------------------------------------------------------------------------------
 void JobProgress::serialize(std::ostream& buffer) const
-{
-  buffer << this->value() << std::endl;
-  buffer << this->message().size() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->value() << '\n';
+  buffer << this->message().size() << '\n';
   remus::internal::writeString(buffer,this->message());
 }
 

@@ -106,13 +106,13 @@ Container(container)
 
 //------------------------------------------------------------------------------
 void MeshIOTypeSet::serialize(std::ostream& buffer) const
-{
-  buffer << this->Container.size() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->Container.size() << '\n';
   typedef MeshIOTypeSet::ContainerType::const_iterator IteratorType;
   for(IteratorType i = this->Container.begin();
       i != this->Container.end(); ++i)
     {
-    buffer << *i << std::endl;
+    buffer << *i << '\n';
     }
 }
 
