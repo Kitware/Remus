@@ -156,10 +156,10 @@ bool JobResult::operator==(const JobResult& other) const
 
 //------------------------------------------------------------------------------
 void JobResult::serialize(std::ostream& buffer) const
-{
-  buffer << this->id() << std::endl;
-  buffer << this->formatType() << std::endl;
-  buffer << this->Implementation->size() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->id() << '\n';
+  buffer << this->formatType() << '\n';
+  buffer << this->Implementation->size() << '\n';
   remus::internal::writeString( buffer,
                                 this->Implementation->data(),
                                 this->Implementation->size() );

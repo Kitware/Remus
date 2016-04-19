@@ -297,13 +297,13 @@ Container(container)
 
 //------------------------------------------------------------------------------
 void JobRequirementsSet::serialize(std::ostream& buffer) const
-{
+{ //note don't use std::endl as it flushes stream and decrease performance
   buffer << this->Container.size() << std::endl;
   typedef JobRequirementsSet::ContainerType::const_iterator IteratorType;
   for(IteratorType i = this->Container.begin();
       i != this->Container.end(); ++i)
     {
-    buffer << *i << std::endl;
+    buffer << *i << '\n';
     }
 }
 

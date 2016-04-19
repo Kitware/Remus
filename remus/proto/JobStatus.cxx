@@ -47,10 +47,10 @@ void JobStatus::updateProgress( const remus::proto::JobProgress& prog )
 
 //------------------------------------------------------------------------------
 void JobStatus::serialize(std::ostream& buffer) const
-{
-  buffer << this->id() << std::endl;
-  buffer << this->status() << std::endl;
-  buffer << this->progress() << std::endl;
+{ //note don't use std::endl as it flushes stream and decrease performance
+  buffer << this->id() << '\n';
+  buffer << this->status() << '\n';
+  buffer << this->progress() << '\n';
 }
 
 //------------------------------------------------------------------------------

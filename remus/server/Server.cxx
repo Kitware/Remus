@@ -532,7 +532,7 @@ std::string Server::allSupportedMeshIOTypes(const remus::proto::Message& )
   //combine the two sets to get all the valid requirements
   supportedTypes.insert(poolTypes.begin(),poolTypes.end());
   std::ostringstream buffer;
-  buffer << supportedTypes << std::endl;;
+  buffer << supportedTypes << '\n';
   return buffer.str();
 }
 
@@ -552,7 +552,7 @@ std::string Server::canMesh(const remus::proto::Message& msg)
     (this->WorkerPool->waitingWorkerRequirements(msg.MeshIOType()).size() > 0);
 
   std::ostringstream buffer;
-  buffer << (workerSupport || poolSupport) << std::endl;
+  buffer << (workerSupport || poolSupport) << '\n';
   return buffer.str();
 }
 
@@ -571,7 +571,7 @@ std::string Server::canMeshRequirements(const remus::proto::Message& msg)
   bool poolSupport = this->WorkerPool->haveWaitingWorker(reqs);
 
   std::ostringstream buffer;
-  buffer << (workerSupport || poolSupport) << std::endl;
+  buffer << (workerSupport || poolSupport) << '\n';
   return buffer.str();
 }
 
@@ -592,7 +592,7 @@ std::string Server::meshRequirements(const remus::proto::Message& msg)
   reqSet.insert(poolSet.begin(),poolSet.end());
 
   std::ostringstream buffer;
-  buffer << reqSet << std::endl;
+  buffer << reqSet << '\n';
   return buffer.str();
 }
 
