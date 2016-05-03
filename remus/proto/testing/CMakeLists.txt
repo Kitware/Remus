@@ -18,6 +18,7 @@ set(unit_tests
   UnitTestJobResult.cxx
   UnitTestJobStatus.cxx
   UnitTestJobSubmission.cxx
+  UnitTestSMTKMeshSubmission.cxx
   UnitTestSocketIdentity.cxx
   )
 

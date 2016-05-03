@@ -9,6 +9,7 @@ set(headers
     JobResult.h
     JobStatus.h
     JobSubmission.h
+    SMTKMeshSubmission.h
     WorkerJob.h
     zmqSocketIdentity.h
     zmqSocketInfo.h
@@ -33,6 +34,7 @@ set(srcs
     JobSubmission.cxx
     Message.cxx
     Response.cxx
+    SMTKMeshSubmission.cxx
     WorkerJob.cxx
     zmqSocketIdentity.cxx
     )
