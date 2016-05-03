@@ -100,13 +100,17 @@ public:
                                   JobSubmission &submission)
     { submission = JobSubmission(is); return is; }
 
-private:
+protected:
+  //these need to protected so we can have derived job submission classes
+  //that enforce a given set of keys.
+
   //serialize function
   void serialize(std::ostream& buffer) const;
 
   //deserialize constructor function
   explicit JobSubmission(std::istream& buffer);
 
+private:
   remus::common::MeshIOType MeshType;
   remus::proto::JobRequirements Requirements;
   ContainerType Content;

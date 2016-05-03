@@ -131,9 +131,6 @@ std::pair<std::string,JobContent> make_random_MapPairs()
                    randomBinaryData() ) );
 }
 
-
-}
-
 void constructor_test()
 {
   JobSubmission invalid_sub;
@@ -167,7 +164,7 @@ void constructor_test()
   //verify that type and requirements haven't changed
   JobSubmission js = JobSubmission( make_random_MeshReqs() );
   JobSubmission copy_js(js);
-  JobSubmission assign_js(js);
+  JobSubmission assign_js =js;
 
   REMUS_ASSERT( (js.type()==copy_js.type()) );
   REMUS_ASSERT( (js.type()==assign_js.type()) );
@@ -301,6 +298,8 @@ void multiple_content_test()
   }
 
 }
+
+} //namespace
 
 
 int UnitTestJobSubmission(int, char *[])
