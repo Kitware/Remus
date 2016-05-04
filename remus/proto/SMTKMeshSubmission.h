@@ -37,7 +37,7 @@ public:
   //returns if this SMTKMeshSubmission has all the required fields
   //we require all three keys (model, attribute, modelItems) be filled in
   //currently
-  bool valid() const;
+  bool hasAllComponents() const;
 
   const std::string& model_key( ) const { return this->ModelKey; }
   const std::string& attribute_key( ) const { return this->AttributeKey; }

@@ -121,7 +121,7 @@ void constructor_test()
   SMTKMeshSubmission randomReqs = SMTKMeshSubmission( make_random_MeshReqs() );
   invalid_sub = randomReqs;
 
-  REMUS_ASSERT( (invalid_sub.valid() == false) );
+  REMUS_ASSERT( (invalid_sub.hasAllComponents() == false) );
   REMUS_ASSERT( (invalid_sub == randomReqs) );
 
 
@@ -130,7 +130,7 @@ void constructor_test()
   fullcontent.attributes(make_random_Content());
   fullcontent.modelItemsToMesh(make_random_Content());
 
-  REMUS_ASSERT( (fullcontent.valid() == true ) );
+  REMUS_ASSERT( (fullcontent.hasAllComponents() == true ) );
   REMUS_ASSERT( (fullcontent.size() == 3 ) );
 
   REMUS_ASSERT( (fullcontent.find( fullcontent.model_key() ) != fullcontent.end()) );
@@ -180,7 +180,7 @@ void conversion_to()
 
 
   SMTKMeshSubmission meshSub = to_SMTKMeshSubmission(buffer.str());
-  REMUS_ASSERT( (meshSub.valid() == true) );
+  REMUS_ASSERT( (meshSub.hasAllComponents() == true) );
 
   REMUS_ASSERT( (meshSub.model() == sub[meshSub.model_key()]) );
   REMUS_ASSERT( (meshSub.attributes() == sub[meshSub.attribute_key()]) );
@@ -231,7 +231,7 @@ void string_api()
   buffer << meshSub;
   buffer >> meshSub2;
 
-  REMUS_ASSERT( (meshSub2.valid() == true) );
+  REMUS_ASSERT( (meshSub2.hasAllComponents() == true) );
 
   REMUS_ASSERT( (meshSub.model() == meshSub2.model() ) );
   REMUS_ASSERT( (meshSub.attributes() == meshSub2.attributes() ) );
@@ -257,7 +257,7 @@ void zero_copy_api()
   buffer << meshSub;
   buffer >> meshSub2;
 
-  REMUS_ASSERT( (meshSub2.valid() == true) );
+  REMUS_ASSERT( (meshSub2.hasAllComponents() == true) );
 
   REMUS_ASSERT( (meshSub.model() == meshSub2.model() ) );
   REMUS_ASSERT( (meshSub.attributes() == meshSub2.attributes() ) );
