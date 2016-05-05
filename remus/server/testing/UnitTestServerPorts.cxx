@@ -95,22 +95,22 @@ bool verify_bindings(remus::server::ServerPorts ports)
   {
   zmq::message_t client_data(sizeof(clientTag));
   std::memcpy(client_data.data(),&clientTag,sizeof(clientTag));
-  zmq::send_harder(check_client,client_data);
+  check_client.send(client_data);
 
   zmq::message_t worker_data(sizeof(workerTag));
   std::memcpy(worker_data.data(),&workerTag,sizeof(workerTag));
-  zmq::send_harder(check_worker,worker_data);
+  check_worker.send(worker_data);
   }
 
   {
   //grab the data from the client and worker sockets we just bound
   zmq::message_t client_data_recv;
-  zmq::recv_harder(client_socket,&client_data_recv);
+  client_socket.recv(&client_data_recv);
   int client_recv_tag = *(reinterpret_cast<int*>(client_data_recv.data()));
   REMUS_VALID( (clientTag == client_recv_tag), valid);
 
   zmq::message_t worker_data_recv;
-  zmq::recv_harder(worker_socket,&worker_data_recv);
+  worker_socket.recv(&worker_data_recv);
   int worker_recv_tag = *(reinterpret_cast<int*>(worker_data_recv.data()));
   REMUS_VALID( (workerTag == worker_recv_tag), valid);
   }

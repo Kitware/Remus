@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
   zmq::message_t data;
   while (true)
   {
-  zmq::recv_harder(subscriber, &key);
-  zmq::recv_harder(subscriber, &data);
+  subscriber.recv(&key);
+  subscriber.recv(&data);
 
   std::string keyStr( reinterpret_cast<char*>(key.data()), key.size() );
 
