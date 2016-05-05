@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
     std::cout << "Number of jobs submitted: " << num_submitted_jobs << std::endl;
     std::cout << "Number of jobs failed: " << failed_jobs << std::endl;
     std::cout << "We issued " << queries <<  " queries to the server " << std::endl;
+    std::cout << "Time to issue all queries " << timer.elapsed() <<  "ms" << std::endl;
     std::cout << "Number of queries per millisecond is " << queries / timer.elapsed() << std::endl;
     }
   else
