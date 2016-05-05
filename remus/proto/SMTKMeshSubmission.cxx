@@ -61,7 +61,7 @@ SMTKMeshSubmission::SMTKMeshSubmission(const remus::proto::JobSubmission& submis
 }
 
 //-----------------------------------------------------------------------------
-bool SMTKMeshSubmission::valid() const
+bool SMTKMeshSubmission::hasAllComponents() const
 {
   const bool has_model = this->find(this->ModelKey) != this->end();
   const bool has_attr = this->find(this->AttributeKey) != this->end();
