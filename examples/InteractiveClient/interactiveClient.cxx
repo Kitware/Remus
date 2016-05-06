@@ -71,8 +71,8 @@ void monitorServer(remus::Client& client, const std::string& hostname)
   zmq::message_t data;
   while (true)
     {
-    zmq::recv_harder(monitor, &key);
-    zmq::recv_harder(monitor, &data);
+    monitor.recv(&key);
+    monitor.recv(&data);
 
     std::string keyStr( reinterpret_cast<char*>(key.data()), key.size() );
 

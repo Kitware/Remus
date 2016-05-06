@@ -11,6 +11,7 @@ set(headers
     JobSubmission.h
     SMTKMeshSubmission.h
     WorkerJob.h
+    zmqHelper.h
     zmqSocketIdentity.h
     zmqSocketInfo.h
     zmqTraits.h
@@ -21,7 +22,6 @@ set(headers
 set(private_headers
   Message.h
   Response.h
-  zmqHelper.h
   )
 
 set(srcs
@@ -37,6 +37,7 @@ set(srcs
     SMTKMeshSubmission.cxx
     WorkerJob.cxx
     zmqSocketIdentity.cxx
+    zmqHelper.cxx
     )
 
 #setup the protocol library
