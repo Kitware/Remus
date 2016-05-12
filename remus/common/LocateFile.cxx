@@ -29,6 +29,8 @@ REMUS_THIRDPARTY_POST_INCLUDE
   #include <remus/common/detail/LocateExecUnkown.hxx>
 #endif
 
+#include <fstream>
+
 namespace  remus {
 namespace  common {
 
@@ -115,8 +117,7 @@ remus::common::FileHandle findFile( const std::string& name,
     boost::filesystem::path possibleFile( *i );
     possibleFile /= fullname;
 
-    if( boost::filesystem::exists(possibleFile) &&
-        boost::filesystem::is_regular_file(possibleFile) )
+    if( boost::filesystem::is_regular_file(possibleFile) )
       {
       return remus::common::FileHandle(possibleFile.string());
       }
@@ -127,8 +128,7 @@ remus::common::FileHandle findFile( const std::string& name,
       nextPossibleFile /= *j;
       nextPossibleFile /= fullname;
       nextPossibleFile = boost::filesystem::absolute(nextPossibleFile);
-      if( boost::filesystem::exists(nextPossibleFile) &&
-          boost::filesystem::is_regular_file(nextPossibleFile) )
+      if( boost::filesystem::is_regular_file(nextPossibleFile) )
         {
         return remus::common::FileHandle(nextPossibleFile.string());
         }
@@ -136,6 +136,34 @@ remus::common::FileHandle findFile( const std::string& name,
     }
 
   return handle;
+}
+
+
+
+//------------------------------------------------------------------------------
+bool is_file(const remus::common::FileHandle& fh)
+{
+  return boost::filesystem::is_regular_file(fh.path());
+}
+
+//------------------------------------------------------------------------------
+bool touch_file(const remus::common::FileHandle& fh)
+{
+  //now open fh1 so in-actuality the file exists.
+  std::fstream f(fh.data(), std::ios::binary | std::ios::out );
+  const bool touched = f.is_open();
+  f.close();
+  return touched;
+}
+
+//------------------------------------------------------------------------------
+bool remove_file(const remus::common::FileHandle& fh)
+{
+  if (is_file(fh))
+    {
+    return boost::filesystem::remove(fh.path());
+    }
+  return false;
 }
 
 //------------------------------------------------------------------------------

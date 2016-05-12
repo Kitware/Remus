@@ -70,7 +70,6 @@ void verify_relative_locations_to_search()
 
     boost::filesystem::path folder(buffer.str());
     is_dir = boost::filesystem::is_directory(folder);
-    std::cout << "folder: " << folder << " is valid : " << is_dir << std::endl;
     }
   REMUS_ASSERT( (is_dir==true) );
 
@@ -97,20 +96,19 @@ void verify_temp_file_is_writable()
 
   remus::common::FileHandle fh = remus::common::makeTempFileHandle(name,ext);
 
-  //now try to write to said file
-  std::fstream f(fh.data(), std::ios::binary | std::ios::out );
-  REMUS_ASSERT( f.is_open() );
-  REMUS_ASSERT( f.good() );
+  //shouldn't be considered to exist before we touch it
+  const bool doesn_exist = ! remus::common::is_file( fh );
+  REMUS_ASSERT( doesn_exist );
 
-  f << "Hello temp file" << std::endl;
-  REMUS_ASSERT( f.good() );
+  const bool is_writeable = remus::common::touch_file(fh);
+  REMUS_ASSERT( is_writeable );
 
   //now that we have written to file verify it is on disk
-  const bool is_file = boost::filesystem::is_regular_file( fh.path() );
+  const bool is_file = remus::common::is_file( fh );
   REMUS_ASSERT( is_file );
 
   //remove said file
-  const bool is_removed = boost::filesystem::remove( fh.path() );
+  const bool is_removed = remus::common::remove_file( fh );
   REMUS_ASSERT( is_removed );
 }
 
@@ -121,17 +119,23 @@ void verify_temp_file_handles_duplicates()
 
   remus::common::FileHandle fh1 = remus::common::makeTempFileHandle(name,ext);
 
-  //now open fh1 so in-actuality the file exists.
-  std::fstream f(fh1.data(), std::ios::binary | std::ios::out );
+  //shouldn't be considered to exist before we touch it
+  const bool doesn_exist = ! remus::common::is_file( fh1 );
+  REMUS_ASSERT( doesn_exist );
 
+  const bool is_writeable = remus::common::touch_file( fh1 );
+  REMUS_ASSERT( is_writeable );
 
   remus::common::FileHandle fh2 = remus::common::makeTempFileHandle(name,ext);
   REMUS_ASSERT( (fh2.path() != fh1.path()) );
 
-
-  //delete the file now
-  const bool is_removed = boost::filesystem::remove( fh1.path() );
+  //delete the file we touched
+  const bool is_removed = remus::common::remove_file( fh1 );
   REMUS_ASSERT( is_removed );
+
+  //fail to delete the file that never existed in the first place
+  const bool fail_to_remove = !remus::common::remove_file( fh2 );
+  REMUS_ASSERT( fail_to_remove );
 }
 
 int UnitTestLocateFile(int, char *[])

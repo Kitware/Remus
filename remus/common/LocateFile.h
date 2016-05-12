@@ -79,6 +79,25 @@ remus::common::FileHandle findFile( const std::string& name,
                                     const std::vector<std::string>& absoluteLocations );
 
 
+// Return true if the given FileHandle points to an existing file.
+//
+REMUSCOMMON_EXPORT
+bool is_file(const remus::common::FileHandle& fh);
+
+// Tries to touch/create the file at the given path.
+// Returns true if the file is created, or was 'touchable'
+//
+REMUSCOMMON_EXPORT
+bool touch_file(const remus::common::FileHandle& fh);
+
+
+// Deletes a file
+// Returns false if the file doesn't exist
+// Returns false and wont delete if the path doesn't point to a file
+REMUSCOMMON_EXPORT
+bool remove_file(const remus::common::FileHandle& fh);
+
+
 //This provides a system agnostic interface to query the system for a location
 //that is suitable to write temporary files. This should be used when
 //you need to write files, instead of getExecutableLocation() as you might
