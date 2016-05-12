@@ -27,7 +27,6 @@ namespace common {
 //read a file from disk. This is a series of helper methods that
 //allow us to do exactly that.
 
-
 //This method returns the absolute location of this executable on disk
 //this can than be used as starting location to find other files.
 //On most platforms this will be the current working directory, but for
@@ -78,6 +77,30 @@ remus::common::FileHandle findFile( const std::string& name,
                                     const std::string& ext,
                                     const std::vector<std::string>& relativeLocations,
                                     const std::vector<std::string>& absoluteLocations );
+
+
+//This provides a system agnostic interface to query the system for a location
+//that is suitable to write temporary files. This should be used when
+//you need to write files, instead of getExecutableLocation() as you might
+//not have write rights to that location.
+//Note:
+//On Linux this will use TMPDIR, TMP, TEMP, TEMPDIR environment variable(s) or /tmp
+//On OSX this will use TMPDIR environment variable or /tmp
+//On Windows this is look at TEMP than TMP environment variable.
+//
+//
+REMUSCOMMON_EXPORT
+std::string getTempLocation();
+
+
+// Generates a FileHandle with a given name and extension. The actual
+// file is never generated only the path to said file is created.
+//
+// If a file with the given name already exists, a random name will be generated
+// for the file.
+REMUSCOMMON_EXPORT
+remus::common::FileHandle makeTempFileHandle(const std::string& name,
+                                             const std::string& ext);
 
 }
 }

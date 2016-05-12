@@ -138,5 +138,41 @@ remus::common::FileHandle findFile( const std::string& name,
   return handle;
 }
 
+//------------------------------------------------------------------------------
+std::string getTempLocation()
+{
+  //If this ever becomes a hotspot ( why?? ) we could cache this directory
+  const boost::filesystem::path tempDir =
+    boost::filesystem::absolute( boost::filesystem::temp_directory_path() );
+  return tempDir.string();
+}
+
+//------------------------------------------------------------------------------
+remus::common::FileHandle makeTempFileHandle(const std::string& name,
+                                             const std::string& ext)
+{
+  const boost::filesystem::path dirPath =
+    boost::filesystem::absolute( boost::filesystem::temp_directory_path() );
+
+  boost::filesystem::path tempPath = dirPath;
+  tempPath /= name;
+  tempPath.replace_extension(ext);
+
+  //we need to check for existence.
+  if(boost::filesystem::exists(tempPath))
+    {
+    //now we have to generate a new path
+    tempPath.remove_filename();
+    tempPath /= name;
+    tempPath += std::string("-%%%%-%%%%-%%%%-%%%%%");
+    tempPath.replace_extension(ext);
+
+    tempPath = boost::filesystem::unique_path(tempPath);
+    }
+
+  return remus::common::FileHandle( tempPath.string() );
+
+}
+
 } //namespace common
 } //namespace remus

@@ -31,7 +31,7 @@ void verify_executable_path()
   std::string path = remus::common::getExecutableLocation();
   boost::filesystem::path folder(path);
 
-  bool is_dir = boost::filesystem::is_directory(folder);
+  const bool is_dir = boost::filesystem::is_directory(folder);
   REMUS_ASSERT( is_dir );
 }
 
@@ -80,11 +80,69 @@ void verify_relative_locations_to_search()
 
 }
 
+void verify_temp_dir_is_valid()
+{
+  //Test that the path coming back is a valid directory
+  std::string path = remus::common::getTempLocation();
+  boost::filesystem::path folder(path);
+
+  const bool is_dir = boost::filesystem::is_directory(folder);
+  REMUS_ASSERT( is_dir );
+}
+
+void verify_temp_file_is_writable()
+{
+  const std::string name = "tempfile";
+  const std::string ext = ".log";
+
+  remus::common::FileHandle fh = remus::common::makeTempFileHandle(name,ext);
+
+  //now try to write to said file
+  std::fstream f(fh.data(), std::ios::binary | std::ios::out );
+  REMUS_ASSERT( f.is_open() );
+  REMUS_ASSERT( f.good() );
+
+  f << "Hello temp file" << std::endl;
+  REMUS_ASSERT( f.good() );
+
+  //now that we have written to file verify it is on disk
+  const bool is_file = boost::filesystem::is_regular_file( fh.path() );
+  REMUS_ASSERT( is_file );
+
+  //remove said file
+  const bool is_removed = boost::filesystem::remove( fh.path() );
+  REMUS_ASSERT( is_removed );
+}
+
+void verify_temp_file_handles_duplicates()
+{
+  const std::string name = "tempfile";
+  const std::string ext = "log";
+
+  remus::common::FileHandle fh1 = remus::common::makeTempFileHandle(name,ext);
+
+  //now open fh1 so in-actuality the file exists.
+  std::fstream f(fh1.data(), std::ios::binary | std::ios::out );
+
+
+  remus::common::FileHandle fh2 = remus::common::makeTempFileHandle(name,ext);
+  REMUS_ASSERT( (fh2.path() != fh1.path()) );
+
+
+  //delete the file now
+  const bool is_removed = boost::filesystem::remove( fh1.path() );
+  REMUS_ASSERT( is_removed );
+}
+
 int UnitTestLocateFile(int, char *[])
 {
   verify_executable_path();
   verify_find_file();
 
   verify_relative_locations_to_search();
+
+  verify_temp_dir_is_valid();
+  verify_temp_file_is_writable();
+  verify_temp_file_handles_duplicates();
   return 0;
 }
