@@ -112,16 +112,7 @@ void test_server_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
@@ -134,16 +125,7 @@ void test_server_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func != SIG_DFL) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
@@ -155,16 +137,7 @@ void test_server_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
@@ -179,16 +152,7 @@ void test_server_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
@@ -201,10 +165,7 @@ void test_server_no_sig_catching()
   //first set all signals back to default, since previous
   //tests could have been messing with the signal handler
   signal( SIGABRT, SIG_DFL );
-  signal( SIGFPE,  SIG_DFL );
-  signal( SIGILL,  SIG_DFL );
   signal( SIGINT,  SIG_DFL );
-  signal( SIGSEGV, SIG_DFL );
   signal( SIGTERM, SIG_DFL );
 
   {
@@ -216,16 +177,7 @@ void test_server_no_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_DFL) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
@@ -239,16 +191,7 @@ void test_server_no_sig_catching()
   prev_sig_func = signal( SIGABRT, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
 
-  prev_sig_func = signal( SIGFPE,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
-
-  prev_sig_func = signal( SIGILL,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
-
   prev_sig_func = signal( SIGINT,  SIG_IGN );
-  REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
-
-  prev_sig_func = signal( SIGSEGV, SIG_IGN );
   REMUS_ASSERT( (prev_sig_func == SIG_IGN) );
 
   prev_sig_func = signal( SIGTERM, SIG_IGN );
