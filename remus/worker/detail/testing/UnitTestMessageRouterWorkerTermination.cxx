@@ -48,6 +48,7 @@ void test_worker_terminate_routing_call(MessageRouter& mr,
 {
   mr.start( serverConn, *(serverConn.context()) );
   REMUS_ASSERT( (mr.valid()) )
+  REMUS_ASSERT( (mr.isForwardingToServer()) )
   //now send it a terminate message over the worker channel
   remus::proto::Message sent = remus::proto::send_Message(remus::common::MeshIOType(),
                                                           remus::TERMINATE_WORKER,
@@ -61,13 +62,18 @@ void test_worker_terminate_routing_call(MessageRouter& mr,
     }
   REMUS_ASSERT( (jq.size() > 0) )
   remus::common::SleepForMillisec(250);
-  REMUS_ASSERT( (!mr.valid()) )
 
   REMUS_ASSERT( (jq.size() == 1) )
   remus::worker::Job invalid_job = jq.take();
   REMUS_ASSERT( (!invalid_job.valid()) )
   REMUS_ASSERT( (invalid_job.validityReason() ==
                  remus::worker::Job::TERMINATE_WORKER) )
+
+  //MessageRouter is still forwarding messages to the server
+  //we could have a worker shutting down and still have
+  //a message we need to route to the server ( a large result )
+  REMUS_ASSERT( (mr.valid()) )
+  REMUS_ASSERT( (mr.isForwardingToServer()) )
 }
 
 

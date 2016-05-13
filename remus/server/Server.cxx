@@ -748,20 +748,20 @@ void Server::DetermineWorkerResponse(zmq::socket_t& workerChannel,
       this->storeMeshStatus(workerIdentity, msg);
       break;
     case remus::RETRIEVE_RESULT:
-      //we need to store the mesh result, no response needed
-      //store mesh does it's own notification
-      this->storeMesh(workerIdentity, msg);
       {
-      //now that we have stored the mesh we can tell the worker
-      //we have the results, which allows it to shutdown.
       //We can't have a worker shutdown before the results are
       //on the server or the results might be dropped by zmq
-      //linger settings
+      //linger settings, that is why we do a ping/pong message
+      //on results
       remus::proto::send_NonBlockingResponse(remus::RETRIEVE_RESULT,
                                              remus::INVALID_MSG,
                                              &workerChannel,
                                              workerIdentity);
       }
+      //we need to store the mesh result, no response needed
+      //store mesh does it's own notification
+      this->storeMesh(workerIdentity, msg);
+
       break;
     case remus::HEARTBEAT:
       //pass along to the worker monitor what worker just sent a heartbeat
