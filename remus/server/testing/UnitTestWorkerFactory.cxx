@@ -75,8 +75,6 @@ void test_factory_worker_finder()
   //give our worker factory a unique extension to look for
   remus::server::WorkerFactory f_def(".tst");
 
-  //add invalid paths to search
-
   f_def.addWorkerSearchDirectory(
                   remus::server::testing::worker_factory::locationToSearch() );
 

@@ -78,11 +78,7 @@ MessageRouterImplementation(
 //-----------------------------------------------------------------------------
 ~MessageRouterImplementation()
 {
-  if(this->PollingThread)
-    {
-    this->setIsTalking(false);
-    this->PollingThread->join();
-    }
+  this->stop();
 }
 
 //------------------------------------------------------------------------------
@@ -136,8 +132,17 @@ bool startTalking(const remus::worker::ServerConnection& server_info,
   return this->isTalking();
 }
 
-private:
+//----------------------------------------------------------------------------
+void stop()
+{
+  if(this->PollingThread && this->isTalking())
+    {
+    this->setIsTalking(false);
+    this->PollingThread->join();
+    }
+}
 
+private:
 //----------------------------------------------------------------------------
 void setIsTalking(bool t)
 {
@@ -206,7 +211,7 @@ void poll(remus::worker::ServerConnection server_info,
         //handle accepting messages from the worker and forwarding
         //them to the server
         this->handleWorkerMessage(workerComm, serverComm, queueComm);
-        if(!ContinueForwardingToWorker)
+        if(!ContinueForwardingToServer)
           {
           //we are shutting down so we mark that we will not accept any
           //more messages from anybody, and instead will stop polling
@@ -289,9 +294,14 @@ void handleServerMessage( zmq::socket_t& workerComm,
                                     this->ContinueForwardingToWorker;
   if(goodToForward)
     {
-    if(goodToForwardToQueue &&
-       response.serviceType() == remus::TERMINATE_WORKER)
+    if(response.serviceType() == remus::TERMINATE_WORKER)
       {
+      if(goodToForwardToQueue)
+        {
+        remus::proto::forward_Response(response,
+                                       &queueComm,
+                                       zmq::SocketIdentity());
+        }
       //if the server is shutting down the worker and the worker
       //is still waiting for a response to a RETRIEVE_RESULT we
       //send that first
@@ -303,9 +313,7 @@ void handleServerMessage( zmq::socket_t& workerComm,
                                                (zmq::SocketIdentity()));
         --this->OutstandingResults;
         }
-      remus::proto::forward_Response(response,
-                                     &queueComm,
-                                     zmq::SocketIdentity());
+
 
       //the server has told us to terminate, which means that the server
       //might not exist so don't continue trying to send it messages
@@ -326,7 +334,7 @@ void handleServerMessage( zmq::socket_t& workerComm,
       remus::proto::forward_Response(response,
                                      &workerComm,
                                      zmq::SocketIdentity());
-        --this->OutstandingResults;
+      --this->OutstandingResults;
       }
       // do nothing if it isn't terminate_job, terminate_worker,
       // make_mesh or retrieve result
@@ -391,6 +399,12 @@ bool MessageRouter::start(const remus::worker::ServerConnection& server_info,
 {
   return this->Implementation->startTalking(server_info,
                                             internal_inproc_context);
+}
+
+//-----------------------------------------------------------------------------
+void MessageRouter::stop()
+{
+  return this->Implementation->stop();
 }
 
 //-----------------------------------------------------------------------------

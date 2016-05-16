@@ -40,10 +40,7 @@ public:
   enum SignalType
   {
     ABORT=SIGABRT,
-    FLOATING_POINT_ERROR=SIGFPE,
-    ILLEGAL_INSTRUCTION=SIGILL,
     INERRUPT=SIGINT,
-    SEGFAULT=SIGSEGV,
     TERMINATE=SIGTERM
   };
 
@@ -58,10 +55,7 @@ protected:
 
     //watch all signals that could cause the program to abnormally terminate
     signal( SIGABRT, remus::common::SignalCatcher::SIGCallback );
-    signal( SIGFPE,  remus::common::SignalCatcher::SIGCallback );
-    signal( SIGILL,  remus::common::SignalCatcher::SIGCallback );
     signal( SIGINT,  remus::common::SignalCatcher::SIGCallback );
-    signal( SIGSEGV, remus::common::SignalCatcher::SIGCallback );
     signal( SIGTERM, remus::common::SignalCatcher::SIGCallback );
 
   }
@@ -71,10 +65,7 @@ protected:
     //stop watching all signals that could cause the program to
     //abnormally terminate
     signal( SIGABRT, SIG_DFL );
-    signal( SIGFPE,  SIG_DFL );
-    signal( SIGILL,  SIG_DFL );
     signal( SIGINT,  SIG_DFL );
-    signal( SIGSEGV, SIG_DFL );
     signal( SIGTERM, SIG_DFL );
 
     remus::common::SignalCatcher::Instance = NULL;

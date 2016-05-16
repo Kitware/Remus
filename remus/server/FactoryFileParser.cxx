@@ -67,17 +67,20 @@ namespace {
     MeshIOType mesh_type( inputType, outputType );
 
     //executableName can be a path, so figure it out
-    std::string executableName(execT->valuestring);
-    boost::filesystem::path mesher_path(executableName);
-    if(boost::filesystem::is_regular_file(mesher_path))
-      {
-      executableName = mesher_path.filename().string();
-      }
+    const std::string executableName(execT->valuestring);
+
+    // We need to determine what the name of the worker
+    // is. It either is provided explicitly or we need
+    // to deduce it from the ExecutableName/Path
+    //
     std::string workerName;
     if (nameT && nameT->type == cJSON_String && nameT->valuestring)
       workerName = nameT->valuestring;
     if (workerName.empty())
-      workerName = executableName;
+      {
+      boost::filesystem::path execName(executableName);
+      workerName = execName.filename().string();
+      }
 
     //by default we select memory and user
     ContentFormat::Type format_type = ContentFormat::User;
@@ -179,20 +182,35 @@ namespace {
 
     cJSON_Delete(root);
 
-    //try the executableName as an absolute path, if that isn't
-    //a file than fall back to looking based on the file we are parsing
-    //path
-    boost::filesystem::path exec_path(mesher_path);
-    if(!boost::filesystem::is_regular_file(exec_path))
+    //try the executableName as an absolute path, also try
+    //as an absolute path with .exe suffix if on windows
+    boost::filesystem::path mesher_path(executableName);
+#ifdef _WIN32
+    if(!boost::filesystem::is_regular_file(mesher_path))
+      {
+       boost::filesystem::path new_path(mesher_path);
+      new_path.replace_extension(".exe");
+      if(boost::filesystem::is_regular_file(new_path))
+        {
+        mesher_path = new_path;
+        }
+      }
+#endif
+
+    //fall back to looking based on the file we are parsing,
+    //as nothing else worked
+    if(!boost::filesystem::is_regular_file(mesher_path))
       {
       boost::filesystem::path new_path(file.parent_path());
       new_path /= mesher_path;
-    #ifdef _WIN32
+#ifdef _WIN32
       new_path.replace_extension(".exe");
-    #endif
-      exec_path = new_path;
+#endif
+      mesher_path = new_path;
       }
-    return remus::server::FactoryWorkerSpecification(exec_path, cmdline, environ, reqs);
+
+
+    return remus::server::FactoryWorkerSpecification(mesher_path, cmdline, environ, reqs);
   }
 }
 

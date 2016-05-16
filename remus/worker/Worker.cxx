@@ -133,7 +133,7 @@ Worker::~Worker()
     remus::proto::send_Message(this->MeshRequirements.meshTypes(),
                                remus::TERMINATE_WORKER,
                                &this->Zmq->Server);
-    }
+    } 
 }
 
 //-----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ remus::worker::PollingRates Worker::pollingRates() const
 //-----------------------------------------------------------------------------
 void Worker::askForJobs( unsigned int numberOfJobs )
 {
-  if(this->MessageRouter->valid())
+  if(this->MessageRouter->isForwardingToServer())
     {
     //next we send the MAKE_MESH call with the shorter version of the reqs,
     //which have none of the heavy data.
@@ -218,9 +218,10 @@ void Worker::updateStatus(const remus::proto::JobStatus& info)
 {
   if(this->MessageRouter->valid())
     {
-    //send a message that contains, the status
+    //We want to send status as non blocking so we don't waste cycles
+    //waiting to hear back from zmq that the message left its inbox
     std::string msg = remus::proto::to_string(info);
-    remus::proto::send_Message(this->MeshRequirements.meshTypes(),
+    remus::proto::send_NonBlockingMessage(this->MeshRequirements.meshTypes(),
                               remus::MESH_STATUS,
                               msg,
                               &this->Zmq->Server);

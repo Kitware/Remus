@@ -47,7 +47,9 @@ public:
 
   //checks to see if the MessageRouter is still forwarding worker messages
   //to the server. When a server stops brokering it tells workers to
-  //terminate. When that happens we still want
+  //terminate, and this status can be used to detect that occurance.
+  //It will still return true when a worker is not accepting messages
+  //from the server
   bool isForwardingToServer() const;
 
   //Will return true if the message router can start. Will return false
@@ -55,6 +57,9 @@ public:
   //or worker
   bool start(const remus::worker::ServerConnection& server_info,
              zmq::context_t& internal_inproc_context);
+
+  //Out of band way of stopping the MessageRouter.
+  void stop();
 
   //Returns the polling monitor, modifications of the returned object will
   //modify the message router instance.
