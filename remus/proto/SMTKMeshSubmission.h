@@ -20,6 +20,12 @@
 
 #include <remus/proto/ProtoExports.h>
 
+#include <remus/common/CompilerInformation.h>
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 namespace remus{
 namespace proto{
 
@@ -196,5 +202,10 @@ inline remus::proto::SMTKMeshSubmission to_SMTKMeshSubmission(const std::string&
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 
 #endif

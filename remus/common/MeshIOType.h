@@ -19,6 +19,10 @@
 
 #include <remus/common/CommonExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
 
 namespace remus {
 namespace common {
@@ -153,5 +157,9 @@ inline std::set< remus::common::MeshIOType > generateAllIOTypes()
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif // remus_common_MeshIOType_h

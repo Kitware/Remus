@@ -6,6 +6,12 @@
   PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+#include <remus/common/CompilerInformation.h>
+
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4996)
+#endif
 
 #include <remus/client/Client.h>
 #include <remus/server/PortNumbers.h>
@@ -273,3 +279,7 @@ int main ()
       };
     }
 }
+
+#ifdef REMUS_MSVC
+ #pragma warning(pop)
+#endif

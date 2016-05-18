@@ -44,10 +44,6 @@ REMUS_THIRDPARTY_POST_INCLUDE
 #include <set>
 #include <ctime>
 
-//initialize the static instance variable in signal catcher in the class
-//that inherits from it
-remus::common::SignalCatcher* remus::common::SignalCatcher::Instance = NULL;
-
 namespace remus{
 namespace server{
 namespace detail{

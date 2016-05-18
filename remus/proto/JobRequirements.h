@@ -29,6 +29,11 @@ REMUS_THIRDPARTY_POST_INCLUDE
 #include <string>
 #include <set>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 
 namespace  remus { namespace worker { class Worker; } }
 
@@ -231,5 +236,10 @@ inline remus::proto::JobRequirements to_JobRequirements(const std::string& msg)
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 
 #endif

@@ -28,6 +28,10 @@ REMUS_THIRDPARTY_POST_INCLUDE
 //included for export symbols
 #include <remus/server/ServerExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
 
 //forward declaration of classes only the implementation needs
 namespace zmq { struct SocketIdentity; }
@@ -251,5 +255,8 @@ protected:
 typedef remus::server::Server Server;
 }
 
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

@@ -20,6 +20,10 @@
 //included for export symbols
 #include <remus/worker/WorkerExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
 
 //forward declare the context
 namespace zmq { class context_t; }
@@ -90,5 +94,9 @@ ServerConnection::ServerConnection(zmq::socketInfo<T> const& socket):
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif // remus_ServerConnection_h

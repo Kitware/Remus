@@ -16,9 +16,6 @@
 
 #include <map>
 
-//initialize the static instance variable of the signal catcher
-remus::common::SignalCatcher* remus::common::SignalCatcher::Instance = NULL;
-
 namespace
 {
 struct SignalCatcherVerifier : private remus::common::SignalCatcher

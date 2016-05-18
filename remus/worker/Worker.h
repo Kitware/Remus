@@ -29,6 +29,11 @@
 //included for export symbols
 #include <remus/worker/WorkerExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 namespace remus{
 namespace worker{
   namespace detail
@@ -160,4 +165,9 @@ private:
 typedef remus::worker::Worker Worker;
 
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 #endif
