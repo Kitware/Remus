@@ -30,6 +30,11 @@
 //included for export symbols
 #include <remus/client/ClientExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 //The client class is used to submit meshing jobs to a remus server.
 //The class also allows you to query on the state of a given job and
 //to retrieve the results of the job when it is finished.
@@ -103,5 +108,9 @@ private:
 typedef remus::client::Client Client;
 
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

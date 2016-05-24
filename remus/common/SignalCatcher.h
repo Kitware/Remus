@@ -16,6 +16,8 @@
 #include <csignal>
 #include <cstddef>
 
+#include <remus/common/CommonExports.h>
+
 namespace remus{
 namespace common{
 
@@ -34,7 +36,7 @@ namespace common{
 //This class on purpose doesn't export it self with declspec symbols. The
 //reason is that this is a header only class and will be compiled into what
 //ever library uses it
-class SignalCatcher
+class REMUSCOMMON_EXPORT SignalCatcher
 {
 public:
   enum SignalType
@@ -44,49 +46,27 @@ public:
     TERMINATE=SIGTERM
   };
 
+  //If this class is watching signals we will invoke StopCatchingSignals
+  //when destroyed
+  virtual ~SignalCatcher();
+
 protected:
   static SignalCatcher* Instance;
 
   //Call this method to start watching csignals
-  //
-  void StartCatchingSignals()
-  {
-    remus::common::SignalCatcher::Instance = this;
+  void StartCatchingSignals();
 
-    //watch all signals that could cause the program to abnormally terminate
-    signal( SIGABRT, remus::common::SignalCatcher::SIGCallback );
-    signal( SIGINT,  remus::common::SignalCatcher::SIGCallback );
-    signal( SIGTERM, remus::common::SignalCatcher::SIGCallback );
-
-  }
-
-  void StopCatchingSignals()
-  {
-    //stop watching all signals that could cause the program to
-    //abnormally terminate
-    signal( SIGABRT, SIG_DFL );
-    signal( SIGINT,  SIG_DFL );
-    signal( SIGTERM, SIG_DFL );
-
-    remus::common::SignalCatcher::Instance = NULL;
-  }
+  //Call this method to stop watching csignals
+  void StopCatchingSignals();
 
   //method to override to pickup what signal was thrown
-  //
-  virtual void SignalCaught( SignalCatcher::SignalType )
-  {
-
-  }
-
+  virtual void SignalCaught( SignalCatcher::SignalType );
 
 private:
 
   //catches all signals we are watching and converts the signal type
   //to SignalCatcher::SignalType
-  //
-  static void SIGCallback( int sig )
-  { remus::common::SignalCatcher::Instance->SignalCaught( SignalCatcher::SignalType(sig) ); }
-
+  static void SIGCallback( int sig );
 };
 
 }

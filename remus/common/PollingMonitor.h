@@ -22,6 +22,11 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/common/CommonExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 namespace boost { namespace posix_time {  class ptime;  } }
 
 namespace remus{
@@ -103,5 +108,9 @@ private:
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

@@ -24,6 +24,12 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <string>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
+
 namespace zmq { class context_t; class socket_t; }
 
 namespace remus{
@@ -170,5 +176,9 @@ ServerPorts::ServerPorts(zmq::socketInfo<ClientType> const& c,
 //end namespaces
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

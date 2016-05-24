@@ -19,6 +19,13 @@
 
 #include <remus/common/CommonExports.h>
 
+#include <remus/common/CompilerInformation.h>
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
+
 //forward declare the systools
 
 namespace remus{
@@ -145,4 +152,9 @@ private:
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 #endif

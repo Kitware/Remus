@@ -32,6 +32,7 @@ set(srcs
     LocateFile.cxx
     MD5Hash.cxx
     MeshRegistrar.cxx
+    SignalCatcher.cxx
     SleepFor.cxx
     PollingMonitor.cxx
     Timer.cxx

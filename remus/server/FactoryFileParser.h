@@ -28,6 +28,12 @@ REMUS_THIRDPARTY_POST_INCLUDE
 #include <map>
 #include <vector>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
+
 namespace remus{
 namespace server{
 
@@ -116,4 +122,9 @@ public:
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 #endif

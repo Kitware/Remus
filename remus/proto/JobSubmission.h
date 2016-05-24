@@ -21,6 +21,10 @@
 
 #include <remus/proto/ProtoExports.h>
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
 
 namespace remus{
 namespace proto{
@@ -134,5 +138,9 @@ inline remus::proto::JobSubmission to_JobSubmission(const std::string& msg)
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

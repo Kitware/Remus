@@ -21,6 +21,11 @@ REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/scoped_ptr.hpp>
 REMUS_THIRDPARTY_POST_INCLUDE
 
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 namespace remus{
 namespace common{
 
@@ -58,5 +63,9 @@ private:
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
 
 #endif

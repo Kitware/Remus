@@ -26,6 +26,12 @@
 //included for export symbols
 #include <remus/proto/ProtoExports.h>
 
+#include <remus/common/CompilerInformation.h>
+#ifdef REMUS_MSVC
+ #pragma warning(push)
+ #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
+#endif
+
 //Job result holds the result that the worker generated for a given job.
 //The Data string will hold the actual job result, be it a file path or a custom
 //serialized data structure.
@@ -134,5 +140,10 @@ inline remus::proto::JobResult to_JobResult(const std::string& msg)
 
 }
 }
+
+#ifdef REMUS_MSVC
+  #pragma warning(pop)
+#endif
+
 
 #endif
