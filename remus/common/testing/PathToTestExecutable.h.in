@@ -18,13 +18,19 @@ struct ExampleApplication
 {
   std::string name;
 
-  ExampleApplication():
-#ifndef _WIN32
-    name("@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/TestExecutable")
-#else
-    name("@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/@CMAKE_CFG_INTDIR@/TestExecutable.exe")
-#endif
+  ExampleApplication()
   {
+    std::string path = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/";
+#ifdef CMAKE_INTDIR
+    //handle multi configuration generators
+    path += std::string(CMAKE_INTDIR) + "/";
+#endif
+
+#ifndef _WIN32
+    this->name = path + "TestExecutable";
+#else
+    this->name = path + "TestExecutable.exe";
+#endif
   }
 
 };
