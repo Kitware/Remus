@@ -188,9 +188,27 @@ namespace {
 #ifdef _WIN32
     if(!boost::filesystem::is_regular_file(mesher_path))
       {
-       boost::filesystem::path new_path(mesher_path);
+      boost::filesystem::path new_path(mesher_path);
       new_path.replace_extension(".exe");
       if(boost::filesystem::is_regular_file(new_path))
+        {
+        mesher_path = new_path;
+        }
+      }
+#endif
+
+    //handle if we are in a multi config cmake generator location
+    //since the provided path would be wrong
+#ifdef CMAKE_INTDIR
+    if(!boost::filesystem::is_regular_file(mesher_path))
+      {
+      boost::filesystem::path new_path = mesher_path.parent_path();
+      new_path /= std::string(CMAKE_INTDIR);
+      new_path /= mesher_path.filename();
+#ifdef _WIN32
+      new_path.replace_extension(".exe");
+#endif
+      if (boost::filesystem::is_regular_file(new_path))
         {
         mesher_path = new_path;
         }
@@ -208,7 +226,6 @@ namespace {
 #endif
       mesher_path = new_path;
       }
-
 
     return remus::server::FactoryWorkerSpecification(mesher_path, cmdline, environ, reqs);
   }
