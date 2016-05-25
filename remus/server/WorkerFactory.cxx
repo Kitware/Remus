@@ -27,7 +27,6 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
 
-
 namespace
 {
   //typedefs required
@@ -44,7 +43,10 @@ namespace
   struct support_MeshIOType
   {
     remus::common::MeshIOType Type;
-    support_MeshIOType(remus::common::MeshIOType type):Type(type){}
+    support_MeshIOType(remus::common::MeshIOType type):Type(type)
+      {
+      }
+
     bool operator()(const remus::server::FactoryWorkerSpecification& info)
       {
       return info.Requirements.meshTypes() == this->Type;
@@ -57,7 +59,9 @@ namespace
     remus::proto::JobRequirements& Requirements;
     support_JobReqs(remus::proto::JobRequirements& reqs):
       Requirements(reqs)
-    {}
+      {
+      }
+
     bool operator()(const remus::server::FactoryWorkerSpecification& info)
       {
       return info.Requirements == this->Requirements;
