@@ -46,7 +46,7 @@ void SleepForMillisec(int milliseconds)
   //We have detected c++11 support, so use c++11 thread features
   const std::chrono::milliseconds dura( milliseconds );
   std::this_thread::sleep_for( dura );
-#elif defined(_MSC_VER)
+#elif defined(REMUS_MSVC)
 
   //We are on older windows compilers, use Sleep
   Sleep(milliseconds);
