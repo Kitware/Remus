@@ -35,7 +35,7 @@ remus::server::detail::SocketMonitor make_Monitor( )
 {
   //make the timeouts on the poller to be 1 second for min and max, to make
   //checking for expiration far easier
-  remus::common::PollingMonitor poller(1,1);
+  remus::common::PollingMonitor poller(1000,1000);
   remus::server::detail::SocketMonitor sm(poller);
   return sm;
 }
