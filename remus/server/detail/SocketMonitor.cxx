@@ -29,6 +29,10 @@ class SocketMonitor::WorkerTracker
 
   struct BeatInfo
     {
+    BeatInfo(): Duration(), LastOccurrence()
+    {
+    }
+
     boost::int64_t Duration;
     ptime LastOccurrence;
     };
