@@ -63,6 +63,12 @@ public:
              const char* contents,
              std::size_t size);
 
+  JobContent(const JobContent&) = default;
+
+  JobContent& operator=(JobContent&& other);
+
+  JobContent& operator=(const JobContent&) = default;
+
   //returns if the source of the content is memory or a file
   remus::common::ContentSource::Type sourceType() const
     { return this->SourceType; }

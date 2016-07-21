@@ -92,6 +92,11 @@ public:
 
   //is true if all the response was sent, or all of the response was received.
   bool isValid() const { return Valid; }
+
+  Response(const Response&) = default;
+  Response& operator=(Response&& other);
+  Response& operator=(const Response&) = default;
+
 private:
 
   friend REMUSPROTO_EXPORT Response send_Response(remus::SERVICE_TYPE stype,

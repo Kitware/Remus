@@ -69,6 +69,12 @@ public:
             const char* contents,
             std::size_t size);
 
+  JobResult(const JobResult&) = default;
+
+  JobResult& operator=(JobResult&& other);
+
+  JobResult& operator=(const JobResult&) = default;
+
   //get the storage format that we currently have setup for the source
   remus::common::ContentFormat::Type formatType() const
     { return this->FormatType; }

@@ -100,6 +100,19 @@ Response::Response(zmq::socket_t* socket):
 }
 
 //------------------------------------------------------------------------------
+Response& Response::operator=(Response&& other)
+{
+  if (this != &other)
+  {
+    this->SType = other.SType;
+    this->Valid = other.Valid;
+    this->Storage = other.Storage;
+    other.Storage.reset();
+  }
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 const char* Response::data() const
 {
   return this->Storage ? static_cast<char*>(this->Storage->data()) : NULL;

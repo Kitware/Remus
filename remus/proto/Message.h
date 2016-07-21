@@ -109,6 +109,10 @@ public:
   //is true if all the message was sent, or all of the message was received.
   bool isValid() const { return Valid; }
 
+  Message(const Message&) = default;
+  Message& operator=(Message&& other);
+  Message& operator=(const Message&) = default;
+
 private:
   friend REMUSPROTO_EXPORT Message send_Message(remus::common::MeshIOType mtype,
                                                 remus::SERVICE_TYPE stype,

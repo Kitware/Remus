@@ -195,6 +195,20 @@ Message::Message(zmq::socket_t* socket):
   }
 
 //------------------------------------------------------------------------------
+Message& Message::operator=(Message&& other)
+{
+  if (this != &other)
+  {
+    this->MType = other.MType;
+    this->SType = other.SType;
+    this->Valid = other.Valid;
+    this->Storage = other.Storage;
+    other.Storage.reset();
+  }
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 const char* Message::data() const
 {
   return this->Storage ? static_cast<char*>(this->Storage->data()) : NULL;
