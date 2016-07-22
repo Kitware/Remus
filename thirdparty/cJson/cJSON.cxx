@@ -53,6 +53,9 @@
 # pragma warning(disable: 4267)
 #endif
 
+namespace remus
+{
+
 static const char *ep;
 
 const char *cJSON_GetErrorPtr(void) {return ep;}
@@ -615,6 +618,8 @@ void cJSON_Minify(char *json)
 	}
 	*into=0;	// and null-terminate.
 }
+
+} // namespace remus
 
 //reset our warnings to the original level
 #ifdef _MSC_VER
