@@ -50,7 +50,8 @@
   _Pragma("GCC diagnostic ignored \"-Wconversion\"") \
   _Pragma("GCC diagnostic ignored \"-Wshadow\"") \
   _Pragma("GCC diagnostic ignored \"-Wcast-align\"") \
-  _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")
+  _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"") \
+  _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 
 // Older versions of GCC don't support the push/pop pragmas. Right now we are
 // not checking for GCC 3 or earlier. I'm not sure we have a use case for that.
