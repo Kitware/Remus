@@ -44,7 +44,7 @@ list(APPEND CMAKE_MODULE_PATH "${Remus_SOURCE_DIR}/CMake")
 #------------------------------------------------------------------------------
 
 #ZeroMQ is used for all message passing between components.
-find_package(ZeroMQ REQUIRED)
+find_package(ZeroMQ 3.0 REQUIRED)
 
 #setup if we should use boost static libraries based on if we are
 #building static or shared. We need to match boosts library type to ours so
