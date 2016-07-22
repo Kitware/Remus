@@ -28,15 +28,14 @@ namespace proto{
 namespace worker{
   typedef remus::proto::WorkerJob Job;
   }
+
+struct cJSON;
 }
 
 namespace zmq
 {
   struct SocketIdentity;
 }
-
-//forward declare the cjson struct
-struct cJSON;
 
 #include <remus/proto/zmq.hpp>
 #include <remus/proto/EventTypes.h>

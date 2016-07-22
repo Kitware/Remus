@@ -21,6 +21,7 @@
 #include <fstream>
 
 namespace {
+  using namespace remus;
   //----------------------------------------------------------------------------
   std::string read_file(const boost::filesystem::path& file)
   {

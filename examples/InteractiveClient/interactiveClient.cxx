@@ -87,13 +87,14 @@ void monitorServer(remus::Client& client, const std::string& hostname)
       return;
       }
 
-    cJSON *root = cJSON_Parse( reinterpret_cast<char*>(data.data()) );
-    char *rendered = cJSON_Print(root);
+    remus::cJSON *root =
+      remus::cJSON_Parse( reinterpret_cast<char*>(data.data()) );
+    char *rendered = remus::cJSON_Print(root);
     std::cout << "key: " << keyStr << std::endl;
     std::cout << "value:" << (rendered ? rendered : "(empty)") << std::endl;
 
     free(rendered);
-    cJSON_Delete(root);
+    remus::cJSON_Delete(root);
     }
 }
 
