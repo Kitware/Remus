@@ -24,7 +24,9 @@
 #include <remus/worker/Job.h>
 #include <remus/worker/ServerConnection.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/scoped_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //included for export symbols
 #include <remus/worker/WorkerExports.h>

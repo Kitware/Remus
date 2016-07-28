@@ -14,7 +14,9 @@
 #include <remus/server/PortNumbers.h>
 #include <remus/proto/zmqHelper.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 
 //the one class that doesn't use zmq::bindToAddress as it is the only class

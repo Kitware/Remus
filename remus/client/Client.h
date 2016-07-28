@@ -13,7 +13,11 @@
 #ifndef remus_client_Client_h
 #define remus_client_Client_h
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/scoped_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/client/ServerConnection.h>
 

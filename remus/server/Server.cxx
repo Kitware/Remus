@@ -14,11 +14,10 @@
 
 REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/thread.hpp>
-REMUS_THIRDPARTY_POST_INCLUDE
-
 #include <boost/make_shared.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/proto/Job.h>
 #include <remus/proto/JobResult.h>

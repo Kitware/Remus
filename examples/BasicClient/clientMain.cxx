@@ -10,7 +10,11 @@
 #include <remus/common/Timer.h>
 #include <remus/testing/Testing.h>
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/cstdint.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <vector>
 #include <iostream>

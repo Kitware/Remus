@@ -15,7 +15,9 @@
 
 #include <remus/proto/zmqSocketInfo.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //included for export symbols
 #include <remus/worker/WorkerExports.h>

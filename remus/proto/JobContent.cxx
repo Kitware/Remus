@@ -16,7 +16,9 @@
 #include <remus/common/MD5Hash.h>
 #include <remus/common/ConversionHelper.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <sstream>
 #include <algorithm>

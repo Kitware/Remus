@@ -15,7 +15,9 @@
 
 #include <remus/testing/Testing.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/cstdint.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <string>
 #include <set>
