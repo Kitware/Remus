@@ -14,8 +14,14 @@
 #define remus_common_ConditionStorage_h
 
 #include <cstring> //for memcpy
+
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_array.hpp>
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <vector>
 
 

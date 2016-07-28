@@ -13,7 +13,11 @@
 #ifndef remus_server_detail_SocketMonitor_h
 #define remus_server_detail_SocketMonitor_h
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/proto/Message.h>
 #include <remus/proto/zmqSocketIdentity.h>

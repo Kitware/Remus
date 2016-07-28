@@ -23,7 +23,9 @@
 
 #include <remus/testing/Testing.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 using namespace remus::worker::detail;
 

@@ -20,7 +20,9 @@
 
 #include <remus/worker/Job.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <algorithm>
 #include <set>

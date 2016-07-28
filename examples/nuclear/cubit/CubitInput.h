@@ -18,8 +18,11 @@
 #include <sstream>
 
 #include <remus/worker/Job.h>
+#include <remus/common/CompilerInformation.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/algorithm/string.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 class CubitInput
 {
