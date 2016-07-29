@@ -113,14 +113,18 @@ extract_version_value("ZMQ_VERSION_PATCH" ${ZeroMQ_INCLUDE_DIR}/zmq.h PATCH)
 
 set(ZeroMQ_VER "${MAJOR}.${MINOR}.${PATCH}")
 
+#We are using the 2.8.10 signature of find_package_handle_standard_args,
+#as that is the version that ParaView 5.1 && VTK 6/7 ship, and inject
+#into the CMake module path. This allows our FindModule to work with
+#projects that include VTK/ParaView before searching for Remus
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
   ZeroMQ
-  FOUND_VAR ZeroMQ_FOUND
   REQUIRED_VARS ZeroMQ_LIBRARY ZeroMQ_INCLUDE_DIR
   VERSION_VAR ZeroMQ_VER
   )
 
+set(ZeroMQ_FOUND ${ZEROMQ_FOUND})
 set(ZeroMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
 set(ZeroMQ_LIBRARIES ${ZeroMQ_LIBRARY})
 set(ZeroMQ_VERSION ${ZeroMQ_VER})
