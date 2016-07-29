@@ -108,8 +108,7 @@ void terminate_blocking_workers(boost::shared_ptr<remus::Client> client,
   using namespace remus::proto;
 
   //compute the binary data once, and than make a JobContent that is a zero copy
-  //to keep the memory footprint low so we don't cause OOM issues on Travis
-  //dashboards.
+  //to keep the memory footprint low.
   const std::string binary_input = remus::testing::BinaryDataGenerator( binary_data_size );
   JobContent random_binary_content = JobContent(remus::common::ContentFormat::User,
                                                 binary_input.c_str(),
