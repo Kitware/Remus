@@ -62,7 +62,7 @@ public:
   template <typename D>
   explicit MeshRegistrar(D d)
     {
-    MeshRegistrar::registerMesh(d.name(), &D::create);
+    MeshRegistrar::record(d.name(), &D::create);
     }
 
   static std::size_t numberOfRegisteredTypes() {
@@ -87,7 +87,7 @@ public:
     }
 
 private:
-  static void registerMesh(std::string const & name, create_function_ptr fp)
+  static void record(std::string const & name, create_function_ptr fp)
     {
     NameRegistry()[name] = fp;
     }

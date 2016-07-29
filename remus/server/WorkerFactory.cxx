@@ -16,6 +16,7 @@
 #include <remus/common/ExecuteProcess.h>
 #include <remus/common/MeshIOType.h>
 #include <remus/server/FactoryFileParser.h>
+#include <remus/server/FactoryWorkerSpecification.h>
 #include <remus/server/detail/WorkerFinder.h>
 
 //force to use filesystem version 3

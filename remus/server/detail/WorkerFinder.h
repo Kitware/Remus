@@ -16,6 +16,7 @@
 #include <remus/proto/JobRequirements.h>
 #include <remus/common/CompilerInformation.h>
 #include <remus/server/FactoryFileParser.h>
+#include <remus/server/FactoryWorkerSpecification.h>
 
 //force to use filesystem version 3
 REMUS_THIRDPARTY_PRE_INCLUDE
