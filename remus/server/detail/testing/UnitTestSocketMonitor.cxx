@@ -16,7 +16,9 @@
 #include <remus/proto/zmqSocketIdentity.h>
 #include <remus/testing/Testing.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/lexical_cast.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace
 {

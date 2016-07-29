@@ -13,7 +13,12 @@
 #ifndef remus_proto_Job_h
 #define remus_proto_Job_h
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <remus/common/MeshIOType.h>
 
 //included for export symbols

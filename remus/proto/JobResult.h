@@ -15,18 +15,20 @@
 
 #include <string>
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
+#include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>
 #include <remus/common/FileHandle.h>
 
-#include <boost/uuid/uuid.hpp>
-
 //included for export symbols
 #include <remus/proto/ProtoExports.h>
 
-#include <remus/common/CompilerInformation.h>
 #ifdef REMUS_MSVC
  #pragma warning(push)
  #pragma warning(disable:4251)  /*dll-interface missing on stl type*/

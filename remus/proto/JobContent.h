@@ -14,7 +14,12 @@
 #define remus_proto_JobContent_h
 
 #include <string>
+
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 //for ContentFormat and ContentSource
 #include <remus/common/ContentTypes.h>

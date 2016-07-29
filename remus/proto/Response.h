@@ -13,7 +13,11 @@
 #ifndef remus_proto_Response_h
 #define remus_proto_Response_h
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/shared_ptr.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <remus/common/MeshIOType.h>
 #include <remus/common/ServiceTypes.h>

@@ -15,7 +15,9 @@
 
 #include <remus/common/MeshRegistrar.h>
 
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/algorithm/string/case_conv.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 namespace remus{
 namespace server{

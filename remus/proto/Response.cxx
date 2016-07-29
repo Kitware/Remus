@@ -12,7 +12,11 @@
 #include <remus/proto/Response.h>
 
 #include <remus/proto/zmqHelper.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <cstring>
 
 namespace remus{

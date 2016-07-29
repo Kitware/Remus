@@ -10,7 +10,12 @@
 //
 //=============================================================================
 
+#include <remus/common/CompilerInformation.h>
+
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/uuid/uuid.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <remus/proto/Job.h>
 
 #include <remus/testing/Testing.h>

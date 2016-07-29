@@ -53,6 +53,10 @@
   _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"") \
   _Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
 
+#define REMUS_THIRDPARTY_CLANG_WARNING_PRAGMAS \
+  _Pragma("clang diagnostic ignored \"-Wdeprecated-register\"")
+
+
 // Older versions of GCC don't support the push/pop pragmas. Right now we are
 // not checking for GCC 3 or earlier. I'm not sure we have a use case for that.
 #if defined(REMUS_GCC) && (__GNUC__ == 4 && __GNUC_MINOR__ < 6)
@@ -63,9 +67,16 @@
 #define REMUS_THRIDPARTY_WARNINGS_POP  _Pragma("GCC diagnostic pop")
 #endif
 
+#if defined (REMUS_GCC)
 #define REMUS_THIRDPARTY_PRE_INCLUDE \
   REMUS_THIRDPARTY_WARNINGS_PUSH \
   REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS
+#else /* clang takes GCC pragmas + additional pragmas */
+#define REMUS_THIRDPARTY_PRE_INCLUDE \
+  REMUS_THIRDPARTY_WARNINGS_PUSH \
+  REMUS_THIRDPARTY_GCC_WARNING_PRAGMAS \
+  REMUS_THIRDPARTY_CLANG_WARNING_PRAGMAS
+#endif
 #define REMUS_THIRDPARTY_POST_INCLUDE \
   REMUS_THRIDPARTY_WARNINGS_POP
 

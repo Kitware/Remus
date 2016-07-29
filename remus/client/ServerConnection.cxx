@@ -13,8 +13,11 @@
 #include <remus/client/ServerConnection.h>
 
 #include <assert.h>
+REMUS_THIRDPARTY_PRE_INCLUDE
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
+
 #include <remus/server/PortNumbers.h>
 #include <remus/proto/zmq.hpp>
 
