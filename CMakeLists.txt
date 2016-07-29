@@ -1,15 +1,4 @@
-cmake_minimum_required (VERSION 2.8.12)
-
-#setup policy rules for CMake 3.0 while we have a minimum required of 2.8.X
-if(POLICY CMP0025)
-  cmake_policy(SET CMP0025 NEW)#Clang and AppleClang are different compiler ids
-endif()
-
-#setup policy rules for CMake 3.1 while we have a minimum required of 2.8.X
-if(POLICY CMP0054)
-  cmake_policy(SET CMP0053 NEW)#Enable faster parser engine
-  cmake_policy(SET CMP0054 NEW)#simplify if() argument expansion
-endif()
+cmake_minimum_required (VERSION 3.1)
 
 #setup policy rules for CMake 3.3 while we have a minimum required of 2.8.X
 if(POLICY CMP0063)
