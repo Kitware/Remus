@@ -4,6 +4,7 @@ add_subdirectory(detail)
 
 set(headers
     FactoryFileParser.h
+    FactoryWorkerSpecification.h
     PortNumbers.h
     Server.h
     ServerPorts.h
@@ -19,6 +20,7 @@ set(server_srcs
    detail/WorkerFinder.cxx
    detail/WorkerPool.cxx
    FactoryFileParser.cxx
+   FactoryWorkerSpecification.cxx
    Server.cxx
    ServerPorts.cxx
    WorkerFactory.cxx

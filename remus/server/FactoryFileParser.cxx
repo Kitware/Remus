@@ -12,10 +12,17 @@
 
 #include <remus/server/FactoryFileParser.h>
 
+#include <remus/server/FactoryWorkerSpecification.h>
 #include <remus/common/CompilerInformation.h>
 
 //include cjson for parsing the mesh worker file
 #include "cJSON.h"
+
+//force to use filesystem version 3
+REMUS_THIRDPARTY_PRE_INCLUDE
+#define BOOST_FILESYSTEM_VERSION 3
+#include <boost/filesystem.hpp>
+REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <iostream>
 #include <fstream>

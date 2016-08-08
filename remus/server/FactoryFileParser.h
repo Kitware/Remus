@@ -16,99 +16,16 @@
 //included for export symbols
 #include <remus/server/ServerExports.h>
 
-#include <remus/common/CompilerInformation.h>
-#include <remus/proto/JobRequirements.h>
-
-//force to use filesystem version 3
-REMUS_THIRDPARTY_PRE_INCLUDE
-#define BOOST_FILESYSTEM_VERSION 3
-#include <boost/filesystem.hpp>
-REMUS_THIRDPARTY_POST_INCLUDE
-
-#include <map>
-#include <vector>
-
-#ifdef REMUS_MSVC
- #pragma warning(push)
- #pragma warning(disable:4251)  /*dll-interface missing on stl type*/
-#endif
-
+namespace boost{
+namespace filesystem{
+class path;
+}
+}
 
 namespace remus{
 namespace server{
 
-//struct that we use to represent the contents of a worker that the
-//factory can launch. Currently the ExtraCommandLineArguments and
-//EnvironmentVariables are ignored by the default WorkerFactory, but
-//exist to allow for better worker factories designed by users of remus
-struct REMUSSERVER_EXPORT FactoryWorkerSpecification
-{
-  remus::proto::JobRequirements Requirements;
-  boost::filesystem::path ExecutionPath;
-  std::vector< std::string > ExtraCommandLineArguments;
-  std::map< std::string, std::string > EnvironmentVariables;
-  bool isValid;
-
-  FactoryWorkerSpecification():
-    Requirements(),
-    ExecutionPath(),
-    ExtraCommandLineArguments(),
-    EnvironmentVariables(),
-    isValid(false)
-    {
-    }
-
-  FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
-                             const remus::proto::JobRequirements& r):
-    Requirements(r),
-    ExecutionPath(),
-    ExtraCommandLineArguments(),
-    EnvironmentVariables(),
-    isValid(false)
-    {
-    if(boost::filesystem::is_regular_file(exec_path))
-      {
-      //convert the exec_path into an absolute canonical path now
-      this->ExecutionPath = boost::filesystem::canonical(exec_path);
-      this->isValid = true;
-      }
-    }
-
-  FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
-                             const std::vector< std::string >& extra_args,
-                             const remus::proto::JobRequirements& r):
-    Requirements(r),
-    ExecutionPath(),
-    ExtraCommandLineArguments(extra_args),
-    EnvironmentVariables(),
-    isValid(false)
-    {
-    if(boost::filesystem::is_regular_file(exec_path))
-      {
-      //convert the exec_path into an absolute canonical path now
-      this->ExecutionPath = boost::filesystem::canonical(exec_path);
-      this->isValid = true;
-      }
-    }
-
-  FactoryWorkerSpecification(const boost::filesystem::path& exec_path,
-                             const std::vector< std::string >& extra_args,
-                             const std::map< std::string, std::string >& environment,
-                             const remus::proto::JobRequirements& r):
-    Requirements(r),
-    ExecutionPath(),
-    ExtraCommandLineArguments(extra_args),
-    EnvironmentVariables(environment),
-    isValid(false)
-    {
-    if(boost::filesystem::is_regular_file(exec_path))
-      {
-      //convert the exec_path into an absolute canonical path now
-      this->ExecutionPath = boost::filesystem::canonical(exec_path);
-      this->isValid = true;
-      }
-    }
-};
+struct FactoryWorkerSpecification;
 
 //Extensible class that determines how to parse the contents of a WorkerFactory
 //input file. Can
@@ -122,9 +39,5 @@ public:
 
 }
 }
-
-#ifdef REMUS_MSVC
-  #pragma warning(pop)
-#endif
 
 #endif
