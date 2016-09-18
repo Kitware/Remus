@@ -31,7 +31,6 @@ remus_install_library(RemusClient)
 remus_public_headers(${headers} ${protocol_headers})
 
 #setup the exports for the library when used from a build tree
-export(PACKAGE RemusClient)
 export(TARGETS RemusClient
                RemusProto
                RemusCommon

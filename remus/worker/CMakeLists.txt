@@ -56,7 +56,6 @@ remus_install_library(RemusWorker)
 remus_public_headers(${headers})
 
 #setup the exports for the library when used from a build tree
-export(PACKAGE RemusWorker)
 export(TARGETS RemusWorker RemusProto RemusCommon RemusSysTools
        FILE RemusWorker-exports.cmake)
 
