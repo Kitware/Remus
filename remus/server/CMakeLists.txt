@@ -54,7 +54,6 @@ remus_install_library(RemusServer)
 remus_public_headers(${headers})
 
 #setup the exports for the library when used from a build tree
-export(PACKAGE RemusServer)
 export(TARGETS RemusServer
                RemusProto
                RemusCommon
