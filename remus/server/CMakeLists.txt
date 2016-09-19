@@ -8,6 +8,7 @@ set(headers
     PortNumbers.h
     Server.h
     ServerPorts.h
+    ThreadWorkerFactory.h
     WorkerFactory.h
     WorkerFactoryBase.h
     )
@@ -23,6 +24,7 @@ set(server_srcs
    FactoryWorkerSpecification.cxx
    Server.cxx
    ServerPorts.cxx
+   ThreadWorkerFactory.cxx
    WorkerFactory.cxx
    WorkerFactoryBase.cxx
    )
