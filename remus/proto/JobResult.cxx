@@ -124,6 +124,20 @@ JobResult::JobResult(const boost::uuids::uuid& jid,
 }
 
 //------------------------------------------------------------------------------
+JobResult& JobResult::operator=(JobResult&& other)
+{
+  if (this != &other)
+  {
+    this->JobId = other.JobId;
+    this->FormatType = other.FormatType;
+
+    this->Implementation = other.Implementation;
+    other.Implementation.reset();
+  }
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 bool JobResult::valid() const
 {
   return this->Implementation->size() != 0;

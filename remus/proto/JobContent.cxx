@@ -22,6 +22,7 @@ REMUS_THIRDPARTY_POST_INCLUDE
 
 #include <sstream>
 #include <algorithm>
+#include <utility>
 
 namespace remus{
 namespace proto{
@@ -172,6 +173,21 @@ JobContent::JobContent(remus::common::ContentFormat::Type format,
   //make_shared is significantly faster than using manual new
 {
 
+}
+
+//------------------------------------------------------------------------------
+JobContent& JobContent::operator=(JobContent&& other)
+{
+  if (this != &other)
+  {
+    this->SourceType = other.SourceType;
+    this->FormatType = other.FormatType;
+    this->Tag = std::move(other.Tag);
+
+    this->Implementation = other.Implementation;
+    other.Implementation.reset();
+  }
+  return *this;
 }
 
 //------------------------------------------------------------------------------
