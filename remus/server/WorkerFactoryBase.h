@@ -63,18 +63,6 @@ public:
 
   virtual ~WorkerFactoryBase();
 
-  //add command line argument to be passed to all workers that
-  //are created.
-  void addCommandLineArgument(const std::string& argument)
-    { this->GlobalCommandLineArguments.push_back(argument); }
-
-  const std::vector< std::string >& commandLineArguments() const
-    { return this->GlobalCommandLineArguments; }
-
-  //remove all command line arguments to be passed to all workers
-  //that the factory creates
-  void clearCommandLineArguments();
-
   //specify the port/endpoint that workers need to use to connect to the
   //running server
   void portForWorkersToUse(const remus::server::PortConnection& port);
@@ -97,15 +85,13 @@ public:
   virtual void updateWorkerCount() = 0;
 
   //Set the maximum number of total workers that can be returning at once
-  void setMaxWorkerCount(unsigned int count){MaxWorkers = count;}
-  unsigned int maxWorkerCount() const {return MaxWorkers;}
+  virtual void setMaxWorkerCount(unsigned int count){MaxWorkers = count;}
+  virtual unsigned int maxWorkerCount() const {return MaxWorkers;}
   virtual unsigned int currentWorkerCount() const =0;
 
 private:
   unsigned int MaxWorkers;
   std::string WorkerEndpoint;
-
-  std::vector<std::string> GlobalCommandLineArguments;
 };
 
 }

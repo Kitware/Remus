@@ -185,6 +185,7 @@ struct WorkerFactory::WorkerTracker
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory():
   WorkerFactoryBase(),
+  GlobalCommandLineArguments(),
   WorkerExtension(".RW"),
   Parser( boost::make_shared<FactoryFileParser>() ),
   Tracker(boost::make_shared<WorkerTracker>())
@@ -201,6 +202,7 @@ WorkerFactory::WorkerFactory():
 //----------------------------------------------------------------------------
 WorkerFactory::WorkerFactory(const std::string& ext):
   WorkerFactoryBase(),
+  GlobalCommandLineArguments(),
   WorkerExtension(ext),
   Parser( boost::make_shared<FactoryFileParser>() ),
   Tracker(boost::make_shared<WorkerTracker>())
@@ -217,6 +219,7 @@ WorkerFactory::WorkerFactory(const std::string& ext):
 WorkerFactory::WorkerFactory(const std::string& ext,
                              boost::shared_ptr<FactoryFileParser>& parser):
   WorkerFactoryBase(),
+  GlobalCommandLineArguments(),
   WorkerExtension(ext),
   Parser( parser ),
   Tracker(boost::make_shared<WorkerTracker>())

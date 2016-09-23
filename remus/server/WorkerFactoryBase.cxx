@@ -21,8 +21,7 @@ namespace server{
 //----------------------------------------------------------------------------
 WorkerFactoryBase::WorkerFactoryBase():
   MaxWorkers(1),
-  WorkerEndpoint(),
-  GlobalCommandLineArguments()
+  WorkerEndpoint()
 {
 
 }

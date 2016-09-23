@@ -54,6 +54,18 @@ public:
 
   virtual ~WorkerFactory();
 
+  //add command line argument to be passed to all workers that
+  //are created.
+  void addCommandLineArgument(const std::string& argument)
+    { this->GlobalCommandLineArguments.push_back(argument); }
+
+  const std::vector< std::string >& commandLineArguments() const
+    { return this->GlobalCommandLineArguments; }
+
+  //remove all command line arguments to be passed to all workers
+  //that the factory creates
+  void clearCommandLineArguments();
+
   //add a path to search for workers.
   //by default we only search the current working directory
   void addWorkerSearchDirectory(const std::string& directory);
@@ -92,6 +104,8 @@ private:
   virtual bool addWorker(
     const FactoryWorkerSpecification& worker,
     WorkerFactoryBase::FactoryDeletionBehavior lifespan);
+
+  std::vector<std::string> GlobalCommandLineArguments;
 
   std::string WorkerExtension;
 
