@@ -173,7 +173,7 @@ namespace {
       }
 
     // Add environment variables
-    std::map< std::string, std::string > environ;
+    std::map< std::string, std::string > env;
     cJSON* envobj = cJSON_GetObjectItem(root, "Environment");
     if (envobj && envobj->type == cJSON_Object)
       {
@@ -185,7 +185,7 @@ namespace {
           oneenv->valuestring[0] &&
           oneenv->string &&
           oneenv->string[0])
-          environ[oneenv->string] = oneenv->valuestring;
+          env[oneenv->string] = oneenv->valuestring;
       }
 
     cJSON_Delete(root);
@@ -235,7 +235,7 @@ namespace {
       mesher_path = new_path;
       }
 
-    return remus::server::FactoryWorkerSpecification(mesher_path, cmdline, environ, reqs);
+    return remus::server::FactoryWorkerSpecification(mesher_path, cmdline, env, reqs);
   }
 }
 
