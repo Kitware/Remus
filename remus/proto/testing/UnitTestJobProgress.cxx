@@ -40,16 +40,8 @@ void state_test()
   JobProgress progress_zero(remus::IN_PROGRESS);
   REMUS_ASSERT( (progress_zero != invalid) );
 
-  JobProgress progress_one(0);
-  REMUS_ASSERT( (progress_zero != invalid) );
-
-  //explicit setting a progress value means it must be 1 to 100
-  //while setting the status to IN_PROGRESS just mean set progress
-  //value to 0
-  REMUS_ASSERT( (progress_one != progress_zero) );
-
   JobProgress progress_negative(-1);
-  REMUS_ASSERT( (progress_negative == progress_one) );
+  REMUS_ASSERT( (progress_negative == progress_zero) );
 
   JobProgress progress_200(200);
   REMUS_ASSERT( (progress_200.value() == 100) );
@@ -67,8 +59,8 @@ void state_test()
   REMUS_ASSERT( (progress_msg.message() == "hello") );
 
   JobProgress progress_msg_negative(-1,progress_msg.message());
-  REMUS_ASSERT( (progress_msg_negative != progress_msg) );
-  REMUS_ASSERT( (progress_msg_negative.value() == 1) );
+  REMUS_ASSERT( (progress_msg_negative == progress_msg) );
+  REMUS_ASSERT( (progress_msg_negative.value() == 0) );
   REMUS_ASSERT( (progress_msg_negative.message() == progress_msg.message()) );
 
   JobProgress progress_msg_200(200,progress_msg.message());

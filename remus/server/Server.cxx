@@ -603,8 +603,10 @@ std::string Server::meshStatus(const remus::proto::Message& msg)
   else if(this->ActiveJobs->haveUUID(job.id()))
     {
     js = this->ActiveJobs->status(job.id());
+    this->ActiveJobs->clearStatus(job.id());
     }
-  return remus::proto::to_string(js);
+  std::string status = remus::proto::to_string(js);
+  return status;
 }
 
 //------------------------------------------------------------------------------

@@ -236,12 +236,19 @@ void verify_updating_progress()
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
   REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 19) );
-  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text v2" ) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text\nrandom text v2" ) );
 
   //lets go backwards in progress and remove the text, this should work
   wjs.updateProgress( remus::proto::JobProgress(2));
   REMUS_ASSERT( (wjs.inProgress() == true) );
   jobs.updateStatus(wjs);
+
+  REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 2) );
+  REMUS_ASSERT( (jobs.status(uuid_used).progress().message() == "random text\nrandom text v2" ) );
+
+  //lets clear the status and make sure that the status message is erased
+  jobs.clearStatus(wjs.id());
 
   REMUS_ASSERT( (jobs.status(uuid_used).inProgress() == true) );
   REMUS_ASSERT( (jobs.status(uuid_used).progress().value() == 2) );

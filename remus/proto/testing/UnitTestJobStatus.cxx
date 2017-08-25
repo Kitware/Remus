@@ -255,7 +255,7 @@ void valid_test()
 void make_functions()
 {
   JobStatus a = make_JobStatus(make_id(), -25);
-  REMUS_ASSERT( (a.progress().value() == 1) );
+  REMUS_ASSERT( (a.progress().value() == 0) );
   REMUS_ASSERT( (a.inProgress() == true) );
 
   JobStatus b = make_JobStatus(make_id(), 25);

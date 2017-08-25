@@ -56,7 +56,7 @@ JobProgress::JobProgress(int v, const std::string& msg):
 int JobProgress::valid_progress_value(int v)
 {
   v = std::min<int>(v,100);
-  v = std::max<int>(v,1);
+  v = std::max<int>(v,0);
   return v;
 }
 

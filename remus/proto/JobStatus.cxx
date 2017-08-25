@@ -16,6 +16,8 @@
 
 #include <sstream>
 
+#include <iostream>
+
 namespace remus {
 namespace proto {
 
@@ -39,10 +41,24 @@ JobStatus::JobStatus(const boost::uuids::uuid& jid,
 }
 
 //------------------------------------------------------------------------------
+void JobStatus::mergeStatus( const remus::proto::JobStatus& status )
+{
+  this->Status = status.Status;
+  this->Progress.setValue(status.Progress.value());
+  this->Progress.appendMessage(status.Progress.message());
+}
+
+//------------------------------------------------------------------------------
 void JobStatus::updateProgress( const remus::proto::JobProgress& prog )
 {
   this->Status = remus::IN_PROGRESS;
   this->Progress = prog;
+}
+
+//------------------------------------------------------------------------------
+void JobStatus::clearProgress()
+{
+  this->Progress.setMessage("");
 }
 
 //------------------------------------------------------------------------------
