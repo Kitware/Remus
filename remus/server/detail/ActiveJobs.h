@@ -46,6 +46,9 @@ class ActiveJobs
     //returns a worker side job status object for a job
     const remus::proto::JobStatus& status(const boost::uuids::uuid& id);
 
+    //clears status for a job
+    void clearStatus(const boost::uuids::uuid& id);
+
     //returns a worker side job result object for a job
     const remus::proto::JobResult& result(const boost::uuids::uuid& id);
 

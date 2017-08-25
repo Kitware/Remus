@@ -105,6 +105,13 @@ const remus::proto::JobStatus& ActiveJobs::status(
 }
 
 //-----------------------------------------------------------------------------
+void ActiveJobs::clearStatus(const boost::uuids::uuid& id)
+{
+  InfoIt item = this->Info.find(id);
+  item->second.jstatus.clearProgress();
+}
+
+//-----------------------------------------------------------------------------
 const remus::proto::JobResult& ActiveJobs::result(
     const boost::uuids::uuid& id)
 {
@@ -121,8 +128,8 @@ void ActiveJobs::updateStatus(const remus::proto::JobStatus& s)
     {
     //we don't want the worker to ever explicitly state it has finished the
     //job. That is why we use canUpdateStatusTo, which checks the status
-    //we are moving too
-    item->second.jstatus = s;
+    //we are moving to
+    item->second.jstatus.mergeStatus(s);
     }
 }
 

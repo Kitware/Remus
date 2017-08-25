@@ -45,8 +45,14 @@ public:
   const remus::proto::JobProgress& progress() const
     { return this->Progress; }
 
+  //merge the status of the status object
+  void mergeStatus( const remus::proto::JobStatus& status );
+
   //update the progress values of the status object
   void updateProgress( const remus::proto::JobProgress& prog );
+
+  //clear the progress values of the status object
+  void clearProgress();
 
   //returns true if the job is still running on the worker
   bool inProgress() const

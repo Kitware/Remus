@@ -60,6 +60,8 @@ public:
     { Value = JobProgress::valid_progress_value(v); }
   void setMessage(const std::string& msg)
     { Message = msg; }
+  void appendMessage(const std::string& msg)
+    { Message += (Message.empty() || msg.empty() ? "" : "\n") + msg; }
 
   //make sure that we can't set progress to be outside the valid range.
   int valid_progress_value(int v);
