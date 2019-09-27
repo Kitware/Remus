@@ -42,7 +42,7 @@ set(srcs
 add_library(RemusCommon ${srcs} ${headers})
 target_link_libraries(RemusCommon
                       LINK_PRIVATE RemusSysTools ${Boost_LIBRARIES}
-                      )
+)
 target_include_directories(RemusCommon
                            PUBLIC  ${Boost_INCLUDE_DIRS}
                                    $<BUILD_INTERFACE:${Remus_SOURCE_DIR}>
@@ -50,6 +50,10 @@ target_include_directories(RemusCommon
                                    $<INSTALL_INTERFACE:include>
                            PRIVATE ${RemusSysTools_BINARY_DIR} )
 
+if (WIN32)
+  # Work around a boost 1.71.0 bug that omits bcrypt dependency:
+  target_compile_definitions(RemusCommon PUBLIC BOOST_UUID_FORCE_AUTO_LINK=1)
+endif()
 if(APPLE)
   #needed for LocateFile
   find_library(COREFOUNDATION_LIBRARY CoreFoundation )
