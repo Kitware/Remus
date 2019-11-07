@@ -75,6 +75,8 @@ if(WIN32)
   find_package(Boost 1.48.0
                COMPONENTS thread chrono filesystem system date_time REQUIRED)
   add_definitions(-DBOOST_ALL_NO_LIB)
+  # Boost 1.70 and above need autolinking help from BoostConfig.cmake.
+  add_definitions(-DBOOST_UUID_FORCE_AUTO_LINK)
 else()
   find_package(Boost 1.45.0
                COMPONENTS thread filesystem system date_time REQUIRED)
